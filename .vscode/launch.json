@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible Node.js debug attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "debug-ace-wsl",
+            "program": "${workspaceFolder}/src/ace.ts",
+            "stopOnEntry": false,
+            "args": [
+                "Generate:Author", // 这里可以是任意命令
+                "404-Page-Not-found" // 拿自己的账号测试
+            ],
+            "useWSL": true, // windows 使用WSL进行调试
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "sourceMaps": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        }
+    ]
+}
