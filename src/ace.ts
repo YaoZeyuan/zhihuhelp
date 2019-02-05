@@ -14,6 +14,7 @@ const registedCommandList = [
     "./command/demo", //  命令demo
     "./command/init_env", //  初始化运行环境
     "./command/fetch/author_answer", //  按用户抓取回答
+    "./command/fetch/column", //  按专栏抓取回答
     "./command/generate/author_answer", //  按用户生成电子书
 ];
 // register commands

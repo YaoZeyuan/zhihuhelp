@@ -23,21 +23,32 @@ class FetchAuthor extends Base {
         const { columnId } = args;
         this.log(`开始抓取专栏${columnId}的数据`);
         this.log(`获取专栏信息`);
-        const authorInfo = await AuthorApi.asyncGetAutherInfo(columnId);
-        await MAuthor.asyncReplaceAuthor(authorInfo)
-        this.log(`用户信息获取完毕`);
-        const name = authorInfo.name
-        const answerCount = authorInfo.answer_count
-        this.log(`用户${name}(${columnId})共有${answerCount}个回答`)
-        this.log(`开始抓取回答列表`)
-        for (let offset = 0; offset < answerCount; offset = offset + this.max) {
-            let answerList = await AnswerApi.asyncGetAutherAnswerList(columnId, offset, this.max)
-            for (let answer of answerList) {
-                await MAnswer.asyncReplaceAnswer(answer)
+        const columnInfo = await ColumnApi.asyncGetColumnInfo(columnId);
+        await MColumn.asyncReplaceColumnInfo(columnInfo)
+        this.log(`专栏信息获取完毕`);
+        const title = columnInfo.title
+        const articleCount = columnInfo.articles_count
+        this.log(`专栏${title}(${columnId})下共有${articleCount}篇文章`)
+        this.log(`开始抓取文章概要列表`)
+        for (let offset = 0; offset < articleCount; offset = offset + this.max) {
+            let articleExpertList = await ColumnApi.asyncGetAtricleExcerptList(columnId, offset, this.max)
+            for (let articleExpert of articleExpertList) {
+                await MColumn.asyncReplaceColumnAtricleExcerpt(columnId, articleExpert)
             }
-            this.log(`第${offset}~${offset + this.max}条回答抓取完毕`)
+            this.log(`第${offset}~${offset + this.max}篇文章概要抓取完毕`)
         }
-        this.log(`全部回答抓取完毕`)
+        let articleExpertList = await MColumn.asyncGetArticleExcerptList(columnId)
+        this.log(`开始抓取文章详情`)
+        let index = 0
+        for (let articleExpert of articleExpertList) {
+            index++
+            this.log(`开始抓取第${index}/${articleExpertList.length}篇文章`)
+            let articleId = articleExpert.id
+            columnId
+            let articleRecord = await ArticleApi.asyncGetArticle(articleId)
+            await MAtricle.asyncReplaceArticle(articleRecord)
+        }
+        this.log(`全部文章抓取完毕`)
     }
 
 }

@@ -28,7 +28,7 @@ class Base {
             valueList.push(_.get(data, [key], ''))
         }
         let rawSql = `
-        REPLACE INTO ${this.TABLE_NAME} (${columnList.join(',')}) VALUES (${markList.join(',')})
+        REPLACE INTO ${tableName} (${columnList.join(',')}) VALUES (${markList.join(',')})
         `
         return Knex.raw(rawSql, valueList);
     }

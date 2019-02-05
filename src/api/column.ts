@@ -15,7 +15,7 @@ class Column extends Base {
         const record = await Base.http.get(baseUrl, {
             params: config
         });
-        const columnInfo = _.get(record, ["data"], {});
+        const columnInfo = record;
         return columnInfo;
     }
 
