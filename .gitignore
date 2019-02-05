@@ -42,5 +42,9 @@ dist/**/*
 #   缓存文件
 缓存文件/**/*
 
+#   配置文件
+.vscode
+.idea
+
 *.sqlite
 *.sqlite3
