@@ -10,7 +10,6 @@ class Author extends Base {
         `raw_json`,
     ]
 
-    static PRIMARY_KEY = `id`
 
     /**
      * 从数据库中获取用户信息

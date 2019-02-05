@@ -18,7 +18,7 @@ class Base {
      * 手工拼接replaceInto语句
      * @param{object} data 
      */
-    static replaceInto(data: object) {
+    static replaceInto(data: object, tableName = this.TABLE_NAME) {
         let columnList = []
         let markList = []
         let valueList = []

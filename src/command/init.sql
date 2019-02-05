@@ -10,17 +10,27 @@ CREATE TABLE  IF NOT EXISTS `Answer` (
 
 
 CREATE TABLE  IF NOT EXISTS `Article` (
-  `id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
+  `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
+  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
   --- 专栏文章表
   PRIMARY KEY (`id`)
 ) ; 
 
 
-
 CREATE TABLE  IF NOT EXISTS `Column` (
   `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
+  --- 专栏信息表
+  PRIMARY KEY (`column_id`)
+) ; 
+
+
+CREATE TABLE  IF NOT EXISTS `ColumnArticleExcerpt` (
+  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
+  `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
+  `raw_json` json, --- COMMENT '原始响应json'
+  --- 专栏文章摘要列表(用于获取专栏列表)
   PRIMARY KEY (`column_id`)
 ) ; 
 

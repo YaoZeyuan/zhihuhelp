@@ -16,7 +16,7 @@ class FetchAuthor extends Base {
         return `
         Generate:Author
 
-        {account:[必选]用户账户名}
+        {account:[必传]用户账户名}
         `;
     }
 

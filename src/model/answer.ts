@@ -13,12 +13,10 @@ class Answer extends Base {
         `raw_json`
     ]
 
-    static PRIMARY_KEY = `id`
-
     /**
-  * 从数据库中获取用户信息
-  * @param urlToken 
-  */
+     * 从数据库中获取用户信息
+     * @param urlToken 
+     */
     static async asyncGetAnswerList(urlToken: string): Promise<Array<AnswerRecord>> {
         let recordList = await this.db
             .select(this.TABLE_COLUMN)
