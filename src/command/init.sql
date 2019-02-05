@@ -14,7 +14,7 @@ CREATE TABLE  IF NOT EXISTS `Article` (
   `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
   --- 专栏文章表
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`article_id`)
 ) ; 
 
 
@@ -31,7 +31,7 @@ CREATE TABLE  IF NOT EXISTS `ColumnArticleExcerpt` (
   `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
   `raw_json` json, --- COMMENT '原始响应json'
   --- 专栏文章摘要列表(用于获取专栏列表)
-  PRIMARY KEY (`column_id`)
+  PRIMARY KEY (`column_id`, `article_id`)
 ) ; 
 
 
