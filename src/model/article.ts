@@ -2,8 +2,8 @@ import Base from '~/src/model/base'
 import ArticleRecord from '~/src/type/model/article'
 import _ from 'lodash'
 
-class Atricle extends Base {
-    static TABLE_NAME = `Atricle`
+class Article extends Base {
+    static TABLE_NAME = `Article`
     static TABLE_COLUMN = [
         `article_id`,
         `column_id`,
@@ -75,4 +75,4 @@ class Atricle extends Base {
     }
 }
 
-export default Atricle
+export default Article

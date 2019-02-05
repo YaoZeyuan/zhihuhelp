@@ -23,7 +23,7 @@ class Column extends Base {
      * 获取专栏信息
      * @param columnId
      */
-    static async asyncGetAtricleExcerptList(columnId: string, offset = 0, limit = 10): Promise<Array<ArticleExcerptRecord>> {
+    static async asyncGetArticleExcerptList(columnId: string, offset = 0, limit = 10): Promise<Array<ArticleExcerptRecord>> {
         const baseUrl = `https://zhuanlan.zhihu.com/api2/columns/${columnId}/articles`;
         const config = {
             offset,
@@ -32,8 +32,8 @@ class Column extends Base {
         const record = await Base.http.get(baseUrl, {
             params: config
         });
-        const atricleExcerptList = _.get(record, ["data"], {});
-        return atricleExcerptList;
+        const articleExcerptList = _.get(record, ["data"], {});
+        return articleExcerptList;
     }
 }
 export default Column;

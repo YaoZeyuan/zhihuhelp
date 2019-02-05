@@ -83,7 +83,7 @@ class Column extends Base {
      * 存储专栏文章列表数据
      * @param columnRecord 
      */
-    static async asyncReplaceColumnAtricleExcerpt(columnId: string, articleExcerptRecord: ArticleExcerptRecord): Promise<void> {
+    static async asyncReplaceColumnArticleExcerpt(columnId: string, articleExcerptRecord: ArticleExcerptRecord): Promise<void> {
         let raw_json = JSON.stringify(articleExcerptRecord)
         let articleId = articleExcerptRecord.id
         await this.replaceInto({

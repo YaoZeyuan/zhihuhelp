@@ -14,7 +14,7 @@ class Article extends Base {
         const record = await Base.http.get(baseUrl, {
             params: config
         });
-        const articleRecord = _.get(record, ["data"], {});
+        const articleRecord = record;
         return articleRecord;
     }
 }
