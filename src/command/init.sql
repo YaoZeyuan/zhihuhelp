@@ -19,7 +19,7 @@ CREATE TABLE  IF NOT EXISTS `Article` (
 
 
 CREATE TABLE  IF NOT EXISTS `Column` (
-  `id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
+  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
   PRIMARY KEY (`column_id`)
 ) ; 
