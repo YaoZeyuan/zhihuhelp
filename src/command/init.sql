@@ -4,21 +4,33 @@ CREATE TABLE  IF NOT EXISTS `Answer` (
   `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
   `question_id` varchar(30) NOT NULL , ---- COMMENT '问题id',
   `raw_json` text, --- COMMENT '原始响应json'
+  --- 回答记录表
   PRIMARY KEY (`id`)
 ) ; 
 
 
 CREATE TABLE  IF NOT EXISTS `Article` (
   `id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
-  `raw_json` text, --- COMMENT '原始响应json'
+  `raw_json` json, --- COMMENT '原始响应json'
+  --- 专栏文章表
   PRIMARY KEY (`id`)
 ) ; 
+
+
+
+CREATE TABLE  IF NOT EXISTS `Column` (
+  `id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
+  `raw_json` json, --- COMMENT '原始响应json'
+  PRIMARY KEY (`column_id`)
+) ; 
+
 
 
 CREATE TABLE  IF NOT EXISTS `Author` (
   `id` varchar(100) NOT NULL DEFAULT '' , ---- COMMENT 'hash_id',
   `url_token` varchar(200) NOT NULL , ---- COMMENT '用户主页id.随时可能会更换',
   `raw_json` text, --- COMMENT '原始响应json'
+  --- 作者信息表
   PRIMARY KEY (`id`)
 ) ; 
 
