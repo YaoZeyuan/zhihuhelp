@@ -16,6 +16,7 @@ const registedCommandList = [
     "./command/fetch/author_answer", //  按用户抓取回答
     "./command/fetch/column", //  按专栏抓取回答
     "./command/generate/author_answer", //  按用户生成电子书
+    "./command/generate/column", //  按专栏生成电子书
 ];
 // register commands
 for (const command of registedCommandList) {

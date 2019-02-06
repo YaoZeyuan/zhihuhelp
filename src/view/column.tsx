@@ -1,18 +1,17 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import AnswerRecord from "~/src/type/model/answer";
-import AuthorRecord from "~/src/type/model/author";
+import ArticleRecord from "~/src/type/model/article";
+import ColumnRecord from "~/src/type/model/column";
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 
-
-function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList: Array<AnswerRecord>) {
-    let questionList = []
+function renderColumn(title: string, columnInfo: ColumnRecord, articleRecordList: Array<ArticleRecord>) {
+    let articleList = []
     let index = 0
-    for (let answerRecord of answerRecordList) {
+    for (let articleRecord of articleRecordList) {
         index++
-        logger.log(`渲染第${index}/${answerRecordList.length}个回答`)
+        logger.log(`渲染第${index}/${articleRecordList.length}篇文章`)
         const answer = (
             <div>
                 <div className="answer">
@@ -20,14 +19,14 @@ function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList:
                         <div className="author-info">
                             <div className="author-base">
                                 <div className="author-logo">
-                                    <img src={answerRecord.author.avatar_url} width="25" height="25"></img>
+                                    <img src={articleRecord.author.avatar_url} width="25" height="25"></img>
                                 </div>
 
                                 <span className="author-name">
-                                    <a href={`http://www.zhihu.com/people/${answerRecord.author.id}`}>{answerRecord.author.name}</a>
+                                    <a href={`http://www.zhihu.com/people/${articleRecord.author.id}`}>{articleRecord.author.name}</a>
                                 </span>
 
-                                <span className="author-sign">{answerRecord.author.headline}</span>
+                                <span className="author-sign">{articleRecord.author.headline}</span>
                             </div>
 
                             <div className="clear-float"></div>
@@ -35,16 +34,16 @@ function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList:
                     </div>
 
                     <div className="content" >
-                        <div dangerouslySetInnerHTML={{ __html: answerRecord.content }} />
+                        <div dangerouslySetInnerHTML={{ __html: articleRecord.content }} />
                     </div>
 
                     <div className="comment">
                         <div className="extra-info">
-                            <p className="comment">评论数:{answerRecord.comment_count}</p>
+                            <p className="comment">评论数:{articleRecord.comment_count}</p>
 
-                            <p className="agree">赞同数:{answerRecord.voteup_count}</p>
+                            <p className="agree">赞同数:{articleRecord.voteup_count}</p>
 
-                            <p className="update-date">更新时间:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DISPLAY_BY_SECOND)}</p>
+                            <p className="update-date">更新时间:{moment.unix(articleRecord.updated).format(DATE_FORMAT.DISPLAY_BY_SECOND)}</p>
                         </div>
                     </div>
                 </div>
@@ -53,13 +52,14 @@ function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList:
             </div>
         )
         const question = (
-            <div key={answerRecord.id}>
+            <div key={articleRecord.id}>
                 <div className="bg-zhihu-blue-light">
                     <div className="title-image">
+                        <img src={articleRecord.title_image}></img>
                     </div>
                     <div className="question bg-zhihu-blue-light">
                         <div className="question-title">
-                            <h1 className="bg-zhihu-blue-deep">{answerRecord.question.title}</h1>
+                            <h1 className="bg-zhihu-blue-deep">{articleRecord.title}</h1>
                         </div>
                         <div className="clear-float"></div>
                     </div>
@@ -72,7 +72,7 @@ function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList:
                 </div>
             </div>
         )
-        questionList.push(question)
+        articleList.push(question)
     }
 
     const base = (
@@ -85,11 +85,11 @@ function renderAnswer(title: string, authorInfo: AuthorRecord, answerRecordList:
                 <link rel="stylesheet" type="text/css" href="./css/customer.css" />
             </head>
             <body>
-                {questionList}
+                {articleList}
             </body>
         </html>
     )
     return ReactDomServer.renderToString(base)
 }
 
-export default renderAnswer
+export default renderColumn

@@ -9,7 +9,7 @@ import shelljs from 'shelljs'
 import PathConfig from '~/src/config/path'
 import StringUtil from '~/src/library/util/string'
 
-class FetchAuthor extends Base {
+class GenerateAuthor extends Base {
     max = 20
 
     static get signature() {
@@ -53,9 +53,10 @@ class FetchAuthor extends Base {
         this.log(`回答列表获取完毕, 共${answerRecordList.length}条答案`)
         // 直接渲染为单个文件
         let content = renderAnswer(bookname, authorInfo, answerRecordList)
+        this.log(`回答渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${bookname}.html`), content)
-        this.log(`回答列表处理完毕`)
+        this.log(`回答列表预处理完毕, 准备下载图片`)
         // 下载图片
         await this.downloadImg()
         this.log(`图片下载完毕`)
@@ -75,9 +76,9 @@ class FetchAuthor extends Base {
             fs.copyFileSync(copyFromUri, copyToUri)
         }
 
-        this.log(`全部回答获取完毕`)
+        this.log(`作者${name}(${urlToken})的知乎回答集锦制作完毕`)
     }
 
 }
 
-export default FetchAuthor;
+export default GenerateAuthor;
