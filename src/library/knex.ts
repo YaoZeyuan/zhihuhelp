@@ -9,7 +9,7 @@ const Knex = knex({
     },
     useNullAsDefault: true,
     pool: {
-        max: 10,
+        max: 1, // 不能开多线程去访问同一个sqllite实例, 否则会报SQLITE_BUSY错误
         min: 0,
         // 由于存在资源池, 导致句柄不被释放, 程序不能退出
         // 因此将最小句柄数设为0, 每100ms检查一次是否有超过120ms未被使用的资源
