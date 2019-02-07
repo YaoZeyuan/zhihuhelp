@@ -119,25 +119,25 @@ class FetchBase extends Base {
 
 
       // 分批下载
-      this.log(`将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
+      this.log(`[第${index}张图片]将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
       await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri, that) => {
-        logger.log(`准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
+        logger.log(`[第${index}张图片]准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
         let imgContent = await http.get(src, {
           responseType: 'arraybuffer', // 必须是这个值, 强制以二进制形式接收页面响应值
         }).catch(e => {
-          logger.log(`第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
-          logger.log(`错误原因 =>`, e)
+          logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
+          logger.log(`[第${index}张图片]错误原因 =>`, e)
           return 0
         })
         if (imgContent === 0) {
           return
         }
-        logger.log(`第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
+        logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
         // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
-        await that.writeFileWithPromise(cacheUri, imgContent).catch(e => {
-          logger.log(`第${index}/${that.imgUriPool.size}张图片储存失败, 自动跳过`)
-        })
-        logger.log(`第${index}/${that.imgUriPool.size}张图片储存完毕`)
+        logger.log(`[第${index}张图片]准备写入文件:${cacheUri}`)
+        await CommonUtil.sleep(10)
+        fs.writeFileSync(cacheUri, imgContent)
+        logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片储存完毕`)
       })(index, src, cacheUri, this))
     }
     this.log(`清空任务队列`)
