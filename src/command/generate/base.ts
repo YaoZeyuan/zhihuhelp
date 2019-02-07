@@ -54,7 +54,7 @@ class FetchBase extends Base {
             let index = 0
             for (let imgContent of imgContentList) {
                 index++
-                logger.log(`处理第${index}/${imgContentList.length}个img标签`)
+                // logger.log(`处理第${index}/${imgContentList.length}个img标签`)
                 let processedImgContent = ''
                 let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
                 let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
@@ -120,25 +120,38 @@ class FetchBase extends Base {
 
             // 分批下载
             this.log(`将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-            await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri) => {
-                logger.log(`准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
+            await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri, that) => {
+                logger.log(`准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
                 let imgContent = await http.get(src, {
                     responseType: 'arraybuffer', // 必须是这个值, 强制以二进制形式接收页面响应值
                 }).catch(e => {
-                    logger.log(`第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
+                    logger.log(`第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
                     logger.log(`错误原因 =>`, e)
                     return 0
                 })
                 if (imgContent === 0) {
                     return
                 }
-                fs.writeFileSync(cacheUri, imgContent)
-                logger.log(`第${index}/${this.imgUriPool.size}张图片下载完毕`)
-            })(index, src, cacheUri))
+                logger.log(`第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
+                // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
+                await that.writeFileWithPromise(cacheUri, imgContent).catch(e => {
+                    logger.log(`第${index}/${that.imgUriPool.size}张图片储存失败, 自动跳过`)
+                })
+                logger.log(`第${index}/${that.imgUriPool.size}张图片储存完毕`)
+            })(index, src, cacheUri, this))
         }
         this.log(`清空任务队列`)
         await CommonUtil.appendPromiseWithDebounce(this.emptyPromiseFunction(), true)
         this.log(`所有图片下载完毕`)
+    }
+
+    writeFileWithPromise(uri: string, content: string) {
+        return new Promise(function (resolve, reject) {
+            fs.writeFile(uri, content, function (err) {
+                if (err) reject(err);
+                else resolve(content);
+            });
+        });
     }
 
     copyImgToCache(imgCachePath: string) {
