@@ -1,3 +1,5 @@
+import logger from "~/src/library/logger"
+
 class Common {
   static promiseList: Array<Promise<any>> = []
   // 并发数限制到2, 太高的并发似乎会导致图片下载卡死
@@ -8,7 +10,9 @@ class Common {
   static async appendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
     Common.promiseList.push(promise)
     if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
+      logger.log(`任务队列已满, 开始执行任务, 共${Common.promiseList.length}个任务待执行`)
       await Promise.all(Common.promiseList)
+      logger.log(`任务队列内所有任务执行完毕`)
       Common.promiseList = []
     }
     return
