@@ -1,10 +1,5 @@
 import Base from "~/src/command/base";
 import http from "~/src/library/http";
-import MAnswer from "~/src/model/answer";
-import MAuthor from "~/src/model/author";
-import AnswerRecord from "model/answer";
-import React from 'react'
-import ReactDomServer from 'react-dom/server'
 import moment from 'moment'
 import _ from 'lodash'
 import fs from 'fs'
@@ -12,8 +7,9 @@ import path from 'path'
 import shelljs from 'shelljs'
 import PathConfig from '~/src/config/path'
 import DATE_FORMAT from '~/src/constant/date_format'
-import StringUtil from '~/src/library/util/string'
-import AuthorRecord from "model/author";
+import CommonUtil from '~/src/library/util/common'
+import logger from '~/src/library/logger'
+
 
 class FetchBase extends Base {
     imgUriPool: Set<string> = new Set()
@@ -48,11 +44,17 @@ class FetchBase extends Base {
             rawHtml = _.replace(rawHtml, /img src="data:image.+?"/g, 'img')
             // 处理图片
             const imgContentList = rawHtml.match(/<img.+?>/g)
+            let processedImgContentList = []
             if (imgContentList === null) {
                 // html中没有图片
                 return rawHtml
             }
+            // 单条rawHtml直接replace替换性能开销太大, 所以应该先拆分, 然后再整体合成一个字符串
+            let rawHtmlWithoutImgContentList = rawHtml.split(/<img.+?>/g)
+            let index = 0
             for (let imgContent of imgContentList) {
+                index++
+                logger.log(`处理第${index}/${imgContentList.length}个img标签`)
                 let processedImgContent = ''
                 let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
                 let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
@@ -82,12 +84,20 @@ class FetchBase extends Base {
                 let htmlImgUri = './image/' + filename
                 processedImgContent = _.replace(processedImgContent, rawImgSrc, htmlImgUri)
 
-                rawHtml = _.replace(rawHtml, imgContent, processedImgContent)
+                processedImgContentList.push(processedImgContent)
             }
-            return rawHtml
+            // 拼接 rawHtmlWithoutImgContentList 和 processImgContentList 成 rawHtml
+            let strMergeList = []
+            for (let index = 0; index < rawHtmlWithoutImgContentList.length; index++) {
+                strMergeList.push(rawHtmlWithoutImgContentList[index])
+                strMergeList.push(_.get(processedImgContentList, [index], ''))
+            }
+            let processedHtml = strMergeList.join('')
+            return processedHtml
         }
         content = removeNoScript(content)
-        content = replaceImgSrc(content)
+        let tinyContentList = content.split(`<div data-key='single-page'`).map((value) => { return replaceImgSrc(value) })
+        content = tinyContentList.join(`<div data-key='single-page'`)
         return content
     }
 
@@ -98,7 +108,6 @@ class FetchBase extends Base {
         this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
         let index = 0
         let maxDownload = 100
-        let promiseList = []
         for (let src of this.imgUriPool) {
             index++
             let filename = this.getImgName(src)
@@ -107,25 +116,23 @@ class FetchBase extends Base {
             if (fs.existsSync(cacheUri)) {
                 continue
             }
-            let request = new Promise(async (resolve) => {
-                let imgContent = await http.get(src, {
-                    responseType: 'arraybuffer', // important
-                })
-                fs.writeFileSync(cacheUri, imgContent)
-                resolve()
-            })
-            promiseList.push(request)
+
 
             // 分批下载
-            if (promiseList.length > maxDownload) {
-                this.log(`开始下载第${index - maxDownload}~${index}张图片, 剩余${this.imgUriPool.size - index}张图片待下载`)
-                await Promise.all(promiseList)
-                this.log(`第${index - maxDownload}~${index}张图片下载完毕, 剩余${this.imgUriPool.size - index}张图片待下载`)
-            }
+            this.log(`将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
+            await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri) => {
+                logger.log(`准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
+                let imgContent = await http.get(src, {
+                    responseType: 'arraybuffer', // 必须是这个值, 强制以二进制形式接收页面响应值
+                    
+                })
+                fs.writeFileSync(cacheUri, imgContent)
+                logger.log(`第${index}/${this.imgUriPool.size}张图片下载完毕`)
+            })(index, src, cacheUri))
         }
-        this.log(`开始下载最后一批图片`)
-        await Promise.all(promiseList)
-        this.log(`最后一批图片下载完毕`)
+        this.log(`清空任务队列`)
+        await CommonUtil.appendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+        this.log(`所有图片下载完毕`)
     }
 
     copyImgToCache(imgCachePath: string) {

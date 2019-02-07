@@ -34,6 +34,13 @@ class Base extends Command {
   }
 
   /**
+   * 空promise函数, 方便清空promise队列
+   */
+  async emptyPromiseFunction() {
+    return
+  }
+
+  /**
    *
    * @param args
    * @param options

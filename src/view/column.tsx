@@ -52,7 +52,7 @@ function renderColumn(title: string, columnInfo: ColumnRecord, articleRecordList
             </div>
         )
         const question = (
-            <div key={articleRecord.id}>
+            <div data-key='single-page' key={articleRecord.id}>
                 <div className="bg-zhihu-blue-light">
                     <div className="title-image">
                         <img src={articleRecord.title_image}></img>

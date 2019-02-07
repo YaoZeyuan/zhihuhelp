@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from "axios";
+import RequestConfig from '~/src/config/request'
 import _ from "lodash";
 
 // 创建axios实例
 const http = axios.create({
+    timeout: RequestConfig.timeoutMs,
     headers: {
         // 加上ua
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.2490.80 Safari/537.36',
