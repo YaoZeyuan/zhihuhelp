@@ -124,8 +124,14 @@ class FetchBase extends Base {
                 logger.log(`准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
                 let imgContent = await http.get(src, {
                     responseType: 'arraybuffer', // 必须是这个值, 强制以二进制形式接收页面响应值
-                    
+                }).catch(e => {
+                    logger.log(`第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
+                    logger.log(`错误原因 =>`, e)
+                    return 0
                 })
+                if (imgContent === 0) {
+                    return
+                }
                 fs.writeFileSync(cacheUri, imgContent)
                 logger.log(`第${index}/${this.imgUriPool.size}张图片下载完毕`)
             })(index, src, cacheUri))
