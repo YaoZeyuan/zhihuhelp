@@ -6,8 +6,8 @@ import DATE_FORMAT from '~/src/constant/date_format'
 
 
 class Activity extends Base {
-  static readonly ZHIHU_ACTIVITY_START_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND).unix() // 知乎活动开始时间
-  static readonly ZHIHU_ACTIVITY_END_AT = moment().unix() // 知乎活动结束时间
+  static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND).startOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动开始时间
+  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment().endOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动结束时间
 
 
   static readonly VERB_MEMBER_FOLLOW_COLUMN = 'MEMBER_FOLLOW_COLUMN'
@@ -58,7 +58,7 @@ class Activity extends Base {
    * 存储用户行为
    * @param activityRecord
    */
-  static async asyncReplaceArticle(activityRecord: ActivityRecord): Promise<void> {
+  static async asyncReplaceActivity(activityRecord: ActivityRecord): Promise<void> {
     let id = activityRecord.id
     let verb = activityRecord.verb
     let urlToken = activityRecord.actor.url_token
