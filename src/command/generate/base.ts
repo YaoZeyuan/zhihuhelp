@@ -165,6 +165,10 @@ class FetchBase extends Base {
     for (let src of this.imgUriPool) {
       index++
       let filename = this.getImgName(src)
+      // 避免文件名不存在的情况
+      if (filename === '') {
+        continue
+      }
       let imgCacheUri = path.resolve(PathConfig.imgCachePath, filename)
       let imgToUri = path.resolve(imgCachePath, filename)
       if (fs.existsSync(imgCacheUri)) {

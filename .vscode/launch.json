@@ -11,8 +11,8 @@
             "program": "${workspaceFolder}/src/ace.ts",
             "stopOnEntry": false,
             "args": [
-                "Generate:Column", // 这里可以是任意命令
-                "kuangwan" // 拿自己的账号测试
+                "Fetch:Column", // 这里可以是任意命令
+                "yyln2016" // 拿自己的账号测试
             ],
             "useWSL": true, // windows 使用WSL进行调试
             "cwd": "${workspaceRoot}",
