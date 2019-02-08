@@ -46,12 +46,12 @@ CREATE TABLE  IF NOT EXISTS `Author` (
 
 
 CREATE TABLE  IF NOT EXISTS `Activity` (
-  `id` varchar(100) NOT NULL DEFAULT '' , ---- COMMENT 'hash_id',
+  `id` varchar(100) NOT NULL DEFAULT '' , ---- COMMENT 'id', 实际上是用户行为记录发生时间,
   `url_token` varchar(200) NOT NULL , ---- COMMENT '用户主页id.随时可能会更换',
   `verb` varchar(200) NOT NULL , ---- COMMENT '行为类别',
   `raw_json` text, --- COMMENT '原始响应json'
   --- 用户活动列表
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`, `url_token`)
 ) ; 
 
 
