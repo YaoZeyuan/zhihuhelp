@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import ActivityRecordNameSpace from '~/src/type/model/activity'
+import ActivityRecordNamespace from '~/src/type/model/activity'
 import _ from 'lodash'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
@@ -48,7 +48,7 @@ class Activity extends Base {
    * 从数据库中获取指定用户指定类别的行为列表
    * @param id
    */
-  static async asyncGetActivityList(urlToken: string, startAt: number, endAt: number, verbList = [Activity.VERB_ANSWER_VOTE_UP, Activity.VERB_MEMBER_VOTEUP_ARTICLE]): Promise<Array<ActivityRecordNameSpace.ActivityRecord>> {
+  static async asyncGetActivityList(urlToken: string, startAt: number, endAt: number, verbList = [Activity.VERB_ANSWER_VOTE_UP, Activity.VERB_MEMBER_VOTEUP_ARTICLE]): Promise<Array<ActivityRecordNamespace.ActivityRecord>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)

@@ -1,10 +1,7 @@
 import Base from "~/src/command/generate/base";
 import MAuthor from "~/src/model/author";
 import MActivity from "~/src/model/activity";
-import MArticle from "~/src/model/article";
-import MColumn from "~/src/model/column";
-import renderArticle from "~/src/view/article"
-import renderAnswer from "~/src/view/answer"
+import renderActivity from "~/src/view/activity"
 import _ from 'lodash'
 import fs from 'fs'
 import path from 'path'
@@ -66,13 +63,13 @@ class GenerateActivity extends Base {
 
         this.log(`获取赞同记录列表`)
         let activityRecordList = await MActivity.asyncGetActivityList(urlToken, actionStartAt, actionEndAt)
-        this.log(`回答列表获取完毕, 共${activityRecordList.length}条答案`)
+        this.log(`赞同记录列表获取完毕, 共${activityRecordList.length}次赞同`)
         // 直接渲染为单个文件
-        let content = renderAnswer(bookname, authorInfo, activityRecordList)
-        this.log(`回答渲染完毕, 开始对内容进行输出前预处理`)
+        let content = renderActivity(bookname, authorInfo, activityRecordList)
+        this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${bookname}.html`), content)
-        this.log(`回答列表预处理完毕, 准备下载图片`)
+        this.log(`内容列表预处理完毕, 准备下载图片`)
         // 下载图片
         await this.downloadImg()
         this.log(`图片下载完毕`)
@@ -92,7 +89,7 @@ class GenerateActivity extends Base {
             fs.copyFileSync(copyFromUri, copyToUri)
         }
 
-        this.log(`作者${name}(${urlToken})的知乎回答集锦制作完毕`)
+        this.log(`用户${name}(${urlToken})的知乎故事制作完毕`)
     }
 
 }

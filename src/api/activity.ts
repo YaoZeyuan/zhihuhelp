@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import ActivityRecordNameSpace from '~/src/type/model/activity'
+import ActivityRecordNamespace from '~/src/type/model/activity'
 import moment from 'moment'
 
 class Activity extends Base {
@@ -12,7 +12,7 @@ class Activity extends Base {
    * @param limit
    * @param sortBy
    */
-  static async asyncGetAutherActivityList(url_token: string, afterTimeAt: number = 0, limit: number = 20): Promise<Array<ActivityRecordNameSpace.ActivityRecord>> {
+  static async asyncGetAutherActivityList(url_token: string, afterTimeAt: number = 0, limit: number = 20): Promise<Array<ActivityRecordNamespace.ActivityRecord>> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/activities`
     const config = {
       after_id: afterTimeAt,
