@@ -10,9 +10,16 @@ class Activity extends Base {
   static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment().endOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动结束时间
 
 
-  static readonly VERB_MEMBER_FOLLOW_COLUMN = 'MEMBER_FOLLOW_COLUMN'
-  static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP'
-  static readonly VERB_QUESTION_FOLLOW = 'MEMBER_QUESTION_FOLLOW'
+  static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP' // 点赞
+  static readonly VERB_MEMBER_FOLLOW_COLLECTION = 'MEMBER_FOLLOW_COLLECTION' // 关注收藏夹
+  static readonly VERB_QUESTION_FOLLOW = 'QUESTION_FOLLOW' // 关注问题
+  static readonly VERB_ANSWER_CREATE = 'ANSWER_CREATE' // 回答问题
+  static readonly VERB_TOPIC_FOLLOW = 'TOPIC_FOLLOW' // 关注话题
+  static readonly VERB_MEMBER_VOTEUP_ARTICLE = 'MEMBER_VOTEUP_ARTICLE' // 点赞文章
+  static readonly VERB_MEMBER_FOLLOW_COLUMN = 'MEMBER_FOLLOW_COLUMN' // 关注专栏
+  static readonly VERB_MEMBER_FOLLOW_ROUNDTABLE = 'MEMBER_FOLLOW_ROUNDTABLE' // 关注圆桌
+  static readonly VERB_MEMBER_CREATE_ARTICLE = 'MEMBER_CREATE_ARTICLE' // 发表文章
+
 
 
   static TABLE_NAME = `Activity`
