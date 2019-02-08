@@ -27,6 +27,8 @@
     "query-string": "^6.2.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
     "shelljs": "^0.8.1",
     "sqlite3": "^4.0.6",
     "winston": "^2.4.0"
@@ -50,6 +52,8 @@
     "@types/node": "^9.4.6",
     "@types/react": "^16.8.1",
     "@types/react-dom": "^16.0.11",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
     "@types/shelljs": "^0.7.8",
     "@types/winston": "^2.3.7",
     "babel-plugin-root-import": "^6.1.0",
