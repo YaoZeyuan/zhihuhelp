@@ -1,9 +1,15 @@
 import Base from '~/src/model/base'
 import ActivityRecord from '~/src/type/model/activity'
 import _ from 'lodash'
+import moment from 'moment'
+import DATE_FORMAT from '~/src/constant/date_format'
 
 
 class Activity extends Base {
+  static readonly ZHIHU_ACTIVITY_START_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND).unix() // 知乎活动开始时间
+  static readonly ZHIHU_ACTIVITY_END_AT = moment().unix() // 知乎活动结束时间
+
+
   static readonly VERB_MEMBER_FOLLOW_COLUMN = 'MEMBER_FOLLOW_COLUMN'
   static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP'
   static readonly VERB_QUESTION_FOLLOW = 'MEMBER_QUESTION_FOLLOW'
