@@ -1,5 +1,5 @@
-import Base from "~/src/command/base";
-import http from "~/src/library/http";
+import Base from '~/src/command/base'
+import http from '~/src/library/http'
 import moment from 'moment'
 import _ from 'lodash'
 import fs from 'fs'
@@ -20,13 +20,12 @@ class FetchBase extends Base {
   static get signature() {
     return `
         Generate:Base
-        `;
+        `
   }
 
   static get description() {
-    return "生成电子书";
+    return '生成电子书'
   }
-
 
   processContent(content: string) {
     let that = this
@@ -107,7 +106,6 @@ class FetchBase extends Base {
   async downloadImg() {
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
     let index = 0
-    let maxDownload = 100
     for (let src of this.imgUriPool) {
       index++
       let filename = this.getImgName(src)
@@ -117,27 +115,27 @@ class FetchBase extends Base {
         continue
       }
 
-
       // 分批下载
-      this.log(`[第${index}张图片]将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
+      this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
       await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri, that) => {
-        logger.log(`[第${index}张图片]准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
-        let imgContent = await http.get(src, {
-          responseType: 'arraybuffer', // 必须是这个值, 强制以二进制形式接收页面响应值
-        }).catch(e => {
-          logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
-          logger.log(`[第${index}张图片]错误原因 =>`, e)
-          return 0
+        await CommonUtil.sleep(1)
+        // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
+        logger.log(`[第${index}张图片]-1-准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
+        let imgContent = await http.downloadImg(src).catch(e => {
+          logger.log(`[第${index}张图片]-1-2-第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
+          logger.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
+          return ''
         })
-        if (imgContent === 0) {
+        if (imgContent === '') {
+          logger.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
           return
         }
-        logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
+        logger.log(`[第${index}张图片]-2-第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
         // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
-        logger.log(`[第${index}张图片]准备写入文件:${cacheUri}`)
+        logger.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
         await CommonUtil.sleep(10)
         fs.writeFileSync(cacheUri, imgContent)
-        logger.log(`[第${index}张图片]第${index}/${that.imgUriPool.size}张图片储存完毕`)
+        logger.log(`[第${index}张图片]-4-第${index}/${that.imgUriPool.size}张图片储存完毕`)
       })(index, src, cacheUri, this))
     }
     this.log(`清空任务队列`)
@@ -182,7 +180,7 @@ class FetchBase extends Base {
 
   /**
    * 根据图片地址生成图片名
-   * @param src 
+   * @param src
    */
   getImgName(src: string) {
     let filename = _.get(src.split('.com'), [1], '')
@@ -191,4 +189,4 @@ class FetchBase extends Base {
   }
 }
 
-export default FetchBase;
+export default FetchBase
