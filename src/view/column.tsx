@@ -6,13 +6,13 @@ import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 
-function renderColumn (title: string, columnInfo: ColumnRecord, articleRecordList: Array<ArticleRecord>) {
-  let articleList = []
-  let index = 0
-  for (let articleRecord of articleRecordList) {
-    index++
-    logger.log(`渲染第${index}/${articleRecordList.length}篇文章`)
-    const answer = (
+function renderColumn(title: string, columnInfo: ColumnRecord, articleRecordList: Array<ArticleRecord>) {
+    let articleList = []
+    let index = 0
+    for (let articleRecord of articleRecordList) {
+        index++
+        logger.log(`渲染第${index}/${articleRecordList.length}篇文章`)
+        const answer = (
             <div>
                 <div className='answer'>
                     <div className='author'>
@@ -51,11 +51,12 @@ function renderColumn (title: string, columnInfo: ColumnRecord, articleRecordLis
                 <hr />
             </div>
         )
-    const question = (
+        const question = (
             <div data-key='single-page' key={articleRecord.id}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
-                        <img src={articleRecord.title_image}></img>
+                        {/* 不展示头图, 样式不好看 */}
+                        {/* <img src={articleRecord.title_image}></img> */}
                     </div>
                     <div className='question bg-zhihu-blue-light'>
                         <div className='question-title'>
@@ -72,10 +73,10 @@ function renderColumn (title: string, columnInfo: ColumnRecord, articleRecordLis
                 </div>
             </div>
         )
-    articleList.push(question)
-  }
+        articleList.push(question)
+    }
 
-  const base = (
+    const base = (
         <html>
             <head>
                 <meta charSet='utf-8' />
@@ -89,7 +90,7 @@ function renderColumn (title: string, columnInfo: ColumnRecord, articleRecordLis
             </body>
         </html>
     )
-  return ReactDomServer.renderToString(base)
+    return ReactDomServer.renderToString(base)
 }
 
 export default renderColumn
