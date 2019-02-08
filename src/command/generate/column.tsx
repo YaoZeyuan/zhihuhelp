@@ -1,7 +1,7 @@
 import Base from "~/src/command/generate/base";
 import MArticle from "~/src/model/article";
 import MColumn from "~/src/model/column";
-import renderColumn from "~/src/view/column"
+import renderArticle from "~/src/view/article"
 import _ from 'lodash'
 import fs from 'fs'
 import path from 'path'
@@ -52,7 +52,7 @@ class GenerateColumn extends Base {
         let articleRecordList = await MArticle.asyncGetArticleList(columnId)
         this.log(`文章列表获取完毕, 共${articleRecordList.length}条答案`)
         // 直接渲染为单个文件
-        let content = renderColumn(bookname, columnInfo, articleRecordList)
+        let content = renderArticle(bookname, columnInfo, articleRecordList)
         this.log(`专栏文章渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${bookname}.html`), content)
