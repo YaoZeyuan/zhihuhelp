@@ -2,8 +2,8 @@ import logger from "~/src/library/logger"
 
 class Common {
   static promiseList: Array<Promise<any>> = []
-  // 并发数限制到2, 太高的并发似乎会导致图片下载卡死
-  static maxBuf = 20
+  // 并发数限制到10即可
+  static maxBuf = 10
   /**
    * 添加promise, 到指定容量后再执行
    */
