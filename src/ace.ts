@@ -17,7 +17,7 @@ const registedCommandList = [
     "./command/fetch/column", //  按专栏抓取回答
     "./command/fetch/activity", //  抓取用户活动记录
     "./command/generate/author_answer", //  按用户生成电子书
-    "./command/generate/activity", //  按用户点赞生成电子书
+    "./command/generate/activity", //  按用户点赞回答&文章生成电子书
     "./command/generate/column", //  按专栏生成电子书
 ];
 // register commands

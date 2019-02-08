@@ -91,6 +91,42 @@ class Activity extends Base {
     })
     return
   }
+
+  /**
+   * 简单统计用户各类行为次数
+   * @param urlToken 
+   */
+  static async asyncGetActionSummary(urlToken: string) {
+    let rawRecordList = await this.db
+      .count('* as verb_count')
+      .select('verb')
+      .from(this.TABLE_NAME)
+      .where('url_token', '=', urlToken)
+      .groupBy('verb')
+      .catch(() => { return [] })
+    let record = {}
+    for (let rawRecord of rawRecordList) {
+      let verb = _.get(rawRecord, ['verb'], '')
+      let count = _.get(rawRecord, ['verb_count'], 0)
+      _.set(record, [verb], count)
+    }
+    return record
+  }
+
+  /**
+   * 简单统计用户行为时间
+   * @param urlToken 
+   */
+  static async asyncGetActionDuring(urlToken: string) {
+    let recordList = await this.db
+      .max('id as activity_end_at')
+      .min('id as activity_start_at')
+      .from(this.TABLE_NAME)
+      .where('url_token', '=', urlToken)
+      .catch(() => { return [] })
+    let record = _.get(recordList, [0], {})
+    return record
+  }
 }
 
 export default Activity
