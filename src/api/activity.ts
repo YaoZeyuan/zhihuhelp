@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
 import ActivityRecord from '~/src/type/model/activity'
+import moment from 'moment'
 
 class Activity extends Base {
   /**
@@ -23,6 +24,44 @@ class Activity extends Base {
     })
     const activityList = _.get(record, ['data'], [])
     return activityList
+  }
+
+  /**
+  * 检查指定时间后是否还有用户活跃记录 
+  * @param url_token
+  * @param afterTimeAt 从X时间后
+  */
+  static async asyncCheckHasAutherActivityAfterAt(url_token: string, afterTimeAt: number = 0): Promise<boolean> {
+    const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/activities`
+    const config = {
+      after_id: afterTimeAt,
+      limit: 10,
+      desktop: 'True',
+    }
+    const record = await Base.http.get(baseUrl, {
+      params: config
+    })
+    const hasActivity = _.get(record, ['paging', 'is_end'], false)
+    return hasActivity === false
+  }
+
+  /**
+  * 获取用户最近一次活跃时间 
+  * @param url_token
+  */
+  static async asyncGetAutherLastActivityAt(url_token: string): Promise<number> {
+    const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/activities`
+    let now = moment().unix()
+    const config = {
+      after_id: now,
+      limit: 10,
+      desktop: 'True',
+    }
+    const record = await Base.http.get(baseUrl, {
+      params: config
+    })
+    const lastActivityAt = _.get(record, ['data', 0, 'id'], now)
+    return lastActivityAt
   }
 }
 export default Activity
