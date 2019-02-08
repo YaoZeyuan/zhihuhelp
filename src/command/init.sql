@@ -45,6 +45,16 @@ CREATE TABLE  IF NOT EXISTS `Author` (
 ) ; 
 
 
+CREATE TABLE  IF NOT EXISTS `Activity` (
+  `id` varchar(100) NOT NULL DEFAULT '' , ---- COMMENT 'hash_id',
+  `url_token` varchar(200) NOT NULL , ---- COMMENT '用户主页id.随时可能会更换',
+  `verb` varchar(200) NOT NULL , ---- COMMENT '行为类别',
+  `raw_json` text, --- COMMENT '原始响应json'
+  --- 用户活动列表
+  PRIMARY KEY (`id`)
+) ; 
+
+
 CREATE TABLE  IF NOT EXISTS `Collection` (
   `collection_id` int(11) NOT NULL , ---- COMMENT '收藏夹id',
   `answer_count` int(11) NOT NULL DEFAULT '0' , ---- COMMENT '答案数',
