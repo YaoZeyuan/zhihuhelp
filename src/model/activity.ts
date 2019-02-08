@@ -13,12 +13,25 @@ class Activity extends Base {
   static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP' // 点赞
   static readonly VERB_MEMBER_FOLLOW_COLLECTION = 'MEMBER_FOLLOW_COLLECTION' // 关注收藏夹
   static readonly VERB_QUESTION_FOLLOW = 'QUESTION_FOLLOW' // 关注问题
-  static readonly VERB_ANSWER_CREATE = 'ANSWER_CREATE' // 回答问题
+  static readonly VERB_ANSWER_CREATE = 'ANSWER_CREATE' // 创建回答
   static readonly VERB_TOPIC_FOLLOW = 'TOPIC_FOLLOW' // 关注话题
   static readonly VERB_MEMBER_VOTEUP_ARTICLE = 'MEMBER_VOTEUP_ARTICLE' // 点赞文章
   static readonly VERB_MEMBER_FOLLOW_COLUMN = 'MEMBER_FOLLOW_COLUMN' // 关注专栏
   static readonly VERB_MEMBER_FOLLOW_ROUNDTABLE = 'MEMBER_FOLLOW_ROUNDTABLE' // 关注圆桌
   static readonly VERB_MEMBER_CREATE_ARTICLE = 'MEMBER_CREATE_ARTICLE' // 发表文章
+
+  // 将行为记录转为文字
+  static readonly DISPLAT_VERB = {
+    [Activity.VERB_ANSWER_VOTE_UP]: '赞同回答',
+    [Activity.VERB_MEMBER_FOLLOW_COLLECTION]: '关注收藏夹',
+    [Activity.VERB_QUESTION_FOLLOW]: '关注问题',
+    [Activity.VERB_ANSWER_CREATE]: '创建回答',
+    [Activity.VERB_TOPIC_FOLLOW]: '关注话题',
+    [Activity.VERB_MEMBER_VOTEUP_ARTICLE]: '赞同文章',
+    [Activity.VERB_MEMBER_FOLLOW_COLUMN]: '关注专栏',
+    [Activity.VERB_MEMBER_FOLLOW_ROUNDTABLE]: '关注圆桌',
+    [Activity.VERB_MEMBER_CREATE_ARTICLE]: '发表文章',
+  }
 
 
 
