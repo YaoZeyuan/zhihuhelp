@@ -144,22 +144,6 @@ class FetchBase extends Base {
     this.log(`所有图片下载完毕`)
   }
 
-  async writeFileWithPromise(uri: string, content: string) {
-    logger.log(`准备写入文件:${uri}`)
-    await CommonUtil.sleep(10)
-    logger.log(`开始写入文件:${uri}`)
-    await new Promise(function (resolve, reject) {
-      fs.writeFile(uri, content, function (err) {
-        if (err) {
-          reject(err)
-        }
-        resolve(content)
-      })
-    })
-    logger.log(`文件:${uri}写入完成`)
-    return
-  }
-
   copyImgToCache(imgCachePath: string) {
     let index = 0
     this.log(`将图片从图片池复制到电子书文件夹中`)
