@@ -1,13 +1,13 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import ActivityRecordNamespace from '~/src/type/namespace/activity'
+import TypeActivity from '~/src/type/namespace/activity'
 import MActivity from '~/src/model/activity'
-import AuthorRecord from '~/src/type/namespace/author'
+import TypeAuthor from '~/src/type/namespace/author'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 
-function renderActivity(title: string, authorInfo: AuthorRecord, activityRecordList: Array<ActivityRecordNamespace.ActivityRecord>) {
+function renderActivity(title: string, authorInfo: TypeAuthor.Record, activityRecordList: Array<TypeActivity.Record>) {
     let activityList = []
     let index = 0
     for (let activityRecord of activityRecordList) {
@@ -43,7 +43,7 @@ function renderActivity(title: string, authorInfo: AuthorRecord, activityRecordL
     return ReactDomServer.renderToString(base)
 }
 
-function renderAnswerActivity(activityRecord: ActivityRecordNamespace.AnswerVoteUpActivityRecord) {
+function renderAnswerActivity(activityRecord: TypeActivity.AnswerVoteUpActivityRecord) {
 
     const answer = (
         <div>
@@ -107,7 +107,7 @@ function renderAnswerActivity(activityRecord: ActivityRecordNamespace.AnswerVote
     return question
 }
 
-function renderArticleActivity(articleActivityRecord: ActivityRecordNamespace.ArticleVoteUpActivityRecord) {
+function renderArticleActivity(articleActivityRecord: TypeActivity.ArticleVoteUpActivityRecord) {
     const answer = (
         <div>
             <div className='answer'>

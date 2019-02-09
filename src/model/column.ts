@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
-import ColumnRecord from '~/src/type/namespace/column'
-import ArticleExcerptRecord from '~/src/type/namespace/article_excerpt'
+import TypeColumn from '~/src/type/namespace/column'
+import TypeArticleExcerpt from '~/src/type/namespace/article_excerpt'
 import _ from 'lodash'
 
 class Column extends Base {
@@ -21,7 +21,7 @@ class Column extends Base {
    * 从数据库中获取专栏信息
    * @param columnId
    */
-  static async asyncGetColumnInfo(columnId: string): Promise<ColumnRecord> {
+  static async asyncGetColumnInfo(columnId: string): Promise<TypeColumn.Record> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -41,7 +41,7 @@ class Column extends Base {
    * 从数据库中获取专栏文章列表
    * @param columnId
    */
-  static async asyncGetArticleExcerptList(columnId: string): Promise<Array<ArticleExcerptRecord>> {
+  static async asyncGetArticleExcerptList(columnId: string): Promise<Array<TypeArticleExcerpt.Record>> {
     let recordList = await this.db
       .select(this.COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN)
       .from(this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)
@@ -68,7 +68,7 @@ class Column extends Base {
    * 存储专栏数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnInfo(columnRecord: ColumnRecord): Promise<void> {
+  static async asyncReplaceColumnInfo(columnRecord: TypeColumn.Record): Promise<void> {
     let columnId = columnRecord.id
     let raw_json = JSON.stringify(columnRecord)
     await this.replaceInto({
@@ -82,7 +82,7 @@ class Column extends Base {
    * 存储专栏文章列表数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnArticleExcerpt(columnId: string, articleExcerptRecord: ArticleExcerptRecord): Promise<void> {
+  static async asyncReplaceColumnArticleExcerpt(columnId: string, articleExcerptRecord: TypeArticleExcerpt.Record): Promise<void> {
     let raw_json = JSON.stringify(articleExcerptRecord)
     let articleId = articleExcerptRecord.id
     await this.replaceInto({

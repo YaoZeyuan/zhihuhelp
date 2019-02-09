@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import AuthorRecord from '~/src/type/namespace/author'
+import TypeAuthor from '~/src/type/namespace/author'
 import _ from 'lodash'
 
 class Author extends Base {
@@ -14,7 +14,7 @@ class Author extends Base {
    * 从数据库中获取用户信息
    * @param urlToken
    */
-  static async asyncGetAuthor(urlToken: string): Promise<AuthorRecord> {
+  static async asyncGetAuthor(urlToken: string): Promise<TypeAuthor.Record> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -34,7 +34,7 @@ class Author extends Base {
    * 存储用户数据
    * @param authorRecord
    */
-  static async asyncReplaceAuthor(authorRecord: AuthorRecord): Promise<void> {
+  static async asyncReplaceAuthor(authorRecord: TypeAuthor.Record): Promise<void> {
     let id = authorRecord.id
     let url_token = authorRecord.url_token
     let raw_json = JSON.stringify(authorRecord)

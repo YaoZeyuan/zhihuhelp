@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import ArticleRecord from '~/src/type/namespace/article'
+import TypeArticle from '~/src/type/namespace/article'
 import _ from 'lodash'
 
 class Article extends Base {
@@ -14,7 +14,7 @@ class Article extends Base {
    * 从数据库中获取文章详情
    * @param articleId
    */
-  static async asyncGetArticle(articleId: string): Promise<ArticleRecord> {
+  static async asyncGetArticle(articleId: string): Promise<TypeArticle.Record> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -34,7 +34,7 @@ class Article extends Base {
    * 从数据库中获取文章列表
    * @param id
    */
-  static async asyncGetArticleList(columnId: string): Promise<Array<ArticleRecord>> {
+  static async asyncGetArticleList(columnId: string): Promise<Array<TypeArticle.Record>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -61,7 +61,7 @@ class Article extends Base {
    * 存储文章
    * @param articleRecord
    */
-  static async asyncReplaceArticle(articleRecord: ArticleRecord): Promise<void> {
+  static async asyncReplaceArticle(articleRecord: TypeArticle.Record): Promise<void> {
     let id = articleRecord.id
     let columnId = articleRecord.column.id
     let raw_json = JSON.stringify(articleRecord)

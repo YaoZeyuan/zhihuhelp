@@ -1,12 +1,12 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import ArticleRecord from '~/src/type/namespace/article'
-import ColumnRecord from '~/src/type/namespace/column'
+import TypeArticle from '~/src/type/namespace/article'
+import TypeColumn from '~/src/type/namespace/column'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 
-function renderColumn(title: string, columnInfo: ColumnRecord, articleRecordList: Array<ArticleRecord>) {
+function renderColumn(title: string, columnInfo: TypeColumn.Record, articleRecordList: Array<TypeArticle.Record>) {
     let articleList = []
     let index = 0
     for (let articleRecord of articleRecordList) {

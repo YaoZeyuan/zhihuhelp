@@ -1,18 +1,18 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import AnswerRecord from '~/src/type/namespace/answer'
-import AuthorRecord from '~/src/type/namespace/author'
+import TypeAnswer from '~/src/type/namespace/answer'
+import TypeAuthor from '~/src/type/namespace/author'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 
-function renderAnswer (title: string, authorInfo: AuthorRecord, answerRecordList: Array<AnswerRecord>) {
-  let questionList = []
-  let index = 0
-  for (let answerRecord of answerRecordList) {
-    index++
-    logger.log(`渲染第${index}/${answerRecordList.length}个回答`)
-    const answer = (
+function renderAnswer(title: string, authorInfo: TypeAuthor.Record, answerRecordList: Array<TypeAnswer.Record>) {
+    let questionList = []
+    let index = 0
+    for (let answerRecord of answerRecordList) {
+        index++
+        logger.log(`渲染第${index}/${answerRecordList.length}个回答`)
+        const answer = (
             <div>
                 <div className='answer'>
                     <div className='author'>
@@ -51,7 +51,7 @@ function renderAnswer (title: string, authorInfo: AuthorRecord, answerRecordList
                 <hr />
             </div>
         )
-    const question = (
+        const question = (
             <div key={answerRecord.id}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
@@ -71,10 +71,10 @@ function renderAnswer (title: string, authorInfo: AuthorRecord, answerRecordList
                 </div>
             </div>
         )
-    questionList.push(question)
-  }
+        questionList.push(question)
+    }
 
-  const base = (
+    const base = (
         <html>
             <head>
                 <meta charSet='utf-8' />
@@ -88,7 +88,7 @@ function renderAnswer (title: string, authorInfo: AuthorRecord, answerRecordList
             </body>
         </html>
     )
-  return ReactDomServer.renderToString(base)
+    return ReactDomServer.renderToString(base)
 }
 
 export default renderAnswer

@@ -4,7 +4,7 @@ import ArticleApi from "~/src/api/article";
 import MColumn from "~/src/model/column";
 import MArticle from "~/src/model/article";
 import CommonUtil from "~/src/library/util/common";
-import ArticleExcerptRecord from "~/src/type/namespace/article_excerpt";
+import TypeArticleExcerpt from "~/src/type/namespace/article_excerpt";
 
 class FetchAuthor extends Base {
     max = 20
@@ -61,7 +61,7 @@ class FetchAuthor extends Base {
         this.log(`全部文章抓取完毕`)
     }
 
-    async downloadArticle(index: number, articleExpert: ArticleExcerptRecord) {
+    async downloadArticle(index: number, articleExpert: TypeArticleExcerpt.Record) {
         this.log(`抓取第${index}篇文章`)
         let articleId = articleExpert.id
         let articleRecord = await ArticleApi.asyncGetArticle(articleId)
