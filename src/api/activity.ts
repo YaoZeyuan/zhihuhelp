@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import ActivityRecordNamespace from '~/src/type/model/activity'
+import ActivityRecordNamespace from '~/src/type/namespace/activity'
 import moment from 'moment'
 
 class Activity extends Base {

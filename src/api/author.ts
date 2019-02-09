@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import AuthorRecord from '~/src/type/model/author'
+import AuthorRecord from '~/src/type/namespace/author'
 
 class Author extends Base {
   /**

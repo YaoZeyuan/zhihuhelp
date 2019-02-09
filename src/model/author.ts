@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import AuthorRecord from '~/src/type/model/author'
+import AuthorRecord from '~/src/type/namespace/author'
 import _ from 'lodash'
 
 class Author extends Base {
@@ -10,16 +10,16 @@ class Author extends Base {
     `raw_json`
   ]
 
-    /**
-     * 从数据库中获取用户信息
-     * @param urlToken
-     */
-  static async asyncGetAuthor (urlToken: string): Promise<AuthorRecord> {
+  /**
+   * 从数据库中获取用户信息
+   * @param urlToken
+   */
+  static async asyncGetAuthor(urlToken: string): Promise<AuthorRecord> {
     let recordList = await this.db
-            .select(this.TABLE_COLUMN)
-            .from(this.TABLE_NAME)
-            .where('url_token', '=', urlToken)
-            .catch(() => { return [] })
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('url_token', '=', urlToken)
+      .catch(() => { return [] })
     let authorInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
     let authorInfo
     try {
@@ -30,11 +30,11 @@ class Author extends Base {
     return authorInfo
   }
 
-    /**
-     * 存储用户数据
-     * @param authorRecord
-     */
-  static async asyncReplaceAuthor (authorRecord: AuthorRecord): Promise<void> {
+  /**
+   * 存储用户数据
+   * @param authorRecord
+   */
+  static async asyncReplaceAuthor(authorRecord: AuthorRecord): Promise<void> {
     let id = authorRecord.id
     let url_token = authorRecord.url_token
     let raw_json = JSON.stringify(authorRecord)

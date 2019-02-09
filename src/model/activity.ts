@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import ActivityRecordNamespace from '~/src/type/model/activity'
+import ActivityRecordNamespace from '~/src/type/namespace/activity'
 import _ from 'lodash'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'

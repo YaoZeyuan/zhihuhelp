@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import ColumnRecord from '~/src/type/model/column'
-import ArticleExcerptRecord from '~/src/type/model/article_excerpt'
+import ColumnRecord from '~/src/type/namespace/column'
+import ArticleExcerptRecord from '~/src/type/namespace/article_excerpt'
 
 class Column extends Base {
-    /**
-     * 获取专栏信息
-     * @param columnId
-     */
-  static async asyncGetColumnInfo (columnId: string): Promise<ColumnRecord> {
+  /**
+   * 获取专栏信息
+   * @param columnId
+   */
+  static async asyncGetColumnInfo(columnId: string): Promise<ColumnRecord> {
     const baseUrl = `https://zhuanlan.zhihu.com/api2/columns/${columnId}`
     const config = {
     }
@@ -19,11 +19,11 @@ class Column extends Base {
     return columnInfo
   }
 
-    /**
-     * 获取专栏信息
-     * @param columnId
-     */
-  static async asyncGetArticleExcerptList (columnId: string, offset = 0, limit = 10): Promise<Array<ArticleExcerptRecord>> {
+  /**
+   * 获取专栏信息
+   * @param columnId
+   */
+  static async asyncGetArticleExcerptList(columnId: string, offset = 0, limit = 10): Promise<Array<ArticleExcerptRecord>> {
     const baseUrl = `https://zhuanlan.zhihu.com/api2/columns/${columnId}/articles`
     const config = {
       offset,

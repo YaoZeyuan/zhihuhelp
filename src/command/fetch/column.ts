@@ -4,7 +4,7 @@ import ArticleApi from "~/src/api/article";
 import MColumn from "~/src/model/column";
 import MArticle from "~/src/model/article";
 import CommonUtil from "~/src/library/util/common";
-import ArticleExcerptRecord from "~/src/type/model/article_excerpt";
+import ArticleExcerptRecord from "~/src/type/namespace/article_excerpt";
 
 class FetchAuthor extends Base {
     max = 20

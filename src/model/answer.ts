@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import AnswerRecord from '~/src/type/model/answer'
+import AnswerRecord from '~/src/type/namespace/answer'
 import _ from 'lodash'
 
 class Answer extends Base {
@@ -12,16 +12,16 @@ class Answer extends Base {
     `raw_json`
   ]
 
-    /**
-     * 从数据库中获取用户信息
-     * @param urlToken
-     */
-  static async asyncGetAnswerList (urlToken: string): Promise<Array<AnswerRecord>> {
+  /**
+   * 从数据库中获取用户信息
+   * @param urlToken
+   */
+  static async asyncGetAnswerList(urlToken: string): Promise<Array<AnswerRecord>> {
     let recordList = await this.db
-            .select(this.TABLE_COLUMN)
-            .from(this.TABLE_NAME)
-            .where('author_url_token', '=', urlToken)
-            .catch(() => { return [] })
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('author_url_token', '=', urlToken)
+      .catch(() => { return [] })
 
     let answerRecordList = []
     for (let record of recordList) {
@@ -29,19 +29,19 @@ class Answer extends Base {
       let answerRecordJson = _.get(record, ['raw_json'], '{}')
       let answerRecord
       try {
-          answerRecord = JSON.parse(answerRecordJson)
-        } catch {
-          answerRecord = {}
-        }
+        answerRecord = JSON.parse(answerRecordJson)
+      } catch {
+        answerRecord = {}
+      }
       if (_.isEmpty(answerRecord)) {
-          continue
-        }
+        continue
+      }
       answerRecordList.push(answerRecord)
     }
     return answerRecordList
   }
 
-  static async asyncReplaceAnswer (answerRecord: AnswerRecord) {
+  static async asyncReplaceAnswer(answerRecord: AnswerRecord) {
     let id = answerRecord.id
     let question_id = answerRecord.question.id
     let author_url_token = answerRecord.author.url_token
