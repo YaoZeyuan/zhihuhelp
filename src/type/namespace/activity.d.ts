@@ -1,5 +1,5 @@
-declare namespace ActivityRecord {
-    type ActivityRecord = AnswerVoteUpActivityRecord | ArticleVoteUpActivityRecord
+declare namespace Activity {
+    type Record = AnswerVoteUpActivityRecord | ArticleVoteUpActivityRecord
     type AnswerVoteUpActivityRecord = {
         "target": {
             "relationship": {
@@ -201,4 +201,4 @@ declare namespace ActivityRecord {
     }
 }
 
-export default ActivityRecord 
+export default Activity
