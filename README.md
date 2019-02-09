@@ -23,7 +23,7 @@
     -[ ]    添加升级检测, 从服务器获取cookie
     -[ ]    添加图形界面, 利用Electron创建图形界面/生成命令配置
 3.  todo
-    -[ ]    将type声明改为使用namespace形式进行声明
+    -[x]    将type声明改为使用namespace形式进行声明
     -[ ]    将view改为使用类继承方式进行实现
 
 #   代码规范
