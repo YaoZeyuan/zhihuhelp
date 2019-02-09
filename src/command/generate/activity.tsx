@@ -8,6 +8,7 @@ import path from 'path'
 import shelljs from 'shelljs'
 import PathConfig from '~/src/config/path'
 import StringUtil from '~/src/library/util/string'
+import CommonUtil from '~/src/library/util/common'
 import moment from "moment"
 import DATE_FORMAT from "~/src/constant/date_format";
 
@@ -46,7 +47,7 @@ class GenerateActivity extends Base {
                 this.log(`${displayKey} => ${count}次`)
             }
         }
-
+        await CommonUtil.sleep(5 * 1000)
 
         const bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎故事`)
         // 初始化文件夹

@@ -9,6 +9,7 @@ import PathConfig from '~/src/config/path'
 import DATE_FORMAT from '~/src/constant/date_format'
 import CommonUtil from '~/src/library/util/common'
 import logger from '~/src/library/logger'
+import StringUtil from '~/src/library/util/string'
 
 
 class FetchBase extends Base {
@@ -189,7 +190,8 @@ class FetchBase extends Base {
   getImgName(src: string) {
     let filename = _.get(src.split('.com'), [1], '')
     // 需要把所有/都替换成下划线
-    filename = _.trim(filename, '/').replace(/\//g, '_')
+    // filename = _.trim(filename, '/').replace(/\//g, '_')
+    filename = StringUtil.encodeFilename(filename)
     return filename
   }
 }

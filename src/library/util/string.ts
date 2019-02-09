@@ -1,3 +1,4 @@
+import _ from 'lodash'
 class StringUtil {
     /**
      * 
@@ -7,10 +8,13 @@ class StringUtil {
         let encodeFilename = rawFilename
         let illegalCharMap = {
             '\\': '＼',
-            '/': '',
+            '/': '／',
             ':': '：',
             '*': '＊',
             '?': '？',
+            '=': '＝',
+            '%': '％',
+            '+': '＋',
             '<': '《',
             '>': '》',
             '|': '｜',
@@ -18,11 +22,12 @@ class StringUtil {
             '!': '！',
             '\n': '',
             '\r': '',
-            '&': 'and',
+            '&': '＆',
         }
         for (let key of Object.keys(illegalCharMap)) {
-            let legalChar: string = illegalCharMap[key]
-            encodeFilename = encodeFilename.replace(key, legalChar)
+            let legalChar: string = _.get(illegalCharMap, [key], '')
+            // 全局替换
+            encodeFilename = encodeFilename.replace(new RegExp(`\\${key}`, 'g'), legalChar)
         }
         return encodeFilename
     }
