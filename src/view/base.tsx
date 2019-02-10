@@ -20,13 +20,13 @@ class Base {
             if (_.has(record, ['target'])) {
                 // activity类
                 if (_.has(record, ['target', 'question'])) {
-                    let answerRecord: TypeActivity.AnswerVoteUpActivityRecord = record
-                    id = answerRecord.target.question.id
-                    title = answerRecord.target.question.title
+                    let answerActivityRecord: TypeActivity.AnswerVoteUpActivityRecord = record
+                    id = answerActivityRecord.id
+                    title = answerActivityRecord.target.question.title
                 } else {
-                    let articleRecord: TypeActivity.ArticleVoteUpActivityRecord = record
-                    id = articleRecord.target.id
-                    title = articleRecord.target.title
+                    let articleActivityRecord: TypeActivity.ArticleVoteUpActivityRecord = record
+                    id = articleActivityRecord.id
+                    title = articleActivityRecord.target.title
                 }
             } else {
                 if (_.has(record, ['question'])) {
