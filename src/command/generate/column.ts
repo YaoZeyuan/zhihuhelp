@@ -35,46 +35,28 @@ class GenerateColumn extends Base {
 
 
         this.log(`专栏${title}(${columnId})共有${articleCount}篇文章`)
-        const bookname = StringUtil.encodeFilename(`专栏${title}(${columnId})的知乎文章集锦`)
+        this.bookname = StringUtil.encodeFilename(`专栏${title}(${columnId})的知乎文章集锦`)
         // 初始化文件夹
-        this.log(`创建电子书:${bookname}对应文件夹`)
-        let htmlCachePath = path.resolve(PathConfig.htmlCachePath, bookname)
-        let htmlCacheHtmlPath = path.resolve(htmlCachePath, '') // 单文件就没必要放在html文件夹内了, 直接放最外层即可
-        let htmlCacheCssPath = path.resolve(htmlCachePath, 'css')
-        let htmlCacheImgPath = path.resolve(htmlCachePath, 'image')
-        shelljs.mkdir('-p', htmlCachePath)
-        shelljs.mkdir('-p', htmlCacheHtmlPath)
-        shelljs.mkdir('-p', htmlCacheCssPath)
-        shelljs.mkdir('-p', htmlCacheImgPath)
-        this.log(`电子书:${bookname}对应文件夹创建完毕`)
+        this.initPath()
 
         this.log(`获取文章列表`)
         let articleRecordList = await MArticle.asyncGetArticleList(columnId)
         this.log(`文章列表获取完毕, 共${articleRecordList.length}条答案`)
-        // 直接渲染为单个文件
-        let content = renderArticle(bookname, columnInfo, articleRecordList)
-        this.log(`专栏文章渲染完毕, 开始对内容进行输出前预处理`)
+        // 生成单个文件
+        for (let articleRecord of articleRecordList) {
+            let title = articleRecord.id
+            let content = ArticleView.render(articleRecord)
+            content = this.processContent(content)
+            fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+        }
+        //  生成全部文件
+        let content = ArticleView.renderInSinglePage(this.bookname, articleRecordList)
+        this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
-        fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${bookname}.html`), content)
-        this.log(`文章列表处理完毕, 准备下载图片`)
-        // 下载图片
-        await this.downloadImg()
-        this.log(`图片下载完毕`)
-        this.copyImgToCache(htmlCacheImgPath)
+        fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
 
-        this.log(`复制静态资源`)
-        // css
-        for (let filename of ['bootstrap.css', 'customer.css', 'markdown.css', 'normalize.css',]) {
-            let copyFromUri = path.resolve(PathConfig.resourcePath, 'css', filename)
-            let copyToUri = path.resolve(htmlCacheCssPath, filename)
-            fs.copyFileSync(copyFromUri, copyToUri)
-        }
-        // 图片资源
-        for (let filename of ['cover.jpg', 'kanshan.png']) {
-            let copyFromUri = path.resolve(PathConfig.resourcePath, 'image', filename)
-            let copyToUri = path.resolve(htmlCacheImgPath, filename)
-            fs.copyFileSync(copyFromUri, copyToUri)
-        }
+        // 处理静态资源
+        await this.asyncProcessStaticResource()
 
         this.log(`专栏${title}(${columnId})生成完毕`)
     }

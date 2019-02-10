@@ -219,8 +219,8 @@ class FetchBase extends Base {
    */
   getImgName(src: string) {
     let filename = _.get(src.split('.com'), [1], '')
-    // 需要把所有/都替换成下划线
-    // filename = _.trim(filename, '/').replace(/\//g, '_')
+    // 去除两边的/
+    filename = _.trim(filename, '/')
     filename = StringUtil.encodeFilename(filename)
     return filename
   }
