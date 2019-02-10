@@ -81,7 +81,7 @@ class FetchBase extends Base {
           that.imgUriPool.add(rawImgSrc)
         }
         let filename = that.getImgName(rawImgSrc)
-        let htmlImgUri = './image/' + filename
+        let htmlImgUri = '../image/' + filename
         processedImgContent = _.replace(processedImgContent, rawImgSrc, htmlImgUri)
 
         processedImgContentList.push(processedImgContent)

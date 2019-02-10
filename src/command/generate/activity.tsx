@@ -1,7 +1,7 @@
 import Base from "~/src/command/generate/base";
 import MAuthor from "~/src/model/author";
 import MActivity from "~/src/model/activity";
-import renderActivity from "~/src/view/activity"
+import ActivityView from "~/src/view/activity"
 import _ from 'lodash'
 import fs from 'fs'
 import path from 'path'
@@ -53,11 +53,13 @@ class GenerateActivity extends Base {
         // 初始化文件夹
         this.log(`创建电子书:${bookname}对应文件夹`)
         let htmlCachePath = path.resolve(PathConfig.htmlCachePath, bookname)
-        let htmlCacheHtmlPath = path.resolve(htmlCachePath, '') // 单文件就没必要放在html文件夹内了, 直接放最外层即可
+        let htmlCacheHtmlPath = path.resolve(htmlCachePath, 'html')
+        let htmlCacheSingleHtmlPath = path.resolve(htmlCachePath, '单文件版')
         let htmlCacheCssPath = path.resolve(htmlCachePath, 'css')
         let htmlCacheImgPath = path.resolve(htmlCachePath, 'image')
         shelljs.mkdir('-p', htmlCachePath)
         shelljs.mkdir('-p', htmlCacheHtmlPath)
+        shelljs.mkdir('-p', htmlCacheSingleHtmlPath)
         shelljs.mkdir('-p', htmlCacheCssPath)
         shelljs.mkdir('-p', htmlCacheImgPath)
         this.log(`电子书:${bookname}对应文件夹创建完毕`)
@@ -65,11 +67,18 @@ class GenerateActivity extends Base {
         this.log(`获取赞同记录列表`)
         let activityRecordList = await MActivity.asyncGetActivityList(urlToken, actionStartAt, actionEndAt)
         this.log(`赞同记录列表获取完毕, 共${activityRecordList.length}次赞同`)
-        // 直接渲染为单个文件
-        let content = renderActivity(bookname, authorInfo, activityRecordList)
+        // 生成单个文件
+        for (let activityRecord of activityRecordList) {
+            let title = activityRecord.id
+            let content = ActivityView.render(activityRecord)
+            content = this.processContent(content)
+            fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${title}.html`), content)
+        }
+        //  生成全部文件
+        let content = ActivityView.renderInSinglePage(bookname, activityRecordList)
         this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
-        fs.writeFileSync(path.resolve(htmlCacheHtmlPath, `${bookname}.html`), content)
+        fs.writeFileSync(path.resolve(htmlCacheSingleHtmlPath, `${bookname}.html`), content)
         this.log(`内容列表预处理完毕, 准备下载图片`)
         // 下载图片
         await this.downloadImg()
