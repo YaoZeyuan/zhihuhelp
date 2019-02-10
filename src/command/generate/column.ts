@@ -7,6 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
 import PathConfig from '~/src/config/path'
+import Epub from '~/src/library/epub'
 import StringUtil from '~/src/library/util/string'
 
 class GenerateColumn extends Base {
@@ -42,12 +43,14 @@ class GenerateColumn extends Base {
         this.log(`获取文章列表`)
         let articleRecordList = await MArticle.asyncGetArticleList(columnId)
         this.log(`文章列表获取完毕, 共${articleRecordList.length}条答案`)
+        this.epub = new Epub(this.bookname, this.epubCachePath)
         // 生成单个文件
         for (let articleRecord of articleRecordList) {
             let title = articleRecord.id
             let content = ArticleView.render(articleRecord)
             content = this.processContent(content)
             fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+            this.epub.addHtml(`${title}`, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
         }
         //  生成全部文件
         let content = ArticleView.renderInSinglePage(this.bookname, articleRecordList)
@@ -61,6 +64,8 @@ class GenerateColumn extends Base {
 
         // 处理静态资源
         await this.asyncProcessStaticResource()
+        
+        this.epub.generate()
 
         this.log(`专栏${title}(${columnId})生成完毕`)
     }

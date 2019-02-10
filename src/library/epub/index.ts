@@ -1,21 +1,29 @@
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
+import _ from 'lodash'
+import OPF from './opf'
+import TOC from './toc'
 
 class Epub {
-    basePath = path.resolve('.')
-    bookname = ''
+    opf = new OPF()
+    toc = new TOC()
+
+    basePath = path.resolve('.') // 基础路径
+    bookname = '' // 书名
+
+    bookIdentifier = 'helloworld' // id, 直接写死
+
     get currentPath() { return path.resolve(__dirname) }
     get resourcePath() { return path.resolve(this.currentPath, 'resource') }
 
-
-    get epubCachePath() { return path.resolve(this.basePath, this.bookname) }
+    get epubCachePath() { return path.resolve(this.basePath) }
     get epubContentCachePath() { return path.resolve(this.epubCachePath, 'OEBPS') }
     get epubCacheHtmlPath() { return path.resolve(this.epubContentCachePath, 'html') }
     get epubCacheCssPath() { return path.resolve(this.epubContentCachePath, 'css') }
     get epubCacheImagePath() { return path.resolve(this.epubContentCachePath, 'image') }
 
-    constructor(basePath: string, bookname: string) {
+    constructor(bookname: string, basePath: string) {
         this.basePath = basePath
         this.bookname = bookname
         this.initPath()
@@ -45,16 +53,39 @@ class Epub {
         )
     }
 
-    addHtml() {
-
+    parseFilename(uri: string) {
+        let uriSplitList = uri.split(path.sep)
+        let filename = _.get(uriSplitList, uriSplitList.length - 1, '')
+        return filename
     }
 
-    addCss() {
-
+    addHtml(title: string, uri: string) {
+        let filename = this.parseFilename(uri)
+        fs.copyFileSync(uri, path.resolve(this.epubCacheHtmlPath, filename))
+        this.opf.addHtml(filename)
+        this.toc.addHtml(title, filename)
     }
 
-    addImage() {
+    addCss(uri: string) {
+        let filename = this.parseFilename(uri)
+        fs.copyFileSync(uri, path.resolve(this.epubCacheCssPath, filename))
+        this.opf.addCss(filename)
+    }
 
+    addImage(uri: string) {
+        let filename = this.parseFilename(uri)
+        fs.copyFileSync(uri, path.resolve(this.epubCacheImagePath, filename))
+        this.opf.addImage(filename)
+    }
+
+    /**
+     * 生成epub
+     */
+    generate() {
+        let tocContent = this.toc.content
+        fs.writeFileSync(path.resolve(this.epubContentCachePath, 'toc.xhtml'), tocContent)
+        let opfContent = this.opf.content
+        fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
     }
 }
 

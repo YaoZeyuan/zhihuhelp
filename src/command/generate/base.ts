@@ -10,15 +10,20 @@ import DATE_FORMAT from '~/src/constant/date_format'
 import CommonUtil from '~/src/library/util/common'
 import logger from '~/src/library/logger'
 import StringUtil from '~/src/library/util/string'
+import Epub from '~/src/library/epub'
 
 
 class FetchBase extends Base {
+  epub: Epub = null
+
   imgUriPool: Set<string> = new Set()
   // 图片质量
   PICTURE_QUALITY_HD = 'hd' // 对应 data-actualsrc 属性
   PICTURE_QUALITY_RAW = 'r' // 对应 data-original 属性
 
   bookname = ''
+
+  get epubCachePath() { return path.resolve(PathConfig.epubCachePath, this.bookname) }
 
   get htmlCachePath() { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
   get htmlCacheHtmlPath() { return path.resolve(this.htmlCachePath, 'html') }
@@ -179,6 +184,7 @@ class FetchBase extends Base {
         this.log(`第${index}/${this.imgUriPool.size}张图片不存在, 自动跳过`)
         this.log(`src => ${src}`)
       }
+      this.epub.addImage(imgToUri)
     }
     this.log(`全部图片复制完毕`)
   }
@@ -189,12 +195,15 @@ class FetchBase extends Base {
       let copyFromUri = path.resolve(PathConfig.resourcePath, 'css', filename)
       let copyToUri = path.resolve(this.htmlCacheCssPath, filename)
       fs.copyFileSync(copyFromUri, copyToUri)
+      this.epub.addCss(copyToUri)
     }
     // 图片资源
     for (let filename of ['cover.jpg', 'kanshan.png']) {
       let copyFromUri = path.resolve(PathConfig.resourcePath, 'image', filename)
       let copyToUri = path.resolve(this.htmlCacheImgPath, filename)
       fs.copyFileSync(copyFromUri, copyToUri)
+      this.epub.addImage(copyToUri)
+
     }
   }
 
