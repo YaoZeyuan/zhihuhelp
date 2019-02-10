@@ -62,6 +62,13 @@ class OPF {
         this.manifestItemList.push(`<item id="toc" properties="nav" href="toc.xhtml" media-type="application/xhtml+xml"/>`)
     }
 
+
+    addIndexHtml(filename: string) {
+        this.index = this.index + 1
+        this.manifestItemList.unshift(` <item href="./html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)
+        this.spineItemList.unshift(` <itemref idref="index_${this.index}"  linear="no"/>`)
+    }
+
     addHtml(filename: string) {
         this.index = this.index + 1
         this.manifestItemList.push(` <item href="./html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)

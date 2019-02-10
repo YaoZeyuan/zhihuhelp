@@ -68,6 +68,13 @@ class Epub {
         return filename
     }
 
+    addIndexHtml(title: string, uri: string) {
+        let filename = this.parseFilename(uri)
+        fs.copyFileSync(uri, path.resolve(this.epubCacheHtmlPath, filename))
+        this.opf.addIndexHtml(filename)
+        this.toc.addIndexHtml(title, filename)
+    }
+
     addHtml(title: string, uri: string) {
         let filename = this.parseFilename(uri)
         fs.copyFileSync(uri, path.resolve(this.epubCacheHtmlPath, filename))
@@ -96,10 +103,7 @@ class Epub {
         let opfContent = this.opf.content
         fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
         let epubWriteStream = fs.createWriteStream(path.resolve(this.epubCachePath, this.bookname + '.epub'))
-        // await new Promise((resolve, reject) => {
-        //     epubWriteStream.write(fs.readFileSync(path.resolve(this.epubCachePath, 'mimetype')), () => { resolve() })
-        // })
-        console.log('开始制作epub')
+        console.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
         await new Promise((resolve, reject) => {
             let archive = archiver('zip', {
                 zlib: { level: 0 } // Sets the compression level.
@@ -117,12 +121,14 @@ class Epub {
             // It is not part of this library but rather from the NodeJS Stream API.
             // @see: https://nodejs.org/api/stream.html#stream_event_end
             epubWriteStream.on('end', function () {
+                console.log('epub制作完成')
                 console.log('Data has been drained')
                 resolve()
             })
 
             // good practice to catch warnings (ie stat failures and other non-blocking errors)
             archive.on('warning', function (err) {
+                console.log('epub制作失败')
                 reject(err)
                 if (err.code === 'ENOENT') {
                     // log warning

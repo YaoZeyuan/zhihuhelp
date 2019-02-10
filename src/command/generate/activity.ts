@@ -51,7 +51,7 @@ class GenerateActivity extends Base {
 
         this.bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎故事`)
         // 初始化文件夹
-        this.initPath()
+        this.initStaticRecource()
 
 
         this.log(`获取赞同记录列表`)

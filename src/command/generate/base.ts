@@ -41,7 +41,16 @@ class FetchBase extends Base {
     return '生成电子书'
   }
 
-  initPath() {
+  // 初始化静态资源(电子书 & html目录)
+  initStaticRecource() {
+    this.log(`删除旧目录`)
+    this.log(`删除旧epub资源目录:${this.epubCachePath}`)
+    shelljs.rm('-rf', this.epubCachePath)
+    this.log(`旧epub资源目录删除完毕`)
+    this.log(`删除旧html资源目录:${this.htmlCachePath}`)
+    shelljs.rm('-rf', this.htmlCachePath)
+    this.log(`旧html资源目录删除完毕`)
+
     this.log(`创建电子书:${this.bookname}对应文件夹`)
     shelljs.mkdir('-p', this.htmlCachePath)
     shelljs.mkdir('-p', this.htmlCacheSingleHtmlPath)
@@ -49,6 +58,8 @@ class FetchBase extends Base {
     shelljs.mkdir('-p', this.htmlCacheCssPath)
     shelljs.mkdir('-p', this.htmlCacheImgPath)
     this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
+
+    this.epub = new Epub(this.bookname, this.epubCachePath)
   }
 
   processContent(content: string) {
@@ -220,6 +231,10 @@ class FetchBase extends Base {
     this.log(`复制静态资源`)
     this.copyStaticResource()
     this.log(`静态资源完毕`)
+
+    this.log(`生成电子书`)
+    await this.epub.asyncGenerate()
+    this.log(`电子书生成完毕`)
   }
 
   /**

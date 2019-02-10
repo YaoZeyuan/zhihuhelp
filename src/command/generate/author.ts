@@ -36,7 +36,7 @@ class GenerateAuthor extends Base {
         this.log(`用户${name}(${urlToken})共有${answerCount}个回答`)
         this.bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎回答集锦`)
         // 初始化文件夹
-        this.initPath()
+        this.initStaticRecource()
 
         this.log(`获取回答列表`)
         let answerRecordList = await MAnswer.asyncGetAnswerList(urlToken)

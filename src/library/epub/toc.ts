@@ -33,6 +33,16 @@ class TOC {
         return this.navMapList.join('\n')
     }
 
+    addIndexHtml(title: string, filename: string) {
+        this.index = this.index + 1
+        // 目录肯定要插到第一条
+        this.navMapList.unshift(`
+            <li id="nav_index_${this.index}">
+                <a href="./html/${filename}">${title}</a>
+            </li>
+        `)
+    }
+
     addHtml(title: string, filename: string) {
         this.index = this.index + 1
         this.navMapList.push(`
