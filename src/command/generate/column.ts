@@ -54,6 +54,10 @@ class GenerateColumn extends Base {
         this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
+        //  生成目录
+        let indexContent = ArticleView.renderIndex(this.bookname, articleRecordList)
+        content = this.processContent(content)
+        fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `index.html`), indexContent)
 
         // 处理静态资源
         await this.asyncProcessStaticResource()

@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDomServer from 'react-dom/server'
 import TypeAnswer from '~/src/type/namespace/answer'
 import TypeAuthor from '~/src/type/namespace/author'
+import TypeActivity from '~/src/type/namespace/activity'
 import TypeArticle from '~/src/type/namespace/article'
 import TypeColumn from '~/src/type/namespace/column'
 import CommonUtil from '~/src/library/util/common'
@@ -10,6 +11,55 @@ import _ from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
 
 class Base {
+    static renderIndex(bookname: string, recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record>) {
+        let indexList: Array<React.ReactElement<any>> = []
+        for (let record of recordList) {
+            let id = 0
+            let title = ''
+            // 判断数据类别
+            if (_.has(record, ['target'])) {
+                // activity类
+                if (_.has(record, ['target', 'question'])) {
+                    let answerRecord: TypeActivity.AnswerVoteUpActivityRecord = record
+                    id = answerRecord.target.question.id
+                    title = answerRecord.target.question.title
+                } else {
+                    let articleRecord: TypeActivity.ArticleVoteUpActivityRecord = record
+                    id = articleRecord.target.id
+                    title = articleRecord.target.title
+                }
+            } else {
+                if (_.has(record, ['question'])) {
+                    let answerRecord: TypeAnswer.Record = record
+                    id = answerRecord.question.id
+                    title = answerRecord.question.title
+                } else {
+                    let articleRecord: TypeArticle.Record = record
+                    id = articleRecord.id
+                    title = articleRecord.title
+                }
+            }
+
+            let indexItem = (
+                <a className="list-group-item" href={`./${id}.html`}>{title}</a>
+            )
+            indexList.push(indexItem)
+        }
+
+
+        const indexTableElement = (
+            <div className="panel panel-success center-block">
+                <div className="panel-heading">{bookname}</div>
+                <div className="list-group">{indexList}</div>
+            </div>
+        )
+
+        const pageElement = this.generatePageElement(bookname, [indexTableElement])
+        let content = this.renderToString(pageElement)
+        return content
+
+    }
+
     /**
      * 生成单个回答的Element(只有回答, 不包括问题)
      * @param answerRecord 
