@@ -18,6 +18,14 @@ class FetchBase extends Base {
   PICTURE_QUALITY_HD = 'hd' // 对应 data-actualsrc 属性
   PICTURE_QUALITY_RAW = 'r' // 对应 data-original 属性
 
+  bookname = ''
+
+  get htmlCachePath() { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
+  get htmlCacheHtmlPath() { return path.resolve(this.htmlCachePath, 'html') }
+  get htmlCacheSingleHtmlPath() { return path.resolve(this.htmlCachePath, '单文件版') }
+  get htmlCacheCssPath() { return path.resolve(this.htmlCachePath, 'css') }
+  get htmlCacheImgPath() { return path.resolve(this.htmlCachePath, 'image') }
+
   static get signature() {
     return `
         Generate:Base
@@ -26,6 +34,16 @@ class FetchBase extends Base {
 
   static get description() {
     return '生成电子书'
+  }
+
+  initPath() {
+    this.log(`创建电子书:${this.bookname}对应文件夹`)
+    shelljs.mkdir('-p', this.htmlCachePath)
+    shelljs.mkdir('-p', this.htmlCacheSingleHtmlPath)
+    shelljs.mkdir('-p', this.htmlCacheHtmlPath)
+    shelljs.mkdir('-p', this.htmlCacheCssPath)
+    shelljs.mkdir('-p', this.htmlCacheImgPath)
+    this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
   }
 
   processContent(content: string) {
@@ -105,7 +123,6 @@ class FetchBase extends Base {
    * 下载图片
    */
   async downloadImg() {
-    this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
     let index = 0
     for (let src of this.imgUriPool) {
       index++
@@ -146,7 +163,6 @@ class FetchBase extends Base {
 
   copyImgToCache(imgCachePath: string) {
     let index = 0
-    this.log(`将图片从图片池复制到电子书文件夹中`)
     for (let src of this.imgUriPool) {
       index++
       let filename = this.getImgName(src)
@@ -165,6 +181,36 @@ class FetchBase extends Base {
       }
     }
     this.log(`全部图片复制完毕`)
+  }
+
+  copyStaticResource() {
+    // css
+    for (let filename of ['bootstrap.css', 'customer.css', 'markdown.css', 'normalize.css',]) {
+      let copyFromUri = path.resolve(PathConfig.resourcePath, 'css', filename)
+      let copyToUri = path.resolve(this.htmlCacheCssPath, filename)
+      fs.copyFileSync(copyFromUri, copyToUri)
+    }
+    // 图片资源
+    for (let filename of ['cover.jpg', 'kanshan.png']) {
+      let copyFromUri = path.resolve(PathConfig.resourcePath, 'image', filename)
+      let copyToUri = path.resolve(this.htmlCacheImgPath, filename)
+      fs.copyFileSync(copyFromUri, copyToUri)
+    }
+  }
+
+  async asyncProcessStaticResource() {
+    this.log(`内容列表预处理完毕, 准备下载图片`)
+    // 下载图片
+    this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
+    await this.downloadImg()
+    this.log(`图片下载完毕`)
+    this.log(`将图片从图片池复制到电子书文件夹中`)
+    this.copyImgToCache(this.htmlCacheImgPath)
+    this.log(`图片复制完毕`)
+
+    this.log(`复制静态资源`)
+    this.copyStaticResource()
+    this.log(`静态资源完毕`)
   }
 
   /**
