@@ -32,3 +32,4 @@
     1.  类型统一使用namespace方式声明, 导入时使用`Type + xxx`形式进行导入
     2.  Model导入时统一使用`M + xxx`形式进行导入
     3.  View导入时统一使用`View + xxx`形式进行导入
+    4.  async函数前统一添加`async`前缀, 以和正常函数进行区分

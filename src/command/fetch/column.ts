@@ -33,7 +33,7 @@ class FetchAuthor extends Base {
         this.log(`专栏${title}(${columnId})下共有${articleCount}篇文章`)
         this.log(`开始抓取文章概要列表`)
         for (let offset = 0; offset < articleCount; offset = offset + this.max) {
-            await CommonUtil.appendPromiseWithDebounce((async function (columnId, offset, that) {
+            await CommonUtil.asyncAppendPromiseWithDebounce((async function (columnId, offset, that) {
                 let articleExpertList = await ColumnApi.asyncGetArticleExcerptList(columnId, offset, that.max)
                 for (let articleExpert of articleExpertList) {
                     await MColumn.asyncReplaceColumnArticleExcerpt(columnId, articleExpert).catch(e => {
@@ -45,7 +45,7 @@ class FetchAuthor extends Base {
             })(columnId, offset, this))
             this.log(`将第${offset}~${offset + this.max}文章添加到任务队列中`)
         }
-        await CommonUtil.appendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+        await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
         this.log(`全部文章概要抓取完毕`)
 
         let articleExpertList = await MColumn.asyncGetArticleExcerptList(columnId)
@@ -53,11 +53,11 @@ class FetchAuthor extends Base {
         let index = 0
         for (let articleExpert of articleExpertList) {
             index++
-            await CommonUtil.appendPromiseWithDebounce(this.downloadArticle(index, articleExpert))
+            await CommonUtil.asyncAppendPromiseWithDebounce(this.downloadArticle(index, articleExpert))
             this.log(`将第${index}篇文章添加到任务队列中`)
         }
         this.log(`抓取最后一篇文章`)
-        await CommonUtil.appendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+        await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
         this.log(`全部文章抓取完毕`)
     }
 

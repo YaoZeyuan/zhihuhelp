@@ -60,7 +60,7 @@ class FetchActivity extends Base {
             let fetchStartAt = fetchAt
             let fetchEndAt = moment.unix(fetchAt).endOf(DATE_FORMAT.UNIT.MONTH).unix()
             fetchAt = fetchEndAt + 1
-            await CommonUtil.appendPromiseWithDebounce(
+            await CommonUtil.asyncAppendPromiseWithDebounce(
                 this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
             )
         }

@@ -47,7 +47,7 @@ class GenerateActivity extends Base {
                 this.log(`${displayKey} => ${count}次`)
             }
         }
-        await CommonUtil.sleep(5 * 1000)
+        await CommonUtil.asyncSleep(2 * 1000)
 
         const bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎故事`)
         // 初始化文件夹

@@ -4,6 +4,7 @@ import TypeAnswer from '~/src/type/namespace/answer'
 import TypeAuthor from '~/src/type/namespace/author'
 import TypeArticle from '~/src/type/namespace/article'
 import TypeColumn from '~/src/type/namespace/column'
+import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 
@@ -14,7 +15,7 @@ class Base {
      */
     static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
         const answer = (
-            <div>
+            <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
                         <div className='author-info'>
@@ -62,7 +63,7 @@ class Base {
      */
     static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
         const question = (
-            <div>
+            <div key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
                     </div>
@@ -90,7 +91,7 @@ class Base {
      */
     static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
         const content = (
-            <div>
+            <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
                         <div className='author-info'>
@@ -129,7 +130,7 @@ class Base {
             </div>
         )
         const article = (
-            <div data-key='single-page' key={articleRecord.id}>
+            <div data-key='single-page' key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
                         {/* 不展示头图, 样式不好看 */}
@@ -159,9 +160,9 @@ class Base {
                 <head>
                     <meta charSet='utf-8' />
                     <title>{title}</title>
-                    <link rel='stylesheet' type='text/css' href='./css/normalize.css' />
-                    <link rel='stylesheet' type='text/css' href='./css/markdown.css' />
-                    <link rel='stylesheet' type='text/css' href='./css/customer.css' />
+                    <link rel='stylesheet' type='text/css' href='../css/normalize.css' />
+                    <link rel='stylesheet' type='text/css' href='../css/markdown.css' />
+                    <link rel='stylesheet' type='text/css' href='../css/customer.css' />
                 </head>
                 <body>
                     {contentElementList}

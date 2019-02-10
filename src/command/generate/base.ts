@@ -118,8 +118,8 @@ class FetchBase extends Base {
 
       // 分批下载
       this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-      await CommonUtil.appendPromiseWithDebounce((async (index, src, cacheUri, that) => {
-        await CommonUtil.sleep(1)
+      await CommonUtil.asyncAppendPromiseWithDebounce((async (index, src, cacheUri, that) => {
+        await CommonUtil.asyncSleep(1)
         // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
         logger.log(`[第${index}张图片]-1-准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
         let imgContent = await http.downloadImg(src).catch(e => {
@@ -134,13 +134,13 @@ class FetchBase extends Base {
         logger.log(`[第${index}张图片]-2-第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
         // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
         logger.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
-        await CommonUtil.sleep(10)
+        await CommonUtil.asyncSleep(10)
         fs.writeFileSync(cacheUri, imgContent)
         logger.log(`[第${index}张图片]-4-第${index}/${that.imgUriPool.size}张图片储存完毕`)
       })(index, src, cacheUri, this))
     }
     this.log(`清空任务队列`)
-    await CommonUtil.appendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+    await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
     this.log(`所有图片下载完毕`)
   }
 
@@ -158,9 +158,9 @@ class FetchBase extends Base {
       let imgToUri = path.resolve(imgCachePath, filename)
       if (fs.existsSync(imgCacheUri)) {
         fs.copyFileSync(imgCacheUri, imgToUri)
-        this.log(`第${index}张图片复制完毕`)
+        this.log(`第${index}/${this.imgUriPool.size}张图片复制完毕`)
       } else {
-        this.log(`第${index}张图片不存在, 自动跳过`)
+        this.log(`第${index}/${this.imgUriPool.size}张图片不存在, 自动跳过`)
         this.log(`src => ${src}`)
       }
     }

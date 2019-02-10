@@ -7,7 +7,7 @@ class Common {
   /**
    * 添加promise, 到指定容量后再执行
    */
-  static async appendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
+  static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
     Common.promiseList.push(promise)
     if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
       logger.log(`任务队列已满, 开始执行任务, 共${Common.promiseList.length}个任务待执行`)
@@ -22,8 +22,19 @@ class Common {
    * 延迟执行函数, 返回一个 Promise
    * @param {number} ms
    */
-  static sleep(ms: number) {
+  static asyncSleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  static getUuid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(36)
+        .substring(1)
+    }
+
+    let uuid = `${s4()}-${s4()}-${s4()}-${s4()}`
+    return uuid
   }
 
 }
