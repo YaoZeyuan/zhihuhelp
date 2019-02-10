@@ -9,8 +9,6 @@ import CommonUtil from "~/src/library/util/common";
 
 
 class FetchActivity extends Base {
-    max = 20
-
     static get signature() {
         return `
         Fetch:Activity

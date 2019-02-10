@@ -1,6 +1,7 @@
 import Base from "~/src/command/base";
 
 class FetchBase extends Base {
+    max = 20
     static get signature() {
         return `
         Fetch:Base

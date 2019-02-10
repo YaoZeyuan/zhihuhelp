@@ -5,8 +5,6 @@ import MAnswer from "~/src/model/answer";
 import MAuthor from "~/src/model/author";
 
 class FetchAuthor extends Base {
-    max = 20
-
     static get signature() {
         return `
         Fetch:Author

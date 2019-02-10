@@ -7,8 +7,6 @@ import CommonUtil from "~/src/library/util/common";
 import TypeArticleExcerpt from "~/src/type/namespace/article_excerpt";
 
 class FetchAuthor extends Base {
-    max = 20
-
     static get signature() {
         return `
         Fetch:Column
