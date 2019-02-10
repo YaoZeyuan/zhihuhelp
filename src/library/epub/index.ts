@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
+import archiver from 'archiver'
 import _ from 'lodash'
 import OPF from './opf'
 import TOC from './toc'
@@ -81,11 +82,65 @@ class Epub {
     /**
      * 生成epub
      */
-    generate() {
+    async asyncGenerate() {
         let tocContent = this.toc.content
         fs.writeFileSync(path.resolve(this.epubContentCachePath, 'toc.xhtml'), tocContent)
         let opfContent = this.opf.content
         fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
+        let epubWriteStream = fs.createWriteStream(path.resolve(this.epubCachePath, this.bookname + '.epub'))
+        // await new Promise((resolve, reject) => {
+        //     epubWriteStream.write(fs.readFileSync(path.resolve(this.epubCachePath, 'mimetype')), () => { resolve() })
+        // })
+        console.log('开始制作epub')
+        await new Promise((resolve, reject) => {
+            let archive = archiver('zip', {
+                zlib: { level: 0 } // Sets the compression level.
+            })
+            // listen for all archive data to be written
+            // 'close' event is fired only when a file descriptor is involved
+            epubWriteStream.on('close', function () {
+                console.log('epub制作完成')
+                console.log(archive.pointer() + ' total bytes')
+                console.log('archiver has been finalized and the output file descriptor has closed.')
+                resolve()
+            })
+
+            // This event is fired when the data source is drained no matter what was the data source.
+            // It is not part of this library but rather from the NodeJS Stream API.
+            // @see: https://nodejs.org/api/stream.html#stream_event_end
+            epubWriteStream.on('end', function () {
+                console.log('Data has been drained')
+                resolve()
+            })
+
+            // good practice to catch warnings (ie stat failures and other non-blocking errors)
+            archive.on('warning', function (err) {
+                reject(err)
+                if (err.code === 'ENOENT') {
+                    // log warning
+                } else {
+                    // throw error
+                    throw err
+                }
+            })
+
+            // good practice to catch this error explicitly
+            archive.on('error', function (err) {
+                reject(err)
+            })
+
+            // pipe archive data to the file
+            archive.pipe(epubWriteStream)
+
+            // append files from a sub-directory, putting its contents at the root of archive
+            archive.append(fs.createReadStream(path.resolve(this.epubCachePath, 'mimetype')), { name: 'mimetype' })
+            archive.directory(`${path.resolve(this.epubCachePath, 'META-INF/')}`, 'META-INF')
+            archive.directory(`${path.resolve(this.epubCachePath, 'OEBPS/')}`, 'OEBPS')
+
+            // finalize the archive (ie we are done appending files but streams have to finish yet)
+            // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
+            archive.finalize()
+        })
     }
 }
 

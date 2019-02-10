@@ -47,11 +47,11 @@ class OPF {
     }
 
     get manifestItemListString() {
-        return this.manifestItemList.join('')
+        return this.manifestItemList.join('\n')
     }
 
     get spineItemListString() {
-        return this.spineItemList.join('')
+        return this.spineItemList.join('\n')
     }
 
     constructor() {

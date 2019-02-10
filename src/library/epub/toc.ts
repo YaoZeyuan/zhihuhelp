@@ -29,7 +29,7 @@ class TOC {
     }
 
     get navOlString() {
-        return this.navMapList.join('')
+        return this.navMapList.join('\n')
     }
 
     addHtml(title: string, filename: string) {

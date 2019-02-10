@@ -64,8 +64,8 @@ class GenerateColumn extends Base {
 
         // 处理静态资源
         await this.asyncProcessStaticResource()
-        
-        this.epub.generate()
+
+        await this.epub.asyncGenerate()
 
         this.log(`专栏${title}(${columnId})生成完毕`)
     }

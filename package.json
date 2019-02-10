@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@adonisjs/ace": "^5.0.8",
+    "archiver": "^3.0.0",
     "async": "^2.6.0",
     "axios": "^0.18.0",
     "dotenv": "^4.0.0",
@@ -43,6 +44,7 @@
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.1.0",
+    "@types/archiver": "^2.1.2",
     "@types/async": "^2.0.45",
     "@types/dotenv": "^4.0.2",
     "@types/jest": "^22.1.3",
