@@ -223,6 +223,7 @@ class Base {
                     <link rel='stylesheet' type='text/css' href='../css/normalize.css' />
                     <link rel='stylesheet' type='text/css' href='../css/markdown.css' />
                     <link rel='stylesheet' type='text/css' href='../css/customer.css' />
+                    <link rel='stylesheet' type='text/css' href='../css/bootstrap.css' />
                 </head>
                 <body>
                     {contentElementList}
