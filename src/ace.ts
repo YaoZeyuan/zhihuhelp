@@ -19,6 +19,8 @@ const registedCommandList = [
     "./command/generate/author", //  按用户生成电子书
     "./command/generate/activity", //  按用户点赞回答&文章生成电子书
     "./command/generate/column", //  按专栏生成电子书
+
+    "./command/epub", //  测试用
 ];
 // register commands
 for (const command of registedCommandList) {
