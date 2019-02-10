@@ -6,6 +6,7 @@ import TypeArticle from '~/src/type/namespace/article'
 import TypeColumn from '~/src/type/namespace/column'
 import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
+import _ from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
 
 class Base {
@@ -14,6 +15,9 @@ class Base {
      * @param answerRecord 
      */
     static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
+        if (_.isEmpty(answerRecord)) {
+            return (<div key={CommonUtil.getUuid()}></div>)
+        }
         const answer = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
@@ -62,6 +66,9 @@ class Base {
      * @param answerElementList 
      */
     static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
+        if (_.isEmpty(questionRecord)) {
+            return (<div key={CommonUtil.getUuid()}></div>)
+        }
         const question = (
             <div key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
@@ -90,6 +97,9 @@ class Base {
      * @param articleRecord 
      */
     static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
+        if (_.isEmpty(articleRecord)) {
+            return (<div key={CommonUtil.getUuid()}></div>)
+        }
         const content = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
