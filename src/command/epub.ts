@@ -1,6 +1,8 @@
 import { Command } from '@adonisjs/ace'
 import _ from 'lodash'
 import Base from '~/src/command/base'
+import Epub from '~/src/library/epub'
+import PathConfig from '~/src/config/path'
 
 class EpubTest extends Base {
   static get signature() {
@@ -21,6 +23,8 @@ class EpubTest extends Base {
    */
   async execute(args: any, options: any) {
     this.log('hello world')
+    let epub = new Epub(PathConfig.epubCachePath, '测试')
+
   }
 
 }

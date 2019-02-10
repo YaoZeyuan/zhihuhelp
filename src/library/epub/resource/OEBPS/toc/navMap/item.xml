@@ -1,0 +1,9 @@
+        <navPoint id="{resource_id}" playOrder="{resource_id}">
+            <navLabel>
+                <text>{title}</text>
+            </navLabel>
+
+            <content src="{href}"/>
+
+{extend_nav_point}
+        </navPoint>
