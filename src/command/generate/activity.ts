@@ -11,6 +11,7 @@ import StringUtil from '~/src/library/util/string'
 import CommonUtil from '~/src/library/util/common'
 import moment from "moment"
 import DATE_FORMAT from "~/src/constant/date_format";
+import TypeActivity from "~/src/type/namespace/activity";
 
 class GenerateActivity extends Base {
     max = 20
@@ -63,6 +64,14 @@ class GenerateActivity extends Base {
             let content = ActivityView.render(activityRecord)
             content = this.processContent(content)
             fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+            if (_.has(activityRecord, ['target', 'question'])) {
+                let record: TypeActivity.AnswerVoteUpActivityRecord = activityRecord
+                this.epub.addHtml(record.target.question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+            } else {
+                let record: TypeActivity.ArticleVoteUpActivityRecord = activityRecord
+                this.epub.addHtml(record.target.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+            }
+
         }
         //  生成全部文件
         let content = ActivityView.renderInSinglePage(this.bookname, activityRecordList)
@@ -73,6 +82,7 @@ class GenerateActivity extends Base {
         let indexContent = ActivityView.renderIndex(this.bookname, activityRecordList)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
+        this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
 
         // 处理静态资源
         await this.asyncProcessStaticResource()

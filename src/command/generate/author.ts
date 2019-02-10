@@ -47,6 +47,7 @@ class GenerateAuthor extends Base {
             let content = AnswerView.render([answerRecord])
             content = this.processContent(content)
             fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+            this.epub.addHtml(answerRecord.question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
         }
         //  生成全部文件
         let content = AnswerView.renderInSinglePage(this.bookname, [answerRecordList])
@@ -57,6 +58,7 @@ class GenerateAuthor extends Base {
         let indexContent = AnswerView.renderIndex(this.bookname, answerRecordList)
         content = this.processContent(content)
         fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
+        this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
 
         // 处理静态资源
         await this.asyncProcessStaticResource()
