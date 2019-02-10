@@ -25,11 +25,15 @@ class FetchBase extends Base {
 
   get epubCachePath() { return path.resolve(PathConfig.epubCachePath, this.bookname) }
 
+  get epubOutputPath() { return path.resolve(PathConfig.epubOutputPath, this.bookname) }
+
   get htmlCachePath() { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
   get htmlCacheHtmlPath() { return path.resolve(this.htmlCachePath, 'html') }
   get htmlCacheSingleHtmlPath() { return path.resolve(this.htmlCachePath, '单文件版') }
   get htmlCacheCssPath() { return path.resolve(this.htmlCachePath, 'css') }
   get htmlCacheImgPath() { return path.resolve(this.htmlCachePath, 'image') }
+
+  get htmlOutputPath() { return path.resolve(PathConfig.htmlOutputPath, this.bookname) }
 
   static get signature() {
     return `
@@ -44,19 +48,29 @@ class FetchBase extends Base {
   // 初始化静态资源(电子书 & html目录)
   initStaticRecource() {
     this.log(`删除旧目录`)
-    this.log(`删除旧epub资源目录:${this.epubCachePath}`)
+    this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     shelljs.rm('-rf', this.epubCachePath)
-    this.log(`旧epub资源目录删除完毕`)
+    this.log(`旧epub缓存目录删除完毕`)
+    this.log(`删除旧epub输出资源目录:${this.epubOutputPath}`)
+    shelljs.rm('-rf', this.epubOutputPath)
+    this.log(`旧epub输出目录删除完毕`)
     this.log(`删除旧html资源目录:${this.htmlCachePath}`)
     shelljs.rm('-rf', this.htmlCachePath)
     this.log(`旧html资源目录删除完毕`)
+    this.log(`删除旧html输出目录:${this.htmlOutputPath}`)
+    shelljs.rm('-rf', this.htmlOutputPath)
+    this.log(`旧html输出目录删除完毕`)
 
     this.log(`创建电子书:${this.bookname}对应文件夹`)
+    shelljs.mkdir('-p', this.epubCachePath)
+    shelljs.mkdir('-p', this.epubOutputPath)
+
     shelljs.mkdir('-p', this.htmlCachePath)
     shelljs.mkdir('-p', this.htmlCacheSingleHtmlPath)
     shelljs.mkdir('-p', this.htmlCacheHtmlPath)
     shelljs.mkdir('-p', this.htmlCacheCssPath)
     shelljs.mkdir('-p', this.htmlCacheImgPath)
+    shelljs.mkdir('-p', this.htmlOutputPath)
     this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
 
     this.epub = new Epub(this.bookname, this.epubCachePath)
@@ -235,6 +249,14 @@ class FetchBase extends Base {
     this.log(`生成电子书`)
     await this.epub.asyncGenerate()
     this.log(`电子书生成完毕`)
+
+    this.log(`将生成文件复制到目标文件夹`)
+    this.log(`复制epub电子书`)
+    fs.copyFileSync(path.resolve(this.epubCachePath, this.bookname + '.epub'), path.resolve(this.epubOutputPath, this.bookname + '.epub'))
+    this.log(`epub电子书复制完毕`)
+    this.log(`复制网页`)
+    shelljs.cp('-r', path.resolve(this.htmlCachePath), path.resolve(this.htmlOutputPath))
+    this.log(`网页复制完毕`)
   }
 
   /**

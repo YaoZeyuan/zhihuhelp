@@ -8,7 +8,7 @@ class Path {
   static readonly htmlCachePath = path.resolve(Path.cachePath, 'html')
   static readonly epubCachePath = path.resolve(Path.cachePath, 'epub')
   static readonly outputPath = path.resolve(Path.rootPath, '知乎助手输出的电子书')
-  // static readonly epubOutputPath = path.resolve(Path.outputPath, 'epub')
+  static readonly epubOutputPath = path.resolve(Path.outputPath, 'epub')
   static readonly htmlOutputPath = path.resolve(Path.outputPath, 'html')
 
   static readonly allPathList = [
