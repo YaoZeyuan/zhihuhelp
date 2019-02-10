@@ -14,6 +14,7 @@ class Epub {
     bookname = '' // 书名
 
     bookIdentifier = 'helloworld' // id, 直接写死
+    creator = 'zhihuhelp' // 创建者, 直接写死
 
     get currentPath() { return path.resolve(__dirname) }
     get resourcePath() { return path.resolve(this.currentPath, 'resource') }
@@ -27,6 +28,13 @@ class Epub {
     constructor(bookname: string, basePath: string) {
         this.basePath = basePath
         this.bookname = bookname
+
+        this.opf.creator = this.creator
+        this.toc.creator = this.creator
+
+        this.opf.title = bookname
+        this.toc.title = bookname
+
         this.initPath()
     }
 

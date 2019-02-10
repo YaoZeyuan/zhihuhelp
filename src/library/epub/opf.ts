@@ -38,7 +38,7 @@ class OPF {
     <manifest>
     ${this.manifestItemListString}
     </manifest>
-    <spine toc="ncx">
+    <spine toc="toc">
     ${this.spineItemListString}
     </spine>
 </package>

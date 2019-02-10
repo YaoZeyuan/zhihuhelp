@@ -216,7 +216,7 @@ class Base {
 
     static generatePageElement(title: string, contentElementList: Array<React.ReactElement<any>>) {
         return (
-            <html>
+            <html xmlns="http://www.w3.org/1999/xhtml">
                 <head>
                     <meta charSet='utf-8' />
                     <title>{title}</title>

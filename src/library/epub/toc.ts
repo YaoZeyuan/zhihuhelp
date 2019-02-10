@@ -20,8 +20,9 @@ class TOC {
         </head>
         <body>
           <nav id="toc" epub:type="toc">
-            <h1>Table of Contents</h1>
-            ${this.navOlString}
+            <ol>
+                ${this.navOlString}
+            </ol>
           </nav>
         </body></html>
 `
