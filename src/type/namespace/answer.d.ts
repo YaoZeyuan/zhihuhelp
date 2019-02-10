@@ -80,6 +80,16 @@ declare namespace Answer {
         "is_normal": true
     }
 
+    type Question = {
+        "question_type": "normal",
+        "title": "有哪些免费开放且收录城市较完整的天气 API 接口？",
+        "url": "https://www.zhihu.com/questions/20521716",
+        "created": 1349832855,
+        "type": "question",
+        "id": 20521716,
+        "updated_time": 1450363792
+    }
+
 }
 
 export default Answer 

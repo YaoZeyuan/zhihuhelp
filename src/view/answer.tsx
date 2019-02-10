@@ -6,91 +6,48 @@ import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 import Base from '~/src/view/base'
+import _ from 'lodash'
 
 class Answer extends Base {
-    static render(title: string, authorInfo: TypeAuthor.Record, answerRecordList: Array<TypeAnswer.Record>) {
-        let questionList = []
-        let index = 0
+
+    /**
+     * 生成单个问题对应的react元素
+     * @param answerRecordList 
+     */
+    private static generateSingleItemElement(answerRecordList: Array<TypeAnswer.Record>) {
+        let baseAnswerRecord: TypeAnswer.Record = _.get(answerRecordList, [0])
+        let answerElementList = []
         for (let answerRecord of answerRecordList) {
-            index++
-            logger.log(`渲染第${index}/${answerRecordList.length}个回答`)
-            const answer = (
-                <div>
-                    <div className='answer'>
-                        <div className='author'>
-                            <div className='author-info'>
-                                <div className='author-base'>
-                                    <div className='author-logo'>
-                                        <img src={answerRecord.author.avatar_url} width='25' height='25'></img>
-                                    </div>
-
-                                    <span className='author-name'>
-                                        <a href={`http://www.zhihu.com/people/${answerRecord.author.id}`}>{answerRecord.author.name}</a>
-                                    </span>
-
-                                    <span className='author-sign'>{answerRecord.author.headline}</span>
-                                </div>
-
-                                <div className='clear-float'></div>
-                            </div>
-                        </div>
-
-                        <div className='content' >
-                            <div dangerouslySetInnerHTML={{ __html: answerRecord.content }} />
-                        </div>
-
-                        <div className='comment'>
-                            <div className='extra-info'>
-                                <p className='comment'>评论数:{answerRecord.comment_count}</p>
-
-                                <p className='agree'>赞同数:{answerRecord.voteup_count}</p>
-
-                                <p className='update-date'>更新时间:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DISPLAY_BY_SECOND)}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr />
-                </div>
-            )
-            const question = (
-                <div key={answerRecord.id}>
-                    <div className='bg-zhihu-blue-light'>
-                        <div className='title-image'>
-                        </div>
-                        <div className='question bg-zhihu-blue-light'>
-                            <div className='question-title'>
-                                <h1 className='bg-zhihu-blue-deep'>{answerRecord.question.title}</h1>
-                            </div>
-                            <div className='clear-float'></div>
-                        </div>
-                        <div className='question-info bg-zhihu-blue-light' data-comment='知乎对外接口中没有问题描述数据, 因此直接略过'>
-                        </div>
-                        <div className='clear-float'></div>
-                    </div>
-                    <div className='answer'>
-                        {answer}
-                    </div>
-                </div>
-            )
-            questionList.push(question)
+            let answerElement = this.generateSingleAnswerElement(answerRecord)
+            answerElementList.push(answerElement)
         }
+        let questionElement = this.generateQuestionElement(baseAnswerRecord.question, answerElementList)
+        return questionElement
+    }
 
-        const base = (
-            <html>
-                <head>
-                    <meta charSet='utf-8' />
-                    <title>{title}</title>
-                    <link rel='stylesheet' type='text/css' href='./css/normalize.css' />
-                    <link rel='stylesheet' type='text/css' href='./css/markdown.css' />
-                    <link rel='stylesheet' type='text/css' href='./css/customer.css' />
-                </head>
-                <body>
-                    {questionList}
-                </body>
-            </html>
-        )
-        return ReactDomServer.renderToString(base)
+    static render(answerInSameQuestionRecordList: Array<TypeAnswer.Record>) {
+        // 都是同一个
+        let baseAnswerRecord: TypeAnswer.Record = _.get(answerInSameQuestionRecordList, [0])
+        let title = baseAnswerRecord.question.title
+        let questionElement = this.generateSingleItemElement(answerInSameQuestionRecordList)
+        let pageElement = this.generatePageElement(title, [questionElement])
+        return this.renderToString(pageElement)
+    }
+
+    /**
+     * 将按问题分组的answer记录渲染到同一个html中
+     * 
+     * @param title 最后生成html的标题
+     * @param answerRecordList 按相同问题对答案进行分组 
+     */
+    static renderInSinglePage(title: string, answerRecordList: Array<Array<TypeAnswer.Record>>) {
+        let questionElementList = []
+        for (let answerInSameQuestionRecordList of answerRecordList) {
+            let questionElement = this.generateSingleItemElement(answerInSameQuestionRecordList)
+            questionElementList.push(questionElement)
+        }
+        let pageElement = this.generatePageElement(title, questionElementList)
+        return this.renderToString(pageElement)
     }
 }
 
