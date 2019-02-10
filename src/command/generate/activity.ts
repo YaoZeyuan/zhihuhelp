@@ -49,8 +49,7 @@ class GenerateActivity extends Base {
         }
         await CommonUtil.asyncSleep(2 * 1000)
 
-        const bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎故事`)
-        this.bookname = bookname
+        this.bookname = StringUtil.encodeFilename(`用户${name}(${urlToken})的知乎故事`)
         // 初始化文件夹
         this.initPath()
 
@@ -66,10 +65,10 @@ class GenerateActivity extends Base {
             fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
         }
         //  生成全部文件
-        let content = ActivityView.renderInSinglePage(bookname, activityRecordList)
+        let content = ActivityView.renderInSinglePage(this.bookname, activityRecordList)
         this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
         content = this.processContent(content)
-        fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${bookname}.html`), content)
+        fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
 
         // 处理静态资源
         await this.asyncProcessStaticResource()
