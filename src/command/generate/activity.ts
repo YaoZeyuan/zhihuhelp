@@ -57,7 +57,7 @@ class GenerateActivity extends Base {
 
         this.log(`获取赞同记录列表`)
         let activityRecordList = await MActivity.asyncGetActivityList(urlToken, actionStartAt, actionEndAt)
-        this.log(`赞同记录列表获取完毕, 共${activityRecordList.length}次赞同`)
+        this.log(`赞同记录列表获取完毕, 用户${name}(${urlToken})共发出了${activityRecordList.length}次赞同`)
         // 生成单个文件
         for (let activityRecord of activityRecordList) {
             let title = activityRecord.id

@@ -70,27 +70,27 @@ class Epub {
 
     addIndexHtml(title: string, uri: string) {
         let filename = this.parseFilename(uri)
-        fs.copyFileSync(uri, path.resolve(this.epubCacheHtmlPath, filename))
+        this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheHtmlPath, filename))
         this.opf.addIndexHtml(filename)
         this.toc.addIndexHtml(title, filename)
     }
 
     addHtml(title: string, uri: string) {
         let filename = this.parseFilename(uri)
-        fs.copyFileSync(uri, path.resolve(this.epubCacheHtmlPath, filename))
+        this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheHtmlPath, filename))
         this.opf.addHtml(filename)
         this.toc.addHtml(title, filename)
     }
 
     addCss(uri: string) {
         let filename = this.parseFilename(uri)
-        fs.copyFileSync(uri, path.resolve(this.epubCacheCssPath, filename))
+        this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheCssPath, filename))
         this.opf.addCss(filename)
     }
 
     addImage(uri: string) {
         let filename = this.parseFilename(uri)
-        fs.copyFileSync(uri, path.resolve(this.epubCacheImagePath, filename))
+        this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheImagePath, filename))
         this.opf.addImage(filename)
     }
 
@@ -155,6 +155,14 @@ class Epub {
             // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
             archive.finalize()
         })
+    }
+
+    private CopyFileSyncSafe(fromUri: string, toUri: string) {
+        if (fs.existsSync(fromUri) === false) {
+            return
+        }
+        fs.copyFileSync(fromUri, toUri)
+        return
     }
 }
 
