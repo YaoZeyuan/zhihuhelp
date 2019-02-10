@@ -24,5 +24,20 @@ class Answer extends Base {
     const answerList = _.get(record, ['data'], [])
     return answerList
   }
+
+  /**
+   * 获取单个回答
+   * @param id 
+   */
+  static async asyncGetAnswer(id: number | string): Promise<TypeAnswer.Record> {
+    const baseUrl = `https://api.zhihu.com/answers/${id}`
+    const config = {
+      include: `data.content`
+    }
+    const answerRecord: TypeAnswer.Record = await Base.http.get(baseUrl, {
+      params: config
+    })
+    return answerRecord
+  }
 }
 export default Answer
