@@ -11,6 +11,9 @@ class Path {
   static readonly epubOutputPath = path.resolve(Path.outputPath, 'epub')
   static readonly htmlOutputPath = path.resolve(Path.outputPath, 'html')
 
+  // 本地配置文件, 随时更新
+  static readonly localConfigUri = path.resolve(Path.rootPath, 'local_config.json')
+
   static readonly allPathList = [
     Path.rootPath,
 
@@ -19,6 +22,7 @@ class Path {
     Path.htmlCachePath,
 
     Path.outputPath,
+    Path.epubOutputPath,
     Path.htmlOutputPath
   ]
 }

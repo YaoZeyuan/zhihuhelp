@@ -2,6 +2,9 @@ import Base from '~/src/command/base'
 import knex from '~/src/library/knex'
 import fs from 'fs'
 import path from 'path'
+import http from '~/src/library/http'
+import TypeLocalConfig from '~/src/type/namespace/local_config'
+import CommonConfig from '~/src/config/common'
 import shelljs from 'shelljs'
 import DatabaseConfig from '~/src/config/database'
 import PathConfig from '~/src/config/path'
@@ -21,6 +24,26 @@ class InitEnv extends Base {
 
   async execute(args: any, options: any) {
     let { rebase: isRebase } = options
+
+    this.log(`检查更新`)
+    let remoteLocalConfigJson = await http.get(CommonConfig.checkUpgradeUri, {
+      params: {
+        "now": (new Date()).toISOString
+      }
+    }).catch(e => {
+      return '{}'
+    })
+    // 将远程配置直接写入本地配置中
+    // 一定不会有错, 有错就找我←_←
+    let remoteLocalConfig: TypeLocalConfig.Record = JSON.parse(remoteLocalConfigJson)
+    fs.writeFileSync(PathConfig.localConfigUri, remoteLocalConfig)
+    if (remoteLocalConfig.version > CommonConfig.version) {
+      this.log('有新版本')
+      this.log(`请到${remoteLocalConfig.downloadUrl}下载最新版本知乎助手`)
+      this.log(`更新日期:${remoteLocalConfig.releaseAt}`)
+      this.log(`更新说明:${remoteLocalConfig.releaseNote}`)
+      return
+    }
 
     this.log('初始化文件夹')
     for (let uri of PathConfig.allPathList) {
