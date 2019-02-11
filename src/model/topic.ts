@@ -82,28 +82,13 @@ class Topic extends Base {
    * 存储收藏夹答案概览数据
    * @param columnRecord
    */
-  static async asyncReplaceTopicAnswer(topicId: string, answerRecord: TypeAnswer.Record): Promise<void> {
+  static async asyncReplaceTopicAnswer(topicId: number, answerRecord: TypeAnswer.Record): Promise<void> {
     let raw_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
     await this.replaceInto({
       topic_id: topicId,
       answer_id: answerId,
       raw_json
-    }, this.TOPIC_ANSWER_TABLE_NAME)
-    return
-  }
-
-  /**
-   * 存储收藏夹答案详情数据
-   * @param columnRecord
-   */
-  static async asyncReplaceColumnAnswer(collectionId: string, answerRecord: TypeAnswer.Record): Promise<void> {
-    let raw_answer_json = JSON.stringify(answerRecord)
-    let answerId = answerRecord.id
-    await this.replaceInto({
-      collection_id: collectionId,
-      answer_id: answerId,
-      raw_answer_json
     }, this.TOPIC_ANSWER_TABLE_NAME)
     return
   }

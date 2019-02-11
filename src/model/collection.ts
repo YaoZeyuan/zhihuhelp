@@ -83,7 +83,7 @@ class Collection extends Base {
    * 存储收藏夹答案概览数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnAnswerExcerpt(collectionId: string, answerExcerptRecord: TypeCollection.AnswerExcerpt): Promise<void> {
+  static async asyncReplaceColumnAnswerExcerpt(collectionId: number, answerExcerptRecord: TypeCollection.AnswerExcerpt): Promise<void> {
     let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)
     let answerId = answerExcerptRecord.id
     await this.replaceInto({
@@ -98,7 +98,7 @@ class Collection extends Base {
    * 存储收藏夹答案详情数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnAnswer(collectionId: string, answerRecord: TypeAnswer.Record): Promise<void> {
+  static async asyncReplaceColumnAnswer(collectionId: number, answerRecord: TypeAnswer.Record): Promise<void> {
     let raw_answer_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
     await this.replaceInto({

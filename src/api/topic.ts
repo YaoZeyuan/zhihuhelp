@@ -27,7 +27,7 @@ class Topic extends Base {
    * 获取话题信息
    * @param topicId 
    */
-  static async asyncGetCollectionInfo(topicId: number | string): Promise<TypeTopic.Info> {
+  static async asyncGetTopicInfo(topicId: number | string): Promise<TypeTopic.Info> {
     const baseUrl = `https://www.zhihu.com/api/v4/topics/${topicId}`
     const config = {
     }
