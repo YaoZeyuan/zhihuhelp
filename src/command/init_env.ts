@@ -10,7 +10,7 @@ import DatabaseConfig from '~/src/config/database'
 import PathConfig from '~/src/config/path'
 
 class InitEnv extends Base {
-  static get signature() {
+  static get signature () {
     return `
      Init:Env
 
@@ -18,11 +18,11 @@ class InitEnv extends Base {
      `
   }
 
-  static get description() {
+  static get description () {
     return '初始化运行环境'
   }
 
-  async execute(args: any, options: any) {
+  async execute (args: any, options: any) {
     let { rebase: isRebase } = options
 
     this.log(`检查更新`)
@@ -33,9 +33,7 @@ class InitEnv extends Base {
     }).catch(e => {
       return {}
     })
-    // 将远程配置直接写入本地配置中
-    // 一定不会有错, 有错就找我←_←
-    fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(remoteLocalConfig, null, 4), { flag: 'w' })
+    // 已经通过Electron拿到了最新知乎cookie并写入了配置文件中, 因此不需要再填写配置文件了
     if (remoteLocalConfig.version > CommonConfig.version) {
       this.log('有新版本')
       this.log(`请到${remoteLocalConfig.downloadUrl}下载最新版本知乎助手`)
