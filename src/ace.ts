@@ -1,4 +1,4 @@
-import ace from "@adonisjs/ace";
+import ace from '@adonisjs/ace'
 
 /*
 |--------------------------------------------------------------------------
@@ -11,25 +11,27 @@ import ace from "@adonisjs/ace";
 */
 
 const registedCommandList = [
-    "./command/demo", //  命令demo
-    "./command/init_env", //  初始化运行环境
-    "./command/fetch/author", //  按用户抓取回答
-    "./command/fetch/column", //  按专栏抓取回答
-    "./command/fetch/activity", //  抓取用户活动记录
-    "./command/fetch/topic", //  抓取话题精华记录
-    "./command/fetch/collection", //  抓取收藏夹记录
-    "./command/generate/author", //  按用户生成电子书
-    "./command/generate/activity", //  按用户点赞回答&文章生成电子书
-    "./command/generate/column", //  按专栏生成电子书
-    "./command/generate/topic", //  按话题生成电子书
-    "./command/generate/collection", //  按收藏夹生成电子书
+  './command/demo', //  命令demo
+  './command/init_env', //  初始化运行环境
+  './command/generate/dispatch_command', //  分发命令
 
-];
+  './command/fetch/author', //  按用户抓取回答
+  './command/fetch/column', //  按专栏抓取回答
+  './command/fetch/activity', //  抓取用户活动记录
+  './command/fetch/topic', //  抓取话题精华记录
+  './command/fetch/collection', //  抓取收藏夹记录
+  './command/generate/author', //  按用户生成电子书
+  './command/generate/activity', //  按用户点赞回答&文章生成电子书
+  './command/generate/column', //  按专栏生成电子书
+  './command/generate/topic', //  按话题生成电子书
+  './command/generate/collection' //  按收藏夹生成电子书
+
+]
 // register commands
 for (const command of registedCommandList) {
-    ace.addCommand(require(command)["default"]);
+  ace.addCommand(require(command)['default'])
 }
 
 // Boot ace to execute commands
-ace.wireUpWithCommander();
-ace.invoke();
+ace.wireUpWithCommander()
+ace.invoke()
