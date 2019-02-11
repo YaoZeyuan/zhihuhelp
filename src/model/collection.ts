@@ -86,10 +86,20 @@ class Collection extends Base {
   static async asyncReplaceColumnAnswerExcerpt(collectionId: number, answerExcerptRecord: TypeCollection.AnswerExcerpt): Promise<void> {
     let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)
     let answerId = answerExcerptRecord.id
+    // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
+    let oldRecordList = await this.db
+      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
+      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .where('collection_id', '=', collectionId)
+      .andWhere('answer_id', '=', answerId)
+      .catch(() => { return [] })
+
+    let raw_answer_json = _.get(oldRecordList, [0, 'raw_answer_json'], '{}')
     await this.replaceInto({
       collection_id: collectionId,
       answer_id: answerId,
-      raw_answer_excerpt_json
+      raw_answer_excerpt_json,
+      raw_answer_json
     }, this.COLLECTION_ANSWER_TABLE_NAME)
     return
   }
@@ -101,9 +111,19 @@ class Collection extends Base {
   static async asyncReplaceColumnAnswer(collectionId: number, answerRecord: TypeAnswer.Record): Promise<void> {
     let raw_answer_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
+    // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
+    let oldRecordList = await this.db
+      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
+      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .where('collection_id', '=', collectionId)
+      .andWhere('answer_id', '=', answerId)
+      .catch(() => { return [] })
+
+    let raw_answer_excerpt_json = _.get(oldRecordList, [0, 'raw_answer_excerpt_json'], '{}')
     await this.replaceInto({
       collection_id: collectionId,
       answer_id: answerId,
+      raw_answer_excerpt_json,
       raw_answer_json
     }, this.COLLECTION_ANSWER_TABLE_NAME)
     return
