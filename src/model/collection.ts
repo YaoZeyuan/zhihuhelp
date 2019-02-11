@@ -73,7 +73,7 @@ class Collection extends Base {
     let collectionId = collectionRecord.id
     let raw_json = JSON.stringify(collectionRecord)
     await this.replaceInto({
-      column_id: collectionId,
+      collection_id: collectionId,
       raw_json
     })
     return

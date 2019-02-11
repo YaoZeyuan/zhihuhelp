@@ -19,7 +19,11 @@ class Topic extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config
     })
-    const answerList = _.get(record, ['data'], [])
+    const rawTopicAnswerList = _.get(record, ['data'], [])
+    let answerList = []
+    for (let rawTopicAnswer of rawTopicAnswerList) {
+      answerList.push(rawTopicAnswer.target)
+    }
     return answerList
   }
 

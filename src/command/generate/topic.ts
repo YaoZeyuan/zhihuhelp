@@ -38,9 +38,9 @@ class GenerateTopic extends Base {
         // 初始化文件夹
         this.initStaticRecource()
 
-        this.log(`获取文章列表`)
+        this.log(`获取话题答案列表`)
         let answerRecordList = await MTopic.asyncGetAnswerList(topicId)
-        this.log(`话题列表获取完毕, 共${answerRecordList.length}条答案`)
+        this.log(`话题答案列表获取完毕, 共${answerRecordList.length}条答案`)
         // 生成单个文件
         for (let answerRecord of answerRecordList) {
             let title = answerRecord.id

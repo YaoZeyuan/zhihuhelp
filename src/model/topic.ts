@@ -18,7 +18,7 @@ class Topic extends Base {
   ]
 
   /**
-   * 从数据库中获取专栏信息
+   * 从数据库中获取话题信息
    * @param topicId
    */
   static async asyncGetTopicInfo(topicId: string): Promise<TypeTopic.Info> {
@@ -38,7 +38,7 @@ class Topic extends Base {
   }
 
   /**
-   * 从数据库中获取收藏夹内的答案列表
+   * 从数据库中获取话题内的答案列表
    * @param topicId
    */
   static async asyncGetAnswerList(topicId: string): Promise<Array<TypeAnswer.Record>> {
@@ -65,7 +65,7 @@ class Topic extends Base {
   }
 
   /**
-   * 存储收藏夹数据
+   * 存储话题信息数据
    * @param topicRecord
    */
   static async asyncReplaceTopicInfo(topicRecord: TypeTopic.Info): Promise<void> {
@@ -79,7 +79,7 @@ class Topic extends Base {
   }
 
   /**
-   * 存储收藏夹答案概览数据
+   * 存储话题答案数据
    * @param columnRecord
    */
   static async asyncReplaceTopicAnswer(topicId: number, answerRecord: TypeAnswer.Record): Promise<void> {

@@ -7,19 +7,19 @@ import DatabaseConfig from '~/src/config/database'
 import PathConfig from '~/src/config/path'
 
 class InitEnv extends Base {
-  static get signature () {
+  static get signature() {
     return `
      Init:Env
 
-     { --rebase=@false : 是否重建数据库  }
+     {--rebase=@false : 是否重建数据库  }
      `
   }
 
-  static get description () {
+  static get description() {
     return '初始化运行环境'
   }
 
-  async execute (args: any, options: any) {
+  async execute(args: any, options: any) {
     let { rebase: isRebase } = options
 
     this.log('初始化文件夹')
