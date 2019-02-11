@@ -26,17 +26,16 @@ class InitEnv extends Base {
     let { rebase: isRebase } = options
 
     this.log(`检查更新`)
-    let remoteLocalConfigJson = await http.get(CommonConfig.checkUpgradeUri, {
+    let remoteLocalConfig: TypeLocalConfig.Record = await http.get(CommonConfig.checkUpgradeUri, {
       params: {
-        "now": (new Date()).toISOString
+        'now': (new Date()).toISOString
       }
     }).catch(e => {
-      return '{}'
+      return {}
     })
     // 将远程配置直接写入本地配置中
     // 一定不会有错, 有错就找我←_←
-    let remoteLocalConfig: TypeLocalConfig.Record = JSON.parse(remoteLocalConfigJson)
-    fs.writeFileSync(PathConfig.localConfigUri, remoteLocalConfig)
+    fs.writeFileSync(PathConfig.localConfigUri, remoteLocalConfig, { flag: 'w' })
     if (remoteLocalConfig.version > CommonConfig.version) {
       this.log('有新版本')
       this.log(`请到${remoteLocalConfig.downloadUrl}下载最新版本知乎助手`)
