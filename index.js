@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain, session} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -7,10 +7,25 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({
+      width: 1024, 
+      height: 768, 
+      // 禁用web安全功能 --> 个人软件, 要啥自行车
+      webPreferences: {
+        // 开启 DevTools.
+        devTools:true,
+        // 禁用同源策略, 允许加载任何来源的js
+        webSecurity: false,
+        // 允许 https 页面运行 http url 里的资源
+        allowRunningInsecureContent:true,
+      }
+    })
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
+  // mainWindow.loadURL('https://www.zhihu.com')
+  // 打开控制台
+  mainWindow.webContents.openDevTools()
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -22,6 +37,13 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  // 设置ua
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    details.requestHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36';
+    callback({ cancel: false, requestHeaders: details.requestHeaders });
+  });
+  
 }
 
 // This method will be called when Electron has finished
@@ -44,6 +66,19 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+ipcMain.on('start', ()=>{
+    console.log('开始工作')
+    let cookieContent = ''
+    // 获取页面cookie
+    session.defaultSession.cookies.get({}, (error, cookieList)=>{
+      for(let cookie of cookieList){
+        cookieContent = `${cookie.name}=${cookie.value};${cookieContent}` 
+      }
+      // 顺利获取
+      console.log('cookieContent=>', cookieContent)
+    })
 })
 
 // In this file you can include the rest of your app's specific main process

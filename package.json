@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/Microsoft/TypeScript-Node-Starter"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "author": "Bowden Kelly",
   "license": "MIT",
   "scripts": {
@@ -30,12 +30,15 @@
     "archiver": "^3.0.0",
     "async": "^2.6.0",
     "axios": "^0.18.0",
+    "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
     "electron": "^4.0.4",
     "electron-builder": "^20.38.5",
+    "element-ui": "^2.5.4",
     "joi": "^14.3.1",
     "knex": "^0.15.2",
     "lodash": "^4.17.5",
+    "md5": "^2.2.1",
     "moment": "^2.24.0",
     "query-string": "^6.2.0",
     "react": "^16.7.0",
@@ -44,6 +47,9 @@
     "request-promise": "^4.2.2",
     "shelljs": "^0.8.1",
     "sqlite3": "^4.0.6",
+    "vue": "^2.6.5",
+    "vue-loader": "^15.6.2",
+    "vue-router": "^3.0.2",
     "winston": "^2.4.0"
   },
   "devDependencies": {
@@ -70,11 +76,24 @@
     "@types/request-promise": "^4.1.42",
     "@types/shelljs": "^0.7.8",
     "@types/winston": "^2.3.7",
+    "babel-loader": "^8.0.5",
     "babel-plugin-root-import": "^6.1.0",
+    "eslint-loader": "^2.1.2",
+    "file-loader": "^3.0.1",
+    "less": "^3.9.0",
+    "less-loader": "^4.1.0",
     "nodemon": "^1.13.0",
+    "style-loader": "^0.23.1",
     "ts-node": "^5.0.0",
     "tslint": "^5.12.1",
     "tslint-config-standard": "^8.0.1",
-    "typescript": "^3.3.1"
+    "typescript": "^3.3.1",
+    "url-loader": "^1.1.2",
+    "vue-style-loader": "^4.1.2",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-middleware": "^3.5.2",
+    "webpack-hot-middleware": "^2.24.3",
+    "webpack-merge": "^4.2.1"
   }
 }
