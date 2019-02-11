@@ -35,7 +35,7 @@ class InitEnv extends Base {
     })
     // 将远程配置直接写入本地配置中
     // 一定不会有错, 有错就找我←_←
-    fs.writeFileSync(PathConfig.localConfigUri, remoteLocalConfig, { flag: 'w' })
+    fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(remoteLocalConfig, null, 4), { flag: 'w' })
     if (remoteLocalConfig.version > CommonConfig.version) {
       this.log('有新版本')
       this.log(`请到${remoteLocalConfig.downloadUrl}下载最新版本知乎助手`)
