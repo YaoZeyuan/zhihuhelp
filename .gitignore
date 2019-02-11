@@ -48,6 +48,7 @@ dist/**/*
 
 #   项目内置配置
 local_config.json
+task_config_list.json
 
 *.sqlite
 *.sqlite3
