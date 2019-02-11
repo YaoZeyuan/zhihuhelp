@@ -25,7 +25,7 @@ class GenerateCollection extends Base {
     }
 
     async execute(args: any, options: any): Promise<any> {
-        const { topicId: collectionId } = args;
+        const { collectionId } = args;
         this.log(`开始抓取收藏夹${collectionId}的信息`);
         const collectionInfo = await MCollection.asyncGetCollectionInfo(collectionId);
         this.log(`收藏夹信息获取完毕`);

@@ -21,7 +21,7 @@ class FetchCollection extends Base {
     }
 
     async execute(args: any, options: any): Promise<any> {
-        const { topicId: collectionId } = args;
+        const { collectionId } = args;
         this.log(`开始抓取收藏夹${collectionId}内的回答`);
         this.log(`获取收藏夹信息`);
         const collectionInfo = await CollectionApi.asyncGetCollectionInfo(collectionId);

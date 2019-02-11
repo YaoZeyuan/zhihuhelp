@@ -11,8 +11,8 @@
             "program": "${workspaceFolder}/src/ace.ts",
             "stopOnEntry": false,
             "args": [
-                "Generate:Activity", // 这里可以是任意命令
-                "404-Page-Not-found" // 拿自己的账号测试
+                "Fetch:Collection", // 这里可以是任意命令
+                "323577575" // 拿自己的账号测试
             ],
             "useWSL": true, // windows 使用WSL进行调试
             "cwd": "${workspaceRoot}",
