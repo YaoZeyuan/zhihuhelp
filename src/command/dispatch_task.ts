@@ -10,15 +10,16 @@ import shelljs from 'shelljs'
 import DatabaseConfig from '~/src/config/database'
 import PathConfig from '~/src/config/path'
 
+// @todo(yaozeyuan) 目前执行抓取命令有问题, 需要再处理一下
 class DispatchCommand extends Base {
   static get signature () {
     return `
-      Dispatch:Command
+      Dispatch:Task
      `
   }
 
   static get description () {
-    return '根据task_config_list.json配置, 分发命令'
+    return '根据task_config_list.json配置, 分发任务'
   }
 
   async execute (args: any, options: any) {

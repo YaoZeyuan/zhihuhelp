@@ -13,7 +13,7 @@ import ace from '@adonisjs/ace'
 const registedCommandList = [
   './command/demo', //  命令demo
   './command/init_env', //  初始化运行环境
-  './command/dispatch_command', //  分发命令
+  './command/dispatch_task', //  分发任务
 
   './command/fetch/author', //  按用户抓取回答
   './command/fetch/column', //  按专栏抓取回答
