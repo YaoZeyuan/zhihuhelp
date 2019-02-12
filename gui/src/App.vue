@@ -13,10 +13,10 @@
             <Dashboard/>
           </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
-            
+            <Log/>
           </el-tab-pane>
           <el-tab-pane label="登陆知乎" :name="constant.tab.login">
-            <div>login</div>
+            <Login/>
           </el-tab-pane>
         </el-tabs>
       </el-main>
@@ -27,10 +27,14 @@
 
 <script>
   import Dashboard from './dashboard/index.vue'
+  import Login from './login/index.vue'
+  import Log from './log/index.vue'
   export default {
     name: 'App',
     components:{
       Dashboard,
+      Log,
+      Login,
     },
     data(){
         return {
