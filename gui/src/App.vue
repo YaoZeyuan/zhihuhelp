@@ -12,7 +12,10 @@
           <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
             <Dashboard/>
           </el-tab-pane>
-          <el-tab-pane label="登陆管理" :name="constant.tab.login">
+          <el-tab-pane label="运行日志" :name="constant.tab.log">
+            
+          </el-tab-pane>
+          <el-tab-pane label="登陆知乎" :name="constant.tab.login">
             <div>login</div>
           </el-tab-pane>
         </el-tabs>
@@ -34,6 +37,7 @@
           constant:{
             tab:{
               dashboard:'dashboard',
+              log:'log',
               login:'login',
             }
           },
@@ -63,6 +67,7 @@
 .app {
   margin: 0 20vw;
   background-color: #f5f7f9;
+  height: 100vh;
 }
 .header {
   .logo {
