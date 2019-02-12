@@ -16,8 +16,14 @@ let mainWindow: Electron.BrowserWindow
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1024,
+    width: 1366,
     height: 768,
+    // 自动隐藏菜单栏
+    autoHideMenuBar: true,
+    // 窗口的默认标题
+    title: '知乎助手',
+    // 在屏幕中间展示窗口
+    center: true,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.
@@ -35,7 +41,7 @@ function createWindow () {
   mainWindow.loadURL('http://127.0.0.1:8080')
   // mainWindow.loadURL('https://www.zhihu.com')
   // 打开控制台
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -100,7 +106,8 @@ ipcMain.on('start', async (event, taskConfigList) => {
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
   // @todo(yaozeyuan)执行命令部分尚未找到解决方案
   // shelljs.exec(`node dist${path.sep}ace.js Dispatch:Task`)
-  console.log(`任务执行完毕`)
+  console.log(`任务配置生成完毕`)
+  event.returnValue = 'generate success'
 })
 
 // In this file you can include the rest of your app's specific main process

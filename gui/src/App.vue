@@ -1,20 +1,14 @@
 <template>
   <div class="app">
     <el-container>
-      <el-header>
-        <div class="header">
-          <!-- <img src="http://ww1.sinaimg.cn/large/6671cfa8ly1g041j9cmdqj208c08cweq.jpg" class="logo"> -->
-          <h1>知乎助手</h1>
-        </div>
-      </el-header>
       <el-main>
         <el-tabs :value="status.tab" @tab-click="handleClickTab">
           <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
             <Dashboard/>
           </el-tab-pane>
-          <el-tab-pane label="运行日志" :name="constant.tab.log">
+          <!-- <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log/>
-          </el-tab-pane>
+          </el-tab-pane>-->
           <el-tab-pane label="登陆知乎" :name="constant.tab.login">
             <Login/>
           </el-tab-pane>

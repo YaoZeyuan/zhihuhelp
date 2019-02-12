@@ -37,7 +37,7 @@
     ></el-input>
     <h1>解析结果</h1>
     <div>
-      <el-button type="primary" round @click="handleStartTask">开始执行</el-button>
+      <el-button type="primary" round @click="handleStartTask">生成任务配置</el-button>
       <p></p>
     </div>
     <el-table :data="taskConfigList" style="width: 100%">
@@ -70,6 +70,9 @@
         handleStartTask(){
             // 将当前任务配置发送给服务器
             ipcRenderer.sendSync("start", this.taskConfigList)
+            this.$alert('任务配置已生成完毕, 请执行npm run ace Dispatch:Task命令, 以生成电子书', '任务配置生成完毕',{
+             confirmButtonText: '确定',
+            });
         }
     },
     computed:{
