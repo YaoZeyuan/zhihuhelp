@@ -1,7 +1,21 @@
 #   知乎助手 with TS
 
-#   项目目标
+#   使用方式
+1.  基础依赖
+    1.  [node 10以上版本](https://nodejs.org/zh-cn/)
+        1.  请先安装node
+2.  下载本项目
+    1.  ![下载项目代码](http://ww1.sinaimg.cn/large/6671cfa8ly1g0468fcolbj20es081glv.jpg)
+3.  执行命令
+    1.  在命令行中cd到项目文件夹下, 依次执行以下命令
+    2.  `npm install  --registry=https://registry.npm.taobao.org` => 安装依赖
+    3.  `npm run build` => 编译代码
+    4.  `npm run start` => 启动图形界面
+4.  在图形界面中, **登陆知乎**, 然后根据提示填入任务配置, 点击生成任务配置按钮
+5.  弹框提示任务配置生成完毕后, 执行
+    1.  `npm run ace Dispatch:Task`, 即可生成相应电子书
 
+#   项目目标
 
 1.  基于TS
 2.  搭配图形界面
