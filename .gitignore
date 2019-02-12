@@ -50,5 +50,8 @@ dist/**/*
 local_config.json
 task_config_list.json
 
+#   图形化界面
+gui/dist
+
 *.sqlite
 *.sqlite3
