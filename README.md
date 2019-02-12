@@ -9,8 +9,9 @@
 3.  执行命令
     1.  在命令行中cd到项目文件夹下, 依次执行以下命令
     2.  `npm install  --registry=https://registry.npm.taobao.org` => 安装依赖
-    3.  `npm run build` => 编译代码
-    4.  `npm run start` => 启动图形界面
+    3.  `npm run build` => 编译项目代码
+    4.  `npm run buildgui` => 编译图形界面代码
+    5.  `npm run start` => 启动图形界面
 4.  在图形界面中, **登陆知乎**, 然后根据提示填入任务配置, 点击生成任务配置按钮
 5.  弹框提示任务配置生成完毕后, 执行
     1.  `npm run ace Dispatch:Task`, 即可生成相应电子书

@@ -36,9 +36,10 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  // mainWindow.loadFile('index.html')
+  // 线上地址
+  mainWindow.loadFile('./gui/dist/index.html')
   // 本地调试
-  mainWindow.loadURL('http://127.0.0.1:8080')
+  // mainWindow.loadURL('http://127.0.0.1:8080')
   // mainWindow.loadURL('https://www.zhihu.com')
   // 打开控制台
   // mainWindow.webContents.openDevTools()
