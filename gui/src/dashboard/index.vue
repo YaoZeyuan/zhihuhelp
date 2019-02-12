@@ -37,7 +37,7 @@
     ></el-input>
     <h1>解析结果</h1>
     <div>
-      <el-button type="primary" round>开始执行</el-button>
+      <el-button type="primary" round @click="handleStartTask">开始执行</el-button>
       <p></p>
     </div>
     <el-table :data="taskConfigList" style="width: 100%">
@@ -50,6 +50,8 @@
 
 <script>
   import _ from "lodash"
+  const electron = require('electron')
+  const ipcRenderer = electron.ipcRenderer
 
   export default {
     name: 'dashboard',
@@ -65,8 +67,9 @@
         }
     },
     methods:{
-        handleSelect(){
-
+        handleStartTask(){
+            // 将当前任务配置发送给服务器
+            ipcRenderer.sendSync("start", this.taskConfigList)
         }
     },
     computed:{

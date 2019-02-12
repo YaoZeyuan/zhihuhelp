@@ -4,6 +4,9 @@ import CommonUtil from '~/src/library/util/common'
 import PathConfig from '~/src/config/path'
 import fs from 'fs'
 import _ from 'lodash'
+import ace from '@adonisjs/ace'
+import shelljs from 'shelljs'
+import path, { sep } from 'path'
 
 let { app, BrowserWindow, ipcMain, session } = Electron
 // Keep a global reference of the window object, if you don't, the window will
@@ -75,9 +78,11 @@ app.on('activate', function () {
   }
 })
 
-ipcMain.on('start', async () => {
+ipcMain.on('start', async (event, taskConfigList) => {
   console.log('开始工作')
   let cookieContent = ''
+  // 写入任务数据
+  fs.writeFileSync(PathConfig.taskConfigListUri, JSON.stringify(taskConfigList, null, 4))
   await new Promise((resolve, reject) => {
     // 获取页面cookie
     session.defaultSession.cookies.get({}, (error, cookieList) => {
@@ -93,6 +98,9 @@ ipcMain.on('start', async () => {
   let localConfig = CommonUtil.getLocalConfig()
   _.set(localConfig, ['requestConfig', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
+  // @todo(yaozeyuan)执行命令部分尚未找到解决方案
+  // shelljs.exec(`node dist${path.sep}ace.js Dispatch:Task`)
+  console.log(`任务执行完毕`)
 })
 
 // In this file you can include the rest of your app's specific main process

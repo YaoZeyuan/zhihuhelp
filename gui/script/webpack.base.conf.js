@@ -14,6 +14,8 @@ module.exports = {
     filename: '[name].js',
     publicPath: '/'
   },
+  // 指定在electron中运行
+  target: 'electron-renderer',
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
