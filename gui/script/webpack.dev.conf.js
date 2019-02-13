@@ -13,8 +13,8 @@ module.exports = merge(baseWebpackConfig, {
   mode: 'development',
   output:{
     // 本地调试时应该是绝对路径
-    publicPath: '/'
-  }
+    publicPath: '/',
+  },
   // cheap-module-eval-source-map is faster for development
   devtool: '#source-map', // eval-source-map只能看，不能调试，得不偿失
   plugins: [
