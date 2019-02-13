@@ -12,8 +12,9 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, `../dist`),
     filename: '[name].js',
+    // 这项配置需要根据运行环境决定, dev => './', prod => '/'
     // electron下根路径应该是index.html所在目录
-    publicPath: './'
+    // publicPath: '/'
   },
   // 指定在electron中运行
   target: 'electron-renderer',

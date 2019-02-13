@@ -19,6 +19,8 @@ const webpackConfig = merge(baseWebpackConfig, {
   output: {
     filename: utils.assetsPath(`${config.project.version}/js/[chunkhash:7]/[name].js`), // 让生成的js按文件名分开，方便查找
     chunkFilename: utils.assetsPath(`${config.project.version}/js/[id].[chunkhash:7].js`)
+    // 线上编译时应该是相对路径
+    publicPath: './'
   },
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html
