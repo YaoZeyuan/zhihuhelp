@@ -74,3 +74,9 @@
     1.  使用`npm run ace`启动
 2.  GUI版需要为Electron编译sqlite3, 非常麻烦, 不建议尝试
     1.  编译指南: https://www.cnblogs.com/DonaHero/p/9809325.html
+    2.  流程
+        1.  Windows用户
+            1.  安装[VS 2015社区版](http://download.microsoft.com/download/B/4/8/B4870509-05CB-447C-878F-2F80E4CB464C/vs2015.com_chs.iso), 是的你没看错
+            2.  文件-新建项目-Visual C++ -> 选择 安装vs2015所需的C++开发环境
+            3.  好了一个小时过去了
+            4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成sqlite3之后, 就可以启动GUI界面了
