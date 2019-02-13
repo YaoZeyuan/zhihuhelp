@@ -67,3 +67,10 @@
     5.  async函数前统一添加`async`前缀, 以和正常函数进行区分
 2.  文件命名规范
     1.  统一使用下划线方式命名
+
+#   开发说明
+
+1.  建议只开发命令版
+    1.  使用`npm run ace`启动
+2.  GUI版需要为Electron编译sqlite3, 非常麻烦, 不建议尝试
+    1.  编译指南: https://www.cnblogs.com/DonaHero/p/9809325.html
