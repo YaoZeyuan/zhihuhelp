@@ -9,6 +9,18 @@ import CommonConfig from '~/src/config/common'
 import shelljs from 'shelljs'
 import DatabaseConfig from '~/src/config/database'
 import PathConfig from '~/src/config/path'
+import InitEnvCommand from '~/src/command/init_env'
+import FetchActivityCommand from '~/src/command/fetch/activity'
+import FetchAuthorCommand from '~/src/command/fetch/author'
+import FetchCollectionCommand from '~/src/command/fetch/collection'
+import FetchColumnCommand from '~/src/command/fetch/column'
+import FetchTopicCommand from '~/src/command/fetch/topic'
+
+import GenerateActivityCommand from '~/src/command/generate/activity'
+import GenerateAuthorCommand from '~/src/command/generate/author'
+import GenerateCollectionCommand from '~/src/command/generate/collection'
+import GenerateColumnCommand from '~/src/command/generate/column'
+import GenerateTopicCommand from '~/src/command/generate/topic'
 
 // @todo(yaozeyuan) 目前执行抓取命令有问题, 需要再处理一下
 class DispatchCommand extends Base {
@@ -27,28 +39,41 @@ class DispatchCommand extends Base {
     let taskConfigListJson = fs.readFileSync(PathConfig.taskConfigListUri)
     let taskConfigList: Array<TypeTaskConfig.Record> = JSON.parse(taskConfigListJson.toString())
     // 初始化运行环境
-    shelljs.exec(`node dist${path.sep}ace.js Init:Env`)
+    let initCommand = new InitEnvCommand()
+    await initCommand.handle({}, {})
+    let fetchCommand
+    let generateCommand
     for (let taskConfig of taskConfigList) {
       switch (taskConfig.type) {
         case 'activity':
-          shelljs.exec(`node dist${path.sep}ace.js Fetch:Activity ${taskConfig.id}`)
-          shelljs.exec(`node dist${path.sep}ace.js Generate:Activity ${taskConfig.id}`)
+          fetchCommand = new FetchActivityCommand()
+          await fetchCommand.handle({ account: taskConfig.id }, {})
+          generateCommand = new GenerateActivityCommand()
+          await generateCommand.handle({ account: taskConfig.id }, {})
           break
         case 'author':
-          shelljs.exec(`node dist${path.sep}ace.js Fetch:Author ${taskConfig.id}`)
-          shelljs.exec(`node dist${path.sep}ace.js Generate:Author ${taskConfig.id}`)
+          fetchCommand = new FetchAuthorCommand()
+          await fetchCommand.handle({ account: taskConfig.id }, {})
+          generateCommand = new GenerateAuthorCommand()
+          await generateCommand.handle({ account: taskConfig.id }, {})
           break
         case 'collection':
-          shelljs.exec(`node dist${path.sep}ace.js Fetch:Collection ${taskConfig.id}`)
-          shelljs.exec(`node dist${path.sep}ace.js Generate:Collection ${taskConfig.id}`)
+          fetchCommand = new FetchCollectionCommand()
+          await fetchCommand.handle({ collectionId: taskConfig.id }, {})
+          generateCommand = new GenerateCollectionCommand()
+          await generateCommand.handle({ collectionId: taskConfig.id }, {})
           break
         case 'column':
-          shelljs.exec(`node dist${path.sep}ace.js Fetch:Column ${taskConfig.id}`)
-          shelljs.exec(`node dist${path.sep}ace.js Generate:Column ${taskConfig.id}`)
+          fetchCommand = new FetchColumnCommand()
+          await fetchCommand.handle({ columnId: taskConfig.id }, {})
+          generateCommand = new GenerateColumnCommand()
+          await generateCommand.handle({ columnId: taskConfig.id }, {})
           break
         case 'topic':
-          shelljs.exec(`node dist${path.sep}ace.js Fetch:Topic ${taskConfig.id}`)
-          shelljs.exec(`node dist${path.sep}ace.js Generate:Topic ${taskConfig.id}`)
+          fetchCommand = new FetchTopicCommand()
+          await fetchCommand.handle({ topicId: taskConfig.id }, {})
+          generateCommand = new GenerateTopicCommand()
+          await generateCommand.handle({ topicId: taskConfig.id }, {})
           break
       }
     }

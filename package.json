@@ -19,7 +19,8 @@
     "watch": "babel src --copy-files --watch --out-dir dist  --verbose --source-maps --extensions \".ts,.tsx,.js,.jsx\"",
     "build": "babel src --copy-files -out-dir dist --verbose  --extensions \".ts,.tsx,.js,.jsx\" ",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3"
   },
   "build": {
     "appId": "zhihuhelp",
@@ -83,6 +84,7 @@
     "connect-history-api-fallback": "^1.6.0",
     "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^2.1.0",
+    "electron-rebuild": "^1.8.4",
     "eslint-loader": "^2.1.2",
     "express": "^4.16.4",
     "file-loader": "^3.0.1",

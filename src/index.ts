@@ -2,6 +2,9 @@
 import Electron from 'electron'
 import CommonUtil from '~/src/library/util/common'
 import PathConfig from '~/src/config/path'
+import Logger from '~/src/library/logger'
+import DispatchTaskCommand from '~/src/command/dispatch_task'
+import RequestConfig from '~/src/config/request'
 import fs from 'fs'
 import _ from 'lodash'
 import ace from '@adonisjs/ace'
@@ -12,6 +15,8 @@ let { app, BrowserWindow, ipcMain, session } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow
+
+let isRunning = false
 
 function createWindow () {
   // Create the browser window.
@@ -37,9 +42,9 @@ function createWindow () {
 
   // and load the index.html of the app.
   // 线上地址
-  mainWindow.loadFile('./gui/dist/index.html')
+  // mainWindow.loadFile('./gui/dist/index.html')
   // 本地调试
-  // mainWindow.loadURL('http://127.0.0.1:8080')
+  mainWindow.loadURL('http://127.0.0.1:8080')
   // mainWindow.loadURL('https://www.zhihu.com')
   // 打开控制台
   // mainWindow.webContents.openDevTools()
@@ -85,8 +90,19 @@ app.on('activate', function () {
   }
 })
 
+ipcMain.on('clearLogList', async (event, argv) => {
+  // 清空日志列表
+  global.logList = []
+  event.returnValue = 'success'
+})
+
 ipcMain.on('start', async (event, taskConfigList) => {
-  console.log('开始工作')
+  if (isRunning) {
+    event.returnValue = '目前尚有任务执行, 请稍后'
+    return
+  }
+  isRunning = true
+  Logger.log('开始工作')
   let cookieContent = ''
   // 写入任务数据
   fs.writeFileSync(PathConfig.taskConfigListUri, JSON.stringify(taskConfigList, null, 4))
@@ -97,7 +113,6 @@ ipcMain.on('start', async (event, taskConfigList) => {
         cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
       }
       // 顺利获取cookie列表
-      console.log('cookieContent=>', cookieContent)
       resolve()
     })
   })
@@ -107,8 +122,14 @@ ipcMain.on('start', async (event, taskConfigList) => {
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
   // @todo(yaozeyuan)执行命令部分尚未找到解决方案
   // shelljs.exec(`node dist${path.sep}ace.js Dispatch:Task`)
-  console.log(`任务配置生成完毕`)
+  Logger.log(`任务配置生成完毕`)
+  Logger.log(`重新载入cookie配置`)
+  RequestConfig.reloadConfig()
+  Logger.log(`开始执行任务`)
+  let dispatchTaskCommand = new DispatchTaskCommand()
   event.returnValue = 'generate success'
+  await dispatchTaskCommand.handle({}, {})
+  isRunning = false
 })
 
 // In this file you can include the rest of your app's specific main process

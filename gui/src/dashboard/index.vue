@@ -70,9 +70,8 @@
         handleStartTask(){
             // 将当前任务配置发送给服务器
             ipcRenderer.sendSync("start", this.taskConfigList)
-            this.$alert('任务配置已生成完毕, 请执行npm run ace Dispatch:Task命令, 以生成电子书', '任务配置生成完毕',{
-             confirmButtonText: '确定',
-            });
+            // 将面板切换到log上
+            this.$emit('update:currentTab', 'log')
         }
     },
     computed:{

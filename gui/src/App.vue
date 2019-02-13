@@ -4,11 +4,11 @@
       <el-main>
         <el-tabs :value="status.tab" @tab-click="handleClickTab">
           <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
-            <Dashboard/>
+            <Dashboard :currentTab.sync="status.tab"/>
           </el-tab-pane>
-          <!-- <el-tab-pane label="运行日志" :name="constant.tab.log">
+          <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log/>
-          </el-tab-pane>-->
+          </el-tab-pane>
           <el-tab-pane label="登陆知乎" :name="constant.tab.login">
             <Login/>
           </el-tab-pane>
