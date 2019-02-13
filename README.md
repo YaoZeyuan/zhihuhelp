@@ -80,3 +80,5 @@
             2.  文件-新建项目-Visual C++ -> 选择 安装vs2015所需的C++开发环境
             3.  好了一个小时过去了
             4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成sqlite3之后, 就可以启动GUI界面了
+        2.  Mac用户
+            1.  我没有mac谢谢
