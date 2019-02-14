@@ -37,6 +37,7 @@ Thumbs.db
 # Ignore built ts files
 dist/**/*
 release
+build
 
 #   输出的电子书
 知乎助手输出的电子书/**/*
