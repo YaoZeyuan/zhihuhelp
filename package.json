@@ -35,8 +35,7 @@
     },
     "files": [
       "dist/**/*",
-      "src/**/*",
-      "gui/**/*",
+      "gui/dist/**/*",
       "node_modules/**/*"
     ],
     "win": {
