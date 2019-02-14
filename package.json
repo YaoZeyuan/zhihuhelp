@@ -12,7 +12,7 @@
   "scripts": {
     "startgui": "node gui/script/dev-server.js",
     "buildgui": "node gui/script/build.js",
-    "start": "electron .",
+    "start": "electron dist/index.js",
     "ace": "node dist/ace.js",
     "serve": "node dist/server.js",
     "watch-node": "nodemon dist/server.js",
@@ -21,7 +21,7 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "postinstall": "install-app-deps",
-    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3"
+    "rebuild-sqlite3": "electron-rebuild -f -w sqlite3"
   },
   "build": {
     "productName": "知乎助手",
