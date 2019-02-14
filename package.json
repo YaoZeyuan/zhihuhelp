@@ -1,13 +1,13 @@
 {
-  "name": "express-typescript-starter",
-  "version": "0.1.0",
-  "description": "A starting point for Node.js express apps with TypeScript",
+  "name": "zhihuhelp",
+  "version": "1.0.0",
+  "description": "知乎助手 & TypeScript",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/TypeScript-Node-Starter"
+    "url": "https://github.com/YaoZeyuan/zhihuhelp_with_node"
   },
   "main": "dist/index.js",
-  "author": "Bowden Kelly",
+  "author": "姚泽源",
   "license": "MIT",
   "scripts": {
     "startgui": "node gui/script/dev-server.js",
@@ -24,16 +24,25 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
+    "copyright": "姚泽源",
+    "productName": "知乎助手",
+    "directories": {
+      "output": "release",
+      "app": "./dist"
+    },
+    "files": [
+      "./**/*"
+    ],
     "win": {
       "target": [
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
-      ]
+      ],
+      "icon": "src/public/icon/icon.png"
     },
     "appId": "zhihuhelp",
     "mac": {
