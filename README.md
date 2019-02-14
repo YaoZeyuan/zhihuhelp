@@ -83,6 +83,9 @@
             1.  安装[VS 2015社区版](http://download.microsoft.com/download/B/4/8/B4870509-05CB-447C-878F-2F80E4CB464C/vs2015.com_chs.iso), 是的你没看错
             2.  文件-新建项目-Visual C++ -> 选择 安装vs2015所需的C++开发环境
             3.  好了一个小时过去了
-            4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成sqlite3之后, 就可以启动GUI界面了
+            6.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成sqlite3之后, 就可以启动GUI界面了
         2.  Mac用户
             1.  我没有mac谢谢
+    3.  注意:
+        1.  打包时会向dist目录中复制一份node_modules目录, 导致npm run 时优先从dist中获取node_module信息, 导致无法启动
+            1.  因此, 打包结束后需要将dist里的node_modules目录删掉, 以免影响后续开发工作
