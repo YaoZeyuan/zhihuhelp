@@ -20,18 +20,21 @@
     "build": "babel src --copy-files -d dist --verbose  --extensions \".ts,.tsx,.js,.jsx\" ",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "install-app-deps",
+    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3"
   },
   "build": {
-    "copyright": "姚泽源",
     "productName": "知乎助手",
+    "appId": "zhihuhelp",
+    "copyright": "@姚泽源",
     "directories": {
       "output": "release",
       "app": "./dist"
     },
     "files": [
-      "./**/*"
+      "dist/**/*",
+      "gui/**/*",
+      "node_modules/**/*"
     ],
     "win": {
       "target": [
@@ -44,7 +47,6 @@
       ],
       "icon": "src/public/icon/icon.png"
     },
-    "appId": "zhihuhelp",
     "mac": {
       "category": "zhihuhelp.app.category.type"
     }
