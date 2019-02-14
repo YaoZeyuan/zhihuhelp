@@ -20,7 +20,8 @@
     "build": "babel src --copy-files -d dist --verbose  --extensions \".ts,.tsx,.js,.jsx\" ",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3"
+    "rebuild-electron-with-sqlite3": "electron-rebuild -f -w sqlite3",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "win": {
