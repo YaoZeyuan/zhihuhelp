@@ -2,7 +2,8 @@ import path from 'path'
 class Path {
   // 根路径
   static readonly rootPath = path.resolve(__dirname, '../../')
-  static readonly resourcePath = path.resolve(Path.rootPath, 'src', 'public')
+  // 项目打包时只打包dist目录, 因此路径中不能带src
+  static readonly resourcePath = path.resolve(path.resolve(__dirname, '../'), 'public')
   static readonly cachePath = path.resolve(Path.rootPath, '缓存文件')
   static readonly imgCachePath = path.resolve(Path.cachePath, 'imgPool')
   static readonly htmlCachePath = path.resolve(Path.cachePath, 'html')
