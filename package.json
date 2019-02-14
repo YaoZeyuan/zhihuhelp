@@ -49,6 +49,10 @@
     },
     "mac": {
       "category": "zhihuhelp.app.category.type"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
   "dependencies": {

@@ -29,6 +29,8 @@ function createWindow () {
     title: '知乎助手',
     // 在屏幕中间展示窗口
     center: true,
+    // 去掉原生窗口栏
+    frame: false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.
