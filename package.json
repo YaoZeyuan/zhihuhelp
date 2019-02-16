@@ -132,6 +132,7 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.2",
     "terser-webpack-plugin": "^1.2.2",
+    "ts-loader": "^5.3.3",
     "ts-node": "^5.0.0",
     "tslint": "^5.12.1",
     "tslint-config-standard": "^8.0.1",
