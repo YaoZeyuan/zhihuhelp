@@ -20,7 +20,7 @@
     "build": "babel src --copy-files -d dist --verbose  --extensions \".ts,.tsx,.js,.jsx\" ",
     "pack": "npm run buildgui && electron-builder --dir",
     "dist": "npm run buildgui && electron-builder",
-    "postinstall": "install-app-deps",
+    "postinstall": "electron-builder install-app-deps",
     "rebuild-sqlite3": "electron-rebuild -f -w sqlite3"
   },
   "build": {
@@ -43,14 +43,17 @@
         {
           "target": "nsis",
           "arch": [
-            "x64"
+            "x64",
+            "ia32"
           ]
         }
       ],
       "icon": "src/public/icon/icon.png"
     },
     "mac": {
-      "category": "zhihuhelp.app.category.type"
+      "category": "zhihuhelp.app.category.type",
+      "target": "dmg",
+      "icon": "src/public/icon/icon.png"
     },
     "nsis": {
       "oneClick": false,
