@@ -4,10 +4,10 @@
       <div class="support-img">
         <img alt="感谢支持" src="http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg">
       </div>
-      <br/>
+      <br>
       <el-table :data="this.database.thankYouList">
         <el-table-column prop="time" label="时间"></el-table-column>
-        <el-table-column prop="reason" label="原因"></el-table-column>
+        <el-table-column prop="reason" label></el-table-column>
       </el-table>
     </el-card>
   </div>

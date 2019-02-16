@@ -5,12 +5,8 @@ import ConfigHelperUtil from '~/src/library/util/config_helper'
 import PathConfig from '~/src/config/path'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
-import RequestConfig from '~/src/config/request'
 import fs from 'fs'
 import _ from 'lodash'
-import ace from '@adonisjs/ace'
-import shelljs from 'shelljs'
-import path, { sep } from 'path'
 
 let { app, BrowserWindow, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
@@ -112,7 +108,7 @@ ipcMain.on('start', async (event, taskConfigList) => {
   })
   // 将cookie更新到本地配置中
   let localConfig = CommonUtil.getLocalConfig()
-  _.set(localConfig, ['requestConfig', 'cookie'], cookieContent)
+  _.set(localConfig, ['config', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
   Logger.log(`任务配置生成完毕`)
   Logger.log(`重新载入cookie配置`)
