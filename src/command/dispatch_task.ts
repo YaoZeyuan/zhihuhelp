@@ -22,7 +22,6 @@ import GenerateCollectionCommand from '~/src/command/generate/collection'
 import GenerateColumnCommand from '~/src/command/generate/column'
 import GenerateTopicCommand from '~/src/command/generate/topic'
 
-// @todo(yaozeyuan) 目前执行抓取命令有问题, 需要再处理一下
 class DispatchCommand extends Base {
   static get signature () {
     return `
