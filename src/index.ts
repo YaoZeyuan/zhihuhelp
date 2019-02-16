@@ -11,7 +11,7 @@ import ace from '@adonisjs/ace'
 import shelljs from 'shelljs'
 import path, { sep } from 'path'
 
-let { app, BrowserWindow, ipcMain, session } = Electron
+let { app, BrowserWindow, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow
@@ -44,10 +44,9 @@ function createWindow () {
 
   // and load the index.html of the app.
   // 线上地址
-  mainWindow.loadFile('./gui/dist/index.html')
+  // mainWindow.loadFile('./gui/dist/index.html')
   // 本地调试
-  // mainWindow.loadURL('http://127.0.0.1:8080')
-  // mainWindow.loadURL('https://www.zhihu.com')
+  mainWindow.loadURL('http://127.0.0.1:8080')
   // 打开控制台
   // mainWindow.webContents.openDevTools()
 
@@ -122,15 +121,15 @@ ipcMain.on('start', async (event, taskConfigList) => {
   let localConfig = CommonUtil.getLocalConfig()
   _.set(localConfig, ['requestConfig', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
-  // @todo(yaozeyuan)执行命令部分尚未找到解决方案
-  // shelljs.exec(`node dist${path.sep}ace.js Dispatch:Task`)
   Logger.log(`任务配置生成完毕`)
   Logger.log(`重新载入cookie配置`)
-  RequestConfig.reloadConfig()
+  CommonUtil.reloadConfig()
   Logger.log(`开始执行任务`)
   let dispatchTaskCommand = new DispatchTaskCommand()
-  event.returnValue = 'generate success'
   await dispatchTaskCommand.handle({}, {})
+  Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
+  // 输出打开文件夹
+  shell.showItemInFolder(PathConfig.outputPath)
   isRunning = false
 })
 

@@ -9,11 +9,5 @@ class Request {
   static ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
   // 专门注册的小号
   static cookie = _.get(localConfig, ['requestConfig', 'cookie'], '')
-
-  // 重新载入cookie
-  static reloadConfig () {
-    let localConfig = CommonUtil.getLocalConfig()
-    Request.cookie = _.get(localConfig, ['requestConfig', 'cookie'], '')
-  }
 }
 export default Request
