@@ -2,7 +2,7 @@
   <div class="app">
     <el-container>
       <el-main>
-        <el-tabs :value="status.tab" @tab-click="handleClickTab">
+        <el-tabs v-model="status.tab" @tab-click="handleClickTab">
           <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
             <Dashboard :currentTab.sync="status.tab"/>
           </el-tab-pane>
