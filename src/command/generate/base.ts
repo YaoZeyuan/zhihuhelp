@@ -12,7 +12,6 @@ import logger from '~/src/library/logger'
 import StringUtil from '~/src/library/util/string'
 import Epub from '~/src/library/epub'
 
-
 class FetchBase extends Base {
   epub: Epub = null
 
@@ -23,30 +22,30 @@ class FetchBase extends Base {
 
   bookname = ''
 
-  get epubCachePath() { return path.resolve(PathConfig.epubCachePath, this.bookname) }
+  get epubCachePath () { return path.resolve(PathConfig.epubCachePath, this.bookname) }
 
-  get epubOutputPath() { return path.resolve(PathConfig.epubOutputPath, this.bookname) }
+  get epubOutputPath () { return path.resolve(PathConfig.epubOutputPath, this.bookname) }
 
-  get htmlCachePath() { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
-  get htmlCacheHtmlPath() { return path.resolve(this.htmlCachePath, 'html') }
-  get htmlCacheSingleHtmlPath() { return path.resolve(this.htmlCachePath, '单文件版') }
-  get htmlCacheCssPath() { return path.resolve(this.htmlCachePath, 'css') }
-  get htmlCacheImgPath() { return path.resolve(this.htmlCachePath, 'image') }
+  get htmlCachePath () { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
+  get htmlCacheHtmlPath () { return path.resolve(this.htmlCachePath, 'html') }
+  get htmlCacheSingleHtmlPath () { return path.resolve(this.htmlCachePath, '单文件版') }
+  get htmlCacheCssPath () { return path.resolve(this.htmlCachePath, 'css') }
+  get htmlCacheImgPath () { return path.resolve(this.htmlCachePath, 'image') }
 
-  get htmlOutputPath() { return path.resolve(PathConfig.htmlOutputPath, this.bookname) }
+  get htmlOutputPath () { return path.resolve(PathConfig.htmlOutputPath, this.bookname) }
 
-  static get signature() {
+  static get signature () {
     return `
         Generate:Base
         `
   }
 
-  static get description() {
+  static get description () {
     return '生成电子书'
   }
 
   // 初始化静态资源(电子书 & html目录)
-  initStaticRecource() {
+  initStaticRecource () {
     this.log(`删除旧目录`)
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     shelljs.rm('-rf', this.epubCachePath)
@@ -76,10 +75,10 @@ class FetchBase extends Base {
     this.epub = new Epub(this.bookname, this.epubCachePath)
   }
 
-  processContent(content: string) {
+  processContent (content: string) {
     let that = this
     // 删除noscript标签内的元素
-    function removeNoScript(rawHtml: string) {
+    function removeNoScript (rawHtml: string) {
       rawHtml = _.replace(rawHtml, /<\/br>/g, '')
       rawHtml = _.replace(rawHtml, /<br>/g, '<br/>')
       rawHtml = _.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
@@ -88,7 +87,7 @@ class FetchBase extends Base {
     }
 
     // 替换图片地址(假定所有图片都在img文件夹下)
-    function replaceImgSrc(rawHtml: string, isRaw = false) {
+    function replaceImgSrc (rawHtml: string, isRaw = false) {
       rawHtml = _.replace(rawHtml, /img src="data:image.+?"/g, 'img')
       // 处理图片
       const imgContentList = rawHtml.match(/<img.+?>/g)
@@ -152,7 +151,7 @@ class FetchBase extends Base {
   /**
    * 下载图片
    */
-  async downloadImg() {
+  async downloadImg () {
     let index = 0
     for (let src of this.imgUriPool) {
       index++
@@ -191,7 +190,7 @@ class FetchBase extends Base {
     this.log(`所有图片下载完毕`)
   }
 
-  copyImgToCache(imgCachePath: string) {
+  copyImgToCache (imgCachePath: string) {
     let index = 0
     for (let src of this.imgUriPool) {
       index++
@@ -214,9 +213,9 @@ class FetchBase extends Base {
     this.log(`全部图片复制完毕`)
   }
 
-  copyStaticResource() {
+  copyStaticResource () {
     // css
-    for (let filename of ['bootstrap.css', 'customer.css', 'markdown.css', 'normalize.css',]) {
+    for (let filename of ['bootstrap.css', 'customer.css', 'markdown.css', 'normalize.css']) {
       let copyFromUri = path.resolve(PathConfig.resourcePath, 'css', filename)
       let copyToUri = path.resolve(this.htmlCacheCssPath, filename)
       fs.copyFileSync(copyFromUri, copyToUri)
@@ -228,11 +227,16 @@ class FetchBase extends Base {
       let copyToUri = path.resolve(this.htmlCacheImgPath, filename)
       fs.copyFileSync(copyFromUri, copyToUri)
       this.epub.addImage(copyToUri)
-
     }
+
+    // 设置封面
+    let coverCopyFromUri = path.resolve(PathConfig.resourcePath, 'image', 'cover.jpg')
+    let coverCopyToUri = path.resolve(this.htmlCacheImgPath, 'cover.jpg')
+    fs.copyFileSync(coverCopyFromUri, coverCopyToUri)
+    this.epub.addCoverImage(coverCopyToUri)
   }
 
-  async asyncProcessStaticResource() {
+  async asyncProcessStaticResource () {
     this.log(`内容列表预处理完毕, 准备下载图片`)
     // 下载图片
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
@@ -263,7 +267,7 @@ class FetchBase extends Base {
    * 根据图片地址生成图片名
    * @param src
    */
-  getImgName(src: string) {
+  getImgName (src: string) {
     let filename = _.get(src.split('.com'), [1], '')
     // 去除两边的/
     filename = _.trim(filename, '/')
