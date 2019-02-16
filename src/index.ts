@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 import Electron from 'electron'
 import CommonUtil from '~/src/library/util/common'
+import ConfigHelperUtil from '~/src/library/util/config_helper'
 import PathConfig from '~/src/config/path'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
@@ -29,8 +30,8 @@ function createWindow () {
     title: '知乎助手',
     // 在屏幕中间展示窗口
     center: true,
-    // 去掉原生窗口栏
-    frame: false,
+    // 展示原生窗口栏
+    frame: true,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.
@@ -123,7 +124,7 @@ ipcMain.on('start', async (event, taskConfigList) => {
   fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
   Logger.log(`任务配置生成完毕`)
   Logger.log(`重新载入cookie配置`)
-  CommonUtil.reloadConfig()
+  ConfigHelperUtil.reloadConfig()
   Logger.log(`开始执行任务`)
   let dispatchTaskCommand = new DispatchTaskCommand()
   await dispatchTaskCommand.handle({}, {})

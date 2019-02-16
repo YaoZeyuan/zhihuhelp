@@ -1,9 +1,7 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
-import RequestConfig from '~/src/config/request'
 import TypeLocalConfig from '~/src/type/namespace/local_config'
-
 class Common {
   static promiseList: Array<Promise<any>> = []
   // 并发数限制到10即可
@@ -63,12 +61,6 @@ class Common {
       localConfig = {}
     }
     return localConfig
-  }
-
-  // 重新载入配置文件
-  static reloadConfig () {
-    let localConfig = Common.getLocalConfig()
-    RequestConfig.cookie = _.get(localConfig, ['requestConfig', 'cookie'], '')
   }
 }
 
