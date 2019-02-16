@@ -1,6 +1,11 @@
 <template>
   <div>
-    
+    <webview
+      name="github-readme"
+      id="github-readme"
+      src="https://github.com/YaoZeyuan/zhihuhelp_with_node/blob/master/README.md"
+      style
+    ></webview>
   </div>
 </template>
 
