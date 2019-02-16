@@ -1,9 +1,7 @@
 <template>
   <div>
     <div class="log-dashboard">
-      <pre>
-        {{this.logString}}
-      </pre>
+      <pre>{{logString}}</pre>
     </div>
     <el-button @click="this.getLogList">刷新</el-button>
     <el-button @click="this.clearLogList">清空日志</el-button>
@@ -12,9 +10,9 @@
 
 <script>
   import _ from "lodash"
-  import elecrton from "electron"
-  let remote = elecrton.remote
-  let ipcRenderer = elecrton.ipcRenderer
+  import electron from "electron"
+  let remote = electron.remote
+  let ipcRenderer = electron.ipcRenderer
 
   export default {
     name: 'dashboard',
@@ -36,6 +34,7 @@
     methods:{
         getLogList(){
           this.database.logList = remote.getGlobal("logList")
+          console.log("getLogList: logList =>", this.database.logList)
         },
         clearLogList(){
           ipcRenderer.sendSync("clearLogList")
@@ -65,7 +64,7 @@
   overflow-y: scroll;
   pre {
     height: 50vh;
-    background-color: #000;
+    background-color: #fdf6ec;
   }
 }
 </style>
