@@ -35,12 +35,16 @@
       placeholder="请输入待抓取的页面地址, 一行一个"
       v-model="database.rawTaskContent"
     ></el-input>
-    <h1>解析结果</h1>
     <div>
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
-      <el-button type="primary" round @click="asyncCheckIsLogin">检测登陆</el-button>
+      <el-button
+        type="primary"
+        round
+        @click="asyncCheckIsLogin"
+      >检测登陆状态=>当前{{this.status.isLogin ? '已登陆': '未登录'}}</el-button>
       <p></p>
     </div>
+    <h1>解析结果</h1>
     <el-table :data="taskConfigList" style="width: 100%">
       <el-table-column prop="type" label="任务类型" width="180"></el-table-column>
       <el-table-column prop="id" label="id" width="180"></el-table-column>
@@ -75,7 +79,6 @@
             await this.asyncCheckIsLogin()
             if(this.status.isLogin === false){
                console.log("尚未登陆知乎")
-               this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
                return
             }  
 
@@ -89,6 +92,8 @@
           // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
           let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
           this.status.isLogin =  _.has(record, ['id'])
+          this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
+          this.$emit('update:currentTab', 'login')
           console.log("checkIsLogin: record =>", record)
         }
     },
