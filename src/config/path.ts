@@ -16,6 +16,7 @@ class Path {
   static readonly localConfigUri = path.resolve(Path.rootPath, 'local_config.json')
   static readonly taskConfigListUri = path.resolve(Path.rootPath, 'task_config_list.json')
   static readonly readListUri = path.resolve(Path.rootPath, 'read_list.txt')
+  static readonly runtimeLogUri = path.resolve(Path.rootPath, 'runtime.log')
 
   static readonly allPathList = [
     Path.rootPath,

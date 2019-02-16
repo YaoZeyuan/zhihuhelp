@@ -38,7 +38,7 @@
     <div>
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
       <el-button
-        type="primary"
+        :type="this.status.isLogin ? 'success':'danger'"
         round
         @click="asyncCheckIsLogin"
       >检测登陆状态=>当前{{this.status.isLogin ? '已登陆': '未登录'}}</el-button>
@@ -55,9 +55,15 @@
 
 <script>
   import _ from "lodash"
+  import fs from "fs"
   import http from '~/gui/src/library/http'
+  import util from '~/gui/src/library/util'
+
   const electron = require('electron')
   const ipcRenderer = electron.ipcRenderer
+  const remote = electron.remote
+
+  let pathConfig = remote.getGlobal("pathConfig")
 
 
   export default {
@@ -74,8 +80,17 @@
             }
         }
     },
+    async mounted(){
+      let content = util.getFileContent(pathConfig.readListUri)
+      this.database.rawTaskContent = content
+      await this.asyncCheckIsLogin()
+    },
     methods:{
+        async saveReadListContent(){
+          fs.writeFileSync(pathConfig.readListUri, this.database.rawTaskContent)
+        },
         async asyncHandleStartTask(){
+            this.saveReadListContent()
             await this.asyncCheckIsLogin()
             if(this.status.isLogin === false){
                console.log("尚未登陆知乎")
@@ -92,8 +107,10 @@
           // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
           let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
           this.status.isLogin =  _.has(record, ['id'])
-          this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
-          this.$emit('update:currentTab', 'login')
+          if(this.status.isLogin === false){
+            this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
+            this.$emit('update:currentTab', 'login')
+          }
           console.log("checkIsLogin: record =>", record)
         }
     },

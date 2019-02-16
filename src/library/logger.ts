@@ -1,6 +1,8 @@
 import moment from 'moment'
 import _ from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
+import PathConfig from '~/src/config/path'
+import fs from 'fs'
 
 class Logger {
   private static formatArgument (...arg: Array<any>) {
@@ -17,34 +19,20 @@ class Logger {
     return logContent
   }
 
-  private static pushLogContentToGlobal (logContent: string) {
-    if (global === undefined) {
-      console.log(`global不存在, 自动返回`)
-      return
-    }
-
-    let logList: Array<string> = global.logList
-    if (logList === undefined) {
-      logList = []
-    }
-    logList.push(logContent)
-    if (logList.length >= 1000) {
-      logList = logList.slice(logList.length - 1000, logList.length)
-    }
-    global.logList = logList
-    console.log(`日志已push进logList`)
+  private static pushLogContentToFile (logContent: string) {
+    fs.appendFileSync(PathConfig.runtimeLogUri, logContent + '\n')
     return
   }
 
   static log (...arg: Array<any>) {
     let logContent = Logger.formatArgument(...arg)
     // 将日志存入Electron全局变量中
-    Logger.pushLogContentToGlobal(logContent)
+    Logger.pushLogContentToFile(logContent)
     console.log(logContent)
   }
   static warn (...arg: Array<any>) {
     let logContent = Logger.formatArgument(...arg)
-    Logger.pushLogContentToGlobal(logContent)
+    Logger.pushLogContentToFile(logContent)
     console.warn(logContent)
   }
 }

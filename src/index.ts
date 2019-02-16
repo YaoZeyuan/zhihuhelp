@@ -45,13 +45,10 @@ function createWindow () {
 
   // and load the index.html of the app.
   // 线上地址
-  // mainWindow.loadFile('./gui/dist/index.html')
+  mainWindow.loadFile('./gui/dist/index.html')
   // 本地调试
-  mainWindow.loadURL('http://127.0.0.1:8080')
+  // mainWindow.loadURL('http://127.0.0.1:8080')
   // 打开控制台
-  // mainWindow.webContents.openDevTools()
-
-  // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
@@ -68,6 +65,7 @@ function createWindow () {
     callback({ cancel: false, requestHeaders: details.requestHeaders })
   })
 
+  global.pathConfig = PathConfig
 }
 
 // This method will be called when Electron has finished
@@ -90,12 +88,6 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
-})
-
-ipcMain.on('clearLogList', async (event, argv) => {
-  // 清空日志列表
-  global.logList = []
-  event.returnValue = 'success'
 })
 
 ipcMain.on('start', async (event, taskConfigList) => {
@@ -126,6 +118,7 @@ ipcMain.on('start', async (event, taskConfigList) => {
   Logger.log(`重新载入cookie配置`)
   ConfigHelperUtil.reloadConfig()
   Logger.log(`开始执行任务`)
+  event.returnValue = 'success'
   let dispatchTaskCommand = new DispatchTaskCommand()
   await dispatchTaskCommand.handle({}, {})
   Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
