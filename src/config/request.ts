@@ -7,7 +7,6 @@ let localConfig = CommonUtil.getLocalConfig()
 class Request {
   static timeoutMs = 20 * 1000
   static ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-  // 专门注册的小号
-  static cookie = _.get(localConfig, ['requestConfig', 'cookie'], '')
+  static cookie = _.get(localConfig, ['request', 'cookie'], '')
 }
 export default Request

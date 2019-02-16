@@ -1,7 +1,7 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
-import TypeLocalConfig from '~/src/type/namespace/local_config'
+import TypeConfig from '~/src/type/namespace/config'
 class Common {
   static promiseList: Array<Promise<any>> = []
   // 并发数限制到10即可
@@ -54,11 +54,16 @@ class Common {
       }, null, 4))
     }
     let localConfigJson = fs.readFileSync(PathConfig.localConfigUri)
-    let localConfig: TypeLocalConfig.Record
+    let localConfig: TypeConfig.Local
     try {
       localConfig = JSON.parse(localConfigJson.toString())
     } catch (e) {
-      localConfig = {}
+      localConfig = {
+        'request': {
+          'ua': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+          'cookie': ''
+        }
+      }
     }
     return localConfig
   }

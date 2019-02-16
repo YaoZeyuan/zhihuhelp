@@ -3,7 +3,7 @@ import knex from '~/src/library/knex'
 import fs from 'fs'
 import path from 'path'
 import http from '~/src/library/http'
-import TypeLocalConfig from '~/src/type/namespace/local_config'
+import TypeConfig from '~/src/type/namespace/config'
 import CommonConfig from '~/src/config/common'
 import shelljs from 'shelljs'
 import DatabaseConfig from '~/src/config/database'
@@ -26,7 +26,7 @@ class InitEnv extends Base {
     let { rebase: isRebase } = options
 
     this.log(`检查更新`)
-    let remoteLocalConfig: TypeLocalConfig.Record = await http.get(CommonConfig.checkUpgradeUri, {
+    let remoteVersionConfig: TypeConfig.Version = await http.get(CommonConfig.checkUpgradeUri, {
       params: {
         'now': (new Date()).toISOString
       }
@@ -34,11 +34,11 @@ class InitEnv extends Base {
       return {}
     })
     // 已经通过Electron拿到了最新知乎cookie并写入了配置文件中, 因此不需要再填写配置文件了
-    if (remoteLocalConfig.version > CommonConfig.version) {
+    if (remoteVersionConfig.version > CommonConfig.version) {
       this.log('有新版本')
-      this.log(`请到${remoteLocalConfig.downloadUrl}下载最新版本知乎助手`)
-      this.log(`更新日期:${remoteLocalConfig.releaseAt}`)
-      this.log(`更新说明:${remoteLocalConfig.releaseNote}`)
+      this.log(`请到${remoteVersionConfig.downloadUrl}下载最新版本知乎助手`)
+      this.log(`更新日期:${remoteVersionConfig.releaseAt}`)
+      this.log(`更新说明:${remoteVersionConfig.releaseNote}`)
       return
     }
 
