@@ -32,31 +32,31 @@ class Base {
                 if (_.has(record, ['question'])) {
                     let answerRecord: TypeAnswer.Record = record
                     id = answerRecord.question.id
-                    title = answerRecord.question.title
+                  title = answerRecord.question.title
                 } else {
-                    let articleRecord: TypeArticle.Record = record
-                    id = articleRecord.id
+                  let articleRecord: TypeArticle.Record = record
+                  id = articleRecord.id
                     title = articleRecord.title
                 }
             }
 
-            let indexItem = (
+          let indexItem = (
                 <a className="list-group-item" href={`./${id}.html`}>{title}</a>
             )
-            indexList.push(indexItem)
+          indexList.push(indexItem)
         }
 
 
-        const indexTableElement = (
+      const indexTableElement = (
             <div className="panel panel-success center-block">
                 <div className="panel-heading">{bookname}</div>
                 <div className="list-group">{indexList}</div>
             </div>
         )
 
-        const pageElement = this.generatePageElement(bookname, [indexTableElement])
-        let content = this.renderToString(pageElement)
-        return content
+      const pageElement = this.generatePageElement(bookname, [indexTableElement])
+      let content = this.renderToString(pageElement)
+      return content
 
     }
 
@@ -64,11 +64,11 @@ class Base {
      * 生成单个回答的Element(只有回答, 不包括问题)
      * @param answerRecord 
      */
-    static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
-        if (_.isEmpty(answerRecord)) {
+  static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
+    if (_.isEmpty(answerRecord)) {
             return (<div key={CommonUtil.getUuid()}></div>)
         }
-        const answer = (
+    const answer = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
@@ -95,11 +95,8 @@ class Base {
 
                     <div className='comment'>
                         <div className='extra-info'>
-                            <p className='comment'>评论数:{answerRecord.comment_count}</p>
-
-                            <p className='agree'>赞同数:{answerRecord.voteup_count}</p>
-
-                            <p className='update-date'>更新时间:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DISPLAY_BY_SECOND)}</p>
+                            <p className='comment'>{answerRecord.voteup_count}赞/{answerRecord.comment_count}评论</p>
+                            <p className='update-date'>最后更新:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
                         </div>
                     </div>
                 </div>
@@ -107,19 +104,19 @@ class Base {
                 <hr />
             </div>
         )
-        return answer
-    }
+    return answer
+  }
 
     /**
      * 生成问题对应的Element
-     * @param questionRecord 
-     * @param answerElementList 
+     * @param questionRecord
+     * @param answerElementList
      */
-    static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
-        if (_.isEmpty(questionRecord)) {
-            return (<div key={CommonUtil.getUuid()}></div>)
-        }
-        const question = (
+  static generateQuestionElement (questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
+    if (_.isEmpty(questionRecord)) {
+      return (<div key={CommonUtil.getUuid()}></div>)
+    }
+    const question = (
             <div key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
@@ -139,18 +136,18 @@ class Base {
                 </div>
             </div>
         )
-        return question
-    }
+    return question
+  }
 
     /**
      * 生成单篇文章的Element
-     * @param articleRecord 
+     * @param articleRecord
      */
-    static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
-        if (_.isEmpty(articleRecord)) {
-            return (<div key={CommonUtil.getUuid()}></div>)
-        }
-        const content = (
+  static generateSingleArticleElement (articleRecord: TypeArticle.Record) {
+    if (_.isEmpty(articleRecord)) {
+      return (<div key={CommonUtil.getUuid()}></div>)
+    }
+    const content = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
@@ -177,11 +174,8 @@ class Base {
 
                     <div className='comment'>
                         <div className='extra-info'>
-                            <p className='comment'>评论数:{articleRecord.comment_count}</p>
-
-                            <p className='agree'>赞同数:{articleRecord.voteup_count}</p>
-
-                            <p className='update-date'>更新时间:{moment.unix(articleRecord.updated).format(DATE_FORMAT.DISPLAY_BY_SECOND)}</p>
+                            <p className='comment'>{articleRecord.voteup_count}赞/{articleRecord.comment_count}评论</p>
+                            <p className='update-date'>发布于{moment.unix(articleRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
                         </div>
                     </div>
                 </div>
@@ -189,7 +183,7 @@ class Base {
                 <hr />
             </div>
         )
-        const article = (
+    const article = (
             <div data-key='single-page' key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
                     <div className='title-image'>
@@ -211,12 +205,12 @@ class Base {
                 </div>
             </div>
         )
-        return article
-    }
+    return article
+  }
 
-    static generatePageElement(title: string, contentElementList: Array<React.ReactElement<any>>) {
-        return (
-            <html xmlns="http://www.w3.org/1999/xhtml">
+  static generatePageElement (title: string, contentElementList: Array<React.ReactElement<any>>) {
+    return (
+            <html xmlns='http://www.w3.org/1999/xhtml'>
                 <head>
                     <meta charSet='utf-8' />
                     <title>{title}</title>
@@ -229,11 +223,11 @@ class Base {
                     {contentElementList}
                 </body>
             </html>
-        )
-    }
+    )
+  }
 
-    static renderToString(contentElement: React.ReactElement<any>) {
-        return ReactDomServer.renderToString(contentElement)
-    }
+  static renderToString (contentElement: React.ReactElement<any>) {
+    return ReactDomServer.renderToString(contentElement)
+  }
 }
 export default Base
