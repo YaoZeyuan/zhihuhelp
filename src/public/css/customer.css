@@ -1,7 +1,7 @@
 /* 设置背景色，清除缩进 */
 body {
-    text-indent: 0 !important;
-    duokan-text-indent: 0 !important;
+    text-indent: 0em !important;
+    duokan-text-indent: 0em !important;
     word-wrap: break-word; /* 自动折行 */
 }
 
@@ -83,7 +83,6 @@ div.author-base {
 }
 
 span.author-sign {
-    margin-left: 1em;
     font-family: 'DK-KAITI', '楷体';
 }
 
@@ -185,4 +184,8 @@ div.front-page.detail-info table.margin-center {
 /* 禁止目录panel分页 */
 div.index-content.panel {
     page-break-inside: avoid;
+}
+
+a.list-group-item{
+    border:none
 }

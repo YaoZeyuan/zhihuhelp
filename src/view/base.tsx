@@ -31,19 +31,19 @@ class Base {
             } else {
                 if (_.has(record, ['question'])) {
                     let answerRecord: TypeAnswer.Record = record
-                    id = answerRecord.question.id
+                    id = answerRecord.id
                   title = answerRecord.question.title
                 } else {
-                  let articleRecord: TypeArticle.Record = record
+                    let articleRecord: TypeArticle.Record = record
                   id = articleRecord.id
                     title = articleRecord.title
                 }
             }
 
-          let indexItem = (
+            let indexItem = (
                 <a className="list-group-item" href={`./${id}.html`}>{title}</a>
             )
-          indexList.push(indexItem)
+            indexList.push(indexItem)
         }
 
 
@@ -65,10 +65,10 @@ class Base {
      * @param answerRecord 
      */
   static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
-    if (_.isEmpty(answerRecord)) {
+      if (_.isEmpty(answerRecord)) {
             return (<div key={CommonUtil.getUuid()}></div>)
         }
-    const answer = (
+      const answer = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
@@ -82,7 +82,7 @@ class Base {
                                     <a href={`http://www.zhihu.com/people/${answerRecord.author.id}`}>{answerRecord.author.name}</a>
                                 </span>
 
-                                <span className='author-sign'>{answerRecord.author.headline}</span>
+                                <span className='author-sign'>{answerRecord.author.headline ? '　' + answerRecord.author.headline : ''}</span>
                             </div>
 
                             <div className='clear-float'></div>
@@ -95,7 +95,7 @@ class Base {
 
                     <div className='comment'>
                         <div className='extra-info'>
-                            <p className='comment'>{answerRecord.voteup_count}赞/{answerRecord.comment_count}评论</p>
+                            <p className='comment'>赞同:{answerRecord.voteup_count}</p>
                             <p className='update-date'>最后更新:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
                         </div>
                     </div>
@@ -104,15 +104,15 @@ class Base {
                 <hr />
             </div>
         )
-    return answer
-  }
+      return answer
+    }
 
     /**
      * 生成问题对应的Element
      * @param questionRecord
      * @param answerElementList
      */
-  static generateQuestionElement (questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
+  static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
     if (_.isEmpty(questionRecord)) {
       return (<div key={CommonUtil.getUuid()}></div>)
     }
@@ -143,7 +143,7 @@ class Base {
      * 生成单篇文章的Element
      * @param articleRecord
      */
-  static generateSingleArticleElement (articleRecord: TypeArticle.Record) {
+  static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
     if (_.isEmpty(articleRecord)) {
       return (<div key={CommonUtil.getUuid()}></div>)
     }
@@ -160,8 +160,7 @@ class Base {
                                 <span className='author-name'>
                                     <a href={`http://www.zhihu.com/people/${articleRecord.author.id}`}>{articleRecord.author.name}</a>
                                 </span>
-
-                                <span className='author-sign'>{articleRecord.author.headline}</span>
+                                <span className='author-sign'>{articleRecord.author.headline ? '　' + articleRecord.author.headline : ''}</span>
                             </div>
 
                             <div className='clear-float'></div>
@@ -174,7 +173,7 @@ class Base {
 
                     <div className='comment'>
                         <div className='extra-info'>
-                            <p className='comment'>{articleRecord.voteup_count}赞/{articleRecord.comment_count}评论</p>
+                            <p className='comment'>赞同:{articleRecord.voteup_count}</p>
                             <p className='update-date'>发布于{moment.unix(articleRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
                         </div>
                     </div>
@@ -208,7 +207,7 @@ class Base {
     return article
   }
 
-  static generatePageElement (title: string, contentElementList: Array<React.ReactElement<any>>) {
+  static generatePageElement(title: string, contentElementList: Array<React.ReactElement<any>>) {
     return (
             <html xmlns='http://www.w3.org/1999/xhtml'>
                 <head>

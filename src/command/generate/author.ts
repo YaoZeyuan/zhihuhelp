@@ -40,32 +40,32 @@ class GenerateAuthor extends Base {
 
         this.log(`获取回答列表`)
         let answerRecordList = await MAnswer.asyncGetAnswerList(urlToken)
-        this.log(`回答列表获取完毕, 共${answerRecordList.length}条答案`)
+      this.log(`回答列表获取完毕, 共${answerRecordList.length}条答案`)
         // 生成单个文件
-        for (let answerRecord of answerRecordList) {
-            let title = answerRecord.id
-            let content = AnswerView.render([answerRecord])
-            content = this.processContent(content)
-            fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
-            this.epub.addHtml(answerRecord.question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
-        }
+      for (let answerRecord of answerRecordList) {
+        let title = answerRecord.id
+        let content = AnswerView.render([answerRecord])
+        content = this.processContent(content)
+        fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+        this.epub.addHtml(answerRecord.question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+      }
         //  生成全部文件
-        let content = AnswerView.renderInSinglePage(this.bookname, [answerRecordList])
-        this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
-        content = this.processContent(content)
-        fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
+      let content = AnswerView.renderInSinglePage(this.bookname, [answerRecordList])
+      this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
+      content = this.processContent(content)
+      fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
         //  生成目录
-        let indexContent = AnswerView.renderIndex(this.bookname, answerRecordList)
-        content = this.processContent(content)
-        fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
-        this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
+      let indexContent = AnswerView.renderIndex(this.bookname, answerRecordList)
+      content = this.processContent(content)
+      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
+      this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
 
         // 处理静态资源
-        await this.asyncProcessStaticResource()
+      await this.asyncProcessStaticResource()
 
-        this.log(`作者${name}(${urlToken})的知乎回答集锦制作完毕`)
+      this.log(`作者${name}(${urlToken})的知乎回答集锦制作完毕`)
     }
 
 }
 
-export default GenerateAuthor;
+export default GenerateAuthor
