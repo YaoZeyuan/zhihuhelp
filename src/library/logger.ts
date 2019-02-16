@@ -19,6 +19,7 @@ class Logger {
 
   private static pushLogContentToGlobal (logContent: string) {
     if (global === undefined) {
+      console.log(`global不存在, 自动返回`)
       return
     }
 
@@ -31,6 +32,7 @@ class Logger {
       logList = logList.slice(logList.length - 1000, logList.length)
     }
     global.logList = logList
+    console.log(`日志已push进logList`)
     return
   }
 
