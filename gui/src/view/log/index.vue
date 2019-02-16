@@ -1,8 +1,10 @@
 <template>
   <div>
-    <el-table :data="logTableList" style="width: 100%">
-      <el-table-column prop="log" label="日志"></el-table-column>
-    </el-table>
+    <div class="log-dashboard">
+      <pre>
+        {{this.logString}}
+      </pre>
+    </div>
     <el-button @click="this.getLogList">刷新</el-button>
     <el-button @click="this.clearLogList">清空日志</el-button>
   </div>
@@ -48,10 +50,22 @@
           })
         }
         return tableList
+      },
+      logString(){
+        return this.database.logList.join("\n")
       }
     }
   }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
+.log-dashboard {
+  width: 100%;
+  height: 50vh;
+  overflow-y: scroll;
+  pre {
+    height: 50vh;
+    background-color: #000;
+  }
+}
 </style>
