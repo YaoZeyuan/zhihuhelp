@@ -19,10 +19,10 @@ module.exports = {
   // 指定在electron中运行
   target: 'electron-renderer',
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.ts','.tsx','.js', '.jsx', '.vue', '.json'],
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
-      'src': path.resolve(__dirname, '../src')
+      '~': path.resolve(__dirname, '../../../') // 真正的根目录
     }
   },
   module: {
@@ -31,6 +31,23 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: vueLoaderConfig
+      },
+      {
+        test: /\.tsx?$/,
+        use: [
+            // tsc编译后，再用babel处理
+            {loader: 'babel-loader',},
+            {
+                loader: 'ts-loader',
+                options: {
+                    // 加快编译速度
+                    transpileOnly: true,
+                    // 指定特定的ts编译配置，为了区分脚本的ts配置
+                    configFile: path.resolve(__dirname, '../config/tsconfig.json')
+                }
+            }
+        ],
+        exclude: /node_modules/
       },
       {
         test: /\.js$/,

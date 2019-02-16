@@ -67,7 +67,8 @@ const webpackConfig = merge(baseWebpackConfig, {
   ],
   // 混淆，压缩代码
   optimization: {
-    minimize: true,
+    // 本地使用不需要压缩
+    minimize: false,
     minimizer: [
       // 响应官方号召, 转为使用TerserPlugin进行压缩
       // 不指定压缩插件会导致程序无法停止(这是webpack的一个bug, 将来应该会消失)

@@ -11,7 +11,7 @@ let prodConfig = {
   project: {
     name: 'zhihuhelp',
     version: '1.0',
-    entry: { index: './gui/src/main.js' }
+    entry: { index: './gui/src/view/index.js' }
   },
   build: {
     // 服务器端配置
