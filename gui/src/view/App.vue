@@ -12,6 +12,12 @@
           <el-tab-pane label="登陆知乎" :name="constant.tab.login">
             <Login/>
           </el-tab-pane>
+          <el-tab-pane label="使用说明" :name="constant.tab.helper">
+            <Helper/>
+          </el-tab-pane>
+          <el-tab-pane label="支持作者" :name="constant.tab.donate">
+            <Donate/>
+          </el-tab-pane>
         </el-tabs>
       </el-main>
       <el-footer></el-footer>
@@ -23,6 +29,8 @@
   import Dashboard from './dashboard/index.vue'
   import Login from './login/index.vue'
   import Log from './log/index.vue'
+  import Helper from './helper/index.vue'
+  import Donate from './donate/index.vue'
   import _ from 'lodash'
 
   export default {
@@ -31,6 +39,8 @@
       Dashboard,
       Log,
       Login,
+      Helper,
+      Donate,
     },
     data(){
         return {
@@ -39,6 +49,8 @@
               dashboard:'dashboard',
               log:'log',
               login:'login',
+              helper:'helper',
+              donate:'donate',
             }
           },
             // 页面数据
