@@ -32,7 +32,7 @@ class Base {
                 if (_.has(record, ['question'])) {
                     let answerRecord: TypeAnswer.Record = record
                     id = answerRecord.id
-                  title = answerRecord.question.title
+                    title = answerRecord.question.title
                 } else {
                     let articleRecord: TypeArticle.Record = record
                   id = articleRecord.id
@@ -41,22 +41,28 @@ class Base {
             }
 
             let indexItem = (
-                <a className="list-group-item" href={`./${id}.html`}>{title}</a>
+                <li>
+                    <a className="list-group-item" href={`./${id}.html`}>{title}</a>
+                </li>
             )
             indexList.push(indexItem)
         }
 
 
-      const indexTableElement = (
+        const indexTableElement = (
             <div className="panel panel-success center-block">
                 <div className="panel-heading">{bookname}</div>
-                <div className="list-group">{indexList}</div>
+                <div className="list-group">
+                    <ol>
+                        {indexList}
+                    </ol>
+                </div>
             </div>
         )
 
-      const pageElement = this.generatePageElement(bookname, [indexTableElement])
-      let content = this.renderToString(pageElement)
-      return content
+        const pageElement = this.generatePageElement(bookname, [indexTableElement])
+        let content = this.renderToString(pageElement)
+        return content
 
     }
 
@@ -64,11 +70,11 @@ class Base {
      * 生成单个回答的Element(只有回答, 不包括问题)
      * @param answerRecord 
      */
-  static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
-      if (_.isEmpty(answerRecord)) {
+    static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
+        if (_.isEmpty(answerRecord)) {
             return (<div key={CommonUtil.getUuid()}></div>)
         }
-      const answer = (
+        const answer = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
                     <div className='author'>
@@ -114,8 +120,8 @@ class Base {
      */
   static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
     if (_.isEmpty(questionRecord)) {
-      return (<div key={CommonUtil.getUuid()}></div>)
-    }
+            return (<div key={CommonUtil.getUuid()}></div>)
+        }
     const question = (
             <div key={CommonUtil.getUuid()}>
                 <div className='bg-zhihu-blue-light'>
@@ -145,8 +151,8 @@ class Base {
      */
   static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
     if (_.isEmpty(articleRecord)) {
-      return (<div key={CommonUtil.getUuid()}></div>)
-    }
+            return (<div key={CommonUtil.getUuid()}></div>)
+        }
     const content = (
             <div key={CommonUtil.getUuid()}>
                 <div className='answer'>
@@ -222,10 +228,10 @@ class Base {
                     {contentElementList}
                 </body>
             </html>
-    )
+        )
   }
 
-  static renderToString (contentElement: React.ReactElement<any>) {
+  static renderToString(contentElement: React.ReactElement<any>) {
     return ReactDomServer.renderToString(contentElement)
   }
 }
