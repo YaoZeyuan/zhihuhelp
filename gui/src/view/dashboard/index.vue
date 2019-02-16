@@ -37,7 +37,8 @@
     ></el-input>
     <h1>解析结果</h1>
     <div>
-      <el-button type="primary" round @click="handleStartTask">生成任务配置</el-button>
+      <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
+      <el-button type="primary" round @click="asyncCheckIsLogin">检测登陆</el-button>
       <p></p>
     </div>
     <el-table :data="taskConfigList" style="width: 100%">
@@ -50,8 +51,10 @@
 
 <script>
   import _ from "lodash"
+  import http from '~/gui/src/library/http'
   const electron = require('electron')
   const ipcRenderer = electron.ipcRenderer
+
 
   export default {
     name: 'dashboard',
@@ -63,15 +66,30 @@
             },
             // 页面状态
             status:{
+              isLogin:false
             }
         }
     },
     methods:{
-        handleStartTask(){
+        async asyncHandleStartTask(){
+            await this.asyncCheckIsLogin()
+            if(this.status.isLogin === false){
+               console.log("尚未登陆知乎")
+               this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
+               return
+            }  
+
             // 将当前任务配置发送给服务器
             ipcRenderer.sendSync("start", this.taskConfigList)
             // 将面板切换到log上
             this.$emit('update:currentTab', 'log')
+        },
+        async asyncCheckIsLogin(){
+          // 已登陆则返回用户信息 =>
+          // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
+          let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
+          this.status.isLogin =  _.has(record, ['id'])
+          console.log("checkIsLogin: record =>", record)
         }
     },
     computed:{

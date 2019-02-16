@@ -23,6 +23,8 @@
   import Dashboard from './dashboard/index.vue'
   import Login from './login/index.vue'
   import Log from './log/index.vue'
+  import _ from 'lodash'
+
   export default {
     name: 'App',
     components:{
@@ -44,14 +46,14 @@
             },
             // 页面状态
             status:{
-              tab:'dashboard'
+              tab:'dashboard',
             }
         }
     },
     methods:{
         handleClickTab(){
 
-        }
+        },
     },
     computed:{
         taskConfigList(){
