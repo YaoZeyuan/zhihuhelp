@@ -15,6 +15,7 @@ class Path {
   // 本地配置文件, 随时更新
   static readonly localConfigUri = path.resolve(Path.rootPath, 'local_config.json')
   static readonly taskConfigListUri = path.resolve(Path.rootPath, 'task_config_list.json')
+  static readonly readListUri = path.resolve(Path.rootPath, 'read_list.txt')
 
   static readonly allPathList = [
     Path.rootPath,
