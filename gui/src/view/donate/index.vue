@@ -1,15 +1,21 @@
 <template>
   <div class="donate">
-    <el-card class="box-card">
-      <div class="support-img">
-        <img alt="感谢支持" src="http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg">
-      </div>
-      <br>
-      <el-table :data="this.database.thankYouList">
-        <el-table-column prop="time" label="时间"></el-table-column>
-        <el-table-column prop="reason" label></el-table-column>
-      </el-table>
-    </el-card>
+    <div class="row">
+      <el-card class="box-card">
+        <div class="support-img">
+          <img alt="感谢支持" src="http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg">
+        </div>
+        <br>
+      </el-card>
+    </div>
+    <div class="row">
+      <el-card class="box-card">
+        <el-table :data="this.database.thankYouList">
+          <el-table-column prop="time" label="致谢列表(更新周期: <3天)"></el-table-column>
+          <el-table-column prop="reason" label></el-table-column>
+        </el-table>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -43,6 +49,10 @@
   width: 50vw;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  .row {
+    flex: 12;
+  }
   .box-card {
     width: 40vw;
   }
