@@ -9,20 +9,20 @@
               <hr>
               <p>示例:</p>
               <hr>
-              <p>https://www.zhihu.com/people/404-Page-Not-found/activities/</p>
-              <p>=> 抓取用户404-Page-Not-found的知乎故事(赞同过的所有回答和文章)(注: 如果url以/activities/结尾, 则视为抓取用户知乎故事)</p>
+              <p>https://www.zhihu.com/people/yyln2016/activities/</p>
+              <p>=> 抓取用户yyln2016的知乎故事(赞同过的所有回答和文章)(注: 只有当url以/activities/结尾时才视为抓取用户知乎故事)</p>
               <hr>
-              <p>https://www.zhihu.com/people/404-Page-Not-found</p>
-              <p>=> 抓取用户404-Page-Not-found创建的所有回答</p>
+              <p>https://www.zhihu.com/people/yyln2016</p>
+              <p>=> 抓取用户yyln2016创建的所有回答</p>
               <hr>
-              <p>https://www.zhihu.com/collection/19585453</p>
-              <p>=> 抓取收藏夹19585453内的所有知乎回答(注:这里只会抓取收藏夹内的文章, 由于知乎接口未返回收藏夹内的文章数据, 所以抓不到相应文章)</p>
+              <p>https://www.zhihu.com/collection/133027089</p>
+              <p>=> 抓取收藏夹133027089内的所有知乎回答(注:这里只会抓取收藏夹内的文章, 由于知乎接口未返回收藏夹内的文章数据, 所以抓不到相应文章)</p>
               <hr>
-              <p>https://www.zhihu.com/topic/19559052</p>
-              <p>=> 抓取话题19559052下的所有精华回答</p>
+              <p>https://www.zhihu.com/topic/20024374</p>
+              <p>=> 抓取话题20024374下的所有精华回答</p>
               <hr>
-              <p>https://zhuanlan.zhihu.com/ethanlam</p>
-              <p>=> 抓取专栏ethanlam下的所有文章</p>
+              <p>https://zhuanlan.zhihu.com/yyln2016</p>
+              <p>=> 抓取专栏yyln2016下的所有文章</p>
             </div>
           </el-card>
         </div>

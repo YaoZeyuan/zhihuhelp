@@ -29,12 +29,12 @@
 
 | 网址类型                          | 描述                                                                                             | 示例                                                                                                                                                                             |
 | --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 指定知乎用户赞同过的全部回答&文章 | 用户个人主页地址 + `activities/`                                                                 | `http://www.zhihu.com/people/yolfilm/activities/`,<br /> `http://www.zhihu.com/people/ying-ye-78/activities/`,<br />`http://www.zhihu.com/people/bo-cai-28-7/activities/` <br /> |
-| 指定知乎用户的全部回答            | 用户个人主页地址                                                                                 | `http://www.zhihu.com/people/yolfilm`,<br /> `http://www.zhihu.com/people/ying-ye-78/answers`,<br />`http://www.zhihu.com/people/bo-cai-28-7/logs` <br />                        |
-| 话题                              | 知乎话题地址，<br />保存话题信息和话题精华中的答案                                               | `http://www.zhihu.com/topic/19552430`,<br /> `http://www.zhihu.com/topic/19551147/top-answers`,<br />`http://www.zhihu.com/topic/19554859` <br />                                |
-| 公开收藏夹                        | 知乎公开收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案                                         | `http://www.zhihu.com/collection/26489045`,<br /> `http://www.zhihu.com/collection/19633165`,<br /> `http://www.zhihu.com/collection/19641505`<br />                             |
-| 私人收藏夹                        | 知乎私人收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案，<br />需要创建者用自己的ID登陆知乎助手 | `和正常收藏夹地址一样`                                                                                                                                                           |
-| 专栏                              | 专栏的网址                                                                                       | `http://zhuanlan.zhihu.com/yolfilm`, <br />`http://zhuanlan.zhihu.com/epiccomposer`,<br /> `http://zhuanlan.zhihu.com/Wisdom`<br />                                              |
+| 指定知乎用户赞同过的全部回答&文章 | 用户个人主页地址 + `/activities/`                                                                 | `http://www.zhihu.com/people/yyln2016/activities/`,<br /> `http://www.zhihu.com/people/ying-ye-78/activities/`,<br />`http://www.zhihu.com/people/bo-cai-28-7/activities/` <br /> |
+| 指定知乎用户的全部回答            | 用户个人主页地址                                                                                 | `http://www.zhihu.com/people/yyln2016`,<br /> `http://www.zhihu.com/people/ying-ye-78/answers`,<br />`http://www.zhihu.com/people/bo-cai-28-7/logs` <br />                        |
+| 话题                              | 知乎话题地址，<br />保存话题信息和话题精华中的答案                                               | `http://www.zhihu.com/topic/20024374`,<br /> `http://www.zhihu.com/topic/20024374/top-answers`,<br />`http://www.zhihu.com/topic/20024374` <br />                                |
+| 公开收藏夹                        | 知乎公开收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案                                         | `http://www.zhihu.com/collection/19555617`,<br /> `http://www.zhihu.com/collection/19731344`,<br /> `http://www.zhihu.com/collection/133027089`<br />                             |
+| 私人收藏夹                        | 知乎私人收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案，<br />需要创建者用自己的ID登陆知乎助手 | `同正常收藏夹`                                                                                                                                                           |
+| 专栏                              | 专栏的网址                                                                                       | `http://zhuanlan.zhihu.com/yyln2016`, <br />`http://zhuanlan.zhihu.com/FrontendPerusal`,<br /> `http://zhuanlan.zhihu.com/patisserie`<br />                                              |
 
 #   目标分解
 1.  基础功能
@@ -78,6 +78,8 @@
     - [x]    添加一个tab, 作为使用说明
     - [x]    运行日志刷新频率过高会导致页面卡死, 定时刷新需要延长执行时间
     - [x]    展示日志应该限制总高度, 每次刷新后应自动滚动到最下方
+    - [x]    把demo调的正规一点
+    - [ ]    话题支持输出文章&回答(话题列表中同时有回答&文章, 目前为了赶进度, 只渲染的文章)
 4.  fixed bug list
     - [x]    输出图片的时候, 本应该替换src属性, 但是替换成了data-default-watermark-src属性
     - [x]    致谢列表溢出了背景颜色区域
