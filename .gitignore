@@ -52,7 +52,7 @@ runtime.log
 .idea
 
 #   项目内置配置
-local_config.json
+config.json
 task_config_list.json
 read_list.txt
 

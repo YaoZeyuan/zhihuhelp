@@ -5,8 +5,8 @@ import _ from 'lodash'
 class ConfigHelper {
   // 重新载入配置文件
   static reloadConfig () {
-    let localConfig = CommonUtil.getLocalConfig()
-    RequestConfig.cookie = _.get(localConfig, ['config', 'cookie'], '')
+    let config = CommonUtil.getConfig()
+    RequestConfig.cookie = _.get(config, ['config', 'cookie'], '')
   }
 }
 

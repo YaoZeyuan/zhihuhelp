@@ -39,10 +39,10 @@ class Common {
     return uuid
   }
 
-  static getLocalConfig () {
-    if (fs.existsSync(PathConfig.localConfigUri) === false) {
+  static getConfig () {
+    if (fs.existsSync(PathConfig.configUri) === false) {
       // 没有就初始化一份
-      fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify({
+      fs.writeFileSync(PathConfig.configUri, JSON.stringify({
         'downloadUrl': 'http://www.baidu.com',
         'releaseAt': '2019年2月11日12点08分',
         'releaseNote': '',
@@ -53,19 +53,19 @@ class Common {
         }
       }, null, 4))
     }
-    let localConfigJson = fs.readFileSync(PathConfig.localConfigUri)
-    let localConfig: TypeConfig.Local
+    let configJson = fs.readFileSync(PathConfig.configUri)
+    let config: TypeConfig.Local
     try {
-      localConfig = JSON.parse(localConfigJson.toString())
+      config = JSON.parse(configJson.toString())
     } catch (e) {
-      localConfig = {
+      config = {
         'request': {
           'ua': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
           'cookie': ''
         }
       }
     }
-    return localConfig
+    return config
   }
 }
 

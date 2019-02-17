@@ -107,9 +107,9 @@ ipcMain.on('start', async (event, taskConfigList) => {
     })
   })
   // 将cookie更新到本地配置中
-  let localConfig = CommonUtil.getLocalConfig()
-  _.set(localConfig, ['config', 'cookie'], cookieContent)
-  fs.writeFileSync(PathConfig.localConfigUri, JSON.stringify(localConfig, null, 4))
+  let config = CommonUtil.getConfig()
+  _.set(config, ['config', 'cookie'], cookieContent)
+  fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`任务配置生成完毕`)
   Logger.log(`重新载入cookie配置`)
   ConfigHelperUtil.reloadConfig()
