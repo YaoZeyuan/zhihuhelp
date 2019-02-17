@@ -67,6 +67,8 @@
     - [x]    添加一个tab, 作为使用说明
     - [x]    运行日志刷新频率过高会导致页面卡死, 定时刷新需要延长执行时间
     - [x]    展示日志应该限制总高度, 每次刷新后应自动滚动到最下方
+    - [ ]    致谢列表溢出了背景颜色区域
+    - [ ]    致谢列表添加响应时间
 
 #   代码规范
 1.  变量命名规范
@@ -96,3 +98,14 @@
         1.  打包时会向dist目录中复制一份node_modules目录, 导致npm run 时优先从dist中获取node_module信息, 导致无法启动
             1.  因此, 打包结束后需要将dist里的node_modules目录删掉, 以免影响后续开发工作
 3.  电子书封面分辨率为: 100 * 130(宽*高)
+
+
+#   功能建议
+
+欢迎通过[issue](https://github.com/YaoZeyuan/zhihuhelp_with_node/issues)提建议
+
+#   支持作者
+
+![感谢支持](http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg)
+
+[致谢列表](https://www.easy-mock.com/mock/5c680a151b1cdb683581355c/zhihuhelp/thank_you/list)
