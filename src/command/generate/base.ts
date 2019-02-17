@@ -1,5 +1,7 @@
 import Base from '~/src/command/base'
 import http from '~/src/library/http'
+import md5 from 'md5'
+import url from 'url'
 import moment from 'moment'
 import _ from 'lodash'
 import fs from 'fs'
@@ -74,7 +76,6 @@ class FetchBase extends Base {
 
     this.epub = new Epub(this.bookname, this.epubCachePath)
   }
-
   processContent (content: string) {
     let that = this
     // 删除noscript标签内的元素
@@ -107,10 +108,12 @@ class FetchBase extends Base {
         let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
         let imgRawWidth = parseInt(_.get(matchImgRawWidth, [0], '0'))
+        let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
         // 高度大于宽度4倍的图, 一般属于条图, 默认作为原图进行展示
         let needDisplayRawImg = (imgRawWidth !== 0) && (imgRawHeight > (imgRawWidth * 4))
-        // 支持通过配置选择是否为原图
-        if (needDisplayRawImg || isRaw) {
+        // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
+        let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
+        if (isDisplayAsRawImg) {
           // 原始图片
           processedImgContent = _.replace(imgContent, /data-original="https:/g, 'src="https:')
         } else {
@@ -122,7 +125,7 @@ class FetchBase extends Base {
 
         // 将图片地址提取到图片池中
         // 将html内图片地址替换为html内的地址
-        let matchImgSrc = processedImgContent.match(/(?<=src=")[^"]+/)
+        let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
         let rawImgSrc = _.get(matchImgSrc, [0], '')
         if (rawImgSrc.length > 0) {
           that.imgUriPool.add(rawImgSrc)
@@ -159,35 +162,38 @@ class FetchBase extends Base {
       let cacheUri = path.resolve(PathConfig.imgCachePath, filename)
       // 检查缓存中是否有该文件
       if (fs.existsSync(cacheUri)) {
+        this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片已存在,自动跳过`)
         continue
       }
 
       // 分批下载
       this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce((async (index, src, cacheUri, that) => {
-        await CommonUtil.asyncSleep(1)
-        // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
-        logger.log(`[第${index}张图片]-1-准备下载第${index}/${that.imgUriPool.size}张图片, src => ${src}`)
-        let imgContent = await http.downloadImg(src).catch(e => {
-          logger.log(`[第${index}张图片]-1-2-第${index}/${that.imgUriPool.size}张图片下载失败, 自动跳过`)
-          logger.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
-          return ''
-        })
-        if (imgContent === '') {
-          logger.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
-          return
-        }
-        logger.log(`[第${index}张图片]-2-第${index}/${that.imgUriPool.size}张图片下载完成, src => ${src}`)
-        // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
-        logger.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
-        await CommonUtil.asyncSleep(10)
-        fs.writeFileSync(cacheUri, imgContent)
-        logger.log(`[第${index}张图片]-4-第${index}/${that.imgUriPool.size}张图片储存完毕`)
-      })(index, src, cacheUri, this))
+      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncDownloadImg(index, src, cacheUri))
     }
     this.log(`清空任务队列`)
     await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
     this.log(`所有图片下载完毕`)
+  }
+
+  private async asyncDownloadImg (index: number, src: string, cacheUri: string) {
+    await CommonUtil.asyncSleep(1)
+    // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
+    logger.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
+    let imgContent = await http.downloadImg(src).catch(e => {
+      logger.log(`[第${index}张图片]-1-2-第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
+      logger.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
+      return ''
+    })
+    if (imgContent === '') {
+      logger.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
+      return
+    }
+    logger.log(`[第${index}张图片]-2-第${index}/${this.imgUriPool.size}张图片下载完成, src => ${src}`)
+    // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
+    logger.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
+    await CommonUtil.asyncSleep(10)
+    fs.writeFileSync(cacheUri, imgContent)
+    logger.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
   }
 
   copyImgToCache (imgCachePath: string) {
@@ -268,10 +274,25 @@ class FetchBase extends Base {
    * @param src
    */
   getImgName (src: string) {
-    let filename = _.get(src.split('.com'), [1], '')
-    // 去除两边的/
-    filename = _.trim(filename, '/')
-    filename = StringUtil.encodeFilename(filename)
+    // 直接将路径信息md5
+    let filename = ''
+    try {
+      let srcMd5 = md5(src)
+      let urlObj = new url.URL(src)
+      let pathname = urlObj.pathname
+      if (path.extname(pathname) === '') {
+        // 避免没有后缀名
+        pathname = `${pathname}.jpg`
+      }
+      if (pathname.length > 50) {
+        // 文件名不能过长, 否则用户无法直接删除该文件
+        pathname = pathname.substr(pathname.length - 50, 50)
+      }
+      filename = StringUtil.encodeFilename(`${srcMd5}_${pathname}`)
+    } catch (e) {
+      // 非url, 不需要进行处理, 返回空即可
+      logger.warn(`[警告]传入值src:${src}不是合法url, 将返回空filename`)
+    }
     return filename
   }
 }

@@ -56,7 +56,6 @@ class GenerateAuthor extends Base {
       fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
         //  生成目录
       let indexContent = AnswerView.renderIndex(this.bookname, answerRecordList)
-      content = this.processContent(content)
       fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
       this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
 
