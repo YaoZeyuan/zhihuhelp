@@ -67,6 +67,17 @@ class Common {
     }
     return config
   }
+
+  static getPackageJsonConfig () {
+    let configJson = fs.readFileSync(PathConfig.packageJsonUri)
+    let config
+    try {
+      config = JSON.parse(configJson.toString())
+    } catch (e) {
+      config = {}
+    }
+    return config
+  }
 }
 
 export default Common

@@ -42,9 +42,8 @@ function createWindow () {
   // and load the index.html of the app.
   // 线上地址
   mainWindow.loadFile('./gui/dist/index.html')
-  // 本地调试
+  // 本地调试 & 打开控制台
   // mainWindow.loadURL('http://127.0.0.1:8080')
-  // 打开控制台
   // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.

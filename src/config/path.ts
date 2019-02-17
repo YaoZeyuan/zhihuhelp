@@ -12,6 +12,9 @@ class Path {
   static readonly epubOutputPath = path.resolve(Path.outputPath, 'epub')
   static readonly htmlOutputPath = path.resolve(Path.outputPath, 'html')
 
+  // package.json文件
+  static readonly packageJsonUri = path.resolve(Path.rootPath, 'package.json')
+
   // 本地配置文件, 随时更新
   static readonly configUri = path.resolve(Path.rootPath, 'config.json')
   static readonly taskConfigListUri = path.resolve(Path.rootPath, 'task_config_list.json')
