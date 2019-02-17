@@ -27,14 +27,14 @@
 
 ##  知乎助手支持收集的网址类型
 
-| 网址类型                          | 描述                                                                                             | 示例                                                                                                                                                                             |
-| --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 指定知乎用户赞同过的全部回答&文章 | 用户个人主页地址 + `/activities/`                                                                 | `http://www.zhihu.com/people/yyln2016/activities/`,<br /> `http://www.zhihu.com/people/ying-ye-78/activities/`,<br />`http://www.zhihu.com/people/bo-cai-28-7/activities/` <br /> |
+| 网址类型                          | 描述                                                                                             | 示例                                                                                                                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 指定知乎用户赞同过的全部回答&文章 | 用户个人主页地址 + `/activities/`                                                                | `http://www.zhihu.com/people/yyln2016/activities/`,<br /> `http://www.zhihu.com/people/ying-ye-78/activities/`,<br />`http://www.zhihu.com/people/bo-cai-28-7/activities/` <br /> |
 | 指定知乎用户的全部回答            | 用户个人主页地址                                                                                 | `http://www.zhihu.com/people/yyln2016`,<br /> `http://www.zhihu.com/people/ying-ye-78/answers`,<br />`http://www.zhihu.com/people/bo-cai-28-7/logs` <br />                        |
-| 话题                              | 知乎话题地址，<br />保存话题信息和话题精华中的答案                                               | `http://www.zhihu.com/topic/20024374`,<br /> `http://www.zhihu.com/topic/20024374/top-answers`,<br />`http://www.zhihu.com/topic/20024374` <br />                                |
+| 话题                              | 知乎话题地址，<br />保存话题信息和话题精华中的答案                                               | `http://www.zhihu.com/topic/20024374`,<br /> `http://www.zhihu.com/topic/20024374/top-answers`,<br />`http://www.zhihu.com/topic/20024374` <br />                                 |
 | 公开收藏夹                        | 知乎公开收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案                                         | `http://www.zhihu.com/collection/19555617`,<br /> `http://www.zhihu.com/collection/19731344`,<br /> `http://www.zhihu.com/collection/133027089`<br />                             |
-| 私人收藏夹                        | 知乎私人收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案，<br />需要创建者用自己的ID登陆知乎助手 | `同正常收藏夹`                                                                                                                                                           |
-| 专栏                              | 专栏的网址                                                                                       | `http://zhuanlan.zhihu.com/yyln2016`, <br />`http://zhuanlan.zhihu.com/FrontendPerusal`,<br /> `http://zhuanlan.zhihu.com/patisserie`<br />                                              |
+| 私人收藏夹                        | 知乎私人收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案，<br />需要创建者用自己的ID登陆知乎助手 | `同正常收藏夹`                                                                                                                                                                    |
+| 专栏                              | 专栏的网址                                                                                       | `http://zhuanlan.zhihu.com/yyln2016`, <br />`http://zhuanlan.zhihu.com/FrontendPerusal`,<br /> `http://zhuanlan.zhihu.com/patisserie`<br />                                       |
 
 #   目标分解
 1.  基础功能
@@ -119,6 +119,48 @@
     | format | 调整代码格式  |
     | fix    | 修复错误      |
     | doc    | 修订文档/注释 |
+
+#   开发指南
+
+##  基本思路
+
+1.  TypeScript提供类型支持, 在编写代码时可以自动提示变量下的属性 
+2.  Electron提供图形界面, 利用webview标签直接登陆知乎
+3.  利用知乎接口抓取数据
+4.  ace/command提供命令行支持
+5.  sqlite3提供数据库支持
+
+##  实现方式
+1.  将电子书制作分为以下三步
+    1.  初始化环境 => 对应于`npm run ace Init:Env`命令
+    2.  抓取指定内容 => 对应于`npm run ace Fetch:XXX`系列命令, 目前支持`Column`/`Author`/`Activity`/`Collection`/`Topic`
+    3.  从数据库中获得数据, 生成指定内容电子书 => 对应于`npm run ace Generate:XXX`系列命令, 目前支持`Column`/`Author`/`Activity`/`Collection`/`Topic`
+    4.  因此, 实际任务流程就是根据用户输入url, 生成对应命令配置, 不断执行命令即可
+2.  项目开发流程
+    1.  `npm run watch` 启动监控, 将`ts`自动编译为`js`文件
+    2.  `npm run startgui`, 启动前端界面(vue项目, 基于Element-UI简单构建)
+    3.  修改`src/index.ts`, 将代码由
+        ```js
+        // 线上地址
+        mainWindow.loadFile('./gui/dist/index.html')
+        // 本地调试 & 打开控制台
+        // mainWindow.loadURL('http://127.0.0.1:8080')
+        // mainWindow.webContents.openDevTools()
+        ```
+        替换为
+        ```js
+        // 线上地址
+        // mainWindow.loadFile('./gui/dist/index.html')
+        // 本地调试 & 打开控制台
+        mainWindow.loadURL('http://127.0.0.1:8080')
+        mainWindow.webContents.openDevTools()
+        ```
+        使用本地页面进行调试
+    4.  执行`npm run start`, 启动Electron
+        1.  前端点击`开始任务`按钮后, 将任务配置写入`task_config_list.json`, 再由Electron收集登陆后产生的知乎cookie, 存入`config.json`文件中, 随后启动`Dispatch:Command`命令, 开始执行任务
+3.  注意事项
+    1.  Electron需要编译sqlite3后才能启动, 不容易搞, 建议直接使用`npm run ace`命令行方式进行调试
+    2.  命令使用说明详见代码
 
 
 #   功能建议
