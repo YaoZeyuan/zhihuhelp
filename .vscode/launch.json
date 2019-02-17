@@ -26,6 +26,27 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "debug-ace",
+            "program": "${workspaceFolder}/src/ace.ts",
+            "stopOnEntry": false,
+            "args": [
+                "Generate:Topic", // 这里可以是任意命令
+                "19559052" // 拿自己的账号测试
+            ],
+            "useWSL": false, // windows 使用WSL进行调试
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "sourceMaps": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        },
+        {
             "name": "Debug Electron",
             "type": "node",
             "request": "launch",
