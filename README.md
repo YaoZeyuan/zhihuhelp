@@ -1,28 +1,31 @@
 #   知乎助手 with TS
 
-#   使用方式
-1.  基础依赖
-    1.  [node 10以上版本](https://nodejs.org/zh-cn/)
-        1.  请先安装node
-2.  下载本项目
-    1.  ![下载项目代码](http://ww1.sinaimg.cn/large/6671cfa8ly1g0468fcolbj20es081glv.jpg)
-3.  执行命令
-    1.  在命令行中cd到项目文件夹下, 依次执行以下命令
-    2.  `npm install  --registry=https://registry.npm.taobao.org` => 安装依赖
-    3.  `npm run build` => 编译项目代码
-    4.  `npm run buildgui` => 编译图形界面代码
-    5.  `npm run start` => 启动图形界面
-4.  在图形界面中, **登陆知乎**, 然后根据提示填入任务配置, 点击生成任务配置按钮
-5.  弹框提示任务配置生成完毕后, 执行
-    1.  `npm run ace Dispatch:Task`, 即可生成相应电子书
+##  项目说明
 
-#   项目目标
+**知乎助手** 由 [姚泽源](http://www.yaozeyuan.online/) 创作，采用 [MIT](http://opensource.org/licenses/MIT) 协议进行许可。
 
-1.  基于TS
-2.  搭配图形界面
-3.  通过抓取知乎接口将指定专栏转换为epub电子书
+*   项目基于知乎现有接口+TypeScript构建，希望能借此探索TypeScript的使用方式, 同时为知友提供将知乎内容转为Epub电子书的途径
 
-#   路线图
+##  使用说明
+
+1.  下载[软件安装包(Windows版)](https://pan.baidu.com/s/19Uj4bBzQzrtarwdmCJkO7w), 双击安装
+2.  在`任务输入框`中输入待抓取的网址信息
+3.  点击`开始执行`按钮, 执行完毕后会打开电子书所在文件夹, 使用**多看阅读**或双击使用Edge浏览器打开均可
+4.  使用示例 =>
+![使用说明](http://ww1.sinaimg.cn/large/6671cfa8ly1g095scec8hj20uy0pfaau.jpg)
+
+##  知乎助手支持收集的网址类型
+
+| 网址类型                          | 描述                                                                                             | 示例                                                                                                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 指定知乎用户赞同过的全部回答&文章 | 用户个人主页地址 + `activities/`                                                                 | `http://www.zhihu.com/people/yolfilm/activities/`,<br /> `http://www.zhihu.com/people/ying-ye-78/activities/`,<br />`http://www.zhihu.com/people/bo-cai-28-7/activities/` <br /> |
+| 指定知乎用户的全部回答            | 用户个人主页地址                                                                                 | `http://www.zhihu.com/people/yolfilm`,<br /> `http://www.zhihu.com/people/ying-ye-78/answers`,<br />`http://www.zhihu.com/people/bo-cai-28-7/logs` <br />                        |
+| 话题                              | 知乎话题地址，<br />保存话题信息和话题精华中的答案                                               | `http://www.zhihu.com/topic/19552430`,<br /> `http://www.zhihu.com/topic/19551147/top-answers`,<br />`http://www.zhihu.com/topic/19554859` <br />                                |
+| 公开收藏夹                        | 知乎公开收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案                                         | `http://www.zhihu.com/collection/26489045`,<br /> `http://www.zhihu.com/collection/19633165`,<br /> `http://www.zhihu.com/collection/19641505`<br />                             |
+| 私人收藏夹                        | 知乎私人收藏夹地址，<br />保存收藏夹信息和收藏夹内的答案，<br />需要创建者用自己的ID登陆知乎助手 | `和正常收藏夹地址一样`                                                                                                                                                           |
+| 专栏                              | 专栏的网址                                                                                       | `http://zhuanlan.zhihu.com/yolfilm`, <br />`http://zhuanlan.zhihu.com/epiccomposer`,<br /> `http://zhuanlan.zhihu.com/Wisdom`<br />                                              |
+
+#   目标分解
 1.  基础功能
     - [x]    抓取用户回答
     - [x]    导出用户回答
@@ -63,13 +66,6 @@
     - [x]    添加一个tab, 作为使用说明
     - [x]    运行日志刷新频率过高会导致页面卡死, 定时刷新需要延长执行时间
     - [x]    展示日志应该限制总高度, 每次刷新后应自动滚动到最下方
-
-#   epub库功能
-目前没有较好的epub生成库, 自己实现一个
-待实现功能
-1.  自动生成目录
-2.  支持添加图片/html/css资源
-3.  支持添加目录, 目录位于第一条
 
 #   代码规范
 1.  变量命名规范
