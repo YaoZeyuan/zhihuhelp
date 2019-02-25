@@ -102,7 +102,8 @@ class Base {
                     <div className='comment'>
                         <div className='extra-info'>
                             <p className='comment'>赞同:{answerRecord.voteup_count}</p>
-                            <p className='update-date'>最后更新:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
+                            <p className='update-date'>创建时间:{moment.unix(answerRecord.created_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
+                            <p className='update-date'>最后更新于:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
                         </div>
                     </div>
                 </div>
