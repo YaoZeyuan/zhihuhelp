@@ -8,7 +8,7 @@
 
 ##  使用说明
 
-1.  下载[软件安装包(Windows版)](https://pan.baidu.com/s/19Uj4bBzQzrtarwdmCJkO7w), 双击安装
+1.  下载[软件安装包(Windows版)](https://pan.baidu.com/s/1vn-96AlHPKsggSzemVKiEg), 双击安装
 2.  在`任务输入框`中输入待抓取的网址信息
 3.  点击`开始执行`按钮
 4.  执行完毕后会打开电子书所在文件夹, 使用**多看阅读**或双击使用Edge浏览器打开均可
