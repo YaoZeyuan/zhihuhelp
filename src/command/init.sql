@@ -111,6 +111,6 @@ CREATE TABLE  IF NOT EXISTS `V2_Total_Article` (
   `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
   `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
-  --- 总文章表
+  --- '总想法记录表'
   PRIMARY KEY (`article_id`)
 ) ; 
