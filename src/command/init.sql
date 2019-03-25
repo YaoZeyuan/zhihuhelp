@@ -87,3 +87,30 @@ CREATE TABLE  IF NOT EXISTS `TopicAnswer` (
   --- 话题下精华回答表
   PRIMARY KEY (`topic_id`, `answer_id`)
 ) ; 
+
+
+
+CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
+  `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id',
+  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
+  `raw_json` text, --- COMMENT '原始响应json'
+  --- '总答案记录表'
+  PRIMARY KEY (`topic_id`, `answer_id`)
+); 
+
+CREATE TABLE  IF NOT EXISTS `V2_Total_Pin` (
+  `pin_id` varchar(100) NOT NULL , ---- COMMENT '想法id',
+  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
+  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
+  `raw_json` text, --- COMMENT '原始响应json'
+  --- '总想法记录表'
+  PRIMARY KEY (`topic_id`, `answer_id`)
+); 
+
+CREATE TABLE  IF NOT EXISTS `V2_Total_Article` (
+  `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
+  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
+  `raw_json` json, --- COMMENT '原始响应json'
+  --- 总文章表
+  PRIMARY KEY (`article_id`)
+) ; 
