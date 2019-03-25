@@ -113,4 +113,4 @@ CREATE TABLE  IF NOT EXISTS `V2_Total_Article` (
   `raw_json` json, --- COMMENT '原始响应json'
   --- '总想法记录表'
   PRIMARY KEY (`article_id`)
-) ; 
+); 
