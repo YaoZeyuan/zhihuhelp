@@ -33,5 +33,111 @@
         "orderBy": "createAt",
         "order": "asc",
         "comment": "专栏-读《通鉴》记 • 三国部分"
+    },
+    {
+        "type": "author-pin",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者想法合集"
+    },
+    {
+        "type": "author-question",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者提问合集"
+    },
+    {
+        "type": "author-answer",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者回答合集"
+    },
+    {
+        "type": "author-watch-question",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者关注问题合集"
+    },
+    {
+        "type": "author-agree",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者赞同答案/文章/想法合集"
+    },
+    {
+        "type": "author-activity",
+        "id": "yyln2016",
+        "orderBy": "createAt",
+        "order": "asc",
+        "comment": "单个作者所有活动合集"
+    },
+    {
+        "type": "customer",
+        "title": "自定义电子书-书名",
+        "comment": "自定义电子书-备注",
+        "config_list": [
+            {
+                "type": "author",
+                "id": "404-Page-Not-found",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "姚泽源的知乎回答集锦"
+            },
+            {
+                "type": "activity",
+                "id": "404-Page-Not-found",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "姚泽源的知乎故事"
+            },
+            {
+                "type": "topic",
+                "id": "19761398",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "话题-济宁一中话题精华回答"
+            },
+            {
+                "type": "collection",
+                "id": "203949014",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "收藏夹-知乎大V们的完美软文教室"
+            },
+            {
+                "type": "column",
+                "id": "yyln2016",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "专栏-读《通鉴》记 • 三国部分"
+            },
+            {
+                "type": "question",
+                "id": "100001",
+                "orderBy": "createAt",
+                "order": "asc",
+                "comment": "单个问题"
+            },
+            {
+                "type": "answer",
+                "id": "20001",
+                "comment": "单个回答"
+            },
+            {
+                "type": "article",
+                "id": "20001",
+                "comment": "单篇文章"
+            },
+            {
+                "type": "pin",
+                "id": "20001",
+                "comment": "单条想法"
+            }
+        ]
     }
 ]
