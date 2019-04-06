@@ -25,20 +25,5 @@ class Question extends Base {
     const answerList = _.get(record, ['data'], [])
     return answerList
   }
-
-  /**
-   * 获取单个问题
-   * @param id
-   */
-  static async asyncGetQuestion(id: number | string): Promise<TypeQuestion.Record> {
-    const baseUrl = `https://www.zhihu.com/api/v4/questions/${id}`
-    const config = {
-      include: `data[*].answer_count,follower_count,excerpt,detail,question_type,title,id,created,updated_time`,
-    }
-    const questionRecord: TypeQuestion.Record = await Base.http.get(baseUrl, {
-      params: config,
-    })
-    return questionRecord
-  }
 }
 export default Question
