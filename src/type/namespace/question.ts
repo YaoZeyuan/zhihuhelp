@@ -6,14 +6,12 @@ declare namespace Question {
     question_type: 'normal'
     created: 1437189815
     updated_time: 1528027391
-    url: 'https://www.zhihu.com/api/v4/questions/32314049'
-    answer_count: 105
-    follower_count: 5073
+    url: 'https://api.zhihu.com/questions/32314049'
+    answer_count: 106
+    follower_count: 5101
     excerpt: 'css+html5+javascript同时学的模式对吗？'
     detail: 'css+html5+javascript同时学的模式对吗？'
-    relationship: {
-      is_author: false
-    }
+    relationship: {}
   }
 }
 
