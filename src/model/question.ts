@@ -33,7 +33,7 @@ class Question extends Base {
   }
 
   /**
-   * 从数据库中获取话题内的答案列表
+   * 从数据库中获取问题内的答案列表
    * @param questionId
    */
   static async asyncGetAnswerList(questionId: string): Promise<Array<TypeAnswer.Record>> {
