@@ -8,10 +8,9 @@ import MQuestion from '~/src/model/question'
 import Logger from '~/src/library/logger'
 import _ from 'lodash'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
+import Base from '~/src/command/fetch/batch/base'
 
-class BatchFetchQuestion {
-  max = 20
-
+class BatchFetchQuestion extends Base {
   /**
    * 获取单个问题,并存入数据库中
    * @param questionId
@@ -42,24 +41,8 @@ class BatchFetchQuestion {
         answerIdList.push(answerId)
       }
     }
-    await batchFetchAnswer.fetchAnswerListAndSaveToDb(answerIdList)
+    await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
     Logger.log(`问题${title}(${questionId})下全部回答抓取完毕`)
-  }
-
-  /**
-   * 获取问题列表,并存入数据库中
-   * @param questionIdList
-   */
-  async fetchQuestionListAndSaveToDb(questionIdList: Array<string>) {
-    let index = 0
-    for (let questionId of questionIdList) {
-      index = index + 1
-      Logger.log(`将第${index}/${questionIdList.length}个问题(${questionId})置入待抓取队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.fetchAndSaveToDb(questionId))
-    }
-    Logger.log(`派发所有待抓取问题任务`)
-    await CommonUtil.asyncDispatchAllPromiseInQueen()
-    Logger.log(`所有抓取问题任务执行完毕`)
   }
 }
 
