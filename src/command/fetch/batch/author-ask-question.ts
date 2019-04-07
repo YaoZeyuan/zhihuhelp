@@ -1,5 +1,5 @@
 import AuthorApi from '~/src/api/author'
-import MAuthorAskQuestion from '~/src/model/author-ask-question'
+import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MAuthor from '~/src/model/author'
 import Base from '~/src/command/fetch/batch/base'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
