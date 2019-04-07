@@ -11,7 +11,7 @@ class Question extends Base {
    * @param offset
    * @param limit
    */
-  static async asyncGetAnswerList(questionId: number, offset: number = 0, limit: number = 20): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerList(questionId: number | string, offset: number = 0, limit: number = 20): Promise<Array<TypeAnswer.Record>> {
     const baseUrl = `https://www.zhihu.com/api/v4/questions/${questionId}/answers`
     const config = {
       include:
@@ -30,8 +30,8 @@ class Question extends Base {
    * 获取问题详情
    * @param id 问题id
    */
-  static async asyncGetQuestionInfo(account: string): Promise<TypeQuestion.Record> {
-    const baseUrl = `https://api.zhihu.com/questions/${account}`
+  static async asyncGetQuestionInfo(questionId: string): Promise<TypeQuestion.Record> {
+    const baseUrl = `https://api.zhihu.com/questions/${questionId}`
     const config = {
       include: `question.detail,answer_count,follower_count,excerpt,detail,question_type,title,id,created,updated_time`,
     }
