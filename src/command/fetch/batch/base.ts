@@ -13,16 +13,7 @@ class BaseBatchFetch {
    * @param id
    */
   async fetchAndSaveToDb(id: string) {
-    this.log(`准备执行任务${id}`)
-    let answer = await AnswerApi.asyncGetAnswer(id)
-    if (_.isEmpty(answer)) {
-      this.log(`任务${id}抓取失败`)
-      return
-    }
-    let questionId = `${answer.question.id}`
-    this.log(`任务${id}抓取成功, 存入数据库`)
-    await MTotalAnswer.asyncReplaceAnswer(answer)
-    this.log(`任务${id}成功存入数据库`)
+    this.log(`需要子类覆盖该方法`)
   }
 
   /**
