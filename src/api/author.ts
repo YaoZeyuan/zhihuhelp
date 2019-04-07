@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
 import TypeAuthor from '~/src/type/namespace/author'
-import TypeAnswer from '~/src/type/namespace/answer'
 
 class Author extends Base {
   /**
@@ -28,7 +27,7 @@ class Author extends Base {
    * @param limit
    * @param sortBy
    */
-  static async asyncGetAutherAnswerList(url_token: string, offset: number = 0, limit: number = 20, sortBy: string = Base.CONST_SORT_BY_CREATED): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAutherAnswerList(url_token: string, offset: number = 0, limit: number = 20, sortBy: string = Base.CONST_SORT_BY_CREATED): Promise<Array<TypeAuthor.Answer>> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/answers`
     const config = {
       include:
@@ -50,7 +49,7 @@ class Author extends Base {
    * @param offset
    * @param limit
    */
-  static async asyncGetAutherQuestionList(url_token: string, offset: number = 0, limit: number = 20): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAutherQuestionList(url_token: string, offset: number = 0, limit: number = 20): Promise<Array<TypeAuthor.Question>> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/questions`
     const config = {
       offset: offset,
@@ -59,8 +58,46 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = _.get(record, ['data'], [])
-    return answerList
+    const questionList = _.get(record, ['data'], [])
+    return questionList
+  }
+
+  /**
+   * 获取用户想法列表
+   * @param url_token
+   * @param offset
+   * @param limit
+   */
+  static async asyncGetAutherPinList(url_token: string, offset: number = 0, limit: number = 20): Promise<Array<TypeAuthor.Pin>> {
+    const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/pins`
+    const config = {
+      offset: offset,
+      limit: limit,
+    }
+    const record = await Base.http.get(baseUrl, {
+      params: config,
+    })
+    const pinList = _.get(record, ['data'], [])
+    return pinList
+  }
+
+  /**
+   * 获取用户文章列表
+   * @param url_token
+   * @param offset
+   * @param limit
+   */
+  static async asyncGetAutherArticleList(url_token: string, offset: number = 0, limit: number = 20): Promise<Array<TypeAuthor.Article>> {
+    const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/articles`
+    const config = {
+      offset: offset,
+      limit: limit,
+    }
+    const record = await Base.http.get(baseUrl, {
+      params: config,
+    })
+    const articleList = _.get(record, ['data'], [])
+    return articleList
   }
 }
 export default Author
