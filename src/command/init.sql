@@ -104,6 +104,15 @@ CREATE TABLE  IF NOT EXISTS `QuestionAnswer` (
 ) ; 
 
 
+CREATE TABLE  IF NOT EXISTS `Author_Ask_Question` (
+  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
+  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
+  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
+  `raw_json` text, --- COMMENT '原始响应json'
+  --- '总答案记录表'
+  PRIMARY KEY (`question_id`)
+); 
+
 CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
   `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id，唯一值',
   `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
