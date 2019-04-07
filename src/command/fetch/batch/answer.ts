@@ -28,8 +28,10 @@ class BatchFetchAnswer {
    * @param answerIdList
    */
   async fetchAnswerListAndSaveToDb(answerIdList: Array<string>) {
+    let index = 0
     for (let answerId of answerIdList) {
-      Logger.log(`将回答${answerId}置入待抓取队列中`)
+      index = index + 1
+      Logger.log(`将第${index}/${answerIdList.length}个回答(${answerId})置入待抓取队列中`)
       await CommonUtil.asyncAppendPromiseWithDebounce(this.fetchAndSaveToDb(answerId))
     }
     Logger.log(`派发所有待抓取回答任务`)
