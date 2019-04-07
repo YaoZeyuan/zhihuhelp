@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 class TotalAnswer extends Base {
   static TABLE_NAME = `V2_Total_Answer`
-  static TABLE_COLUMN = [`question_id`, `answer_id`, `raw_json`]
+  static TABLE_COLUMN = [`answer_id`, `question_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**
    * 从数据库中获取话题内的答案列表
@@ -39,13 +39,18 @@ class TotalAnswer extends Base {
    * 存储问题答案数据
    * @param columnRecord
    */
-  static async asyncReplaceAnswer(questionId: string, answerRecord: TypeAnswer.Record): Promise<void> {
+  static async asyncReplaceAnswer(answerRecord: TypeAnswer.Record): Promise<void> {
     let raw_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
+    let questionId = answerRecord.question.id
+    let authorUrlToken = answerRecord.author.url_token
+    let authorId = answerRecord.author.id
     await this.replaceInto(
       {
         question_id: questionId,
         answer_id: answerId,
+        author_id: authorId,
+        author_url_token: authorUrlToken,
         raw_json,
       },
       this.TABLE_NAME,

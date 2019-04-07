@@ -51,7 +51,7 @@ class FetchQuestion extends Base {
     if (_.isEmpty(questionId)) {
       this.log(`回答${answerId}中没有问题数据, 自动跳过`)
     }
-    await MTotalAnswer.asyncReplaceAnswer(questionId, answer)
+    await MTotalAnswer.asyncReplaceAnswer(answer)
     this.log(`第${index}/${totalAnswer}个回答获取完毕`)
     return
   }

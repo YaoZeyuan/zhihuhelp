@@ -21,7 +21,7 @@ class BaseBatchFetch {
     }
     let questionId = `${answer.question.id}`
     this.log(`任务${id}抓取成功, 存入数据库`)
-    await MTotalAnswer.asyncReplaceAnswer(questionId, answer)
+    await MTotalAnswer.asyncReplaceAnswer(answer)
     this.log(`任务${id}成功存入数据库`)
   }
 

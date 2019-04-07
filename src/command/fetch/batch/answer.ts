@@ -17,7 +17,7 @@ class BatchFetchAnswer extends Base {
     }
     let questionId = `${answer.question.id}`
     this.log(`回答${answerId}抓取成功, 存入数据库`)
-    await MTotalAnswer.asyncReplaceAnswer(questionId, answer)
+    await MTotalAnswer.asyncReplaceAnswer(answer)
     this.log(`回答${answerId}成功存入数据库`)
   }
 }
