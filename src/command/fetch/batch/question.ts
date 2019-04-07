@@ -50,7 +50,7 @@ class BatchFetchQuestion {
    * 获取问题列表,并存入数据库中
    * @param questionIdList
    */
-  async fetchAnswerListAndSaveToDb(questionIdList: Array<string>) {
+  async fetchQuestionListAndSaveToDb(questionIdList: Array<string>) {
     let index = 0
     for (let questionId of questionIdList) {
       index = index + 1
