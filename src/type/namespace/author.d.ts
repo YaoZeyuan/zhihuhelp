@@ -292,72 +292,76 @@ declare namespace Author {
       is_liked: false
       is_favorited: false
     }
-    updated: 1548837007
-    repin_count: 1
+    updated: 1554523087
+    repin_count: 2
     tags: []
     admin_closed_comment: false
-    meet_reaction_guide_conditions: false
+    meet_reaction_guide_conditions: true
     like_count: 0
-    id: '1073980930066251776'
-    reaction_count: 4
+    id: '1097830077735231488'
+    reaction_count: 61
     view_permission: 'all'
     upvoted_followees: []
     is_deleted: false
     author: {
       is_followed: false
       is_blocking: false
-      name: '于江水'
-      headline: 'Web 独立开发者'
-      type: 'people'
+      name: '丧心病狂刘老湿'
+      headline: '会讲点儿故事，略懂点儿历史，稍有点儿意思。'
+      gender: 1
       user_type: 'people'
-      id: '69ed13f3ddc662d6ecd8261512117e85'
+      id: 'dd2a620fbc04bf35f833006745a46e84'
       vip_info: {
-        is_vip: false
+        widget: {
+          night_mode_url: 'https://pic3.zhimg.com/50/v2-6f3b7cd3f2422c39d07216685d7bee6c_r.png'
+          url: 'https://pic1.zhimg.com/50/v2-26f3fde381472751735f607fcd947da3_r.png'
+          id: 12001
+        }
+        is_vip: true
+        vip_icon: {
+          night_mode_url: 'https://pic3.zhimg.com/50/v2-c9686ff064ea3579730756ac6c289978_l.png'
+          url: 'https://pic2.zhimg.com/50/v2-034fefe15c83232cb448718998719d34_l.png'
+        }
       }
       exposed_medal: {
-        medal_name: '博闻强识'
-        medal_id: '972466021521641472'
-        description: '优秀回答者'
-        mini_avatar_url: 'https://pic4.zhimg.com/50/v2-e3cf891b66c6f720cf96daf099a147ee_b.jpg'
-        avatar_url: 'https://pic2.zhimg.com/50/v2-001213ea94d22fbb89b66ce4719416d8_b.jpg'
+        medal_name: '专业认可'
+        medal_id: '1055464808517865473'
+        description: '回答收到「专业认可」即可获得'
+        mini_avatar_url: 'https://pic4.zhimg.com/50/v2-ac316eb2c367f9a27136f46ab04f4f6a_b.jpg'
+        avatar_url: 'https://pic3.zhimg.com/50/v2-07aa4ae62dd57f3b172771c3d0bb6238_b.jpg'
       }
-      avatar_url: 'https://pic4.zhimg.com/50/v2-62a3bf35a8f4b07301690b59d91ef582_l.jpg'
+      avatar_url: 'https://pic2.zhimg.com/50/d6dc9e33e_l.jpg'
       is_following: true
-      url: '/people/69ed13f3ddc662d6ecd8261512117e85'
-      gender: 1
+      url: '/people/dd2a620fbc04bf35f833006745a46e84'
       is_blocked: false
-      badge: [
-        {
-          topics: [
-            {
-              type: 'topic'
-              id: '19550901'
-              name: '前端开发'
-            }
-          ]
-          type: 'best_answerer'
-          description: '优秀回答者'
-        }
-      ]
-      url_token: 'yujiangshui'
-      reaction_count: 22
+      type: 'people'
+      url_token: 'bingo-liu-66'
+      reaction_count: 30039
     }
-    url: '/pins/1073980930066251776'
+    url: '/pins/1097830077735231488'
     source_pin_id: 0
-    created: 1548837007
-    comment_count: 1
+    created: 1554523087
+    comment_count: 22
     comments: []
     content: [
       {
-        content: '知乎关注 feed 流里面，居然没有 不感兴趣 的快速拉黑入口了。WTF'
+        content: '哈尔滨沙赞基本没人看……这可是假期啊'
         fold_type: 'raw'
-        own_text: '知乎关注 feed 流里面，居然没有 不感兴趣 的快速拉黑入口了。WTF'
+        own_text: '哈尔滨沙赞基本没人看……这可是假期啊'
         type: 'text'
+      },
+      {
+        url: 'https://pic2.zhimg.com/50/v2-e42ce349576557e5a739d2621d518679_qhd.jpg'
+        thumbnail: ''
+        width: 4096
+        height: 3072
+        type: 'image'
+        is_gif: false
       }
     ]
     state: 'normal'
     tag_specials: {}
-    excerpt_title: '知乎关注 feed 流里面，居然没有 不感兴…'
+    excerpt_title: '哈尔滨沙赞基本没人看……这可是假期啊'
     comment_permission: 'all'
     type: 'pin'
     is_admin_close_repin: false
