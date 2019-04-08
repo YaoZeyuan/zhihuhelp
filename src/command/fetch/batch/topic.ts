@@ -1,8 +1,5 @@
 import TopicApi from '~/src/api/topic'
 import MTopic from '~/src/model/topic'
-import MAuthorAskQuestion from '~/src/model/author_ask_question'
-import MAuthor from '~/src/model/author'
-import BatchFetchPin from '~/src/command/fetch/batch/pin'
 import Base from '~/src/command/fetch/batch/base'
 import CommonUtil from '~/src/library/util/common'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
@@ -15,7 +12,6 @@ class BatchFetchTopic extends Base {
     await MTopic.asyncReplaceTopicInfo(topicInfo)
     let baseAnswer = topicInfo.best_answers_count
     this.log(`话题${topicInfo.name}(${topicInfo.id})信息获取完毕, 共有精华回答${baseAnswer}个`)
-    const name = topicInfo.name
 
     let answerIdList: Array<string> = []
     let batchFetchAnswer = new BatchFetchAnswer()
