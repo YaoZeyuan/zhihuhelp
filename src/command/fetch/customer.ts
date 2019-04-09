@@ -45,15 +45,11 @@ class FetchAuthor extends Base {
           break
         case 'pin':
           break
-        case 'author-activity':
-          break
         case 'author-agree':
-          break
         case 'author-agree-article':
-          break
         case 'author-agree-answer':
-          break
         case 'author-watch-question':
+        case 'author-activity':
           break
         default:
           this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)

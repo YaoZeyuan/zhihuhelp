@@ -4,11 +4,13 @@ import _ from 'lodash'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 
-
 class Activity extends Base {
-  static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND).startOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动开始时间
-  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment().endOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动结束时间
-
+  static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND)
+    .startOf(DATE_FORMAT.UNIT.MONTH)
+    .unix() // 知乎活动开始时间
+  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment()
+    .endOf(DATE_FORMAT.UNIT.MONTH)
+    .unix() // 知乎活动结束时间
 
   static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP' // 点赞
   static readonly VERB_MEMBER_FOLLOW_COLLECTION = 'MEMBER_FOLLOW_COLLECTION' // 关注收藏夹
@@ -33,16 +35,8 @@ class Activity extends Base {
     [Activity.VERB_MEMBER_CREATE_ARTICLE]: '发表文章',
   }
 
-
-
   static TABLE_NAME = `Activity`
-  static TABLE_COLUMN = [
-    `id`,
-    `url_token`,
-    `verb`,
-    `raw_json`
-  ]
-
+  static TABLE_COLUMN = [`id`, `url_token`, `verb`, `raw_json`]
 
   /**
    * 从数据库中获取指定用户指定类别的行为列表
@@ -56,7 +50,9 @@ class Activity extends Base {
       .where('id', '<=', endAt)
       .where('url_token', '=', urlToken)
       .whereIn('verb', verbList)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
 
     let activityRecordList = []
     for (let record of recordList) {
@@ -75,6 +71,37 @@ class Activity extends Base {
   }
 
   /**
+   * 从数据库中获取指定用户指定类别的目标id列表
+   * @param id
+   */
+  static async asyncGetAllActivityTargetIdList(urlToken: string, verbType = Activity.VERB_ANSWER_VOTE_UP): Promise<Array<string>> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('url_token', '=', urlToken)
+      .where('verb', '=', verbType)
+      .catch(() => {
+        return []
+      })
+
+    let activityRecordList = []
+    let activityTargetIdList = []
+    for (let record of recordList) {
+      let activityRecordJson = _.get(record, ['raw_json'], '{}')
+      let activityRecord: TypeActivity.Record
+      try {
+        activityRecord = JSON.parse(activityRecordJson)
+      } catch {
+        activityRecord = {}
+      }
+      if (_.isEmpty(activityRecord) === false) {
+        activityTargetIdList.push(`${activityRecord.target.id}`)
+      }
+    }
+    return activityTargetIdList
+  }
+
+  /**
    * 存储用户行为
    * @param activityRecord
    */
@@ -87,14 +114,14 @@ class Activity extends Base {
       id,
       verb,
       url_token: urlToken,
-      raw_json
+      raw_json,
     })
     return
   }
 
   /**
    * 简单统计用户各类行为次数
-   * @param urlToken 
+   * @param urlToken
    */
   static async asyncGetActionSummary(urlToken: string) {
     let rawRecordList = await this.db
@@ -103,7 +130,9 @@ class Activity extends Base {
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
       .groupBy('verb')
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let record = {}
     for (let rawRecord of rawRecordList) {
       let verb = _.get(rawRecord, ['verb'], '')
@@ -115,7 +144,7 @@ class Activity extends Base {
 
   /**
    * 简单统计用户行为时间
-   * @param urlToken 
+   * @param urlToken
    */
   static async asyncGetActionDuring(urlToken: string) {
     let recordList = await this.db
@@ -123,7 +152,9 @@ class Activity extends Base {
       .min('id as activity_start_at')
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let record = _.get(recordList, [0], {})
     return record
   }

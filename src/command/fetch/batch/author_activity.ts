@@ -6,6 +6,10 @@ import MActivity from '~/src/model/activity'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import CommonUtil from '~/src/library/util/common'
+import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
+import BatchFetchQuestion from '~/src/command/fetch/batch/question'
+import BatchFetchColumn from '~/src/command/fetch/batch/column'
+import BatchFetchArticle from './article'
 
 class BatchFetchAuthorActivity extends Base {
   async fetch(urlToken: string) {
@@ -54,6 +58,22 @@ class BatchFetchAuthorActivity extends Base {
     }
     await CommonUtil.asyncDispatchAllPromiseInQueen()
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
+
+    this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
+    let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_ANSWER_VOTE_UP)
+    let batchFetchAnswer = new BatchFetchAnswer()
+    await batchFetchAnswer.fetchListAndSaveToDb(allAgreeAnswerIdList)
+    this.log(`用户${name}(${urlToken})赞同过的所有回答抓取完毕`)
+    this.log(`抓取用户${name}(${urlToken})赞同过的所有文章`)
+    let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_MEMBER_VOTEUP_ARTICLE)
+    let batchFetchArticle = new BatchFetchArticle()
+    await batchFetchArticle.fetchListAndSaveToDb(allAgreeArticleIdList)
+    this.log(`用户${name}(${urlToken})赞同过的所有文章抓取完毕`)
+    this.log(`抓取用户${name}(${urlToken})关注过的所有问题`)
+    let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_QUESTION_FOLLOW)
+    let batchFetchQuestion = new BatchFetchQuestion()
+    await batchFetchQuestion.fetchListAndSaveToDb(allFollowQustionIdList)
+    this.log(`用户${name}(${urlToken})关注过的所有问题抓取完毕`)
   }
 
   /**
