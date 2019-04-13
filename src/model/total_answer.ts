@@ -7,6 +7,29 @@ class TotalAnswer extends Base {
   static TABLE_COLUMN = [`answer_id`, `question_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**
+   * 从数据库中获取指定内答案
+   * @param answerId
+   */
+  static async asyncGetAnswer(answerId: string): Promise<TypeAnswer.Record> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('answer_id', '=', answerId)
+      .catch(() => {
+        return []
+      })
+    let answerRecordJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let answerRecord: TypeAnswer.Record
+    try {
+      answerRecord = JSON.parse(answerRecordJson)
+    } catch {
+      answerRecord = {}
+    }
+
+    return answerRecord
+  }
+
+  /**
    * 从数据库中获取指定内答案列表
    * @param answerIdList
    */

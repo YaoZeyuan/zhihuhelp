@@ -34,6 +34,28 @@ class Pin extends Base {
 
     return pinRecordList
   }
+  /**
+   * 根据pinId从数据库中获取用户的想法
+   * @param pinId
+   */
+  static async asyncGetPin(pinId: string): Promise<TypePin.Record> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('pin_id', '=', pinId)
+      .catch(() => {
+        return []
+      })
+    let pinRecordJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let pinRecord: TypePin.Record
+    try {
+      pinRecord = JSON.parse(pinRecordJson)
+    } catch {
+      pinRecord = {}
+    }
+
+    return pinRecord
+  }
 
   /**
    * 根据pinId从数据库中获取用户的想法列表
