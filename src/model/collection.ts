@@ -65,7 +65,7 @@ class Collection extends Base {
    * 从数据库中获取收藏夹内的答案id列表
    * @param collectionId
    */
-  static async asyncGetAnswerIdList(collectionId: string): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerIdList(collectionId: string): Promise<Array<string>> {
     let recordList = await this.db
       .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
       .from(this.COLLECTION_ANSWER_TABLE_NAME)
@@ -76,14 +76,14 @@ class Collection extends Base {
     let answerIdList = []
     for (let record of recordList) {
       let answerRecordJson = _.get(record, ['raw_answer_json'], '{}')
-      let answerRecord
+      let answerRecord: TypeCollection.AnswerExcerpt
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
         answerRecord = {}
       }
       if (_.isEmpty(answerRecord) === false) {
-        answerIdList.push(answerRecord.answer_id)
+        answerIdList.push(answerRecord.id)
       }
     }
 

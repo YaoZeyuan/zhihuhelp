@@ -76,14 +76,14 @@ class Topic extends Base {
     let answerIdList = []
     for (let record of recordList) {
       let answerRecordJson = _.get(record, ['raw_json'], '{}')
-      let answerRecord
+      let answerRecord: TypeAnswer.Record
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
         answerRecord = {}
       }
       if (_.isEmpty(answerRecord) === false) {
-        answerIdList.push(answerRecord.answer_id)
+        answerIdList.push(answerRecord.id)
       }
     }
 

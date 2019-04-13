@@ -5,17 +5,10 @@ import _ from 'lodash'
 
 class Column extends Base {
   static TABLE_NAME = `Column`
-  static TABLE_COLUMN = [
-    `column_id`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`column_id`, `raw_json`]
 
   static COLUMN_ARTICLE_EXCERPT_TABLE_NAME = `ColumnArticleExcerpt`
-  static COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN = [
-    `column_id`,
-    `article_id`,
-    `raw_json`
-  ]
+  static COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN = [`column_id`, `article_id`, `raw_json`]
 
   /**
    * 从数据库中获取专栏信息
@@ -26,7 +19,9 @@ class Column extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('column_id', '=', columnId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let columnInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
     let columnInfo
     try {
@@ -46,7 +41,9 @@ class Column extends Base {
       .select(this.COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN)
       .from(this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)
       .where('column_id', '=', columnId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let articleExcerptRecordList = []
     for (let record of recordList) {
       let articleExcerptRecordJson = _.get(record, ['raw_json'], '{}')
@@ -65,6 +62,35 @@ class Column extends Base {
   }
 
   /**
+   * 从数据库中获取专栏文章id列表
+   * @param columnId
+   */
+  static async asyncGetArticleIdList(columnId: string): Promise<Array<string>> {
+    let recordList = await this.db
+      .select(this.COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN)
+      .from(this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)
+      .where('column_id', '=', columnId)
+      .catch(() => {
+        return []
+      })
+    let articleIdList = []
+    for (let record of recordList) {
+      let articleExcerptRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleExcerptRecord: TypeArticleExcerpt.Record
+      try {
+        articleExcerptRecord = JSON.parse(articleExcerptRecordJson)
+      } catch {
+        articleExcerptRecord = {}
+      }
+      if (_.isEmpty(articleExcerptRecord) === false) {
+        articleIdList.push(articleExcerptRecord.id)
+      }
+    }
+
+    return articleIdList
+  }
+
+  /**
    * 存储专栏数据
    * @param columnRecord
    */
@@ -73,7 +99,7 @@ class Column extends Base {
     let raw_json = JSON.stringify(columnRecord)
     await this.replaceInto({
       column_id: columnId,
-      raw_json
+      raw_json,
     })
     return
   }
@@ -85,11 +111,14 @@ class Column extends Base {
   static async asyncReplaceColumnArticleExcerpt(columnId: string, articleExcerptRecord: TypeArticleExcerpt.Record): Promise<void> {
     let raw_json = JSON.stringify(articleExcerptRecord)
     let articleId = articleExcerptRecord.id
-    await this.replaceInto({
-      column_id: columnId,
-      article_id: articleId,
-      raw_json
-    }, this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)
+    await this.replaceInto(
+      {
+        column_id: columnId,
+        article_id: articleId,
+        raw_json,
+      },
+      this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME,
+    )
     return
   }
 }
