@@ -66,13 +66,13 @@ class TotalAnswer extends Base {
 
   /**
    * 根据作者urlToken从数据库中获取指定内答案列表
-   * @param authorUrlTokenList
+   * @param authorUrlToken
    */
-  static async asyncGetAnswerListByAuthorUrlTokenList(authorUrlTokenList: Array<string>): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypeAnswer.Record>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .whereIn('author_url_token', authorUrlTokenList)
+      .where('author_url_token', '=', authorUrlToken)
       .catch(() => {
         return []
       })
