@@ -7,14 +7,72 @@ class TotalAnswer extends Base {
   static TABLE_COLUMN = [`answer_id`, `question_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**
-   * 从数据库中获取话题内的答案列表
-   * @param questionId
+   * 从数据库中获取指定内答案列表
+   * @param answerIdList
    */
   static async asyncGetAnswerList(answerIdList: Array<string>): Promise<Array<TypeAnswer.Record>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .whereIn('answer_id', answerIdList)
+      .catch(() => {
+        return []
+      })
+    let answerRecordList = []
+    for (let record of recordList) {
+      let answerRecordJson = _.get(record, ['raw_json'], '{}')
+      let answerRecord
+      try {
+        answerRecord = JSON.parse(answerRecordJson)
+      } catch {
+        answerRecord = {}
+      }
+      if (_.isEmpty(answerRecord) === false) {
+        answerRecordList.push(answerRecord)
+      }
+    }
+
+    return answerRecordList
+  }
+
+  /**
+   * 根据问题idList从数据库中获取指定内答案列表
+   * @param questionIdList
+   */
+  static async asyncGetAnswerListByQuestionIdList(questionIdList: Array<string>): Promise<Array<TypeAnswer.Record>> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .whereIn('question_id', questionIdList)
+      .catch(() => {
+        return []
+      })
+    let answerRecordList = []
+    for (let record of recordList) {
+      let answerRecordJson = _.get(record, ['raw_json'], '{}')
+      let answerRecord
+      try {
+        answerRecord = JSON.parse(answerRecordJson)
+      } catch {
+        answerRecord = {}
+      }
+      if (_.isEmpty(answerRecord) === false) {
+        answerRecordList.push(answerRecord)
+      }
+    }
+
+    return answerRecordList
+  }
+
+  /**
+   * 根据作者urlToken从数据库中获取指定内答案列表
+   * @param authorUrlTokenList
+   */
+  static async asyncGetAnswerListByAuthorUrlTokenList(authorUrlTokenList: Array<string>): Promise<Array<TypeAnswer.Record>> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .whereIn('author_url_token', authorUrlTokenList)
       .catch(() => {
         return []
       })
