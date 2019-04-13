@@ -5,18 +5,10 @@ import _ from 'lodash'
 
 class Collection extends Base {
   static TABLE_NAME = `Collection`
-  static TABLE_COLUMN = [
-    `collection_id`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`collection_id`, `raw_json`]
 
   static COLLECTION_ANSWER_TABLE_NAME = `CollectionAnswer`
-  static COLLECTION_ANSWER_TABLE_COLUMN = [
-    `collection_id`,
-    `answer_id`,
-    `raw_answer_excerpt_json`,
-    `raw_answer_json`
-  ]
+  static COLLECTION_ANSWER_TABLE_COLUMN = [`collection_id`, `answer_id`, `raw_answer_excerpt_json`, `raw_answer_json`]
 
   /**
    * 从数据库中获取专栏信息
@@ -27,7 +19,9 @@ class Collection extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('collection_id', '=', collectionId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let collectionInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
     let collectionInfo
     try {
@@ -47,7 +41,9 @@ class Collection extends Base {
       .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
       .from(this.COLLECTION_ANSWER_TABLE_NAME)
       .where('collection_id', '=', collectionId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let answerRecordList = []
     for (let record of recordList) {
       let answerRecordJson = _.get(record, ['raw_answer_json'], '{}')
@@ -66,6 +62,35 @@ class Collection extends Base {
   }
 
   /**
+   * 从数据库中获取收藏夹内的答案id列表
+   * @param collectionId
+   */
+  static async asyncGetAnswerIdList(collectionId: string): Promise<Array<TypeAnswer.Record>> {
+    let recordList = await this.db
+      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
+      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .where('collection_id', '=', collectionId)
+      .catch(() => {
+        return []
+      })
+    let answerIdList = []
+    for (let record of recordList) {
+      let answerRecordJson = _.get(record, ['raw_answer_json'], '{}')
+      let answerRecord
+      try {
+        answerRecord = JSON.parse(answerRecordJson)
+      } catch {
+        answerRecord = {}
+      }
+      if (_.isEmpty(answerRecord) === false) {
+        answerIdList.push(answerRecord.answer_id)
+      }
+    }
+
+    return answerIdList
+  }
+
+  /**
    * 存储收藏夹数据
    * @param collectionRecord
    */
@@ -74,7 +99,7 @@ class Collection extends Base {
     let raw_json = JSON.stringify(collectionRecord)
     await this.replaceInto({
       collection_id: collectionId,
-      raw_json
+      raw_json,
     })
     return
   }
@@ -92,15 +117,20 @@ class Collection extends Base {
       .from(this.COLLECTION_ANSWER_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .andWhere('answer_id', '=', answerId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
 
     let raw_answer_json = _.get(oldRecordList, [0, 'raw_answer_json'], '{}')
-    await this.replaceInto({
-      collection_id: collectionId,
-      answer_id: answerId,
-      raw_answer_excerpt_json,
-      raw_answer_json
-    }, this.COLLECTION_ANSWER_TABLE_NAME)
+    await this.replaceInto(
+      {
+        collection_id: collectionId,
+        answer_id: answerId,
+        raw_answer_excerpt_json,
+        raw_answer_json,
+      },
+      this.COLLECTION_ANSWER_TABLE_NAME,
+    )
     return
   }
 
@@ -117,15 +147,20 @@ class Collection extends Base {
       .from(this.COLLECTION_ANSWER_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .andWhere('answer_id', '=', answerId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
 
     let raw_answer_excerpt_json = _.get(oldRecordList, [0, 'raw_answer_excerpt_json'], '{}')
-    await this.replaceInto({
-      collection_id: collectionId,
-      answer_id: answerId,
-      raw_answer_excerpt_json,
-      raw_answer_json
-    }, this.COLLECTION_ANSWER_TABLE_NAME)
+    await this.replaceInto(
+      {
+        collection_id: collectionId,
+        answer_id: answerId,
+        raw_answer_excerpt_json,
+        raw_answer_json,
+      },
+      this.COLLECTION_ANSWER_TABLE_NAME,
+    )
     return
   }
 }
