@@ -4,11 +4,7 @@ import _ from 'lodash'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
-  static TABLE_COLUMN = [
-    `article_id`,
-    `column_id`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`article_id`, `column_id`, `raw_json`]
 
   /**
    * 从数据库中获取文章详情
@@ -19,7 +15,9 @@ class Article extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('article_id', '=', articleId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let articleJson = _.get(recordList, [0, 'raw_json'], '{}')
     let article
     try {
@@ -31,15 +29,46 @@ class Article extends Base {
   }
 
   /**
-   * 从数据库中获取文章列表
-   * @param id
+   * 从数据库中根据专栏id获取文章列表
+   * @param columnId
    */
-  static async asyncGetArticleList(columnId: string): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleListByColumnId(columnId: string): Promise<Array<TypeArticle.Record>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('column_id', '=', columnId)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
+
+    let articleRecordList = []
+    for (let record of recordList) {
+      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecord
+      try {
+        articleRecord = JSON.parse(articleRecordJson)
+      } catch {
+        articleRecord = {}
+      }
+      if (_.isEmpty(articleRecord) === false) {
+        articleRecordList.push(articleRecord)
+      }
+    }
+    return articleRecordList
+  }
+
+  /**
+   * 从数据库中获取文章列表
+   * @param articleIdList
+   */
+  static async asyncGetArticleList(articleIdList: Array<string>): Promise<Array<TypeArticle.Record>> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .whereIn('article_id', articleIdList)
+      .catch(() => {
+        return []
+      })
 
     let articleRecordList = []
     for (let record of recordList) {
@@ -68,7 +97,7 @@ class Article extends Base {
     await this.replaceInto({
       article_id: id,
       column_id: columnId,
-      raw_json
+      raw_json,
     })
     return
   }

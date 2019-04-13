@@ -6,6 +6,7 @@ import TypeAnswer from '~/src/type/namespace/answer'
 import TypePin from '~/src/type/namespace/pin'
 import TypeArticle from '~/src/type/namespace/article'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
+import MActivity from '~/src/model/activity'
 import MTotalAnswer from '~/src/model/total_answer'
 import MArticle from '~/src/model/article'
 import MTopic from '~/src/model/topic'
@@ -83,8 +84,8 @@ class FetchAuthor extends Base {
           answerList = answerList.concat(answerListInCollection)
           break
         case 'column':
-          this.log(`获取专栏${targetId}下所有文章id`)
-          let articleListInColumn = await MArticle.asyncGetArticleList(targetId)
+          this.log(`获取专栏${targetId}下所有文章`)
+          let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
           this.log(`专栏${targetId}下所有文章获取完毕`)
           articleList = articleList.concat(articleListInColumn)
           break
@@ -124,12 +125,30 @@ class FetchAuthor extends Base {
           this.log(`想法${targetId}获取完毕`)
           pinList.push(singlePin)
           break
-        case 'author-agree':
         case 'author-agree-article':
+          this.log(`获取用户${targetId}赞同过的所有文章id`)
+          let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_MEMBER_VOTEUP_ARTICLE)
+          this.log(`用户${targetId}赞同过的所有文章id获取完毕`)
+          this.log(`获取用户${targetId}赞同过的所有文章`)
+          let articleListInAuthorAgreeArticle = await MArticle.asyncGetArticleList(articleIdListInAuthorAgreeArticle)
+          this.log(`用户${targetId}赞同过的所有文章获取完毕`)
+          articleList = articleList.concat(articleListInAuthorAgreeArticle)
         case 'author-agree-answer':
+          this.log(`获取用户${targetId}赞同过的所有回答id`)
+          let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_ANSWER_VOTE_UP)
+          this.log(`用户${targetId}赞同过的所有回答id获取完毕`)
+          this.log(`获取用户${targetId}赞同过的所有回答`)
+          let answerListInAuthorAgreeAnswer = await MTotalAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
+          this.log(`用户${targetId}赞同过的所有回答获取完毕`)
+          answerList = answerList.concat(answerListInAuthorAgreeAnswer)
         case 'author-watch-question':
-        case 'author-activity':
-          break
+          this.log(`获取用户${targetId}关注过的所有问题id`)
+          let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_QUESTION_FOLLOW)
+          this.log(`用户${targetId}关注过的所有问题id获取完毕`)
+          this.log(`获取用户${targetId}关注过的所有问题id下的所有回答`)
+          let answerListInAuthorWatchQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList(questionIdListInAuthorWatchQuestion)
+          this.log(`用户${targetId}关注过的所有问题id下的所有回答获取完毕`)
+          answerList = answerList.concat(answerListInAuthorWatchQuestion)
         default:
           this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
       }

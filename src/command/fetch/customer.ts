@@ -72,11 +72,9 @@ class FetchAuthor extends Base {
         case 'pin':
           taskListPackage[taskConfig.type].push(targetId)
           break
-        case 'author-agree':
         case 'author-agree-article':
         case 'author-agree-answer':
         case 'author-watch-question':
-        case 'author-activity':
           taskListPackage[taskConfig.type].push(targetId)
           break
         default:

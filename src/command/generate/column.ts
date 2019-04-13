@@ -41,7 +41,7 @@ class GenerateColumn extends Base {
         this.initStaticRecource()
 
         this.log(`获取文章列表`)
-        let articleRecordList = await MArticle.asyncGetArticleList(columnId)
+        let articleRecordList = await MArticle.asyncGetArticleListByColumnId(columnId)
         this.log(`文章列表获取完毕, 共${articleRecordList.length}条答案`)
         // 生成单个文件
         for (let articleRecord of articleRecordList) {

@@ -1,7 +1,7 @@
 declare namespace TaskConfig {
   type authorQuestion = 'author-question'
 
-  type AuthorCollectionType = 'author-ask-question' | 'author-answer' | 'author-pin' | 'author-activity' | 'author-agree' | 'author-agree-answer' | 'author-agree-article' | 'author-watch-question'
+  type AuthorCollectionType = 'author-ask-question' | 'author-answer' | 'author-pin' | 'author-agree-answer' | 'author-agree-article' | 'author-watch-question'
   type ItemCollectionType = 'topic' | 'collection' | 'column' | 'article' | 'question' | 'answer' | 'pin'
   type OrderBy = 'default' | 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount'
   type ImageQuilty = 'default' | 'none' | 'raw' | 'hd'
