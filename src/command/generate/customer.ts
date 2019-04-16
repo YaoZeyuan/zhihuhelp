@@ -1,7 +1,5 @@
 import Base from '~/src/command/generate/base'
-import CommonUtil from '~/src/library/util/common'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
-import TypeQuestion from '~/src/type/namespace/question'
 import TypeAnswer from '~/src/type/namespace/answer'
 import TypePin from '~/src/type/namespace/pin'
 import TypeArticle from '~/src/type/namespace/article'
@@ -14,6 +12,14 @@ import MCollection from '~/src/model/collection'
 import MColumn from '~/src/model/column'
 import MPin from '~/src/model/pin'
 import _ from 'lodash'
+
+import AnswerView from '~/src/view/answer'
+import PinView from '~/src/view/pin'
+import ArticleView from '~/src/view/article'
+import BaseView from '~/src/view/base'
+import fs from 'fs'
+import path from 'path'
+import StringUtil from '~/src/library/util/string'
 
 class FetchAuthor extends Base {
   static get signature() {
@@ -30,9 +36,18 @@ class FetchAuthor extends Base {
   async execute(args: any, options: any): Promise<any> {
     let { fetchConfigJSON } = args
     let customerTaskConfig: TypeTaskConfig.Customer = JSON.parse(fetchConfigJSON)
+    let bookname = customerTaskConfig.bookname
+
+    let imageQuilty = customerTaskConfig.imageQuilty
+    let coverImage = customerTaskConfig.coverImage
+    let comment = customerTaskConfig.comment
+    let order = customerTaskConfig.order
+    let orderBy = customerTaskConfig.orderBy
+
     this.log(`开始输出自定义电子书, 共有${customerTaskConfig.config_list.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总
     let answerList: Array<TypeAnswer.Record> = []
+    let questionList: Array<Array<TypeAnswer.Record>> = []
     let articleList: Array<TypeArticle.Record> = []
     let pinList: Array<TypePin.Record> = []
 
@@ -153,68 +168,105 @@ class FetchAuthor extends Base {
           this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
       }
     }
-
-    this.log(`抓取任务合并完毕, 最终结果为=>`, taskListPackage)
-
-    this.log(`开始派发自定义任务=>`)
-
-    for (let taskType of Object.keys(taskListPackage)) {
-      let targetIdList = taskListPackage[taskType]
-      switch (taskType) {
-        case 'author-ask-question':
-          let batchFetchAuthorAskQuestion = new BatchFetchAuthorAskQuestion()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorAskQuestion.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'author-answer':
-          let batchFetchAuthorAnswer = new BatchFetchAuthorAnswer()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorAnswer.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'author-pin':
-          let batchFetchAuthorPin = new BatchFetchAuthorPin()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorPin.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'topic':
-          let batchFetchTopic = new BatchFetchTopic()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchTopic.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'collection':
-          let batchFetchCollection = new BatchFetchCollection()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchCollection.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'column':
-          let batchFetchColumn = new BatchFetchColumn()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchColumn.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'article':
-          let batchFetchArticle = new BatchFetchArticle()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchArticle.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'question':
-          let batchFetchQuestion = new BatchFetchQuestion()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchQuestion.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'answer':
-          let batchFetchAnswer = new BatchFetchAnswer()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAnswer.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'pin':
-          let batchFetchPin = new BatchFetchPin()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchPin.fetchListAndSaveToDb(targetIdList))
-          break
-        case 'author-agree':
-        case 'author-agree-article':
-        case 'author-agree-answer':
-        case 'author-watch-question':
-        case 'author-activity':
-          let batchFetchAuthorActivity = new BatchFetchAuthorActivity()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorActivity.fetchListAndSaveToDb(targetIdList))
-          break
-        default:
-          this.log(`不支持的任务类型:${taskType}, 自动跳过`)
+    // 将回答按照问题合并在一起
+    let uniqQuestionMap: {
+      [questionId: string]: {
+        [answerId: string]: TypeAnswer.Record
+      }
+    } = {}
+    for (let answer of answerList) {
+      if (uniqQuestionMap[answer.question.id]) {
+        uniqQuestionMap[answer.question.id][answer.id] = answer
+      } else {
+        uniqQuestionMap[answer.question.id] = {
+          [answer.id]: answer,
+        }
       }
     }
-    await CommonUtil.asyncDispatchAllPromiseInQueen()
-    this.log(`自定义任务抓取完毕`)
+
+    for (let questionId of Object.keys(uniqQuestionMap)) {
+      let answerMap = uniqQuestionMap[questionId]
+      let answerList = []
+      for (let answerId of Object.keys(answerMap)) {
+        let answer = answerMap[answerId]
+        answerList.push(answer)
+      }
+      questionList.push(answerList)
+    }
+
+    this.log(`所有数据获取完毕, 最终结果为=>`)
+    this.log(`问题 => ${questionList.length}个`)
+    this.log(`文章 => ${articleList.length}篇`)
+    this.log(`想法 => ${pinList.length}条`)
+
+    this.bookname = StringUtil.encodeFilename(`${bookname}`)
+    // 初始化文件夹
+    this.initStaticRecource()
+
+    // 单独记录生成的元素, 以便输出成单页
+    let totalElementListToGenerateSinglePage = []
+    this.log(`生成问题html列表`)
+    for (let answerRecordList of questionList) {
+      let title = answerRecordList[0].question.id
+      let content = AnswerView.render(answerRecordList)
+      content = this.processContent(content)
+      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+      this.epub.addHtml(answerRecordList[0].question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+
+      // 单独记录生成的元素, 以便输出成单页文件
+      let elememt = BaseView.generateQuestionElement(answerRecordList[0].question, answerRecordList)
+      totalElementListToGenerateSinglePage.push(elememt)
+    }
+
+    this.log(`生成文章列表`)
+    for (let articleRecord of articleList) {
+      let title = articleRecord.id
+      let content = ArticleView.render(articleRecord)
+      content = this.processContent(content)
+      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+      this.epub.addHtml(articleRecord.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+
+      // 单独记录生成的元素, 以便输出成单页文件
+      let elememt = BaseView.generateSingleArticleElement(articleRecord)
+      totalElementListToGenerateSinglePage.push(elememt)
+    }
+
+    this.log(`生成想法列表`)
+    for (let pinRecord of pinList) {
+      let title = pinRecord.id
+      let content = PinView.render(pinRecord)
+      content = this.processContent(content)
+      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
+      this.epub.addHtml(pinRecord.excerpt_title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
+
+      // 单独记录生成的元素, 以便输出成单页文件
+      let elememt = BaseView.generateSinglePinElement(pinRecord)
+      totalElementListToGenerateSinglePage.push(elememt)
+    }
+
+    this.log(`生成单一html文件`)
+    // 生成全部文件
+    let pageElement = BaseView.generatePageElement(this.bookname, totalElementListToGenerateSinglePage)
+    let content = BaseView.renderToString(pageElement)
+    this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
+    content = this.processContent(content)
+    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
+
+    //  生成目录
+    this.log(`生成目录`)
+    let firstAnswerInQuestionToRenderIndexList = []
+    for (let answerRecordList of questionList) {
+      // 只取回答列表中的第一个元素, 以便生成目录
+      firstAnswerInQuestionToRenderIndexList.push(answerRecordList[0])
+    }
+    let indexContent = BaseView.renderIndex(this.bookname, [...firstAnswerInQuestionToRenderIndexList, ...articleList, ...pinList])
+    fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
+    this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
+
+    // 处理静态资源
+    await this.asyncProcessStaticResource()
+
+    this.log(`自定义电子书${this.bookname}生成完毕`)
   }
 }
 

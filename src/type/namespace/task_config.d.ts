@@ -21,8 +21,10 @@ declare namespace TaskConfig {
     config_list: Array<Record>
     imageQuilty: ImageQuilty // 图片质量
     coverImage: string // 封面图, 默认为王闹海
-    title: string // 书名
+    bookname: string // 书名
     comment: string // 备注
+    orderBy: OrderBy
+    order: 'asc' | 'desc'
   }
 }
 
