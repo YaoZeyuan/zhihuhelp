@@ -10,9 +10,10 @@ import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
 import _ from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
+import Logger from '~/src/library/logger'
 
 class Base {
-  static renderIndex(bookname: string, recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record>) {
+  static renderIndex(bookname: string, recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record>) {
     let indexList: Array<React.ReactElement<any>> = []
     for (let record of recordList) {
       let id = 0
@@ -24,20 +25,29 @@ class Base {
           let answerActivityRecord: TypeActivity.AnswerVoteUpActivityRecord = record
           id = answerActivityRecord.id
           title = answerActivityRecord.target.question.title
-        } else {
+        } else if (_.has(record, ['target', 'column'])) {
           let articleActivityRecord: TypeActivity.ArticleVoteUpActivityRecord = record
           id = articleActivityRecord.id
           title = articleActivityRecord.target.title
+        } else {
+          Logger.warn(`出现了未能识别的活动记录类型, 自动跳过`)
+          Logger.warn(`请在知乎上联系@姚泽源 进行反馈`)
         }
       } else {
         if (_.has(record, ['question'])) {
+          // 问题
           let answerRecord: TypeAnswer.Record = record
           id = answerRecord.id
           title = answerRecord.question.title
-        } else {
+        } else if (_.has(record, ['column'])) {
           let articleRecord: TypeArticle.Record = record
           id = articleRecord.id
           title = articleRecord.title
+        } else {
+          // 想法
+          let pinRecord: TypePin.Record = record
+          id = pinRecord.id
+          title = pinRecord.excerpt_title
         }
       }
 
