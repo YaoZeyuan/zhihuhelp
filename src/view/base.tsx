@@ -5,6 +5,7 @@ import TypeAuthor from '~/src/type/namespace/author'
 import TypeActivity from '~/src/type/namespace/activity'
 import TypeArticle from '~/src/type/namespace/article'
 import TypeColumn from '~/src/type/namespace/column'
+import TypePin from '~/src/type/namespace/pin'
 import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
 import _ from 'lodash'
@@ -203,6 +204,71 @@ class Base {
       </div>
     )
     return article
+  }
+
+  /**
+   * 生成单条想法的Element
+   * @param pinRecord
+   */
+  static generateSinglePinElement(pinRecord: TypePin.Record) {
+    if (_.isEmpty(pinRecord)) {
+      return <div key={CommonUtil.getUuid()} />
+    }
+    const content = (
+      <div key={CommonUtil.getUuid()}>
+        <div className="answer">
+          <div className="author">
+            <div className="author-info">
+              <div className="author-base">
+                <div className="author-logo">
+                  <img src={pinRecord.author.avatar_url} width="25" height="25" />
+                </div>
+
+                <span className="author-name">
+                  <a href={`http://www.zhihu.com/people/${pinRecord.author.id}`}>{pinRecord.author.name}</a>
+                </span>
+                <span className="author-sign">{pinRecord.author.headline ? '　' + pinRecord.author.headline : ''}</span>
+              </div>
+
+              <div className="clear-float" />
+            </div>
+          </div>
+
+          <div className="content">
+            <div dangerouslySetInnerHTML={{ __html: pinRecord.content_html }} />
+          </div>
+
+          <div className="comment">
+            <div className="extra-info">
+              <p className="comment">赞同:{pinRecord.like_count}</p>
+              <p className="update-date">发布于{moment.unix(pinRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+      </div>
+    )
+    const pin = (
+      <div data-key="single-page" key={CommonUtil.getUuid()}>
+        <div className="bg-zhihu-blue-light">
+          <div className="title-image">
+            {/* 不展示头图, 样式不好看 */}
+            {/* <img src={articleRecord.title_image}></img> */}
+          </div>
+          <div className="question bg-zhihu-blue-light">
+            <div className="question-title">
+              <h1 className="bg-zhihu-blue-deep">{pinRecord.excerpt_title}</h1>
+            </div>
+            <div className="clear-float" />
+          </div>
+          <div className="question-info bg-zhihu-blue-light" data-comment="知乎对外接口中没有问题描述数据, 因此直接略过" />
+          <div className="clear-float" />
+        </div>
+        <div className="answer">{content}</div>
+      </div>
+    )
+    return pin
   }
 
   static generatePageElement(title: string, contentElementList: Array<React.ReactElement<any>>) {
