@@ -6,6 +6,9 @@
           <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
             <Dashboard :currentTab.sync="status.tab"/>
           </el-tab-pane>
+          <el-tab-pane label="自定义任务" :name="constant.tab.customerTask">
+            <CustomerTask/>
+          </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log/>
           </el-tab-pane>
@@ -27,6 +30,7 @@
 
 <script>
   import Dashboard from './dashboard/index.vue'
+  import CustomerTask from './customer_task/index.vue'
   import Login from './login/index.vue'
   import Log from './log/index.vue'
   import Helper from './helper/index.vue'
@@ -37,6 +41,7 @@
     name: 'App',
     components:{
       Dashboard,
+      CustomerTask,
       Log,
       Login,
       Helper,
@@ -47,6 +52,7 @@
           constant:{
             tab:{
               dashboard:'dashboard',
+              customerTask:'customerTask',
               log:'log',
               login:'login',
               helper:'helper',
