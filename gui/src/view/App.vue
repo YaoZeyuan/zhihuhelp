@@ -7,7 +7,7 @@
             <Dashboard :currentTab.sync="status.tab"/>
           </el-tab-pane>
           <el-tab-pane label="自定义任务" :name="constant.tab.customerTask">
-            <CustomerTask/>
+            <CustomerTask :currentTab.sync="status.tab"/>
           </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log/>
@@ -64,7 +64,7 @@
             },
             // 页面状态
             status:{
-              tab:'dashboard',
+              tab:'customerTask',
             }
         }
     },
