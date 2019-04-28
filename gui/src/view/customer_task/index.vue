@@ -3,6 +3,56 @@
     <h1>任务输入框</h1>
     <el-card>
       <el-form label-width="100px">
+        <el-form-item label="电子书名">
+          <el-input v-model="database.taskConfig.bookTitle"></el-input>
+        </el-form-item>
+        <el-form-item label="抓取任务">
+          <template v-if="database.taskConfig.configList.length">
+            <el-table :data="database.taskConfig.configList" stripe border style="width: 100%">
+              <el-table-column label="任务类型" width="220">
+                <template slot-scope="scope">
+                  <el-select v-model="scope.row.type" placeholder="请选择">
+                    <el-option
+                      v-for="itemKey in Object.keys(constant.TaskType)"
+                      :key="constant.TaskType[itemKey]"
+                      :label="itemKey"
+                      :value="constant.TaskType[itemKey]"
+                    ></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column label="待抓取url">
+                <template slot-scope="scope">
+                  <el-input v-model="scope.row.rawInputText" placeholder="请输入待抓取url"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="任务id">
+                <template slot-scope="scope">
+                  <span>{{scope.row.id ? scope.row.id : '未解析到任务id' }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="备注">
+                <template slot-scope="scope">
+                  <el-input v-model="scope.row.comment" placeholder="备注信息"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="130">
+                <template slot-scope="scope">
+                  <el-button size="mini" @click="addTask()" icon="el-icon-plus"></el-button>
+                  <el-button
+                    size="mini"
+                    type="danger"
+                    @click="removeTaskByIndex(scope.$index, scope.row)"
+                    icon="el-icon-minus"
+                  ></el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+          <template v-else>
+            <el-button @click="addTask()">添加</el-button>
+          </template>
+        </el-form-item>
         <el-form-item label="排序依据">
           <el-radio-group v-model="database.taskConfig.orderBy">
             <el-radio :label="constant.OrderBy.创建时间">创建时间</el-radio>
@@ -13,8 +63,8 @@
         </el-form-item>
         <el-form-item label="排序顺序">
           <el-radio-group v-model="database.taskConfig.order">
-            <el-radio :label="constant.Order.从低到高_从旧到新">从低到高/从旧到新</el-radio>
-            <el-radio :label="constant.Order.从高到低_从新到旧">从高到低/从新到旧</el-radio>
+            <el-radio :label="constant.Order.从低到高_从旧到新">赞同评论数从低到高/日期从旧到新</el-radio>
+            <el-radio :label="constant.Order.从高到低_从新到旧">赞同评论数从高到低/日期从新到旧</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="图片质量">
@@ -25,10 +75,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="this.database.taskConfig.comment"></el-input>
-        </el-form-item>
-        <el-form-item label="电子书名">
-          <el-input v-model="this.database.taskConfig.bookTitle"></el-input>
+          <el-input v-model="database.taskConfig.comment"></el-input>
         </el-form-item>
       </el-form>
     </el-card>
@@ -40,11 +87,7 @@
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
     </div>
     <h1>解析结果</h1>
-    <el-table :data="taskConfigList" style="width: 100%">
-      <el-table-column prop="type" label="任务类型" width="180"></el-table-column>
-      <el-table-column prop="id" label="id" width="180"></el-table-column>
-      <el-table-column prop="comment" label="备注"></el-table-column>
-    </el-table>
+    <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfigList)"></div>
   </div>
 </template>
 
@@ -124,7 +167,7 @@ export default Vue.extend({
   name: 'customerTask',
   data(): {
     database: {
-      taskConfig: TaskConfigType.Record
+      taskConfig: TypeTaskConfig.Record
     }
     // 页面状态
     status: {
@@ -132,8 +175,8 @@ export default Vue.extend({
     }
     constant: {}
   } {
-    let configList: Array<TaskConfigType.ConfigItem> = []
-    let taskConfig: TaskConfigType.Record = {
+    let configList: Array<TypeTaskConfig.ConfigItem> = []
+    let taskConfig: TypeTaskConfig.Record = {
       configList: [],
       orderBy: TaskConfigType.CONST_Order_By_创建时间,
       order: TaskConfigType.CONST_Order_Desc,
@@ -177,59 +220,90 @@ export default Vue.extend({
       }
 
       // 将当前任务配置发送给服务器
-      ipcRenderer.sendSync('start', this.taskConfigList)
+      ipcRenderer.sendSync('start', this.watchTaskConfigList)
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
     },
-    removeTaskId(id: string) {
-      console.log('remove scope.row =>', id)
-      let newIdList = []
-      for (let item of this.database.item.idList) {
-        if (item !== id) {
-          newIdList.push(item)
-        }
+    addTask() {
+      let newTask: TypeTaskConfig.ConfigItem = {
+        type: TypeTaskConfig.CONST_Task_Type_用户的所有回答,
+        id: '',
+        rawInputText: '',
+        comment: '',
       }
-      this.database.item.idList = newIdList
+      this.database.taskConfig.configList.push(newTask)
     },
-    // async asyncCheckIsLogin(){
-    //   // 已登陆则返回用户信息 =>
-    //   // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
-    //   let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
-    //   this.status.isLogin =  _.has(record, ['id'])
-    //   if(this.status.isLogin === false){
-    //     this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
-    //     this.$emit('update:currentTab', 'login')
-    //   }
-    //   console.log("checkIsLogin: record =>", record)
-    // }
+    removeTaskByIndex(index: number) {
+      let oldConfigList = this.database.taskConfig.configList
+      let newConfigList = oldConfigList.splice(index, 1)
+      this.database.taskConfig.configList = newConfigList
+    },
+    matchTaskId(taskType: TypeTaskConfig.TaskType, content: string) {
+      let parseResult = querystring.parseUrl(content)
+      let rawId = ''
+      let id = ''
+      let rawContent = parseResult.url
+      switch (taskType) {
+        case TaskConfigType.CONST_Task_Type_用户提问过的所有问题:
+        case TaskConfigType.CONST_Task_Type_用户的所有回答:
+        case TaskConfigType.CONST_Task_Type_用户发布的所有想法:
+        case TaskConfigType.CONST_Task_Type_用户赞同过的所有回答:
+        case TaskConfigType.CONST_Task_Type_用户赞同过的所有文章:
+        case TaskConfigType.CONST_Task_Type_用户关注过的所有问题:
+          // https://www.zhihu.com/people/404-Page-Not-found/activities
+          rawId = _.get(rawContent.split('www.zhihu.com/people/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        case TaskConfigType.CONST_Task_Type_问题:
+          // https://www.zhihu.com/question/321773825
+          rawId = _.get(rawContent.split('www.zhihu.com/question/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+          break
+        case TaskConfigType.CONST_Task_Type_回答:
+          // https://www.zhihu.com/question/321773825/answer/664230128
+          rawId = _.get(rawContent.split('/answer/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        case TaskConfigType.CONST_Task_Type_想法:
+          // https://www.zhihu.com/pin/1103720569358385152
+          rawId = _.get(rawContent.split('/pin/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+          break
+        case TaskConfigType.CONST_Task_Type_话题:
+          // https://www.zhihu.com/topic/19550517/hot
+          rawId = _.get(rawContent.split('/topic/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        case TaskConfigType.CONST_Task_Type_收藏夹:
+          // https://www.zhihu.com/topic/19550517/hot
+          rawId = _.get(rawContent.split('/topic/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        case TaskConfigType.CONST_Task_Type_专栏:
+          // https://zhuanlan.zhihu.com/advancing-react
+          rawId = _.get(rawContent.split('zhuanlan.zhihu.com/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        case TaskConfigType.CONST_Task_Type_文章:
+          // https://zhuanlan.zhihu.com/p/59993287
+          rawId = _.get(rawContent.split('zhuanlan.zhihu.com/p/'), [1], '')
+          id = _.get(rawId.split('/'), [0], '')
+          break
+        default:
+          id = ''
+      }
+      return id
+    },
   },
   computed: {
-    taskConfigList() {
-      let taskList = []
-      // let rawTaskContent = this.database.rawTaskContent
-      // if (rawTaskContent === '') {
-      //   return []
-      // }
-      // let rawTaskList = rawTaskContent.split('\n')
-      // for (let rawTask of rawTaskList) {
-      //   let task = {
-      //     type: 'author',
-      //     id: '404-Page-Not-found',
-      //     orderBy: 'createAt',
-      //     order: 'asc',
-      //     comment: '备注信息',
-      //   }
-
-      //   let demo = {
-      //     type: 'author',
-      //     id: '404-Page-Not-found',
-      //     orderBy: 'createAt',
-      //     order: 'asc',
-      //     comment: '姚泽源的知乎回答集锦',
-      //   }
-      //   taskList.push(task)
-      // }
-      return taskList
+    watchTaskConfigList(): Array<TypeTaskConfig.ConfigItem> {
+      // 监控configList值变动
+      for (let config of this.database.taskConfig.configList) {
+        config.id = this.matchTaskId(config.type, config.rawInputText)
+      }
+      return this.database.taskConfig.configList
     },
   },
 })
