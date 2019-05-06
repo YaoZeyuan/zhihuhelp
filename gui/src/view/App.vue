@@ -83,7 +83,7 @@
 
 <style lang="less" scoped>
 .app {
-  margin: 0 20vw;
+  margin: 0 5vw;
   background-color: #f5f7f9;
   height: 100vh;
 }
