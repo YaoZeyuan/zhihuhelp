@@ -38,7 +38,7 @@
               </el-table-column>
               <el-table-column label="操作" width="130">
                 <template slot-scope="scope">
-                  <el-button size="mini" @click="addTask()" icon="el-icon-plus"></el-button>
+                  <el-button size="mini" @click="addTask(scope.$index)" icon="el-icon-plus"></el-button>
                   <el-button
                     size="mini"
                     type="danger"
@@ -224,14 +224,15 @@ export default Vue.extend({
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
     },
-    addTask() {
+    addTask(index: number) {
+      console.log('index =>', index)
       let newTask: TypeTaskConfig.ConfigItem = {
-        type: TypeTaskConfig.CONST_Task_Type_用户的所有回答,
+        type: _.get(this.database.taskConfig.configList, [index, 'type'], TypeTaskConfig.CONST_Task_Type_用户的所有回答),
         id: '',
         rawInputText: '',
         comment: '',
       }
-      this.database.taskConfig.configList.push(newTask)
+      this.database.taskConfig.configList.splice(index + 1, 0, newTask)
     },
     removeTaskByIndex(index: number) {
       let oldConfigList = this.database.taskConfig.configList
