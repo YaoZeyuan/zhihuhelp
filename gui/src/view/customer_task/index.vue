@@ -1,6 +1,13 @@
 <template>
   <div>
-    <h1>任务输入框</h1>
+    <el-row type="flex" align="middle" justify="center">
+      <el-col :span="20">
+        <h1>自定义任务</h1>
+      </el-col>
+      <el-col :span="4">
+        <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
+      </el-col>
+    </el-row>
     <el-card>
       <el-form label-width="100px">
         <el-form-item label="电子书名">
@@ -79,14 +86,11 @@
         </el-form-item>
       </el-form>
     </el-card>
-    <div>
-      <pre>
+    <div></div>
+    <h1>任务配置内容</h1>
+    <pre>
         {{JSON.stringify(database, null , 4)}}
       </pre>
-      <br>
-      <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
-    </div>
-    <h1>解析结果</h1>
     <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfig)"></div>
   </div>
 </template>
@@ -217,7 +221,7 @@ export default Vue.extend({
       taskConfig = JSON.parse(jsonContent)
     } catch (e) {}
     this.database.taskConfig = taskConfig
-    // await this.asyncCheckIsLogin()
+    await this.asyncCheckIsLogin()
   },
   methods: {
     async saveConfig() {
@@ -234,20 +238,24 @@ export default Vue.extend({
     },
     async asyncHandleStartTask() {
       this.saveConfig()
-      // await this.asyncCheckIsLogin()
+      await this.asyncCheckIsLogin()
       if (this.status.isLogin === false) {
         console.log('尚未登陆知乎')
         return
       }
 
       // 将当前任务配置发送给服务器
-      // ipcRenderer.sendSync('start', this.watchTaskConfigList)
+      ipcRenderer.sendSync('startCustomerTask')
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
     },
     addTask(index: number) {
       let newTask: TypeTaskConfig.ConfigItem = {
-        type: _.get(this.database.taskConfig.configList, [index, 'type'], TypeTaskConfig.CONST_Task_Type_用户的所有回答),
+        type: _.get(
+          this.database.taskConfig.configList,
+          [index, 'type'],
+          TypeTaskConfig.CONST_Task_Type_用户的所有回答,
+        ),
         id: '',
         rawInputText: '',
         comment: '',
@@ -317,10 +325,25 @@ export default Vue.extend({
       }
       return id
     },
+    async asyncCheckIsLogin() {
+      // 已登陆则返回用户信息 =>
+      // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
+      let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
+      this.status.isLogin = _.has(record, ['id'])
+      if (this.status.isLogin === false) {
+        this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
+        this.$emit('update:currentTab', 'login')
+      }
+      console.log('checkIsLogin: record =>', record)
+    },
   },
   computed: {
     watchTaskConfig(): TypeTaskConfig.Record {
-      this.saveConfig()
+      if (this.database.taskConfig.configList.length > 0) {
+        // 仅当配置列表中有值时, 才进行自动保存
+        // 避免初始载入配置时被默认配置覆盖掉
+        this.saveConfig()
+      }
       // 监控configList值变动
       for (let config of this.database.taskConfig.configList) {
         config.id = this.matchTaskId(config.type, config.rawInputText)
