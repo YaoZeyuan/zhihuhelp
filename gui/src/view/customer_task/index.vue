@@ -87,7 +87,7 @@
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
     </div>
     <h1>解析结果</h1>
-    <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfigList)"></div>
+    <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfig)"></div>
   </div>
 </template>
 
@@ -203,16 +203,37 @@ export default Vue.extend({
     }
   },
   async mounted() {
-    // let content = util.getFileContent(pathConfig.readListUri)
-    // this.database.rawTaskContent = content
+    let jsonContent = util.getFileContent(pathConfig.customerTaskConfigUri)
+    let taskConfig: TypeTaskConfig.Record = {
+      configList: [],
+      orderBy: TaskConfigType.CONST_Order_By_创建时间,
+      order: TaskConfigType.CONST_Order_Desc,
+      imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
+      coverImage: '',
+      bookTitle: '',
+      comment: '',
+    }
+    try {
+      taskConfig = JSON.parse(jsonContent)
+    } catch (e) {}
+    this.database.taskConfig = taskConfig
     // await this.asyncCheckIsLogin()
   },
   methods: {
-    async saveReadListContent() {
-      fs.writeFileSync(pathConfig.readListUri, this.database.rawTaskContent)
+    async saveConfig() {
+      // 只保存匹配到id值的记录
+      let rawTaskConfig = _.cloneDeep(this.database.taskConfig)
+      let taskConfigList = []
+      for (let config of rawTaskConfig.configList) {
+        if (config.id) {
+          taskConfigList.push(config)
+        }
+      }
+      rawTaskConfig.configList = taskConfigList
+      fs.writeFileSync(pathConfig.customerTaskConfigUri, JSON.stringify(rawTaskConfig, null, 4))
     },
     async asyncHandleStartTask() {
-      this.saveReadListContent()
+      this.saveConfig()
       // await this.asyncCheckIsLogin()
       if (this.status.isLogin === false) {
         console.log('尚未登陆知乎')
@@ -220,12 +241,11 @@ export default Vue.extend({
       }
 
       // 将当前任务配置发送给服务器
-      ipcRenderer.sendSync('start', this.watchTaskConfigList)
+      // ipcRenderer.sendSync('start', this.watchTaskConfigList)
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
     },
     addTask(index: number) {
-      console.log('index =>', index)
       let newTask: TypeTaskConfig.ConfigItem = {
         type: _.get(this.database.taskConfig.configList, [index, 'type'], TypeTaskConfig.CONST_Task_Type_用户的所有回答),
         id: '',
@@ -299,12 +319,13 @@ export default Vue.extend({
     },
   },
   computed: {
-    watchTaskConfigList(): Array<TypeTaskConfig.ConfigItem> {
+    watchTaskConfig(): TypeTaskConfig.Record {
+      this.saveConfig()
       // 监控configList值变动
       for (let config of this.database.taskConfig.configList) {
         config.id = this.matchTaskId(config.type, config.rawInputText)
       }
-      return this.database.taskConfig.configList
+      return this.database.taskConfig
     },
   },
 })

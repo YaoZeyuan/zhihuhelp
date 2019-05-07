@@ -34,7 +34,7 @@ class DispatchCommand extends Base {
 
   async execute (args: any, options: any) {
     this.log(`检查更新`)
-    let taskConfigListJson = fs.readFileSync(PathConfig.taskConfigListUri)
+    let taskConfigListJson = fs.readFileSync(PathConfig.customerTaskConfigUri)
     let taskConfigList: Array<TypeTaskConfig.Record> = JSON.parse(taskConfigListJson.toString())
     // 初始化运行环境
     let initCommand = new InitEnvCommand()

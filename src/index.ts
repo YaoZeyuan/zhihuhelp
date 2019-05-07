@@ -94,7 +94,7 @@ ipcMain.on('start', async (event, taskConfigList) => {
   Logger.log('开始工作')
   let cookieContent = ''
   // 写入任务数据
-  fs.writeFileSync(PathConfig.taskConfigListUri, JSON.stringify(taskConfigList, null, 4))
+  fs.writeFileSync(PathConfig.customerTaskConfigUri, JSON.stringify(taskConfigList, null, 4))
   await new Promise((resolve, reject) => {
     // 获取页面cookie
     session.defaultSession.cookies.get({}, (error, cookieList) => {
