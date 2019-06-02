@@ -55,6 +55,8 @@ runtime.log
 config.json
 task_config_list.json
 read_list.txt
+#用户自定义任务列表
+customer_task_config.json
 
 #   图形化界面
 gui/dist

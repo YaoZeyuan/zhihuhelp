@@ -1,0 +1,16 @@
+{
+    "configList": [
+        {
+            "type": "question",
+            "id": "317894683",
+            "rawInputText": "https://www.zhihu.com/question/317894683/answer/655454837",
+            "comment": "测试"
+        }
+    ],
+    "orderBy": "createAt",
+    "order": "desc",
+    "imageQuilty": "raw",
+    "coverImage": "",
+    "bookTitle": "测试电子书名",
+    "comment": "备注信息"
+}
