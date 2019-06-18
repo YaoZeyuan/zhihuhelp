@@ -44,7 +44,7 @@ class FetchAuthor extends Base {
     let order = customerTaskConfig.order
     let orderBy = customerTaskConfig.orderBy
 
-    this.log(`开始输出自定义电子书, 共有${customerTaskConfig.config_list.length}个任务`)
+    this.log(`开始输出自定义电子书, 共有${customerTaskConfig.configList.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总
     let answerList: Array<TypeAnswer.Record> = []
     let questionList: Array<Array<TypeAnswer.Record>> = []
@@ -53,9 +53,9 @@ class FetchAuthor extends Base {
 
     this.log(`将任务中的数据按照问题/文章/想法进行汇总`)
     let taskIndex = 0
-    for (let taskConfig of customerTaskConfig.config_list) {
+    for (let taskConfig of customerTaskConfig.configList) {
       taskIndex = taskIndex + 1
-      this.log(`处理第${taskIndex}/${customerTaskConfig.config_list.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`)
+      this.log(`处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`)
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
       switch (taskConfig.type) {

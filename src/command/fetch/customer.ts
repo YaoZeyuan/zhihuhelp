@@ -1,6 +1,8 @@
 import Base from '~/src/command/fetch/base'
 import CommonUtil from '~/src/library/util/common'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
+import PathConfig from '~/src/config/path'
+import fs from 'fs'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import BatchFetchArticle from '~/src/command/fetch/batch/article'
 import BatchFetchAuthorActivity from '~/src/command/fetch/batch/author_activity'
@@ -12,30 +14,32 @@ import BatchFetchColumn from '~/src/command/fetch/batch/column'
 import BatchFetchPin from '~/src/command/fetch/batch/pin'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 import BatchFetchTopic from '~/src/command/fetch/batch/topic'
+import Logger from '~/src/library/logger'
 
 class FetchAuthor extends Base {
   static get signature() {
     return `
         Fetch:Customer
-        {fetchConfigJSON:[必填]json形式的抓取配置}
     `
   }
 
   static get description() {
-    return '自定义抓取任务'
+    return `从${PathConfig.customerTaskConfigUri}中读取自定义抓取任务并执行`
   }
 
   async execute(args: any, options: any): Promise<any> {
-    let { fetchConfigJSON } = args
+    Logger.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
+    let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
+    Logger.log('content =>', fetchConfigJSON)
     let customerTaskConfig: TypeTaskConfig.Customer = JSON.parse(fetchConfigJSON)
-    this.log(`开始进行自定义抓取, 共有${customerTaskConfig.config_list.length}个任务`)
+    this.log(`开始进行自定义抓取, 共有${customerTaskConfig.configList.length}个任务`)
     // 首先, 将任务进行汇总
     type TypeTaskPackage = {
       [key: string]: Array<string>
     }
     let taskListPackage: TypeTaskPackage = {}
     this.log(`合并抓取任务`)
-    for (let taskConfig of customerTaskConfig.config_list) {
+    for (let taskConfig of customerTaskConfig.configList) {
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
       if (taskConfig.type in taskListPackage === false) {
@@ -91,7 +95,9 @@ class FetchAuthor extends Base {
       switch (taskType) {
         case 'author-ask-question':
           let batchFetchAuthorAskQuestion = new BatchFetchAuthorAskQuestion()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorAskQuestion.fetchListAndSaveToDb(targetIdList))
+          await CommonUtil.asyncAppendPromiseWithDebounce(
+            batchFetchAuthorAskQuestion.fetchListAndSaveToDb(targetIdList),
+          )
           break
         case 'author-answer':
           let batchFetchAuthorAnswer = new BatchFetchAuthorAnswer()
