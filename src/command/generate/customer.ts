@@ -3,6 +3,7 @@ import TypeTaskConfig from '~/src/type/namespace/task_config'
 import TypeAnswer from '~/src/type/namespace/answer'
 import TypePin from '~/src/type/namespace/pin'
 import TypeArticle from '~/src/type/namespace/article'
+import PathConfig from '~/src/config/path'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MActivity from '~/src/model/activity'
 import MTotalAnswer from '~/src/model/total_answer'
@@ -20,12 +21,13 @@ import BaseView from '~/src/view/base'
 import fs from 'fs'
 import path from 'path'
 import StringUtil from '~/src/library/util/string'
+import Logger from '~/src/library/logger'
 
-class FetchAuthor extends Base {
+
+class GenerateCustomer extends Base {
   static get signature() {
     return `
         Generate:Customer
-        {fetchConfigJSON:[必填]json形式的抓取配置}
     `
   }
 
@@ -34,9 +36,11 @@ class FetchAuthor extends Base {
   }
 
   async execute(args: any, options: any): Promise<any> {
-    let { fetchConfigJSON } = args
+    Logger.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
+    let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
+    Logger.log('content =>', fetchConfigJSON)
     let customerTaskConfig: TypeTaskConfig.Customer = JSON.parse(fetchConfigJSON)
-    let bookname = customerTaskConfig.bookname
+    let bookname = customerTaskConfig.bookTitle
 
     let imageQuilty = customerTaskConfig.imageQuilty
     let coverImage = customerTaskConfig.coverImage
@@ -270,4 +274,4 @@ class FetchAuthor extends Base {
   }
 }
 
-export default FetchAuthor
+export default GenerateCustomer

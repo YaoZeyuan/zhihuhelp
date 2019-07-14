@@ -16,7 +16,7 @@ import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 import BatchFetchTopic from '~/src/command/fetch/batch/topic'
 import Logger from '~/src/library/logger'
 
-class FetchAuthor extends Base {
+class FetchCustomer extends Base {
   static get signature() {
     return `
         Fetch:Customer
@@ -152,4 +152,4 @@ class FetchAuthor extends Base {
   }
 }
 
-export default FetchAuthor
+export default FetchCustomer
