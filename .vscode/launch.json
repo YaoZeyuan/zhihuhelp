@@ -1,63 +1,74 @@
 {
-    // Use IntelliSense to learn about possible Node.js debug attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "debug-ace-wsl",
-            "program": "${workspaceFolder}/src/ace.ts",
-            "stopOnEntry": false,
-            "args": [
-                "Fetch:Collection", // 这里可以是任意命令
-                "323577575" // 拿自己的账号测试
-            ],
-            "useWSL": true, // windows 使用WSL进行调试
-            "cwd": "${workspaceRoot}",
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "sourceMaps": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "debug-ace",
-            "program": "${workspaceFolder}/src/ace.ts",
-            "stopOnEntry": false,
-            "args": [
-                "Generate:Topic", // 这里可以是任意命令
-                "19559052" // 拿自己的账号测试
-            ],
-            "useWSL": false, // windows 使用WSL进行调试
-            "cwd": "${workspaceRoot}",
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "sourceMaps": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Debug Electron",
-            "type": "node",
-            "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
-            "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
-            },
-            "args": [
-                "."
-            ]
-        }
-    ]
+  // Use IntelliSense to learn about possible Node.js debug attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "生成电子书-wsl",
+      "program": "${workspaceFolder}/src/ace.ts",
+      "stopOnEntry": false,
+      "args": [
+        "Generate:Customer" // 这里可以是任意命令
+      ],
+      "useWSL": true, // windows 使用WSL进行调试
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "debug-ace-wsl",
+      "program": "${workspaceFolder}/src/ace.ts",
+      "stopOnEntry": false,
+      "args": [
+        "Fetch:Collection", // 这里可以是任意命令
+        "323577575" // 拿自己的账号测试
+      ],
+      "useWSL": true, // windows 使用WSL进行调试
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "debug-ace",
+      "program": "${workspaceFolder}/src/ace.ts",
+      "stopOnEntry": false,
+      "args": [
+        "Generate:Topic", // 这里可以是任意命令
+        "19559052" // 拿自己的账号测试
+      ],
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Debug Electron",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+      "windows": {
+        "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+      },
+      "args": ["."]
+    }
+  ]
 }
