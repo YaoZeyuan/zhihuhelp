@@ -13,7 +13,10 @@ import DATE_FORMAT from '~/src/constant/date_format'
 import Logger from '~/src/library/logger'
 
 class Base {
-  static renderIndex(bookname: string, recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record>) {
+  static renderIndex(
+    bookname: string,
+    recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record>,
+  ) {
     let indexList: Array<React.ReactElement<any>> = []
     for (let record of recordList) {
       let id = 0
@@ -97,7 +100,9 @@ class Base {
                   <a href={`http://www.zhihu.com/people/${answerRecord.author.id}`}>{answerRecord.author.name}</a>
                 </span>
 
-                <span className="author-sign">{answerRecord.author.headline ? '　' + answerRecord.author.headline : ''}</span>
+                <span className="author-sign">
+                  {answerRecord.author.headline ? '　' + answerRecord.author.headline : ''}
+                </span>
               </div>
 
               <div className="clear-float" />
@@ -111,8 +116,12 @@ class Base {
           <div className="comment">
             <div className="extra-info">
               <p className="comment">赞同:{answerRecord.voteup_count}</p>
-              <p className="update-date">创建时间:{moment.unix(answerRecord.created_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
-              <p className="update-date">最后更新于:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
+              <p className="update-date">
+                创建时间:{moment.unix(answerRecord.created_time).format(DATE_FORMAT.DATABASE_BY_DAY)}
+              </p>
+              <p className="update-date">
+                最后更新于:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}
+              </p>
             </div>
           </div>
         </div>
@@ -128,7 +137,10 @@ class Base {
    * @param questionRecord
    * @param answerElementList
    */
-  static generateQuestionElement(questionRecord: TypeAnswer.Question, answerElementList: Array<React.ReactElement<any>> = []) {
+  static generateQuestionElement(
+    questionRecord: TypeAnswer.Question,
+    answerElementList: Array<React.ReactElement<any>> = [],
+  ) {
     if (_.isEmpty(questionRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
@@ -142,7 +154,10 @@ class Base {
             </div>
             <div className="clear-float" />
           </div>
-          <div className="question-info bg-zhihu-blue-light" data-comment="知乎对外接口中没有问题描述数据, 因此直接略过" />
+          <div
+            className="question-info bg-zhihu-blue-light"
+            data-comment="知乎对外接口中没有问题描述数据, 因此直接略过"
+          />
           <div className="clear-float" />
         </div>
         <div className="answer">{answerElementList}</div>
@@ -172,7 +187,9 @@ class Base {
                 <span className="author-name">
                   <a href={`http://www.zhihu.com/people/${articleRecord.author.id}`}>{articleRecord.author.name}</a>
                 </span>
-                <span className="author-sign">{articleRecord.author.headline ? '　' + articleRecord.author.headline : ''}</span>
+                <span className="author-sign">
+                  {articleRecord.author.headline ? '　' + articleRecord.author.headline : ''}
+                </span>
               </div>
 
               <div className="clear-float" />
@@ -186,7 +203,9 @@ class Base {
           <div className="comment">
             <div className="extra-info">
               <p className="comment">赞同:{articleRecord.voteup_count}</p>
-              <p className="update-date">发布于{moment.unix(articleRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
+              <p className="update-date">
+                发布于{moment.unix(articleRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}
+              </p>
             </div>
           </div>
         </div>
@@ -207,7 +226,10 @@ class Base {
             </div>
             <div className="clear-float" />
           </div>
-          <div className="question-info bg-zhihu-blue-light" data-comment="知乎对外接口中没有问题描述数据, 因此直接略过" />
+          <div
+            className="question-info bg-zhihu-blue-light"
+            data-comment="知乎对外接口中没有问题描述数据, 因此直接略过"
+          />
           <div className="clear-float" />
         </div>
         <div className="answer">{content}</div>
@@ -272,7 +294,10 @@ class Base {
             </div>
             <div className="clear-float" />
           </div>
-          <div className="question-info bg-zhihu-blue-light" data-comment="知乎对外接口中没有问题描述数据, 因此直接略过" />
+          <div
+            className="question-info bg-zhihu-blue-light"
+            data-comment="知乎对外接口中没有问题描述数据, 因此直接略过"
+          />
           <div className="clear-float" />
         </div>
         <div className="answer">{content}</div>

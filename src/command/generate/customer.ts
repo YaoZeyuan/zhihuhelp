@@ -23,7 +23,6 @@ import path from 'path'
 import StringUtil from '~/src/library/util/string'
 import Logger from '~/src/library/logger'
 
-
 class GenerateCustomer extends Base {
   static get signature() {
     return `
@@ -59,7 +58,11 @@ class GenerateCustomer extends Base {
     let taskIndex = 0
     for (let taskConfig of customerTaskConfig.configList) {
       taskIndex = taskIndex + 1
-      this.log(`处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`)
+      this.log(
+        `处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${
+          taskConfig.comment
+        }`,
+      )
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
       switch (taskConfig.type) {
@@ -146,7 +149,10 @@ class GenerateCustomer extends Base {
           break
         case 'author-agree-article':
           this.log(`获取用户${targetId}赞同过的所有文章id`)
-          let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_MEMBER_VOTEUP_ARTICLE)
+          let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
+            targetId,
+            MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
+          )
           this.log(`用户${targetId}赞同过的所有文章id获取完毕`)
           this.log(`获取用户${targetId}赞同过的所有文章`)
           let articleListInAuthorAgreeArticle = await MArticle.asyncGetArticleList(articleIdListInAuthorAgreeArticle)
@@ -154,7 +160,10 @@ class GenerateCustomer extends Base {
           articleList = articleList.concat(articleListInAuthorAgreeArticle)
         case 'author-agree-answer':
           this.log(`获取用户${targetId}赞同过的所有回答id`)
-          let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_ANSWER_VOTE_UP)
+          let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
+            targetId,
+            MActivity.VERB_ANSWER_VOTE_UP,
+          )
           this.log(`用户${targetId}赞同过的所有回答id获取完毕`)
           this.log(`获取用户${targetId}赞同过的所有回答`)
           let answerListInAuthorAgreeAnswer = await MTotalAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
@@ -162,10 +171,15 @@ class GenerateCustomer extends Base {
           answerList = answerList.concat(answerListInAuthorAgreeAnswer)
         case 'author-watch-question':
           this.log(`获取用户${targetId}关注过的所有问题id`)
-          let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(targetId, MActivity.VERB_QUESTION_FOLLOW)
+          let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
+            targetId,
+            MActivity.VERB_QUESTION_FOLLOW,
+          )
           this.log(`用户${targetId}关注过的所有问题id获取完毕`)
           this.log(`获取用户${targetId}关注过的所有问题id下的所有回答`)
-          let answerListInAuthorWatchQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList(questionIdListInAuthorWatchQuestion)
+          let answerListInAuthorWatchQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList(
+            questionIdListInAuthorWatchQuestion,
+          )
           this.log(`用户${targetId}关注过的所有问题id下的所有回答获取完毕`)
           answerList = answerList.concat(answerListInAuthorWatchQuestion)
         default:
@@ -218,7 +232,12 @@ class GenerateCustomer extends Base {
       this.epub.addHtml(answerRecordList[0].question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
 
       // 单独记录生成的元素, 以便输出成单页文件
-      let elememt = BaseView.generateQuestionElement(answerRecordList[0].question, answerRecordList)
+      let contentElementList = []
+      for (let answerRecord of answerRecordList) {
+        let contentElement = BaseView.generateSingleAnswerElement(answerRecord)
+        contentElementList.push(contentElement)
+      }
+      let elememt = BaseView.generateQuestionElement(answerRecordList[0].question, contentElementList)
       totalElementListToGenerateSinglePage.push(elememt)
     }
 
@@ -263,7 +282,11 @@ class GenerateCustomer extends Base {
       // 只取回答列表中的第一个元素, 以便生成目录
       firstAnswerInQuestionToRenderIndexList.push(answerRecordList[0])
     }
-    let indexContent = BaseView.renderIndex(this.bookname, [...firstAnswerInQuestionToRenderIndexList, ...articleList, ...pinList])
+    let indexContent = BaseView.renderIndex(this.bookname, [
+      ...firstAnswerInQuestionToRenderIndexList,
+      ...articleList,
+      ...pinList,
+    ])
     fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
     this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
 
