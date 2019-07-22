@@ -11,7 +11,8 @@
       "program": "${workspaceFolder}/src/ace.ts",
       "stopOnEntry": false,
       "args": [
-        "Generate:Customer" // 这里可以是任意命令
+        "Dispatch:Task"
+        // "Generate:Customer" // 这里可以是任意命令
       ],
       "useWSL": true, // windows 使用WSL进行调试
       "cwd": "${workspaceRoot}",
