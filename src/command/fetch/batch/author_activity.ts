@@ -10,6 +10,7 @@ import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 import BatchFetchColumn from '~/src/command/fetch/batch/column'
 import BatchFetchArticle from './article'
+import _ from 'lodash'
 
 class BatchFetchAuthorActivity extends Base {
   async fetch(urlToken: string) {
@@ -29,7 +30,9 @@ class BatchFetchAuthorActivity extends Base {
     for (let checkAt = startAt; checkAt <= endAt; ) {
       let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(urlToken, checkAt)
       if (hasActivityAfterAt) {
-        this.log(`经检查, 用户${name}(${urlToken})在${moment.unix(checkAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}前有活动记录`)
+        this.log(
+          `经检查, 用户${name}(${urlToken})在${moment.unix(checkAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}前有活动记录`,
+        )
         this.log(`检查完毕`)
         startAt = moment
           .unix(checkAt)
@@ -37,7 +40,11 @@ class BatchFetchAuthorActivity extends Base {
           .unix()
         break
       } else {
-        this.log(`经检查, 用户${name}(${urlToken})在${moment.unix(checkAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}前没有活动记录`)
+        this.log(
+          `经检查, 用户${name}(${urlToken})在${moment
+            .unix(checkAt)
+            .format(DATE_FORMAT.DISPLAY_BY_SECOND)}前没有活动记录`,
+        )
         this.log(`向后推一个月, 继续检查`)
         let newCheckAt = moment
           .unix(checkAt)
@@ -46,7 +53,11 @@ class BatchFetchAuthorActivity extends Base {
         checkAt = newCheckAt
       }
     }
-    this.log(`用户活动时间范围为${moment.unix(startAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)} ~ ${moment.unix(endAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}, 按照该范围按月抓取`)
+    this.log(
+      `用户活动时间范围为${moment.unix(startAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)} ~ ${moment
+        .unix(endAt)
+        .format(DATE_FORMAT.DISPLAY_BY_SECOND)}, 按照该范围按月抓取`,
+    )
     for (let fetchAt = startAt; fetchAt <= endAt; ) {
       let fetchStartAt = fetchAt
       let fetchEndAt = moment
@@ -60,17 +71,23 @@ class BatchFetchAuthorActivity extends Base {
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
 
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
-    let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_ANSWER_VOTE_UP)
+    let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdList(urlToken, MActivity.VERB_ANSWER_VOTE_UP)
     let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(allAgreeAnswerIdList)
     this.log(`用户${name}(${urlToken})赞同过的所有回答抓取完毕`)
     this.log(`抓取用户${name}(${urlToken})赞同过的所有文章`)
-    let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_MEMBER_VOTEUP_ARTICLE)
+    let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdList(
+      urlToken,
+      MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
+    )
     let batchFetchArticle = new BatchFetchArticle()
     await batchFetchArticle.fetchListAndSaveToDb(allAgreeArticleIdList)
     this.log(`用户${name}(${urlToken})赞同过的所有文章抓取完毕`)
     this.log(`抓取用户${name}(${urlToken})关注过的所有问题`)
-    let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdList(id, MActivity.VERB_QUESTION_FOLLOW)
+    let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdList(
+      urlToken,
+      MActivity.VERB_QUESTION_FOLLOW,
+    )
     let batchFetchQuestion = new BatchFetchQuestion()
     await batchFetchQuestion.fetchListAndSaveToDb(allFollowQustionIdList)
     this.log(`用户${name}(${urlToken})关注过的所有问题抓取完毕`)
@@ -83,7 +100,9 @@ class BatchFetchAuthorActivity extends Base {
    * @param endAt
    */
   private async fetchActivityInRange(urlToken: string, startAt: number, endAt: number) {
-    let rangeString = `${moment.unix(startAt).format(DATE_FORMAT.DISPLAY_BY_DAY)} ~ ${moment.unix(endAt).format(DATE_FORMAT.DISPLAY_BY_DAY)}`
+    let rangeString = `${moment.unix(startAt).format(DATE_FORMAT.DISPLAY_BY_DAY)} ~ ${moment
+      .unix(endAt)
+      .format(DATE_FORMAT.DISPLAY_BY_DAY)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
     let activityCounter = 0
     for (let fetchAt = endAt; fetchAt >= startAt; ) {
@@ -96,8 +115,11 @@ class BatchFetchAuthorActivity extends Base {
       }
       for (let activityRecord of activityList) {
         activityCounter = activityCounter + 1
-        // 更新时间
-        fetchAt = activityRecord.id
+        // 更新时间(id是毫秒值)
+        fetchAt = Number.parseInt(activityRecord.id / 1000)
+        if (_.isNumber(fetchAt) === false) {
+          fetchAt = 0
+        }
         await MActivity.asyncReplaceActivity(activityRecord)
       }
     }
