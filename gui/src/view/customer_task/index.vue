@@ -264,8 +264,8 @@ export default Vue.extend({
     },
     removeTaskByIndex(index: number) {
       let oldConfigList = this.database.taskConfig.configList
-      let newConfigList = oldConfigList.splice(index, 1)
-      this.database.taskConfig.configList = newConfigList
+      oldConfigList.splice(index, 1)
+      this.database.taskConfig.configList = oldConfigList
     },
     matchTaskId(taskType: TypeTaskConfig.TaskType, content: string) {
       let parseResult = querystring.parseUrl(content)
