@@ -12,7 +12,7 @@ class BaseBatchFetch {
    * 获取单个回答,并存入数据库中
    * @param id
    */
-  async fetchAndSaveToDb(id: string) {
+  async fetch(id: string) {
     this.log(`需要子类覆盖该方法`)
   }
 
@@ -25,7 +25,7 @@ class BaseBatchFetch {
     for (let id of idList) {
       index = index + 1
       this.log(`将第${index}/${idList.length}个任务(${id})置入待抓取队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.fetchAndSaveToDb(id))
+      await CommonUtil.asyncAppendPromiseWithDebounce(this.fetch(id))
     }
     this.log(`派发所有待抓取任务`)
     await CommonUtil.asyncDispatchAllPromiseInQueen()
