@@ -8,7 +8,7 @@ class BatchFetchAnswer extends Base {
    * 获取单个回答,并存入数据库中
    * @param answerId
    */
-  async fetchAndSaveToDb(answerId: string) {
+  async fetch(answerId: string) {
     this.log(`准备抓取回答${answerId}`)
     let answer = await AnswerApi.asyncGetAnswer(answerId)
     if (_.isEmpty(answer)) {

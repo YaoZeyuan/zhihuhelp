@@ -8,7 +8,7 @@ class BatchFetchArticle extends Base {
    * 获取单个回答,并存入数据库中
    * @param id
    */
-  async fetchAndSaveToDb(id: string) {
+  async fetch(id: string) {
     this.log(`准备抓取文章${id}`)
     let article = await ArticleApi.asyncGetArticle(id)
     if (_.isEmpty(article)) {

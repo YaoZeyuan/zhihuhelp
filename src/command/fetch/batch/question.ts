@@ -10,7 +10,7 @@ class BatchFetchQuestion extends Base {
    * 获取单个问题,并存入数据库中
    * @param questionId
    */
-  async fetchAndSaveToDb(questionId: string) {
+  async fetch(questionId: string) {
     this.log(`准备抓取问题${questionId}`)
     let question = await QuestionApi.asyncGetQuestionInfo(questionId)
     if (_.isEmpty(question)) {
