@@ -17,7 +17,7 @@ class Common {
       let taskList = Common.promiseList
       Common.promiseList = []
       logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
-      await Promise.all(Common.promiseList)
+      await Promise.all(taskList)
       logger.log(`任务队列内所有任务执行完毕`)
     }
     return
@@ -33,7 +33,6 @@ class Common {
       }),
       true,
     )
-    console.log('所有任务执行完毕')
   }
 
   /**
