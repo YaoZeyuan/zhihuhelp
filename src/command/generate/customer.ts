@@ -36,9 +36,9 @@ class GenerateCustomer extends Base {
   }
 
   async execute(args: any, options: any): Promise<any> {
-    Logger.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
+    this.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
     let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
-    Logger.log('content =>', fetchConfigJSON)
+    this.log('content =>', fetchConfigJSON)
     let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
     let bookname = customerTaskConfig.bookTitle
 

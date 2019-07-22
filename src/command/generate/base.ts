@@ -102,7 +102,7 @@ class FetchBase extends Base {
       let index = 0
       for (let imgContent of imgContentList) {
         index++
-        // logger.log(`处理第${index}/${imgContentList.length}个img标签`)
+        // this.log(`处理第${index}/${imgContentList.length}个img标签`)
         let processedImgContent = ''
         let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
         let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
@@ -178,22 +178,22 @@ class FetchBase extends Base {
   private async asyncDownloadImg (index: number, src: string, cacheUri: string) {
     await CommonUtil.asyncSleep(1)
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
-    logger.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
+    this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
     let imgContent = await http.downloadImg(src).catch(e => {
-      logger.log(`[第${index}张图片]-1-2-第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
-      logger.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
+      this.log(`[第${index}张图片]-1-2-第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
+      this.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
       return ''
     })
     if (imgContent === '') {
-      logger.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
+      this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
       return
     }
-    logger.log(`[第${index}张图片]-2-第${index}/${this.imgUriPool.size}张图片下载完成, src => ${src}`)
+    this.log(`[第${index}张图片]-2-第${index}/${this.imgUriPool.size}张图片下载完成, src => ${src}`)
     // 调用writeFileSync时间长了之后可能会卡在这上边, 导致程序无响应, 因此改用promise试一下
-    logger.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
+    this.log(`[第${index}张图片]-3-准备写入文件:${cacheUri}`)
     await CommonUtil.asyncSleep(10)
     fs.writeFileSync(cacheUri, imgContent)
-    logger.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
+    this.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
   }
 
   copyImgToCache (imgCachePath: string) {

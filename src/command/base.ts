@@ -3,7 +3,7 @@ import _ from 'lodash'
 import logger from '~/src/library/logger'
 
 class Base extends Command {
-  static get signature () {
+  static get signature() {
     return `
      Parse:Base
 
@@ -13,7 +13,7 @@ class Base extends Command {
      `
   }
 
-  static get description () {
+  static get description() {
     return '解析kafka日志, Base'
   }
 
@@ -23,7 +23,7 @@ class Base extends Command {
    * @param options
    * @returns {Promise<void>}
    */
-  async handle (args: any, options: any) {
+  async handle(args: any, options: any) {
     this.log('command start')
     await this.execute(args, options).catch(e => {
       this.log('catch error')
@@ -35,7 +35,7 @@ class Base extends Command {
   /**
    * 空promise函数, 方便清空promise队列
    */
-  async emptyPromiseFunction () {
+  async emptyPromiseFunction() {
     return
   }
 
@@ -44,15 +44,13 @@ class Base extends Command {
    * @param args
    * @param options
    */
-  async execute (args: any, options: any): Promise<any> {
-
-  }
+  async execute(args: any, options: any): Promise<any> {}
 
   /**
    * 简易logger
    * @returns  null
    */
-  async log (...argumentList: string[] | any): Promise<any> {
+  async log(...argumentList: string[] | any): Promise<any> {
     let message = ''
     for (const rawMessage of argumentList) {
       if (_.isString(rawMessage) === false) {
@@ -68,7 +66,7 @@ class Base extends Command {
    * 简易logger
    * @returns  null
    */
-  async warn () {
+  async warn() {
     let message = ''
     for (const rawMessage of arguments) {
       if (_.isString(rawMessage) === false) {

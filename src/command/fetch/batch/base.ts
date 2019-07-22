@@ -24,11 +24,16 @@ class BaseBatchFetch {
     let index = 0
     for (let id of idList) {
       index = index + 1
-      this.log(`将第${index}/${idList.length}个任务(${id})置入待抓取队列中`)
+      let taskIndex = index
+      this.log(`将第${taskIndex}/${idList.length}个任务(${id})置入待抓取队列中`)
       await CommonUtil.asyncAppendPromiseWithDebounce(
-        this.fetch(id).then(() => {
-          Logger.log(`第${index}/${idList.length}个任务(${id})执行完毕`)
-        }),
+        this.fetch(id)
+          .then(() => {
+            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
+          })
+          .catch(e => {
+            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
+          }),
       )
     }
     this.log(`派发所有待抓取任务`)
