@@ -12,10 +12,13 @@ class Common {
   static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
     Common.promiseList.push(promise)
     if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
-      logger.log(`任务队列已满, 开始执行任务, 共${Common.promiseList.length}个任务待执行`)
+      // 在执行的时候, 需要清空公共的promiseList数组.
+      // 否则, 会出现: 执行公共PromiseList中第一个任务时, 第一个任务又向PromiseList中添加了一个待执行任务, 然后又从第一个任务开始执行(但因为第一个任务此时正在执行, 不可能执行一个正在执行的任务, 就会导致node崩溃, 而且不会打印错误)
+      let taskList = Common.promiseList
+      Common.promiseList = []
+      logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
       await Promise.all(Common.promiseList)
       logger.log(`任务队列内所有任务执行完毕`)
-      Common.promiseList = []
     }
     return
   }
@@ -24,7 +27,13 @@ class Common {
    * 派发所有未发出的Promise请求
    */
   static async asyncDispatchAllPromiseInQueen() {
-    await Common.asyncAppendPromiseWithDebounce(new Promise(() => {}), true)
+    await Common.asyncAppendPromiseWithDebounce(
+      new Promise(function(resolve, reject) {
+        setTimeout(resolve, 0)
+      }),
+      true,
+    )
+    console.log('所有任务执行完毕')
   }
 
   /**
@@ -54,7 +63,8 @@ class Common {
         JSON.stringify(
           {
             request: {
-              ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+              ua:
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
               cookie: '',
             },
           },
@@ -70,7 +80,8 @@ class Common {
     } catch (e) {
       config = {
         request: {
-          ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+          ua:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
           cookie: '',
         },
       }
