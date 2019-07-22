@@ -13,6 +13,7 @@ import MCollection from '~/src/model/collection'
 import MColumn from '~/src/model/column'
 import MPin from '~/src/model/pin'
 import _ from 'lodash'
+import json5 from 'json5'
 
 import AnswerView from '~/src/view/answer'
 import PinView from '~/src/view/pin'
@@ -38,7 +39,7 @@ class GenerateCustomer extends Base {
     Logger.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
     let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
     Logger.log('content =>', fetchConfigJSON)
-    let customerTaskConfig: TypeTaskConfig.Customer = JSON.parse(fetchConfigJSON)
+    let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
     let bookname = customerTaskConfig.bookTitle
 
     let imageQuilty = customerTaskConfig.imageQuilty
