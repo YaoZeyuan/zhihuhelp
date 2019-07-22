@@ -4,7 +4,7 @@ import MAuthor from '~/src/model/author'
 import Base from '~/src/command/fetch/batch/base'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 
-class BatchFetchAuthorAnswer extends Base {
+class BatchFetchAuthorQuestion extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的数据`)
     this.log(`获取用户信息`)
@@ -31,4 +31,4 @@ class BatchFetchAuthorAnswer extends Base {
   }
 }
 
-export default BatchFetchAuthorAnswer
+export default BatchFetchAuthorQuestion
