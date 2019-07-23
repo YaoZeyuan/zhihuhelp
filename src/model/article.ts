@@ -92,7 +92,8 @@ class Article extends Base {
    */
   static async asyncReplaceArticle(articleRecord: TypeArticle.Record): Promise<void> {
     let id = articleRecord.id
-    let columnId = articleRecord.column.id
+    // 文章可能不隶属于任何专栏, 也就可能没有column.id
+    let columnId = _.get(articleRecord, ['column', 'id'], 'ColumnNotExists')
     let raw_json = JSON.stringify(articleRecord)
     await this.replaceInto({
       article_id: id,
