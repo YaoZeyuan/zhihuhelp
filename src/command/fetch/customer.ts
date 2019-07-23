@@ -80,7 +80,10 @@ class FetchCustomer extends Base {
         case 'author-agree-article':
         case 'author-agree-answer':
         case 'author-watch-question':
-          taskListPackage[taskConfig.type].push(targetId)
+          if (taskListPackage[taskConfig.type].includes(targetId) === false) {
+            // 抓取用户活动记录工作量巨大, 因此在生成抓取任务时进行去重处理
+            taskListPackage[taskConfig.type].push(targetId)
+          }
           break
         default:
           this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
@@ -136,11 +139,9 @@ class FetchCustomer extends Base {
           let batchFetchPin = new BatchFetchPin()
           await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchPin.fetchListAndSaveToDb(targetIdList))
           break
-        case 'author-agree':
         case 'author-agree-article':
         case 'author-agree-answer':
         case 'author-watch-question':
-        case 'author-activity':
           let batchFetchAuthorActivity = new BatchFetchAuthorActivity()
           await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorActivity.fetchListAndSaveToDb(targetIdList))
           break
