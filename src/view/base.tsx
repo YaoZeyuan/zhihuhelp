@@ -26,7 +26,7 @@ class Base {
         // activity类
         if (_.has(record, ['target', 'question'])) {
           let answerActivityRecord: TypeActivity.AnswerVoteUpActivityRecord = record
-          id = answerActivityRecord.id
+          id = answerActivityRecord.target.question.id
           title = answerActivityRecord.target.question.title
         } else if (_.has(record, ['target', 'column'])) {
           let articleActivityRecord: TypeActivity.ArticleVoteUpActivityRecord = record
@@ -40,7 +40,7 @@ class Base {
         if (_.has(record, ['question'])) {
           // 问题
           let answerRecord: TypeAnswer.Record = record
-          id = answerRecord.id
+          id = answerRecord.question.id
           title = answerRecord.question.title
         } else if (_.has(record, ['column'])) {
           let articleRecord: TypeArticle.Record = record
@@ -55,7 +55,7 @@ class Base {
       }
 
       let indexItem = (
-        <li>
+        <li key={CommonUtil.getUuid()}>
           <a className="list-group-item" href={`./${id}.html`}>
             {title}
           </a>
