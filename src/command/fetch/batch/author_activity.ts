@@ -58,7 +58,7 @@ class BatchFetchAuthorActivity extends Base {
         .unix(endAt)
         .format(DATE_FORMAT.DISPLAY_BY_SECOND)}, 按照该范围按月抓取`,
     )
-    for (let fetchAt = startAt; fetchAt <= endAt; ) {
+    for (let fetchAt = startAt; startAt <= fetchAt && fetchAt <= endAt; ) {
       let fetchStartAt = fetchAt
       let fetchEndAt = moment
         .unix(fetchAt)
@@ -105,7 +105,7 @@ class BatchFetchAuthorActivity extends Base {
       .format(DATE_FORMAT.DISPLAY_BY_DAY)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
     let activityCounter = 0
-    for (let fetchAt = endAt; fetchAt >= startAt; ) {
+    for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt; ) {
       this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}的记录`)
       let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
       if (activityList.length === 0) {
