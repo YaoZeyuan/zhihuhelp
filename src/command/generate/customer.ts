@@ -159,6 +159,7 @@ class GenerateCustomer extends Base {
           let articleListInAuthorAgreeArticle = await MArticle.asyncGetArticleList(articleIdListInAuthorAgreeArticle)
           this.log(`用户${targetId}赞同过的所有文章获取完毕`)
           articleList = articleList.concat(articleListInAuthorAgreeArticle)
+          break
         case 'author-agree-answer':
           this.log(`获取用户${targetId}赞同过的所有回答id`)
           let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
@@ -170,6 +171,7 @@ class GenerateCustomer extends Base {
           let answerListInAuthorAgreeAnswer = await MTotalAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
           this.log(`用户${targetId}赞同过的所有回答获取完毕`)
           answerList = answerList.concat(answerListInAuthorAgreeAnswer)
+          break
         case 'author-watch-question':
           this.log(`获取用户${targetId}关注过的所有问题id`)
           let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
@@ -183,6 +185,7 @@ class GenerateCustomer extends Base {
           )
           this.log(`用户${targetId}关注过的所有问题id下的所有回答获取完毕`)
           answerList = answerList.concat(answerListInAuthorWatchQuestion)
+          break
         default:
           this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
       }
