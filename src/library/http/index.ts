@@ -22,7 +22,8 @@ class Http {
    */
   static async get(url: string, config: AxiosRequestConfig = {}) {
     const response = await http.get(url, config).catch(e => {
-      logger.log(`网络请求失败, 错误内容=> message:${e.message}, stack=>${e.stack}`)
+      logger.log(`网络请求失败, 您的账号可能因抓取频繁被知乎认为有风险, 在浏览器中访问知乎首页,输入验证码即可恢复`)
+      logger.log(`错误内容=> message:${e.message}, stack=>${e.stack}`)
       return {}
     })
     const record = _.get(response, ['data'], {})
