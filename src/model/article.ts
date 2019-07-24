@@ -62,13 +62,15 @@ class Article extends Base {
    * @param articleIdList
    */
   static async asyncGetArticleList(articleIdList: Array<string>): Promise<Array<TypeArticle.Record>> {
-    let recordList = await this.db
+    let sql = this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .whereIn('article_id', articleIdList)
-      .catch(() => {
-        return []
-      })
+      .toString()
+    // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
+    let recordList = await this.rawClient.raw(sql, []).catch(() => {
+      return []
+    })
 
     let articleRecordList = []
     for (let record of recordList) {

@@ -62,13 +62,15 @@ class Pin extends Base {
    * @param pinIdList
    */
   static async asyncGetPinList(pinIdList: Array<string>): Promise<Array<TypePin.Record>> {
-    let recordList = await this.db
+    let sql = this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .whereIn('pin_id', pinIdList)
-      .catch(() => {
-        return []
-      })
+      .toString()
+    // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
+    let recordList = await this.rawClient.raw(sql, []).catch(() => {
+      return []
+    })
     let pinRecordList = []
     for (let record of recordList) {
       let pinRecordJson = _.get(record, ['raw_json'], '{}')
