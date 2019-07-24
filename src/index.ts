@@ -150,8 +150,8 @@ ipcMain.on('startCustomerTask', async event => {
   ConfigHelperUtil.reloadConfig()
   Logger.log(`开始执行任务`)
   event.returnValue = 'success'
-  // let dispatchTaskCommand = new DispatchTaskCommand()
-  // await dispatchTaskCommand.handle({}, {})
+  let dispatchTaskCommand = new DispatchTaskCommand()
+  await dispatchTaskCommand.handle({}, {})
   Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
   // 输出打开文件夹
   shell.showItemInFolder(PathConfig.outputPath)
