@@ -3,23 +3,23 @@
     <el-container>
       <el-main>
         <el-tabs v-model="status.tab" @tab-click="handleClickTab">
-          <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
+          <!-- <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
             <Dashboard :currentTab.sync="status.tab"/>
-          </el-tab-pane>
+          </el-tab-pane>-->
           <el-tab-pane label="自定义任务" :name="constant.tab.customerTask">
-            <CustomerTask :currentTab.sync="status.tab"/>
+            <CustomerTask :currentTab.sync="status.tab" />
           </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
-            <Log/>
+            <Log />
           </el-tab-pane>
           <el-tab-pane label="登陆知乎" :name="constant.tab.login">
-            <Login/>
+            <Login />
           </el-tab-pane>
           <el-tab-pane label="使用说明" :name="constant.tab.helper">
-            <Helper/>
+            <Helper />
           </el-tab-pane>
           <el-tab-pane label="支持作者" :name="constant.tab.donate">
-            <Donate/>
+            <Donate />
           </el-tab-pane>
         </el-tabs>
       </el-main>
@@ -51,7 +51,7 @@
         return {
           constant:{
             tab:{
-              dashboard:'dashboard',
+              // dashboard:'dashboard',
               customerTask:'customerTask',
               log:'log',
               login:'login',
