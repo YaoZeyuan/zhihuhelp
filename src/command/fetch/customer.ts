@@ -1,5 +1,4 @@
 import Base from '~/src/command/fetch/base'
-import CommonUtil from '~/src/library/util/common'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
 import PathConfig from '~/src/config/path'
 import fs from 'fs'
@@ -99,57 +98,54 @@ class FetchCustomer extends Base {
       switch (taskType) {
         case 'author-ask-question':
           let batchFetchAuthorAskQuestion = new BatchFetchAuthorAskQuestion()
-          await CommonUtil.asyncAppendPromiseWithDebounce(
-            batchFetchAuthorAskQuestion.fetchListAndSaveToDb(targetIdList),
-          )
+          await batchFetchAuthorAskQuestion.fetchListAndSaveToDb(targetIdList)
           break
         case 'author-answer':
           let batchFetchAuthorAnswer = new BatchFetchAuthorAnswer()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorAnswer.fetchListAndSaveToDb(targetIdList))
+          await batchFetchAuthorAnswer.fetchListAndSaveToDb(targetIdList)
           break
         case 'author-pin':
           let batchFetchAuthorPin = new BatchFetchAuthorPin()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorPin.fetchListAndSaveToDb(targetIdList))
+          await batchFetchAuthorPin.fetchListAndSaveToDb(targetIdList)
           break
         case 'topic':
           let batchFetchTopic = new BatchFetchTopic()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchTopic.fetchListAndSaveToDb(targetIdList))
+          await batchFetchTopic.fetchListAndSaveToDb(targetIdList)
           break
         case 'collection':
           let batchFetchCollection = new BatchFetchCollection()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchCollection.fetchListAndSaveToDb(targetIdList))
+          await batchFetchCollection.fetchListAndSaveToDb(targetIdList)
           break
         case 'column':
           let batchFetchColumn = new BatchFetchColumn()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchColumn.fetchListAndSaveToDb(targetIdList))
+          await batchFetchColumn.fetchListAndSaveToDb(targetIdList)
           break
         case 'article':
           let batchFetchArticle = new BatchFetchArticle()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchArticle.fetchListAndSaveToDb(targetIdList))
+          await batchFetchArticle.fetchListAndSaveToDb(targetIdList)
           break
         case 'question':
           let batchFetchQuestion = new BatchFetchQuestion()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchQuestion.fetchListAndSaveToDb(targetIdList))
+          await batchFetchQuestion.fetchListAndSaveToDb(targetIdList)
           break
         case 'answer':
           let batchFetchAnswer = new BatchFetchAnswer()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAnswer.fetchListAndSaveToDb(targetIdList))
+          await batchFetchAnswer.fetchListAndSaveToDb(targetIdList)
           break
         case 'pin':
           let batchFetchPin = new BatchFetchPin()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchPin.fetchListAndSaveToDb(targetIdList))
+          await batchFetchPin.fetchListAndSaveToDb(targetIdList)
           break
         case 'author-agree-article':
         case 'author-agree-answer':
         case 'author-watch-question':
           let batchFetchAuthorActivity = new BatchFetchAuthorActivity()
-          await CommonUtil.asyncAppendPromiseWithDebounce(batchFetchAuthorActivity.fetchListAndSaveToDb(targetIdList))
+          await batchFetchAuthorActivity.fetchListAndSaveToDb(targetIdList)
           break
         default:
           this.log(`不支持的任务类型:${taskType}, 自动跳过`)
       }
     }
-    await CommonUtil.asyncDispatchAllPromiseInQueen()
     this.log(`自定义任务抓取完毕`)
   }
 }

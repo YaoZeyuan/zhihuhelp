@@ -8,6 +8,7 @@ class Common {
   static maxBuf = 10
   /**
    * 添加promise, 到指定容量后再执行
+   * 警告, 该函数只能用于独立任务. 如果任务中依然调用asyncAppendPromiseWithDebounce方法, 会导致任务队列异常, 运行出非预期结果(外层函数结束后内层代码仍处于未完成,进行中状态)
    */
   static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
     Common.promiseList.push(promise)
@@ -17,7 +18,14 @@ class Common {
       let taskList = Common.promiseList
       Common.promiseList = []
       logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
-      await Promise.all(taskList)
+      // 模拟allSettled方法, 需要所有任务都完成后才能继续
+      let wrappedPromises = taskList.map(p =>
+        Promise.resolve(p).then(
+          val => ({ state: 'fulfilled', value: val }),
+          err => ({ state: 'rejected', reason: err }),
+        ),
+      )
+      await Promise.all(wrappedPromises)
       logger.log(`任务队列内所有任务执行完毕`)
     }
     return
@@ -27,19 +35,15 @@ class Common {
    * 派发所有未发出的Promise请求
    */
   static async asyncDispatchAllPromiseInQueen() {
-    await Common.asyncAppendPromiseWithDebounce(
-      new Promise(function(resolve, reject) {
-        setTimeout(resolve, 0)
-      }),
-      true,
-    )
+    await Common.asyncAppendPromiseWithDebounce(true, true)
+    return true
   }
 
   /**
    * 延迟执行函数, 返回一个 Promise
    * @param {number} ms
    */
-  static asyncSleep(ms: number) {
+  static async asyncSleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
