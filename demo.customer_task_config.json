@@ -73,10 +73,13 @@
       "comment": ""
     }
   ],
-  "orderBy": "createAt",
-  "order": "desc",
+  "orderByList": [
+    {
+      "orderBy": "createAt",
+      "order": "desc"
+    }
+  ],
   "imageQuilty": "none",
-  "coverImage": "",
   "bookTitle": "测试电子书",
   "comment": "测试"
 }

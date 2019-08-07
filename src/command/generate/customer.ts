@@ -43,10 +43,8 @@ class GenerateCustomer extends Base {
     let bookname = customerTaskConfig.bookTitle
 
     let imageQuilty = customerTaskConfig.imageQuilty
-    let coverImage = customerTaskConfig.coverImage
     let comment = customerTaskConfig.comment
-    let order = customerTaskConfig.order
-    let orderBy = customerTaskConfig.orderBy
+    let orderByList = customerTaskConfig.orderByList
 
     this.log(`开始输出自定义电子书, 共有${customerTaskConfig.configList.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总

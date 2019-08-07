@@ -9,8 +9,14 @@ declare namespace TaskConfig {
     | 'author-agree-article'
     | 'author-watch-question'
   type ItemCollectionType = 'topic' | 'collection' | 'column' | 'article' | 'question' | 'answer' | 'pin'
-  type OrderBy = 'default' | 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount'
-  type ImageQuilty = 'default' | 'none' | 'raw' | 'hd'
+  type orderBy = 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount' | 'triggerAt'
+  type order = 'asc' | 'desc'
+  type orderByList = Array<{
+    orderBy: orderBy
+    order: order
+  }>
+  type imageQuilty = 'default' | 'none' | 'raw' | 'hd'
+  type maxQuestionOrArticleInBook = number // 自动分卷: 单本电子书中最大问题/文章数量
   type Record = {
     type: ItemCollectionType | AuthorCollectionType
     id: string | number
@@ -21,12 +27,11 @@ declare namespace TaskConfig {
   // 自定义抓取
   type Customer = {
     configList: Array<Record>
-    imageQuilty: ImageQuilty // 图片质量
-    coverImage: string // 封面图, 默认为王闹海
+    imageQuilty: imageQuilty // 图片质量
     bookTitle: string // 书名
     comment: string // 备注
-    orderBy: OrderBy
-    order: 'asc' | 'desc'
+    maxQuestionOrArticleInBook: maxQuestionOrArticleInBook // 自动分卷: 单本电子书中最大问题/文章数量
+    orderByList: orderByList
   }
 }
 
