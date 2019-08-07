@@ -13,41 +13,56 @@ import CommonUtil from '~/src/library/util/common'
 import logger from '~/src/library/logger'
 import StringUtil from '~/src/library/util/string'
 import Epub from '~/src/library/epub'
+import TypeTaskConfig from '~/src/type/namespace/task_config'
 
 class FetchBase extends Base {
-  epub: Epub = null
+  epub: Epub | null = null
+  imageQuilty: TypeTaskConfig.imageQuilty = 'hd'
 
   imgUriPool: Set<string> = new Set()
-  // 图片质量
-  PICTURE_QUALITY_HD = 'hd' // 对应 data-actualsrc 属性
-  PICTURE_QUALITY_RAW = 'r' // 对应 data-original 属性
 
   bookname = ''
 
-  get epubCachePath () { return path.resolve(PathConfig.epubCachePath, this.bookname) }
+  get epubCachePath() {
+    return path.resolve(PathConfig.epubCachePath, this.bookname)
+  }
 
-  get epubOutputPath () { return path.resolve(PathConfig.epubOutputPath, this.bookname) }
+  get epubOutputPath() {
+    return path.resolve(PathConfig.epubOutputPath, this.bookname)
+  }
 
-  get htmlCachePath () { return path.resolve(PathConfig.htmlCachePath, this.bookname) }
-  get htmlCacheHtmlPath () { return path.resolve(this.htmlCachePath, 'html') }
-  get htmlCacheSingleHtmlPath () { return path.resolve(this.htmlCachePath, '单文件版') }
-  get htmlCacheCssPath () { return path.resolve(this.htmlCachePath, 'css') }
-  get htmlCacheImgPath () { return path.resolve(this.htmlCachePath, 'image') }
+  get htmlCachePath() {
+    return path.resolve(PathConfig.htmlCachePath, this.bookname)
+  }
+  get htmlCacheHtmlPath() {
+    return path.resolve(this.htmlCachePath, 'html')
+  }
+  get htmlCacheSingleHtmlPath() {
+    return path.resolve(this.htmlCachePath, '单文件版')
+  }
+  get htmlCacheCssPath() {
+    return path.resolve(this.htmlCachePath, 'css')
+  }
+  get htmlCacheImgPath() {
+    return path.resolve(this.htmlCachePath, 'image')
+  }
 
-  get htmlOutputPath () { return path.resolve(PathConfig.htmlOutputPath, this.bookname) }
+  get htmlOutputPath() {
+    return path.resolve(PathConfig.htmlOutputPath, this.bookname)
+  }
 
-  static get signature () {
+  static get signature() {
     return `
         Generate:Base
         `
   }
 
-  static get description () {
+  static get description() {
     return '生成电子书'
   }
 
   // 初始化静态资源(电子书 & html目录)
-  initStaticRecource () {
+  initStaticRecource() {
     this.log(`删除旧目录`)
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     shelljs.rm('-rf', this.epubCachePath)
@@ -76,10 +91,10 @@ class FetchBase extends Base {
 
     this.epub = new Epub(this.bookname, this.epubCachePath)
   }
-  processContent (content: string) {
+  processContent(content: string) {
     let that = this
     // 删除noscript标签内的元素
-    function removeNoScript (rawHtml: string) {
+    function removeNoScript(rawHtml: string) {
       rawHtml = _.replace(rawHtml, /<\/br>/g, '')
       rawHtml = _.replace(rawHtml, /<br>/g, '<br/>')
       rawHtml = _.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
@@ -88,7 +103,7 @@ class FetchBase extends Base {
     }
 
     // 替换图片地址(假定所有图片都在img文件夹下)
-    function replaceImgSrc (rawHtml: string, isRaw = false) {
+    function replaceImgSrc(rawHtml: string, isRaw = false) {
       rawHtml = _.replace(rawHtml, /img src="data:image.+?"/g, 'img')
       // 处理图片
       const imgContentList = rawHtml.match(/<img.+?>/g)
@@ -109,17 +124,27 @@ class FetchBase extends Base {
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
         let imgRawWidth = parseInt(_.get(matchImgRawWidth, [0], '0'))
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
-        // 高度大于宽度4倍的图, 一般属于条图, 默认作为原图进行展示
-        let needDisplayRawImg = (imgRawWidth !== 0) && (imgRawHeight > (imgRawWidth * 4))
-        // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
-        let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
-        if (isDisplayAsRawImg) {
+        if (that.imageQuilty === 'raw') {
           // 原始图片
           processedImgContent = _.replace(imgContent, /data-original="https:/g, 'src="https:')
+        } else if (that.imageQuilty === 'none') {
+          // 无图
+          processedImgContent = ''
         } else {
-          // 高清图
-          processedImgContent = _.replace(imgContent, /data-actualsrc="https:/g, 'src="https:')
+          // if (that.imageQuilty === 'hd' || that.imageQuilty === 'default') {
+          // 高度大于宽度4倍的图, 一般属于条图, 默认作为原图进行展示
+          let needDisplayRawImg = imgRawWidth !== 0 && imgRawHeight > imgRawWidth * 4
+          // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
+          let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
+          if (isDisplayAsRawImg) {
+            // 原始图片
+            processedImgContent = _.replace(imgContent, /data-original="https:/g, 'src="https:')
+          } else {
+            // 高清图
+            processedImgContent = _.replace(imgContent, /data-actualsrc="https:/g, 'src="https:')
+          }
         }
+
         // 支持多看内读图
         processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
 
@@ -146,7 +171,9 @@ class FetchBase extends Base {
       return processedHtml
     }
     content = removeNoScript(content)
-    let tinyContentList = content.split(`<div data-key='single-page'`).map((value) => { return replaceImgSrc(value) })
+    let tinyContentList = content.split(`<div data-key='single-page'`).map(value => {
+      return replaceImgSrc(value)
+    })
     content = tinyContentList.join(`<div data-key='single-page'`)
     return content
   }
@@ -154,7 +181,7 @@ class FetchBase extends Base {
   /**
    * 下载图片
    */
-  async downloadImg () {
+  async downloadImg() {
     let index = 0
     for (let src of this.imgUriPool) {
       index++
@@ -175,7 +202,7 @@ class FetchBase extends Base {
     this.log(`所有图片下载完毕`)
   }
 
-  private async asyncDownloadImg (index: number, src: string, cacheUri: string) {
+  private async asyncDownloadImg(index: number, src: string, cacheUri: string) {
     await CommonUtil.asyncSleep(1)
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
@@ -196,7 +223,7 @@ class FetchBase extends Base {
     this.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
   }
 
-  copyImgToCache (imgCachePath: string) {
+  copyImgToCache(imgCachePath: string) {
     let index = 0
     for (let src of this.imgUriPool) {
       index++
@@ -219,7 +246,7 @@ class FetchBase extends Base {
     this.log(`全部图片复制完毕`)
   }
 
-  copyStaticResource () {
+  copyStaticResource() {
     // css
     for (let filename of ['bootstrap.css', 'customer.css', 'markdown.css', 'normalize.css']) {
       let copyFromUri = path.resolve(PathConfig.resourcePath, 'css', filename)
@@ -242,7 +269,7 @@ class FetchBase extends Base {
     this.epub.addCoverImage(coverCopyToUri)
   }
 
-  async asyncProcessStaticResource () {
+  async asyncProcessStaticResource() {
     this.log(`内容列表预处理完毕, 准备下载图片`)
     // 下载图片
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
@@ -262,7 +289,10 @@ class FetchBase extends Base {
 
     this.log(`将生成文件复制到目标文件夹`)
     this.log(`复制epub电子书`)
-    fs.copyFileSync(path.resolve(this.epubCachePath, this.bookname + '.epub'), path.resolve(this.epubOutputPath, this.bookname + '.epub'))
+    fs.copyFileSync(
+      path.resolve(this.epubCachePath, this.bookname + '.epub'),
+      path.resolve(this.epubOutputPath, this.bookname + '.epub'),
+    )
     this.log(`epub电子书复制完毕`)
     this.log(`复制网页`)
     shelljs.cp('-r', path.resolve(this.htmlCachePath), path.resolve(this.htmlOutputPath))
@@ -273,7 +303,7 @@ class FetchBase extends Base {
    * 根据图片地址生成图片名
    * @param src
    */
-  getImgName (src: string) {
+  getImgName(src: string) {
     // 直接将路径信息md5
     let filename = ''
     try {

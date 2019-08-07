@@ -22,7 +22,12 @@ import BaseView from '~/src/view/base'
 import fs from 'fs'
 import path from 'path'
 import StringUtil from '~/src/library/util/string'
-import Logger from '~/src/library/logger'
+
+type EpubResourcePackage = {
+  questionList: Array<Array<TypeAnswer.Record>>
+  articleList: Array<TypeArticle.Record>
+  pinList: Array<TypePin.Record>
+}
 
 class GenerateCustomer extends Base {
   static get signature() {
@@ -40,8 +45,8 @@ class GenerateCustomer extends Base {
     let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
     this.log('content =>', fetchConfigJSON)
     let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
-    let bookname = customerTaskConfig.bookTitle
 
+    let bookname = customerTaskConfig.bookTitle
     let comment = customerTaskConfig.comment
     let imageQuilty = customerTaskConfig.imageQuilty
     let maxQuestionOrArticleInBook = customerTaskConfig.maxQuestionOrArticleInBook
@@ -434,7 +439,82 @@ class GenerateCustomer extends Base {
       }
     }
 
+    // 按最大允许值切分列表
+    let epubResourceList: Array<EpubResourcePackage> = []
+    let fileCounter = 0
+
+    let splitQuestionList: Array<Array<TypeAnswer.Record>> = []
+    let splitArticleList: Array<TypeArticle.Record> = []
+    let splitPinList: Array<TypePin.Record> = []
+
+    for (let answerList of questionList) {
+      splitQuestionList.push(answerList)
+      fileCounter++
+      if (fileCounter >= maxQuestionOrArticleInBook) {
+        epubResourceList.push({
+          questionList: splitQuestionList,
+          articleList: splitArticleList,
+          pinList: splitPinList,
+        })
+        splitQuestionList = []
+        splitArticleList = []
+        splitPinList = []
+      }
+    }
+
+    for (let article of articleList) {
+      splitArticleList.push(article)
+      fileCounter++
+      if (fileCounter >= maxQuestionOrArticleInBook) {
+        epubResourceList.push({
+          questionList: splitQuestionList,
+          articleList: splitArticleList,
+          pinList: splitPinList,
+        })
+        splitQuestionList = []
+        splitArticleList = []
+        splitPinList = []
+      }
+    }
+
+    for (let pin of pinList) {
+      splitPinList.push(pin)
+      fileCounter++
+      if (fileCounter >= maxQuestionOrArticleInBook) {
+        epubResourceList.push({
+          questionList: splitQuestionList,
+          articleList: splitArticleList,
+          pinList: splitPinList,
+        })
+        splitQuestionList = []
+        splitArticleList = []
+        splitPinList = []
+      }
+    }
+
+    let bookCounter = 0
+    for (let resourcePackage of epubResourceList) {
+      bookCounter++
+      let booktitle = ''
+      if (epubResourceList.length <= 1) {
+        booktitle = bookname
+      } else {
+        booktitle = `${bookname}-第${bookCounter}卷`
+      }
+      await this.generateEpub(booktitle, imageQuilty, resourcePackage)
+    }
+  }
+
+  async generateEpub(
+    bookname: string,
+    imageQuilty: TypeTaskConfig.imageQuilty,
+    epubResourcePackage: EpubResourcePackage,
+  ) {
+    // 初始化资源
     this.bookname = StringUtil.encodeFilename(`${bookname}`)
+    this.imageQuilty = imageQuilty
+    let { questionList, articleList, pinList } = epubResourcePackage
+
     // 初始化文件夹
     this.initStaticRecource()
 
