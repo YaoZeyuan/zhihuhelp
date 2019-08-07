@@ -459,6 +459,7 @@ class GenerateCustomer extends Base {
         splitQuestionList = []
         splitArticleList = []
         splitPinList = []
+        fileCounter = 0
       }
     }
 
@@ -474,6 +475,7 @@ class GenerateCustomer extends Base {
         splitQuestionList = []
         splitArticleList = []
         splitPinList = []
+        fileCounter = 0
       }
     }
 
@@ -489,7 +491,16 @@ class GenerateCustomer extends Base {
         splitQuestionList = []
         splitArticleList = []
         splitPinList = []
+        fileCounter = 0
       }
+    }
+    // 将剩余未被收集的资源, 一起打成一个包
+    if (splitQuestionList.length || splitArticleList.length || splitPinList.length) {
+      epubResourceList.push({
+        questionList: splitQuestionList,
+        articleList: splitArticleList,
+        pinList: splitPinList,
+      })
     }
 
     let bookCounter = 0
@@ -501,7 +512,9 @@ class GenerateCustomer extends Base {
       } else {
         booktitle = `${bookname}-第${bookCounter}卷`
       }
+      this.log(`输出电子书:${booktitle}`)
       await this.generateEpub(booktitle, imageQuilty, resourcePackage)
+      this.log(`电子书:${booktitle}输出完毕`)
     }
   }
 
