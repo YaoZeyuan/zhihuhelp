@@ -42,8 +42,9 @@ class GenerateCustomer extends Base {
     let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
     let bookname = customerTaskConfig.bookTitle
 
-    let imageQuilty = customerTaskConfig.imageQuilty
     let comment = customerTaskConfig.comment
+    let imageQuilty = customerTaskConfig.imageQuilty
+    let maxQuestionOrArticleInBook = customerTaskConfig.maxQuestionOrArticleInBook
     let orderByList = customerTaskConfig.orderByList
 
     this.log(`开始输出自定义电子书, 共有${customerTaskConfig.configList.length}个任务`)
@@ -218,6 +219,220 @@ class GenerateCustomer extends Base {
     this.log(`问题 => ${questionList.length}个`)
     this.log(`文章 => ${articleList.length}篇`)
     this.log(`想法 => ${pinList.length}条`)
+    this.log(`按配置排序`)
+    // 需要倒过来排, 这样排出来的结果才和预期一致
+    let reverseOrderByList = _.cloneDeep(orderByList)
+    reverseOrderByList.reverse()
+    for (let orderByConfig of reverseOrderByList) {
+      // 需要额外对questionList中的answerList进行排序
+      let bufQuestionList = []
+      switch (orderByConfig.orderBy) {
+        case 'voteUpCount':
+          for (let answerList of questionList) {
+            answerList.sort((item1, item2) => {
+              if (orderByConfig.order === 'asc') {
+                return item1.voteup_count - item2.voteup_count
+              } else {
+                return item2.voteup_count - item1.voteup_count
+              }
+            })
+            bufQuestionList.push(answerList)
+          }
+          questionList = bufQuestionList
+
+          questionList.sort((item1, item2) => {
+            let item1VoteUpCount = 0
+            let item2VoteUpCount = 0
+            for (let answerInItem1 of item1) {
+              item1VoteUpCount += answerInItem1.voteup_count
+            }
+            for (let answerInItem2 of item2) {
+              item2VoteUpCount += answerInItem2.voteup_count
+            }
+            if (orderByConfig.order === 'asc') {
+              return item1VoteUpCount - item2VoteUpCount
+            } else {
+              return item2VoteUpCount - item1VoteUpCount
+            }
+          })
+          articleList.sort((item1, item2) => {
+            let item1VoteUpCount = item1.voteup_count
+            let item2VoteUpCount = item2.voteup_count
+            if (orderByConfig.order === 'asc') {
+              return item1VoteUpCount - item2VoteUpCount
+            } else {
+              return item2VoteUpCount - item1VoteUpCount
+            }
+          })
+          pinList.sort((item1, item2) => {
+            let item1VoteUpCount = item1.like_count
+            let item2VoteUpCount = item2.like_count
+            if (orderByConfig.order === 'asc') {
+              return item1VoteUpCount - item2VoteUpCount
+            } else {
+              return item2VoteUpCount - item1VoteUpCount
+            }
+          })
+          break
+        case 'commentCount':
+          for (let answerList of questionList) {
+            answerList.sort((item1, item2) => {
+              if (orderByConfig.order === 'asc') {
+                return item1.comment_count - item2.comment_count
+              } else {
+                return item2.comment_count - item1.comment_count
+              }
+            })
+            bufQuestionList.push(answerList)
+          }
+          questionList = bufQuestionList
+
+          questionList.sort((item1, item2) => {
+            let item1CommentCount = 0
+            let item2CommentCount = 0
+            for (let answerInItem1 of item1) {
+              item1CommentCount += answerInItem1.comment_count
+            }
+            for (let answerInItem2 of item2) {
+              item2CommentCount += answerInItem2.comment_count
+            }
+            if (orderByConfig.order === 'asc') {
+              return item1CommentCount - item2CommentCount
+            } else {
+              return item2CommentCount - item1CommentCount
+            }
+          })
+          articleList.sort((item1, item2) => {
+            let item1CommentCount = item1.comment_count
+            let item2CommentCount = item2.comment_count
+            if (orderByConfig.order === 'asc') {
+              return item1CommentCount - item2CommentCount
+            } else {
+              return item2CommentCount - item1CommentCount
+            }
+          })
+          pinList.sort((item1, item2) => {
+            let item1CommentCount = item1.comment_count
+            let item2CommentCount = item2.comment_count
+            if (orderByConfig.order === 'asc') {
+              return item1CommentCount - item2CommentCount
+            } else {
+              return item2CommentCount - item1CommentCount
+            }
+          })
+          break
+        case 'createAt':
+          for (let answerList of questionList) {
+            answerList.sort((item1, item2) => {
+              if (orderByConfig.order === 'asc') {
+                return item1.created_time - item2.created_time
+              } else {
+                return item2.created_time - item1.created_time
+              }
+            })
+            bufQuestionList.push(answerList)
+          }
+          questionList = bufQuestionList
+
+          questionList.sort((item1, item2) => {
+            let item1MinCreateAt = 99999999999999999999999
+            let item1MaxCreateAt = 0
+            let item2MinCreateAt = 99999999999999999999999
+            let item2MaxCreateAt = 0
+            for (let answerInItem1 of item1) {
+              if (answerInItem1.created_time > item1MaxCreateAt) {
+                item1MaxCreateAt = answerInItem1.created_time
+              }
+              if (answerInItem1.created_time < item1MinCreateAt) {
+                item1MinCreateAt = answerInItem1.created_time
+              }
+            }
+            for (let answerInItem2 of item2) {
+              if (answerInItem2.created_time > item2MaxCreateAt) {
+                item2MaxCreateAt = answerInItem2.created_time
+              }
+              if (answerInItem2.created_time < item2MinCreateAt) {
+                item2MinCreateAt = answerInItem2.created_time
+              }
+            }
+            if (orderByConfig.order === 'asc') {
+              return item1MinCreateAt - item2MinCreateAt
+            } else {
+              return item1MaxCreateAt - item2MaxCreateAt
+            }
+          })
+          articleList.sort((item1, item2) => {
+            if (orderByConfig.order === 'asc') {
+              return item1.created - item2.created
+            } else {
+              return item2.created - item1.created
+            }
+          })
+          pinList.sort((item1, item2) => {
+            if (orderByConfig.order === 'asc') {
+              return item1.created - item2.created
+            } else {
+              return item2.created - item1.created
+            }
+          })
+          break
+        case 'updateAt':
+          for (let answerList of questionList) {
+            answerList.sort((item1, item2) => {
+              if (orderByConfig.order === 'asc') {
+                return item1.updated_time - item2.updated_time
+              } else {
+                return item2.updated_time - item1.updated_time
+              }
+            })
+            bufQuestionList.push(answerList)
+          }
+          questionList = bufQuestionList
+
+          questionList.sort((item1, item2) => {
+            let item1MinUpdateAt = 99999999999999999999999
+            let item1MaxUpdateAt = 0
+            let item2MinUpdateAt = 99999999999999999999999
+            let item2MaxUpdateAt = 0
+            for (let answerInItem1 of item1) {
+              if (answerInItem1.updated_time > item1MaxUpdateAt) {
+                item1MaxUpdateAt = answerInItem1.updated_time
+              }
+              if (answerInItem1.updated_time < item1MinUpdateAt) {
+                item1MinUpdateAt = answerInItem1.updated_time
+              }
+            }
+            for (let answerInItem2 of item2) {
+              if (answerInItem2.updated_time > item2MaxUpdateAt) {
+                item2MaxUpdateAt = answerInItem2.updated_time
+              }
+              if (answerInItem2.updated_time < item2MinUpdateAt) {
+                item2MinUpdateAt = answerInItem2.updated_time
+              }
+            }
+            if (orderByConfig.order === 'asc') {
+              return item1MinUpdateAt - item2MinUpdateAt
+            } else {
+              return item1MaxUpdateAt - item2MaxUpdateAt
+            }
+          })
+          articleList.sort((item1, item2) => {
+            if (orderByConfig.order === 'asc') {
+              return item1.updated - item2.updated
+            } else {
+              return item2.updated - item1.updated
+            }
+          })
+          pinList.sort((item1, item2) => {
+            if (orderByConfig.order === 'asc') {
+              return item1.updated - item2.updated
+            } else {
+              return item2.updated - item1.updated
+            }
+          })
+          break
+      }
+    }
 
     this.bookname = StringUtil.encodeFilename(`${bookname}`)
     // 初始化文件夹

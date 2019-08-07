@@ -9,7 +9,7 @@ declare namespace TaskConfig {
     | 'author-agree-article'
     | 'author-watch-question'
   type ItemCollectionType = 'topic' | 'collection' | 'column' | 'article' | 'question' | 'answer' | 'pin'
-  type orderBy = 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount' | 'triggerAt'
+  type orderBy = 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount'
   type order = 'asc' | 'desc'
   type orderByList = Array<{
     orderBy: orderBy
