@@ -523,10 +523,11 @@ class GenerateCustomer extends Base {
     imageQuilty: TypeTaskConfig.imageQuilty,
     epubResourcePackage: EpubResourcePackage,
   ) {
-    // 初始化资源
+    // 初始化资源, 重置所有静态类变量
     this.bookname = StringUtil.encodeFilename(`${bookname}`)
     this.imageQuilty = imageQuilty
     let { questionList, articleList, pinList } = epubResourcePackage
+    this.imgUriPool = new Set()
 
     // 初始化文件夹
     this.initStaticRecource()
