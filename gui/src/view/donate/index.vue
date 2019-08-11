@@ -3,9 +3,9 @@
     <div class="row">
       <el-card class="box-card">
         <div class="support-img">
-          <img alt="感谢支持" src="http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg">
+          <img alt="感谢支持" src="http://ww1.sinaimg.cn/large/6671cfa8ly1g5w85ry0ogj20ri16s41b.jpg" />
         </div>
-        <br>
+        <br />
       </el-card>
     </div>
     <div class="row">
