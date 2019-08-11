@@ -62,17 +62,20 @@ div.front-page.description {
     margin: 2em 0;
 }
 
-/* 评论信息 */
-div.extra-info p {
+div.comment{
+    margin: 1em 0;
+}
+div.comment .info-flex-line{
+    display: block;
+}
+/** 多看上暂不支持flex容器, 因此只能使用float **/
+div.comment .info-flex-line .float-left{
+    /* display: inline-block; */
+    /* width: 50%; */
     float: left;
 }
-
-div.extra-info p.update-date {
+div.comment .info-flex-line .float-right{
     float: right;
-}
-
-div.extra-info {
-    margin: 1em 0;
 }
 
 /* 用户信息 */

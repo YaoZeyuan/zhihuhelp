@@ -12,6 +12,36 @@ import _ from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
 import Logger from '~/src/library/logger'
 
+class CommentCompontent extends React.Component<
+  {
+    agreeCount: number
+    commentCount: number
+    createAt: number
+    updateAt: number
+  },
+  {}
+> {
+  render() {
+    return (
+      <div className="comment">
+        <div className="info-flex-line">
+          <span className="float-left">赞同:{this.props.agreeCount}</span>
+          <span className="float-right">
+            创建时间:{moment.unix(this.props.createAt).format(DATE_FORMAT.DATABASE_BY_DAY)}
+          </span>
+        </div>
+        <div className="clear-float" />
+        <div className="info-flex-line">
+          <span className="float-left">评论:{this.props.commentCount}</span>
+          <span className="float-right">
+            最后更新:{moment.unix(this.props.updateAt).format(DATE_FORMAT.DATABASE_BY_DAY)}
+          </span>
+        </div>
+      </div>
+    )
+  }
+}
+
 class Base {
   static renderIndex(
     bookname: string,
@@ -113,17 +143,12 @@ class Base {
             <div dangerouslySetInnerHTML={{ __html: answerRecord.content }} />
           </div>
 
-          <div className="comment">
-            <div className="extra-info">
-              <p className="comment">赞同:{answerRecord.voteup_count}</p>
-              <p className="update-date">
-                创建时间:{moment.unix(answerRecord.created_time).format(DATE_FORMAT.DATABASE_BY_DAY)}
-              </p>
-              <p className="update-date">
-                最后更新于:{moment.unix(answerRecord.updated_time).format(DATE_FORMAT.DATABASE_BY_DAY)}
-              </p>
-            </div>
-          </div>
+          <CommentCompontent
+            agreeCount={answerRecord.voteup_count}
+            commentCount={answerRecord.comment_count}
+            createAt={answerRecord.created_time}
+            updateAt={answerRecord.updated_time}
+          />
         </div>
 
         <hr />
@@ -200,14 +225,12 @@ class Base {
             <div dangerouslySetInnerHTML={{ __html: articleRecord.content }} />
           </div>
 
-          <div className="comment">
-            <div className="extra-info">
-              <p className="comment">赞同:{articleRecord.voteup_count}</p>
-              <p className="update-date">
-                发布于{moment.unix(articleRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}
-              </p>
-            </div>
-          </div>
+          <CommentCompontent
+            agreeCount={articleRecord.voteup_count}
+            commentCount={articleRecord.comment_count}
+            createAt={articleRecord.created}
+            updateAt={articleRecord.updated}
+          />
         </div>
 
         <hr />
@@ -270,12 +293,12 @@ class Base {
             <div dangerouslySetInnerHTML={{ __html: pinRecord.content_html }} />
           </div>
 
-          <div className="comment">
-            <div className="extra-info">
-              <p className="comment">赞同:{pinRecord.like_count}</p>
-              <p className="update-date">发布于{moment.unix(pinRecord.updated).format(DATE_FORMAT.DATABASE_BY_DAY)}</p>
-            </div>
-          </div>
+          <CommentCompontent
+            agreeCount={pinRecord.like_count}
+            commentCount={pinRecord.comment_count}
+            createAt={pinRecord.created}
+            updateAt={pinRecord.updated}
+          />
         </div>
 
         <hr />
