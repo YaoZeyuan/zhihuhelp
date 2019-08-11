@@ -180,6 +180,12 @@ div.title-image img {
   width: 100%;
 }
 
+/* 想法 */
+div.answer div.content div.pin div.origin-pin {
+  margin-top: 1em;
+  background-color: #faebcc;
+}
+
 /* 禁止信息页中的详情表格分页 */
 div.front-page.detail-info table.margin-center {
   page-break-inside: avoid;
