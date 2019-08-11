@@ -7,21 +7,21 @@
           <el-card class="box-card">
             <div>
               <p>请输入待抓取的任务地址, 一行一个, 识别失败的行会自动跳过</p>
-              <hr>
+              <hr />
               <p>示例:</p>
-              <hr>
+              <hr />
               <p>https://www.zhihu.com/people/yyln2016/activities/</p>
               <p>=> 抓取用户yyln2016的知乎故事(赞同过的所有回答和文章)(注: 只有当url以/activities/结尾时才视为抓取用户知乎故事)</p>
-              <hr>
+              <hr />
               <p>https://www.zhihu.com/people/yyln2016</p>
               <p>=> 抓取用户yyln2016创建的所有回答</p>
-              <hr>
+              <hr />
               <p>https://www.zhihu.com/collection/133027089</p>
               <p>=> 抓取收藏夹133027089内的所有知乎回答(注:这里只会抓取收藏夹内的文章, 由于知乎接口未返回收藏夹内的文章数据, 所以抓不到相应文章)</p>
-              <hr>
+              <hr />
               <p>https://www.zhihu.com/topic/20024374</p>
               <p>=> 抓取话题20024374下的所有精华回答</p>
-              <hr>
+              <hr />
               <p>https://zhuanlan.zhihu.com/yyln2016</p>
               <p>=> 抓取专栏yyln2016下的所有文章</p>
             </div>
@@ -87,7 +87,7 @@
       <pre>
         {{JSON.stringify(database.item, null , 4)}}
       </pre>
-      <br>
+      <br />
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
     </div>
     <h1>解析结果</h1>
@@ -202,8 +202,8 @@ export default Vue.extend({
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_收藏夹:
-          // https://www.zhihu.com/topic/19550517/hot
-          rawId = _.get(rawContent.split('/topic/'), [1], '')
+          // https://www.zhihu.com/collection/63119009
+          rawId = _.get(rawContent.split('/collection/'), [1], '')
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_专栏:
