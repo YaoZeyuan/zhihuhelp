@@ -43,6 +43,22 @@ class CommentCompontent extends React.Component<
 }
 
 class Base {
+  static getPinTitle(record: TypePin.Record) {
+    let title = ''
+    // 想法
+    // 根据是否存在repin字段, 可以分为转发/非转发两种类型
+    if (_.isEmpty(record.repin)) {
+      let pinRecord: TypePin.DefaultRecord = record
+      title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.DISPLAY_BY_DAY)}:${pinRecord.excerpt_title}`
+    } else {
+      let repinRecord: TypePin.RepinRecord = record
+      title = `${moment.unix(repinRecord.created).format(DATE_FORMAT.DISPLAY_BY_DAY)}:${repinRecord.excerpt_title}:${
+        repinRecord.repin.excerpt_title
+      }`
+    }
+    return title
+  }
+
   static renderIndex(
     bookname: string,
     recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record>,
@@ -78,9 +94,8 @@ class Base {
           title = articleRecord.title
         } else {
           // 想法
-          let pinRecord: TypePin.Record = record
-          id = pinRecord.id
-          title = pinRecord.excerpt_title
+          id = record.id
+          title = Base.getPinTitle(record)
         }
       }
 
@@ -263,12 +278,39 @@ class Base {
 
   /**
    * 生成单条想法的Element
-   * @param pinRecord
+   * @param rawPinRecord
    */
-  static generateSinglePinElement(pinRecord: TypePin.Record) {
-    if (_.isEmpty(pinRecord)) {
+  static generateSinglePinElement(rawPinRecord: TypePin.Record) {
+    if (_.isEmpty(rawPinRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
+    // 想法
+    let title = Base.getPinTitle(rawPinRecord)
+    let contentHtmlElement = <div />
+    if (_.isEmpty(rawPinRecord.repin)) {
+      let defaultPinRecord: TypePin.DefaultRecord = rawPinRecord
+      contentHtmlElement = (
+        <div className="pin">
+          <div className="commment">
+            <div dangerouslySetInnerHTML={{ __html: defaultPinRecord.content_html }} />
+          </div>
+          <div className="origin-pin" />
+        </div>
+      )
+    } else {
+      let repinRecord: TypePin.RepinRecord = rawPinRecord
+      contentHtmlElement = (
+        <div className="pin repin">
+          <div className="commment">
+            <div dangerouslySetInnerHTML={{ __html: repinRecord.content_html }} />
+          </div>
+          <div className="origin-pin">
+            <div dangerouslySetInnerHTML={{ __html: repinRecord.repin.content_html }} />
+          </div>
+        </div>
+      )
+    }
+
     const content = (
       <div key={CommonUtil.getUuid()}>
         <div className="answer">
@@ -276,13 +318,15 @@ class Base {
             <div className="author-info">
               <div className="author-base">
                 <div className="author-logo">
-                  <img src={pinRecord.author.avatar_url} width="25" height="25" />
+                  <img src={rawPinRecord.author.avatar_url} width="25" height="25" />
                 </div>
 
                 <span className="author-name">
-                  <a href={`http://www.zhihu.com/people/${pinRecord.author.id}`}>{pinRecord.author.name}</a>
+                  <a href={`http://www.zhihu.com/people/${rawPinRecord.author.id}`}>{rawPinRecord.author.name}</a>
                 </span>
-                <span className="author-sign">{pinRecord.author.headline ? '　' + pinRecord.author.headline : ''}</span>
+                <span className="author-sign">
+                  {rawPinRecord.author.headline ? '　' + rawPinRecord.author.headline : ''}
+                </span>
               </div>
 
               <div className="clear-float" />
@@ -290,14 +334,14 @@ class Base {
           </div>
 
           <div className="content">
-            <div dangerouslySetInnerHTML={{ __html: pinRecord.content_html }} />
+            <div>{contentHtmlElement}</div>
           </div>
 
           <CommentCompontent
-            agreeCount={pinRecord.like_count}
-            commentCount={pinRecord.comment_count}
-            createAt={pinRecord.created}
-            updateAt={pinRecord.updated}
+            agreeCount={rawPinRecord.like_count}
+            commentCount={rawPinRecord.comment_count}
+            createAt={rawPinRecord.created}
+            updateAt={rawPinRecord.updated}
           />
         </div>
 
@@ -313,7 +357,7 @@ class Base {
           </div>
           <div className="question bg-zhihu-blue-light">
             <div className="question-title">
-              <h1 className="bg-zhihu-blue-deep">{pinRecord.excerpt_title}</h1>
+              <h1 className="bg-zhihu-blue-deep">{title}</h1>
             </div>
             <div className="clear-float" />
           </div>

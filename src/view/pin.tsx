@@ -1,11 +1,14 @@
 import TypePin from '~/src/type/namespace/pin'
 import Base from '~/src/view/base'
+import _ from 'lodash'
+import moment from 'moment'
+import DATE_FORMAT from '~/src/constant/date_format'
 
 class Pin extends Base {
-  static render(pinRecord: TypePin.Record) {
+  static render(record: TypePin.Record) {
     // 都是同一个
-    let title = pinRecord.excerpt_title
-    let pinElement = this.generateSinglePinElement(pinRecord)
+    let title = Base.getPinTitle(record)
+    let pinElement = this.generateSinglePinElement(record)
     let pageElement = this.generatePageElement(title, [pinElement])
     return this.renderToString(pageElement)
   }
