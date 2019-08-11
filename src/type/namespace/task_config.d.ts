@@ -1,6 +1,4 @@
 declare namespace TaskConfig {
-  type authorQuestion = 'author-question'
-
   type AuthorCollectionType =
     | 'author-ask-question'
     | 'author-answer'
