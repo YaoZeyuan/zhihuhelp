@@ -118,7 +118,7 @@ class FetchBase extends Base {
       for (let imgContent of imgContentList) {
         index++
         // this.log(`处理第${index}/${imgContentList.length}个img标签`)
-        let processedImgContent = ''
+        let processedImgContent = imgContent
         let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
         let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
@@ -126,7 +126,13 @@ class FetchBase extends Base {
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
         if (that.imageQuilty === 'raw') {
           // 原始图片
-          processedImgContent = _.replace(imgContent, /data-original="https:/g, 'src="https:')
+          if (imgContent.includes('data-original')) {
+            // 没有指定属性就不需要再处理了
+            // 先替换掉原先的src地址
+            processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
+            // 再改成原图地址
+            processedImgContent = _.replace(processedImgContent, /data-original="https:/g, 'src="https:')
+          }
         } else if (that.imageQuilty === 'none') {
           // 无图
           processedImgContent = ''
@@ -138,15 +144,31 @@ class FetchBase extends Base {
           let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
           if (isDisplayAsRawImg) {
             // 原始图片
-            processedImgContent = _.replace(imgContent, /data-original="https:/g, 'src="https:')
+            if (imgContent.includes('data-original')) {
+              // 先替换掉原先的src地址
+              processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
+              // 再改成原图地址
+              processedImgContent = _.replace(processedImgContent, /data-original="https:/g, 'src="https:')
+            }
           } else {
             // 高清图
-            processedImgContent = _.replace(imgContent, /data-actualsrc="https:/g, 'src="https:')
+            if (imgContent.includes('data-actualsrc')) {
+              // 先替换掉原先的src地址
+              processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
+              // 再改成标清图地址
+              processedImgContent = _.replace(processedImgContent, /data-actualsrc="https:/g, 'src="https:')
+            }
           }
         }
 
         // 支持多看内读图
         processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
+
+        if (that.imageQuilty === 'none') {
+          // 没有图片, 也就不需要处理了, 直接跳过即可
+          processedImgContentList.push(processedImgContent)
+          continue
+        }
 
         // 将图片地址提取到图片池中
         // 将html内图片地址替换为html内的地址
