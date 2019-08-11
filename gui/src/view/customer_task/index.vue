@@ -377,8 +377,8 @@ export default Vue.extend({
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_收藏夹:
-          // https://www.zhihu.com/topic/19550517/hot
-          rawId = _.get(rawContent.split('/topic/'), [1], '')
+          // https://www.zhihu.com/collection/20077047
+          rawId = _.get(rawContent.split('/collection/'), [1], '')
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_专栏:
