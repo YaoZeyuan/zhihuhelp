@@ -23,7 +23,8 @@
 <style scoped>
 webview {
   display: inline-flex;
-  width: 50vw;
+  width: 80vw;
+  margin: 0 auto;
   height: 80vh;
 }
 </style>

@@ -126,7 +126,7 @@
       </el-form>
     </el-card>
     <div></div>
-    <h1>任务配置内容</h1>
+    <h1>配置文件内容:</h1>
     <pre>
         {{JSON.stringify(database, null , 4)}}
       </pre>
