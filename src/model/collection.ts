@@ -75,15 +75,9 @@ class Collection extends Base {
       })
     let answerIdList = []
     for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_answer_json'], '{}')
-      let answerRecord: TypeCollection.AnswerExcerpt
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {}
-      }
-      if (_.isEmpty(answerRecord) === false) {
-        answerIdList.push(answerRecord.id)
+      let answerId = record.answer_id
+      if (answerId) {
+        answerIdList.push(answerId)
       }
     }
 
@@ -108,7 +102,10 @@ class Collection extends Base {
    * 存储收藏夹答案概览数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnAnswerExcerpt(collectionId: number, answerExcerptRecord: TypeCollection.AnswerExcerpt): Promise<void> {
+  static async asyncReplaceColumnAnswerExcerpt(
+    collectionId: number,
+    answerExcerptRecord: TypeCollection.AnswerExcerpt,
+  ): Promise<void> {
     let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)
     let answerId = answerExcerptRecord.id
     // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
