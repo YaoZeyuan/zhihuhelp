@@ -60,26 +60,65 @@
             <el-button @click="addTask()">添加</el-button>
           </template>
         </el-form-item>
-        <el-form-item label="排序依据">
-          <el-radio-group v-model="database.taskConfig.orderBy">
-            <el-radio :label="constant.OrderBy.创建时间">创建时间</el-radio>
-            <el-radio :label="constant.OrderBy.更新时间">更新时间</el-radio>
-            <el-radio :label="constant.OrderBy.赞同数">赞同数</el-radio>
-            <el-radio :label="constant.OrderBy.评论数">评论数</el-radio>
-          </el-radio-group>
+        <el-form-item label="排序规则">
+          <template v-if="database.taskConfig.orderByList.length">
+            <el-table :data="database.taskConfig.orderByList" stripe border style="width: 100%">
+              <el-table-column label="排序指标(从上至下)" width="220">
+                <template slot-scope="scope">
+                  <el-select v-model="scope.row.orderBy" placeholder="请选择">
+                    <el-option
+                      v-for="itemKey in Object.keys(constant.OrderBy)"
+                      :key="constant.OrderBy[itemKey]"
+                      :label="itemKey"
+                      :value="constant.OrderBy[itemKey]"
+                    ></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column label="规则">
+                <template slot-scope="scope">
+                  <el-radio-group v-model="scope.row.order">
+                    <el-radio
+                      :label="'asc'"
+                    >{{(scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间) ? '从旧到新' : '从低到高'}}</el-radio>
+                    <el-radio
+                      :label="'desc'"
+                    >{{(scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间) ? '从新到旧' : '从高到低'}}</el-radio>
+                  </el-radio-group>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="130">
+                <template slot-scope="scope">
+                  <el-button size="mini" @click="addOrder(scope.$index)" icon="el-icon-plus"></el-button>
+                  <el-button
+                    size="mini"
+                    type="danger"
+                    @click="removeOrderByIndex(scope.$index, scope.row)"
+                    icon="el-icon-minus"
+                  ></el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+          <template v-else>
+            <el-button @click="addTask()">添加</el-button>
+          </template>
         </el-form-item>
-        <el-form-item label="排序顺序">
-          <el-radio-group v-model="database.taskConfig.order">
-            <el-radio :label="constant.Order.从低到高_从旧到新">赞同评论数从低到高/日期从旧到新</el-radio>
-            <el-radio :label="constant.Order.从高到低_从新到旧">赞同评论数从高到低/日期从新到旧</el-radio>
-          </el-radio-group>
-        </el-form-item>
+
         <el-form-item label="图片质量">
           <el-radio-group v-model="database.taskConfig.imageQuilty">
             <el-radio :label="constant.ImageQuilty.高清">高清</el-radio>
             <el-radio :label="constant.ImageQuilty.无图">无图</el-radio>
             <el-radio :label="constant.ImageQuilty.原图">原图</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="自动分卷">
+          <el-input-number
+            placeholder="每卷内最多包含n个问题/文章/想法"
+            v-model="database.taskConfig.maxQuestionOrArticleInBook"
+            :min="1"
+            :step="100"
+          ></el-input-number>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="database.taskConfig.comment"></el-input>
@@ -129,15 +168,27 @@ const TaskType = {
   回答: 'answer',
   想法: 'pin',
 }
-const OrderBy = {
+const OrderBy: {
+  创建时间: 'createAt'
+  更新时间: 'updateAt'
+  赞同数: 'voteUpCount'
+  评论数: 'commentCount'
+} = {
   创建时间: 'createAt',
   更新时间: 'updateAt',
   赞同数: 'voteUpCount',
   评论数: 'commentCount',
 }
-const Order = {
-  从低到高_从旧到新: 'asc',
-  从高到低_从新到旧: 'desc',
+const Order: {
+  从低到高: 'asc'
+  从旧到新: 'asc'
+  从高到低: 'desc'
+  从新到旧: 'desc'
+} = {
+  从低到高: 'asc',
+  从旧到新: 'asc',
+  从高到低: 'desc',
+  从新到旧: 'desc',
 }
 const ImageQuilty = {
   无图: 'none',
@@ -182,10 +233,14 @@ export default Vue.extend({
     let configList: Array<TypeTaskConfig.ConfigItem> = []
     let taskConfig: TypeTaskConfig.Record = {
       configList: [],
-      orderBy: TaskConfigType.CONST_Order_By_创建时间,
-      order: TaskConfigType.CONST_Order_Desc,
       imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
-      coverImage: '',
+      maxQuestionOrArticleInBook: 1000,
+      orderByList: [
+        {
+          orderBy: TaskConfigType.CONST_Order_By_创建时间,
+          order: TaskConfigType.CONST_Order_Desc,
+        },
+      ],
       bookTitle: '',
       comment: '',
     }
@@ -210,11 +265,15 @@ export default Vue.extend({
     let jsonContent = util.getFileContent(pathConfig.customerTaskConfigUri)
     let taskConfig: TypeTaskConfig.Record = {
       configList: [],
-      orderBy: TaskConfigType.CONST_Order_By_创建时间,
-      order: TaskConfigType.CONST_Order_Desc,
       imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
-      coverImage: '',
       bookTitle: '',
+      maxQuestionOrArticleInBook: 1000,
+      orderByList: [
+        {
+          orderBy: TaskConfigType.CONST_Order_By_创建时间,
+          order: TaskConfigType.CONST_Order_Desc,
+        },
+      ],
       comment: '',
     }
     try {
@@ -248,6 +307,18 @@ export default Vue.extend({
       ipcRenderer.sendSync('startCustomerTask')
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
+    },
+    addOrder(index: number) {
+      let newOrder: TypeTaskConfig.OrderConfig = {
+        orderBy: OrderBy.创建时间,
+        order: Order.从旧到新,
+      }
+      this.database.taskConfig.orderByList.splice(index + 1, 0, newOrder)
+    },
+    removeOrderByIndex(index: number) {
+      let oldConfigList = this.database.taskConfig.orderByList
+      oldConfigList.splice(index, 1)
+      this.database.taskConfig.orderByList = oldConfigList
     },
     addTask(index: number) {
       let newTask: TypeTaskConfig.ConfigItem = {

@@ -19,11 +19,25 @@ export namespace TypeTaskConfig {
   export type Image_Quilty_高清 = 'raw'
   export type Image_Quilty_原图 = 'hd'
   export type Image_Quilty_无图 = 'none'
-  export type AuthorCollectionType = Task_Type_用户提问过的所有问题 | Task_Type_用户的所有回答 | Task_Type_用户发布的所有想法 | Task_Type_用户赞同过的所有回答 | Task_Type_用户赞同过的所有文章 | Task_Type_用户关注过的所有问题
-  export type ItemCollectionType = Task_Type_话题 | Task_Type_收藏夹 | Task_Type_专栏 | Task_Type_文章 | Task_Type_问题 | Task_Type_回答 | Task_Type_想法
+  export type AuthorCollectionType =
+    | Task_Type_用户提问过的所有问题
+    | Task_Type_用户的所有回答
+    | Task_Type_用户发布的所有想法
+    | Task_Type_用户赞同过的所有回答
+    | Task_Type_用户赞同过的所有文章
+    | Task_Type_用户关注过的所有问题
+  export type ItemCollectionType =
+    | Task_Type_话题
+    | Task_Type_收藏夹
+    | Task_Type_专栏
+    | Task_Type_文章
+    | Task_Type_问题
+    | Task_Type_回答
+    | Task_Type_想法
   export type OrderBy = Order_By_创建时间 | Order_By_更新时间 | Order_By_赞同数 | Order_By_评论数
   export type ImageQuilty = Image_Quilty_高清 | Image_Quilty_原图 | Image_Quilty_无图
   export type TaskType = AuthorCollectionType | ItemCollectionType
+  export type maxQuestionOrArticleInBook = number // 自动分卷: 单本电子书中最大问题/文章数量
 
   export type ConfigItem = {
     type: ItemCollectionType | AuthorCollectionType
@@ -31,13 +45,20 @@ export namespace TypeTaskConfig {
     rawInputText: string
     comment: string // 备注
   }
+
+  export type Order = 'asc' | 'desc'
+  export type OrderConfig = {
+    orderBy: OrderBy
+    order: Order
+  }
+  export type orderByList = Array<OrderConfig>
+
   export type Record = {
     configList: Array<ConfigItem>
-    orderBy: OrderBy
-    order: 'asc' | 'desc'
     bookTitle: string
     imageQuilty: ImageQuilty // 图片质量
-    coverImage: string // 封面图, 默认为王闹海
+    maxQuestionOrArticleInBook: maxQuestionOrArticleInBook // 自动分卷: 单本电子书中最大问题/文章数量
+    orderByList: orderByList
     comment: string // 备注
   }
 
