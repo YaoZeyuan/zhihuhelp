@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-import Electron from 'electron'
+import Electron,{Menu} from 'electron'
 import CommonUtil from '~/src/library/util/common'
 import ConfigHelperUtil from '~/src/library/util/config_helper'
 import PathConfig from '~/src/config/path'
@@ -16,6 +16,27 @@ let mainWindow: Electron.BrowserWindow
 let isRunning = false
 
 function createWindow() {
+  if (process.platform === 'darwin') {
+    const template = [
+      {
+        label: "Application",
+        submenu: [
+          { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+        ]
+      }, 
+      {
+        label: "Edit",
+        submenu: [
+          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+        ]
+      }
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+  } else {
+    Menu.setApplicationMenu(null)
+  }
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1366,
