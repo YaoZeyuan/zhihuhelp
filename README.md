@@ -332,4 +332,4 @@
 
 ![感谢支持](http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg)
 
-[致谢列表](https://www.easy-mock.com/mock/5c680a151b1cdb683581355c/zhihuhelp/thank_you/list)
+[致谢列表](https://api.bookflaneur.cn/zhihuhelp/thank_you/list)

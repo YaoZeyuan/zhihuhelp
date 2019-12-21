@@ -41,7 +41,7 @@
     },
     methods:{
       async asyncGetDonateList(){
-        this.database.thankYouList = await http.asyncGet("https://www.easy-mock.com/mock/5c680a151b1cdb683581355c/zhihuhelp/thank_you/list")
+        this.database.thankYouList = await http.asyncGet("https://api.bookflaneur.cn/zhihuhelp/thank_you/list")
       }
     }
   }
