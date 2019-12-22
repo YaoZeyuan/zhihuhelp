@@ -1,11 +1,12 @@
 <template>
   <div>
-    <el-row type="flex" align="middle" justify="center">
-      <el-col :span="20">
+    <el-row type="flex" align="middle" justify="end">
+      <el-col :span="18">
         <h1>自定义任务</h1>
       </el-col>
-      <el-col :span="4">
-        <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
+      <el-col :span="6">
+        <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
+        <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
       </el-col>
     </el-row>
     <el-card>
@@ -35,7 +36,7 @@
               </el-table-column>
               <el-table-column label="任务id">
                 <template slot-scope="scope">
-                  <span>{{scope.row.id ? scope.row.id : '未解析到任务id' }}</span>
+                  <span>{{ scope.row.id ? scope.row.id : '未解析到任务id' }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="备注">
@@ -78,12 +79,16 @@
               <el-table-column label="规则">
                 <template slot-scope="scope">
                   <el-radio-group v-model="scope.row.order">
-                    <el-radio
-                      :label="'asc'"
-                    >{{(scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间) ? '从旧到新' : '从低到高'}}</el-radio>
-                    <el-radio
-                      :label="'desc'"
-                    >{{(scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间) ? '从新到旧' : '从高到低'}}</el-radio>
+                    <el-radio :label="'asc'">{{
+                      scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间
+                        ? '从旧到新'
+                        : '从低到高'
+                    }}</el-radio>
+                    <el-radio :label="'desc'">{{
+                      scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间
+                        ? '从新到旧'
+                        : '从高到低'
+                    }}</el-radio>
                   </el-radio-group>
                 </template>
               </el-table-column>
@@ -128,8 +133,9 @@
     <div></div>
     <h1>配置文件内容:</h1>
     <pre>
-        {{JSON.stringify(database, null , 4)}}
-      </pre>
+        {{ JSON.stringify(database, null, 4) }}
+      </pre
+    >
     <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfig)"></div>
   </div>
 </template>
@@ -308,6 +314,9 @@ export default Vue.extend({
       // 将面板切换到log上
       this.$emit('update:currentTab', 'log')
     },
+    openOutputDir() {
+      ipcRenderer.sendSync('openOutputDir')
+    },
     addOrder(index: number) {
       let newOrder: TypeTaskConfig.OrderConfig = {
         orderBy: OrderBy.创建时间,
@@ -425,5 +434,4 @@ export default Vue.extend({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
