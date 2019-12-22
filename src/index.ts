@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-import Electron,{Menu} from 'electron'
+import Electron, { Menu } from 'electron'
 import CommonUtil from '~/src/library/util/common'
 import ConfigHelperUtil from '~/src/library/util/config_helper'
 import PathConfig from '~/src/config/path'
@@ -8,6 +8,8 @@ import DispatchTaskCommand from '~/src/command/dispatch_task'
 import fs from 'fs'
 import _ from 'lodash'
 
+let argv = process.argv
+let isDebug = argv.includes('--debug')
 let { app, BrowserWindow, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -19,32 +21,40 @@ function createWindow() {
   if (process.platform === 'darwin') {
     const template = [
       {
-        label: "Application",
+        label: 'Application',
         submenu: [
-          { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
-        ]
-      }, 
+          {
+            label: 'Quit',
+            accelerator: 'Command+Q',
+            click: function() {
+              app.quit()
+            },
+          },
+        ],
+      },
       {
-        label: "Edit",
+        label: 'Edit',
         submenu: [
-          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-        ]
-      }
-    ];
+          { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
+          { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
+        ],
+      },
+    ]
     Menu.setApplicationMenu(Menu.buildFromTemplate(template))
   } else {
     Menu.setApplicationMenu(null)
   }
 
+  const { screen } = Electron
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1366,
-    height: 768,
+    width,
+    height,
     // 自动隐藏菜单栏
     autoHideMenuBar: true,
     // 窗口的默认标题
-    title: '知乎助手',
+    title: '稳部落',
     // 在屏幕中间展示窗口
     center: true,
     // 展示原生窗口栏
@@ -57,15 +67,23 @@ function createWindow() {
       webSecurity: false,
       // 允许 https 页面运行 http url 里的资源
       allowRunningInsecureContent: true,
+      // 启用node支持
+      nodeIntegration: true,
+      // 启用webview标签
+      webviewTag: true,
     },
   })
 
   // and load the index.html of the app.
-  // 线上地址
-  mainWindow.loadFile('./gui/dist/index.html')
-  // 本地调试 & 打开控制台
-  // mainWindow.loadURL('http://127.0.0.1:8080')
-  // mainWindow.webContents.openDevTools()
+  // and load the index.html of the app.
+  if (isDebug) {
+    // 本地调试 & 打开控制台
+    mainWindow.loadURL('http://127.0.0.1:8080')
+    mainWindow.webContents.openDevTools()
+  } else {
+    // 线上地址
+    mainWindow.loadFile('./gui/dist/index.html')
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
