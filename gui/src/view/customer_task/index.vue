@@ -249,7 +249,7 @@ export default Vue.extend({
           order: TaskConfigType.CONST_Order_Desc,
         },
       ],
-      bookTitle: '',
+      bookTitle: '自定义知乎回答集锦',
       comment: '',
     }
     return {
@@ -274,7 +274,7 @@ export default Vue.extend({
     let taskConfig: TypeTaskConfig.Record = {
       configList: [],
       imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
-      bookTitle: '',
+      bookTitle: '自定义知乎回答集锦',
       maxQuestionOrArticleInBook: 1000,
       orderByList: [
         {
