@@ -11,6 +11,7 @@ export namespace TypeTaskConfig {
   export type Task_Type_文章 = 'article'
   export type Task_Type_问题 = 'question'
   export type Task_Type_回答 = 'answer'
+  export type Task_Type_封号用户 = 'block_account'
   export type Task_Type_想法 = 'pin'
   export type Order_By_创建时间 = 'createAt'
   export type Order_By_更新时间 = 'updateAt'
@@ -34,6 +35,7 @@ export namespace TypeTaskConfig {
     | Task_Type_问题
     | Task_Type_回答
     | Task_Type_想法
+    | Task_Type_封号用户
   export type OrderBy = Order_By_创建时间 | Order_By_更新时间 | Order_By_赞同数 | Order_By_评论数
   export type ImageQuilty = Image_Quilty_高清 | Image_Quilty_原图 | Image_Quilty_无图
   export type TaskType = AuthorCollectionType | ItemCollectionType
@@ -69,6 +71,7 @@ export namespace TypeTaskConfig {
   export const CONST_Task_Type_用户赞同过的所有回答 = 'author-agree-answer'
   export const CONST_Task_Type_用户赞同过的所有文章 = 'author-agree-article'
   export const CONST_Task_Type_用户关注过的所有问题 = 'author-watch-question'
+  export const CONST_Task_Type_封号用户的所有回答 = 'block-account-answer'
   export const CONST_Task_Type_话题 = 'topic'
   export const CONST_Task_Type_收藏夹 = 'collection'
   export const CONST_Task_Type_专栏 = 'column'

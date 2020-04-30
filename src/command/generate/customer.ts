@@ -64,9 +64,7 @@ class GenerateCustomer extends Base {
     for (let taskConfig of customerTaskConfig.configList) {
       taskIndex = taskIndex + 1
       this.log(
-        `处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${
-          taskConfig.comment
-        }`,
+        `处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`,
       )
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
@@ -81,6 +79,7 @@ class GenerateCustomer extends Base {
           answerList = answerList.concat(answerListInAuthorAskQuestion)
           break
         case 'author-answer':
+        case 'block-account-answer':
           this.log(`获取用户${targetId}所有回答过的答案`)
           let answerListInAuthorHasAnswer = await MTotalAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}所有回答过的答案获取完毕`)

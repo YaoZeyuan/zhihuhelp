@@ -6,6 +6,7 @@ declare namespace TaskConfig {
     | 'author-agree-answer'
     | 'author-agree-article'
     | 'author-watch-question'
+    | 'block-account-answer'
   type ItemCollectionType = 'topic' | 'collection' | 'column' | 'article' | 'question' | 'answer' | 'pin'
   type orderBy = 'createAt' | 'updateAt' | 'voteUpCount' | 'commentCount'
   type order = 'asc' | 'desc'
