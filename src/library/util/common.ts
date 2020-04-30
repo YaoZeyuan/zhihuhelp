@@ -2,6 +2,7 @@ import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
 import TypeConfig from '~/src/type/namespace/config'
+import CommonUtil from '~/src/library/util/common'
 class Common {
   static promiseList: Array<Promise<any>> = []
   // 并发数限制到10即可
@@ -26,6 +27,8 @@ class Common {
         ),
       )
       await Promise.all(wrappedPromises)
+      // 每完成一组抓取, 休眠1s
+      await CommonUtil.asyncSleep(1000)
       logger.log(`任务队列内所有任务执行完毕`)
     }
     return
