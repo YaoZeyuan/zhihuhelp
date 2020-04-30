@@ -21,6 +21,7 @@ declare namespace TaskConfig {
     id: string | number
     rawInputText: string
     comment: string // 备注
+    skipFetch: boolean
   }
 
   // 自定义抓取

@@ -44,6 +44,11 @@
                   <el-input v-model="scope.row.comment" placeholder="备注信息"></el-input>
                 </template>
               </el-table-column>
+              <el-table-column label="跳过抓取">
+                <template slot-scope="scope">
+                  <el-checkbox v-model="scope.row.skipFetch"></el-checkbox>
+                </template>
+              </el-table-column>
               <el-table-column label="操作" width="130">
                 <template slot-scope="scope">
                   <el-button size="mini" @click="addTask(scope.$index)" icon="el-icon-plus"></el-button>
@@ -118,12 +123,14 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="自动分卷">
+          每
           <el-input-number
             placeholder="每卷内最多包含n个问题/文章/想法"
             v-model="database.taskConfig.maxQuestionOrArticleInBook"
             :min="1"
             :step="100"
-          ></el-input-number>
+          ></el-input-number
+          >个问题/文章/想法为一本电子书
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="database.taskConfig.comment"></el-input>
@@ -251,6 +258,7 @@ export default Vue.extend({
       ],
       bookTitle: '自定义知乎回答集锦',
       comment: '',
+      skipFetch: false,
     }
     return {
       // 页面数据
@@ -283,6 +291,7 @@ export default Vue.extend({
         },
       ],
       comment: '',
+      skipFetch: false,
     }
     try {
       taskConfig = JSON.parse(jsonContent)
@@ -341,6 +350,7 @@ export default Vue.extend({
         id: '',
         rawInputText: '',
         comment: '',
+        skipFetch: false,
       }
       this.database.taskConfig.configList.splice(index + 1, 0, newTask)
     },
@@ -414,6 +424,7 @@ export default Vue.extend({
       let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
       this.status.isLogin = _.has(record, ['id'])
       if (this.status.isLogin === false) {
+        // @ts-ignore
         this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
         this.$emit('update:currentTab', 'login')
       }

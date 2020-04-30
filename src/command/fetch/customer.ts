@@ -41,6 +41,9 @@ class FetchCustomer extends Base {
     let taskListPackage: TypeTaskPackage = {}
     this.log(`合并抓取任务`)
     for (let taskConfig of customerTaskConfig.configList) {
+      if (taskConfig.skipFetch) {
+        continue
+      }
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
       if (taskConfig.type in taskListPackage === false) {

@@ -11,13 +11,19 @@
               <p>示例:</p>
               <hr />
               <p>https://www.zhihu.com/people/yyln2016/activities/</p>
-              <p>=> 抓取用户yyln2016的知乎故事(赞同过的所有回答和文章)(注: 只有当url以/activities/结尾时才视为抓取用户知乎故事)</p>
+              <p>
+                => 抓取用户yyln2016的知乎故事(赞同过的所有回答和文章)(注:
+                只有当url以/activities/结尾时才视为抓取用户知乎故事)
+              </p>
               <hr />
               <p>https://www.zhihu.com/people/yyln2016</p>
               <p>=> 抓取用户yyln2016创建的所有回答</p>
               <hr />
               <p>https://www.zhihu.com/collection/133027089</p>
-              <p>=> 抓取收藏夹133027089内的所有知乎回答(注:这里只会抓取收藏夹内的文章, 由于知乎接口未返回收藏夹内的文章数据, 所以抓不到相应文章)</p>
+              <p>
+                => 抓取收藏夹133027089内的所有知乎回答(注:这里只会抓取收藏夹内的文章,
+                由于知乎接口未返回收藏夹内的文章数据, 所以抓不到相应文章)
+              </p>
               <hr />
               <p>https://www.zhihu.com/topic/20024374</p>
               <p>=> 抓取话题20024374下的所有精华回答</p>
@@ -45,7 +51,7 @@
         <el-form-item label="任务id列表">
           <el-input
             type="textarea"
-            :autosize="{minRows: 4}"
+            :autosize="{ minRows: 4 }"
             placeholder="请输入内容"
             v-model="database.item.idListContent"
           ></el-input>
@@ -59,12 +65,7 @@
             </el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button
-                  size="mini"
-                  type="danger"
-                  icon="el-icon-delete"
-                  @click="removeTaskId(scope.row)"
-                ></el-button>
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeTaskId(scope.row)"></el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -85,7 +86,7 @@
     </el-card>
     <div>
       <pre>
-        {{JSON.stringify(database.item, null , 4)}}
+        {{ JSON.stringify(database.item, null, 4) }}
       </pre>
       <br />
       <el-button type="primary" round @click="asyncHandleStartTask">开始执行</el-button>
@@ -105,6 +106,7 @@ import Vue from 'vue'
 import _ from 'lodash'
 import querystring from 'query-string'
 import util from '~/gui/src/library/util'
+//@ts-ignore
 import TaskConfigType from './task_type'
 
 const Translate_Task_Type = {
@@ -254,5 +256,4 @@ export default Vue.extend({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
