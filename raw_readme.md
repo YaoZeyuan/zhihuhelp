@@ -329,6 +329,6 @@
 
 #   支持作者
 
-![感谢支持](http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg)
+<!-- ![感谢支持](http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg) -->
 
 [致谢列表](https://api.bookflaneur.cn/zhihuhelp/thank_you/list)
