@@ -43,7 +43,7 @@ class Author extends Base {
     let templateInfo = {
       id: '3d198a56310c02c4a83efb9f4a4c027e',
       url_token: 'zhihuadmin',
-      name: '知乎小管家',
+      name: '已注销账号',
       use_default_avatar: false,
       avatar_url: 'https://pic4.zhimg.com/v2-85b5868ae1ee114c5818d29201aef708_l.jpg',
       avatar_url_template: 'https://pic1.zhimg.com/v2-85b5868ae1ee114c5818d29201aef708.jpg',
@@ -51,9 +51,9 @@ class Author extends Base {
       type: 'people',
       url: 'https://api.zhihu.com/people/3d198a56310c02c4a83efb9f4a4c027e',
       user_type: 'people',
-      headline: '超厉害！知乎百事通，氛围守护者和专业背锅侠',
+      headline: '账号已注销',
       is_active: true,
-      description: '欢迎投喂简历，各种人才都行。',
+      description: '',
       gender: 1,
       is_advertiser: false,
       vip_info: {
