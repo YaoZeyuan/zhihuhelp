@@ -11,7 +11,7 @@ class Common {
    * 添加promise, 到指定容量后再执行
    * 警告, 该函数只能用于独立任务. 如果任务中依然调用asyncAppendPromiseWithDebounce方法, 会导致任务队列异常, 运行出非预期结果(外层函数结束后内层代码仍处于未完成,进行中状态)
    */
-  static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false) {
+  static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false, protectZhihuServer = true) {
     Common.promiseList.push(promise)
     if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
       // 在执行的时候, 需要清空公共的promiseList数组.
@@ -27,9 +27,11 @@ class Common {
         ),
       )
       await Promise.all(wrappedPromises)
-      // 每完成一组抓取, 休眠1s
-      logger.log(`队列已满, 休眠1s, 保护知乎服务器`)
-      await CommonUtil.asyncSleep(1000)
+      if (protectZhihuServer) {
+        // 每完成一组抓取, 休眠1s
+        logger.log(`队列已满, 休眠1s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(1000)
+      }
       logger.log(`任务队列内所有任务执行完毕`)
     }
     return

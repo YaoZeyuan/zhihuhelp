@@ -217,7 +217,7 @@ class FetchBase extends Base {
 
       // 分批下载
       this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncDownloadImg(index, src, cacheUri))
+      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncDownloadImg(index, src, cacheUri), false, false)
     }
     this.log(`清空任务队列`)
     await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
