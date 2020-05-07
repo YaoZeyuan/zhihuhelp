@@ -1,12 +1,13 @@
 <template>
   <div>
     <el-row type="flex" align="middle" justify="end">
-      <el-col :span="18">
+      <el-col :span="16">
         <h1>自定义任务</h1>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="8">
         <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
         <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
+        <el-button type="primary" @click="asyncCheckUpdate" round>检查更新</el-button>
       </el-col>
     </el-row>
     <el-card>
@@ -84,16 +85,20 @@
               <el-table-column label="规则">
                 <template slot-scope="scope">
                   <el-radio-group v-model="scope.row.order">
-                    <el-radio :label="'asc'">{{
+                    <el-radio :label="'asc'">
+                      {{
                       scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间
-                        ? '从旧到新'
-                        : '从低到高'
-                    }}</el-radio>
-                    <el-radio :label="'desc'">{{
+                      ? '从旧到新'
+                      : '从低到高'
+                      }}
+                    </el-radio>
+                    <el-radio :label="'desc'">
+                      {{
                       scope.row.orderBy === constant.OrderBy.创建时间 || scope.row.orderBy === constant.OrderBy.更新时间
-                        ? '从新到旧'
-                        : '从高到低'
-                    }}</el-radio>
+                      ? '从新到旧'
+                      : '从高到低'
+                      }}
+                    </el-radio>
                   </el-radio-group>
                 </template>
               </el-table-column>
@@ -129,20 +134,39 @@
             v-model="database.taskConfig.maxQuestionOrArticleInBook"
             :min="1"
             :step="100"
-          ></el-input-number
-          >个问题/文章/想法为一本电子书
+          ></el-input-number>个问题/文章/想法为一本电子书
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="database.taskConfig.comment"></el-input>
         </el-form-item>
       </el-form>
     </el-card>
+    <el-dialog
+      title="发现新版本"
+      :visible.sync="status.showUpgradeInfo"
+      width="80%"
+      :before-close="handleCloseDialog"
+    >
+      <p>发现新版本{{status.remoteVersionConfig.version}},请到</p>
+      <p>{{status.remoteVersionConfig.downloadUrl}}</p>
+      <p>下载最新版</p>
+      <br />
+      <p>更新日期:</p>
+      <p>{{status.remoteVersionConfig.releaseAt}}</p>
+      <br />
+      <p>更新说明:</p>
+      <p>{{status.remoteVersionConfig.releaseNote}}</p>
+      <span></span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="jumpToUpgrade">下载更新</el-button>
+        <el-button @click="handleCloseDialog">取消</el-button>
+      </span>
+    </el-dialog>
     <div></div>
     <h1>配置文件内容:</h1>
     <pre>
         {{ JSON.stringify(database, null, 4) }}
-      </pre
-    >
+      </pre>
     <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfig)"></div>
   </div>
 </template>
@@ -156,7 +180,10 @@ import http from '~/gui/src/library/http'
 import util from '~/gui/src/library/util'
 import querystring from 'query-string'
 import { TypeTaskConfig } from './task_type'
+import packageConfig from '~/gui/../package.json'
 import { Task } from 'electron'
+
+let currentVersion = parseFloat(packageConfig.version)
 
 let TaskConfigType = TypeTaskConfig
 
@@ -242,6 +269,13 @@ export default Vue.extend({
     // 页面状态
     status: {
       isLogin: boolean
+      showUpgradeInfo: boolean
+      remoteVersionConfig: {
+        version: number
+        downloadUrl: string
+        releaseAt: string
+        releaseNote: string
+      }
     }
     constant: {}
   } {
@@ -268,6 +302,13 @@ export default Vue.extend({
       // 页面状态
       status: {
         isLogin: false,
+        showUpgradeInfo: false,
+        remoteVersionConfig: {
+          version: 1.0,
+          downloadUrl: '',
+          releaseAt: '',
+          releaseNote: '',
+        },
       },
       constant: {
         TaskType,
@@ -429,6 +470,24 @@ export default Vue.extend({
         this.$emit('update:currentTab', 'login')
       }
       console.log('checkIsLogin: record =>', record)
+    },
+    async asyncCheckUpdate() {
+      let checkUpgradeUri = 'http://api.bookflaneur.cn/zhihuhelp/version'
+      this.status.remoteVersionConfig = await http
+        .asyncGet(checkUpgradeUri, {
+          params: {
+            now: new Date().toISOString,
+          },
+        })
+        .catch(e => {
+          return {}
+        })
+      // 已经通过Electron拿到了最新cookie并写入了配置文件中, 因此不需要再填写配置文件了
+      if (this.status.remoteVersionConfig.version > currentVersion) {
+        this.status.showUpgradeInfo = true
+      } else {
+        this.$alert(`当前已是最新版 => ${this.status.remoteVersionConfig.version}`)
+      }
     },
   },
   computed: {
