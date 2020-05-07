@@ -22,11 +22,12 @@ class BatchFetchAuthorActivity extends Base {
     const name = authorInfo.name
     this.log(`开始抓取用户行为列表`)
     let startAt = MActivity.ZHIHU_ACTIVITY_START_MONTH_AT
-    this.log(`检查用户${name}(${urlToken})最近一次活跃时间`)
+    this.log(`检查用户${name}(${urlToken})最后一次活跃时间`)
     let endAt = await ActivityApi.asyncGetAutherLastActivityAt(urlToken)
     this.log(`用户${name}(${urlToken})最后一次活跃于${moment.unix(endAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}`)
 
     this.log(`检查用户${name}(${urlToken})首次活跃时间`)
+    let loopCounter = 0
     for (let checkAt = startAt; checkAt <= endAt; ) {
       let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(urlToken, checkAt)
       if (hasActivityAfterAt) {
@@ -52,6 +53,11 @@ class BatchFetchAuthorActivity extends Base {
           .unix()
         checkAt = newCheckAt
       }
+      loopCounter = loopCounter + 1
+      if (loopCounter % 10 === 0) {
+        this.log(`第${loopCounter}次抓取数据, 休眠1s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(1000)
+      }
     }
     this.log(
       `用户活动时间范围为${moment.unix(startAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)} ~ ${moment
@@ -65,9 +71,8 @@ class BatchFetchAuthorActivity extends Base {
         .endOf(DATE_FORMAT.UNIT.MONTH)
         .unix()
       fetchAt = fetchEndAt + 1
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt))
+      await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
     }
-    await CommonUtil.asyncDispatchAllPromiseInQueen()
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
 
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
@@ -105,6 +110,7 @@ class BatchFetchAuthorActivity extends Base {
       .format(DATE_FORMAT.DISPLAY_BY_DAY)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
     let activityCounter = 0
+    let loopCounter = 0
     for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt; ) {
       this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}的记录`)
       let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
@@ -121,6 +127,11 @@ class BatchFetchAuthorActivity extends Base {
           fetchAt = 0
         }
         await MActivity.asyncReplaceActivity(activityRecord)
+      }
+      loopCounter = loopCounter + 1
+      if (loopCounter % 10 == 0) {
+        this.log(`本轮第${loopCounter}次抓取执行完毕, 休眠1s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(1000)
       }
     }
     this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕, 共${activityCounter}条`)

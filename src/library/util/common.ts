@@ -28,6 +28,7 @@ class Common {
       )
       await Promise.all(wrappedPromises)
       // 每完成一组抓取, 休眠1s
+      logger.log(`队列已满, 休眠1s, 保护知乎服务器`)
       await CommonUtil.asyncSleep(1000)
       logger.log(`任务队列内所有任务执行完毕`)
     }
