@@ -3,6 +3,7 @@ import Electron, { Menu } from 'electron'
 import CommonUtil from '~/src/library/util/common'
 import ConfigHelperUtil from '~/src/library/util/config_helper'
 import PathConfig from '~/src/config/path'
+import InitConfig from '~/src/config/init_config'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
 import fs from 'fs'
@@ -146,7 +147,7 @@ ipcMain.on('start', async (event, taskConfigList) => {
     })
   })
   // 将cookie更新到本地配置中
-  let config = CommonUtil.getConfig()
+  let config = InitConfig.getConfig()
   _.set(config, ['request', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`任务配置生成完毕`)
@@ -186,7 +187,7 @@ ipcMain.on('startCustomerTask', async event => {
     })
   })
   // 将cookie更新到本地配置中
-  let config = CommonUtil.getConfig()
+  let config = InitConfig.getConfig()
   _.set(config, ['request', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`任务配置生成完毕`)
