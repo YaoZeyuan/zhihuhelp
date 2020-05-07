@@ -4,6 +4,7 @@ import MAuthor from '~/src/model/author'
 import BatchFetchPin from '~/src/command/fetch/batch/pin'
 import Base from '~/src/command/fetch/batch/base'
 import CommonUtil from '~/src/library/util/common'
+import RequestConfig from '~/src/config/request'
 
 class BatchFetchAuthorPin extends Base {
   async fetch(urlToken: string) {
@@ -28,9 +29,9 @@ class BatchFetchAuthorPin extends Base {
       }
       this.log(`第${offset}~${offset + this.max}条用户想法记录获取完毕`)
       loopCounter = loopCounter + 1
-      if (loopCounter % 10 === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠1s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(1 * 1000)
+      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
+        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
     this.log(`开始抓取用户${name}(${urlToken})的所有想法详情记录,共${pinIdList.length}条`)

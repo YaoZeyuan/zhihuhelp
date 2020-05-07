@@ -3,6 +3,8 @@ import fs from 'fs'
 import PathConfig from '~/src/config/path'
 import TypeConfig from '~/src/type/namespace/config'
 import CommonUtil from '~/src/library/util/common'
+import RequestConfig from '~/src/config/request'
+
 class Common {
   static promiseList: Array<Promise<any>> = []
   // 并发数限制到10即可
@@ -29,8 +31,8 @@ class Common {
       await Promise.all(wrappedPromises)
       if (protectZhihuServer) {
         // 每完成一组抓取, 休眠1s
-        logger.log(`队列已满, 休眠1s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(1000)
+        logger.log(`队列已满, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
       logger.log(`任务队列内所有任务执行完毕`)
     }

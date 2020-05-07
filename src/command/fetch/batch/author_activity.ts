@@ -10,6 +10,7 @@ import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 import BatchFetchColumn from '~/src/command/fetch/batch/column'
 import BatchFetchArticle from './article'
+import RequestConfig from '~/src/config/request'
 import _ from 'lodash'
 
 class BatchFetchAuthorActivity extends Base {
@@ -54,9 +55,9 @@ class BatchFetchAuthorActivity extends Base {
         checkAt = newCheckAt
       }
       loopCounter = loopCounter + 1
-      if (loopCounter % 10 === 0) {
-        this.log(`第${loopCounter}次抓取数据, 休眠1s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(1000)
+      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
+        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
     this.log(
@@ -129,9 +130,9 @@ class BatchFetchAuthorActivity extends Base {
         await MActivity.asyncReplaceActivity(activityRecord)
       }
       loopCounter = loopCounter + 1
-      if (loopCounter % 10 == 0) {
-        this.log(`本轮第${loopCounter}次抓取执行完毕, 休眠1s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(1000)
+      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
+        this.log(`本轮第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
     this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕, 共${activityCounter}条`)

@@ -4,6 +4,7 @@ import MAuthor from '~/src/model/author'
 import Base from '~/src/command/fetch/batch/base'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
 import CommonUtil from '~/src/library/util/common'
+import RequestConfig from '~/src/config/request'
 
 class BatchFetchAuthorQuestion extends Base {
   async fetch(urlToken: string) {
@@ -26,9 +27,9 @@ class BatchFetchAuthorQuestion extends Base {
       }
       this.log(`第${offset}~${offset + this.max}条用户提问记录获取完毕`)
       loopCounter = loopCounter + 1
-      if (loopCounter % 10 === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠1s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(1 * 1000)
+      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
+        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
     let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(urlToken)
