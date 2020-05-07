@@ -2,7 +2,6 @@ import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
 import TypeConfig from '~/src/type/namespace/config'
-import CommonUtil from '~/src/library/util/common'
 import RequestConfig from '~/src/config/request'
 
 class Common {
@@ -32,7 +31,7 @@ class Common {
       if (protectZhihuServer) {
         // 每完成一组抓取, 休眠1s
         logger.log(`队列已满, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
+        await Common.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
       logger.log(`任务队列内所有任务执行完毕`)
     }

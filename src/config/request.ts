@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import CommonUtil from '~/src/library/util/common'
+import InitConfig from '~/src/config/init_config'
 
-// 优先使用远程发放的配置
-let config = CommonUtil.getConfig()
+// 优先使用本地配置
+let config = InitConfig.getConfig()
 
 class Request {
   /**
