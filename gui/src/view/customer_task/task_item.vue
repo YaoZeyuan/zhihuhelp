@@ -65,7 +65,12 @@
             </el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeTaskId(scope.row)"></el-button>
+                <el-button
+                  size="mini"
+                  type="danger"
+                  icon="el-icon-delete"
+                  @click="removeTaskId(scope.row)"
+                ></el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -112,6 +117,7 @@ import TaskConfigType from './task_type'
 const Translate_Task_Type = {
   [TaskConfigType.CONST_Task_Type_用户提问过的所有问题]: '用户提问过的所有问题',
   [TaskConfigType.CONST_Task_Type_用户的所有回答]: '用户的所有回答',
+  [TaskConfigType.CONST_Task_Type_用户的所有文章]: '用户的所有文章',
   [TaskConfigType.CONST_Task_Type_问题]: '问题',
   [TaskConfigType.CONST_Task_Type_回答]: '回答',
   [TaskConfigType.CONST_Task_Type_想法]: '想法',
@@ -173,6 +179,7 @@ export default Vue.extend({
       switch (taskType) {
         case TaskConfigType.CONST_Task_Type_用户提问过的所有问题:
         case TaskConfigType.CONST_Task_Type_用户的所有回答:
+        case TaskConfigType.CONST_Task_Type_用户的所有文章:
         case TaskConfigType.CONST_Task_Type_用户发布的所有想法:
         case TaskConfigType.CONST_Task_Type_用户赞同过的所有回答:
         case TaskConfigType.CONST_Task_Type_用户赞同过的所有文章:

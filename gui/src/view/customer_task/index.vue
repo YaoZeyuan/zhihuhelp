@@ -196,6 +196,7 @@ let pathConfig = remote.getGlobal('pathConfig')
 const TaskType = {
   用户提问过的所有问题: 'author-ask-question',
   用户的所有回答: 'author-answer',
+  用户的所有文章: 'author-article',
   用户发布的所有想法: 'author-pin',
   用户赞同过的所有回答: 'author-agree-answer',
   用户赞同过的所有文章: 'author-agree-article',
@@ -240,6 +241,7 @@ const ImageQuilty = {
 const Translate_Task_Type = {
   [TaskConfigType.CONST_Task_Type_用户提问过的所有问题]: '用户提问过的所有问题',
   [TaskConfigType.CONST_Task_Type_用户的所有回答]: '用户的所有回答',
+  [TaskConfigType.CONST_Task_Type_用户的所有文章]: '用户的所有文章',
   [TaskConfigType.CONST_Task_Type_问题]: '问题',
   [TaskConfigType.CONST_Task_Type_回答]: '回答',
   [TaskConfigType.CONST_Task_Type_封号用户的所有回答]: '封号用户的所有回答(功能不可用)',
@@ -408,6 +410,7 @@ export default Vue.extend({
       switch (taskType) {
         case TaskConfigType.CONST_Task_Type_用户提问过的所有问题:
         case TaskConfigType.CONST_Task_Type_用户的所有回答:
+        case TaskConfigType.CONST_Task_Type_用户的所有文章:
         case TaskConfigType.CONST_Task_Type_封号用户的所有回答:
         case TaskConfigType.CONST_Task_Type_用户发布的所有想法:
         case TaskConfigType.CONST_Task_Type_用户赞同过的所有回答:
