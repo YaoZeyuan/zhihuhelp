@@ -93,7 +93,7 @@ class GenerateCustomer extends Base {
           break
         case 'author-article':
           this.log(`获取用户${targetId}发表过的所有文章`)
-          let articleListByAuthor = await MArticle.asyncGetArticleListByColumnId(targetId)
+          let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}发表过的所有文章获取完毕`)
           articleList = articleList.concat(articleListByAuthor)
         case 'topic':
