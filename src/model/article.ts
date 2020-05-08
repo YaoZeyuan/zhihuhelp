@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
-  static TABLE_COLUMN = [`article_id`, `column_id`, `raw_json`]
+  static TABLE_COLUMN = [`article_id`, `author_url_token`, `column_id`, `raw_json`]
 
   /**
    * 从数据库中获取文章详情
@@ -26,6 +26,35 @@ class Article extends Base {
       article = {}
     }
     return article
+  }
+
+  /**
+   * 从数据库中根据专栏id获取文章列表
+   * @param columnId
+   */
+  static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypeArticle.Record>> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('author_url_token', '=', authorUrlToken)
+      .catch(() => {
+        return []
+      })
+
+    let articleRecordList = []
+    for (let record of recordList) {
+      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecord
+      try {
+        articleRecord = JSON.parse(articleRecordJson)
+      } catch {
+        articleRecord = {}
+      }
+      if (_.isEmpty(articleRecord) === false) {
+        articleRecordList.push(articleRecord)
+      }
+    }
+    return articleRecordList
   }
 
   /**
@@ -96,9 +125,11 @@ class Article extends Base {
     let id = articleRecord.id
     // 文章可能不隶属于任何专栏, 也就可能没有column.id
     let columnId = _.get(articleRecord, ['column', 'id'], 'ColumnNotExists')
+    let authorUrlToken = _.get(articleRecord, ['author', 'url_token'], 'AuthorNotExists')
     let raw_json = JSON.stringify(articleRecord)
     await this.replaceInto({
       article_id: id,
+      author_url_token: authorUrlToken,
       column_id: columnId,
       raw_json,
     })

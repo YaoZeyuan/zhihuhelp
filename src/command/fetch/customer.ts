@@ -6,6 +6,7 @@ import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import BatchFetchArticle from '~/src/command/fetch/batch/article'
 import BatchFetchAuthorActivity from '~/src/command/fetch/batch/author_activity'
 import BatchFetchAuthorAnswer from '~/src/command/fetch/batch/author_answer'
+import BatchFetchAuthorArticle from '~/src/command/fetch/batch/author_article'
 import BlockAccountAnswer from '~/src/command/fetch/batch/block_account_answer'
 import BatchFetchAuthorAskQuestion from '~/src/command/fetch/batch/author_ask_question'
 import BatchFetchAuthorPin from '~/src/command/fetch/batch/author_pin'
@@ -54,6 +55,9 @@ class FetchCustomer extends Base {
           taskListPackage[taskConfig.type].push(targetId)
           break
         case 'author-answer':
+          taskListPackage[taskConfig.type].push(targetId)
+          break
+        case 'author-article':
           taskListPackage[taskConfig.type].push(targetId)
           break
         case 'block-account-answer':
@@ -110,6 +114,10 @@ class FetchCustomer extends Base {
         case 'author-answer':
           let batchFetchAuthorAnswer = new BatchFetchAuthorAnswer()
           await batchFetchAuthorAnswer.fetchListAndSaveToDb(targetIdList)
+          break
+        case 'author-article':
+          let batchFetchAuthorArticle = new BatchFetchAuthorArticle()
+          await batchFetchAuthorArticle.fetchListAndSaveToDb(targetIdList)
           break
         case 'block-account-answer':
           let blockAccountAnswer = new BlockAccountAnswer()

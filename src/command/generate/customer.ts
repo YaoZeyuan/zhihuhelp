@@ -91,6 +91,11 @@ class GenerateCustomer extends Base {
           this.log(`用户${targetId}所有发表过的想法获取完毕`)
           pinList = pinList.concat(pinListByAuthorPost)
           break
+        case 'author-article':
+          this.log(`获取用户${targetId}发表过的所有文章`)
+          let articleListByAuthor = await MArticle.asyncGetArticleListByColumnId(targetId)
+          this.log(`用户${targetId}发表过的所有文章获取完毕`)
+          articleList = articleList.concat(articleListByAuthor)
         case 'topic':
           this.log(`获取话题${targetId}下所有精华回答id`)
           let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)

@@ -11,6 +11,7 @@ CREATE TABLE  IF NOT EXISTS `Answer` (
 
 CREATE TABLE  IF NOT EXISTS `Article` (
   `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
+  `author_url_token` varchar(100) NOT NULL  , ---- COMMENT '答主url_token',
   `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
   `raw_json` json, --- COMMENT '原始响应json'
   --- 专栏文章表
