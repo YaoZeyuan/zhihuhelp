@@ -13,7 +13,7 @@ export default class Base extends Component {
     showThankList: false,
     config: {
       downloadUrl: 'https://github.com/YaoZeyuan/zhihuhelp#%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD',
-      releaseAt: '2019年10月22日',
+      releaseAt: '2019年02月16日',
       releaseNote: '知乎助手1.0.0, 闪亮发布.',
       version: 1.1,
       detail: {
@@ -24,7 +24,7 @@ export default class Base extends Component {
         mac: { version: 1.1, url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
       },
     },
-    thankList: [{ reason: '*明明捐助了25元', time: '2019-10-14 21:34' }],
+    thankList: [{ reason: '*明明打赏10元', time: '2019-02-16 21:34' }],
   }
 
   async componentDidMount() {
@@ -106,6 +106,7 @@ export default class Base extends Component {
                 dataSource={thankList}
                 pagination={{
                   pageSize: 10,
+                  showSizeChanger: false,
                 }}
                 renderItem={(item) => (
                   <List.Item>
