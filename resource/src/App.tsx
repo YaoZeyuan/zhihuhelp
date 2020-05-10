@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import logo from './stablog_logo_256x256.png'
+import logo from './zhihuhelp_logo_512x512.png'
 import svg_logo_window from './static/windows.svg'
 import svg_logo_mac from './static/mac.svg'
 import { CSSTransition } from 'react-transition-group'
