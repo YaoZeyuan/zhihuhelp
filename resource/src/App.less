@@ -161,6 +161,17 @@ body {
         margin-bottom: 20 * @hd;
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        .ant-list {
+          width: @comment-width;
+        }
+        .ant-list-pagination {
+          // 分页器居中
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
         &-item {
           width: 100%;
           margin-top: 10 * @hd;

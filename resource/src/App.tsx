@@ -5,26 +5,31 @@ import svg_logo_mac from './static/mac.svg'
 import { CSSTransition } from 'react-transition-group'
 import axios from 'axios'
 import './App.less'
+import { List } from 'antd'
+import 'antd/dist/antd.css'
 
 export default class Base extends Component {
   state = {
     showThankList: false,
     config: {
-      downloadUrl: 'https://github.com/YaoZeyuan/stablog#%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD',
+      downloadUrl: 'https://github.com/YaoZeyuan/zhihuhelp#%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD',
       releaseAt: '2019年10月22日',
-      releaseNote: '稳部落1.1.0, 闪亮发布.',
+      releaseNote: '知乎助手1.0.0, 闪亮发布.',
       version: 1.1,
       detail: {
-        windows: { version: 1.1, url: 'http://stablog.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD%20Setup%201.1.0.exe' },
-        mac: { version: 1.1, url: 'http://stablog.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
+        windows: {
+          version: 1.1,
+          url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD%20Setup%201.1.0.exe',
+        },
+        mac: { version: 1.1, url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
       },
     },
     thankList: [{ reason: '*明明捐助了25元', time: '2019-10-14 21:34' }],
   }
 
   async componentDidMount() {
-    let versionResponse = await axios.get('https://api.bookflaneur.cn/stablog/version')
-    let thankListResponse = await axios.get('https://api.bookflaneur.cn/stablog/thank_you/list')
+    let versionResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/version')
+    let thankListResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/thank_you/list')
     let config = versionResponse.data
     let thankList = thankListResponse.data
     this.setState({
@@ -59,23 +64,9 @@ export default class Base extends Component {
       <div className="Home">
         <div className="body">
           <div className="container">
-            <div className="title">稳部落</div>
-            <div className="slogan">专业备份导出微博记录</div>
-            <div className="desc">备份原理: </div>
-            <div className="desc">
-              登录&nbsp;
-              <a href="https://m.weibo.cn" target="_blank">
-                m.weibo.cn
-              </a>
-              &nbsp;后, 模拟浏览器访问, 获取登录用户发布的所有微博并备份之
-            </div>
-            <div className="desc">
-              所以, 即使炸号, 只要登录&nbsp;
-              <a href="https://m.weibo.cn" target="_blank">
-                m.weibo.cn
-              </a>
-              &nbsp; 后还能看见自己的微博,就可以备份
-            </div>
+            <div className="title">知乎助手</div>
+            <div className="slogan">制作自己的epub</div>
+
             <div className="desc"></div>
             <div className="desc">最新版本：v{`${config.version}`.padEnd(3, '.0')}</div>
             <div className="logo">
@@ -98,21 +89,40 @@ export default class Base extends Component {
         </div>
         <div className="footer">
           <div className="comment">
-            <a className="tip" href="https://github.com/YaoZeyuan/stablog" target="_blank">
+            <a className="tip" href="https://github.com/YaoZeyuan/zhihuhelp" target="_blank">
               使用指南
             </a>
             <p className="tip" onClick={this.toggleThankList}>
               致谢列表
             </p>
-            <a className="tip" href="https://github.com/YaoZeyuan/stablog/issues" target="_blank">
+            <a className="tip" href="https://github.com/YaoZeyuan/zhihuhelp/issues" target="_blank">
               功能建议
             </a>
           </div>
           <CSSTransition in={this.state.showThankList} timeout={300} classNames="fade" unmountOnExit>
-            <div className="thank-list">{thankEleList}</div>
+            <div className="thank-list">
+              <List
+                itemLayout="horizontal"
+                dataSource={thankList}
+                pagination={{
+                  pageSize: 10,
+                }}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={
+                        <p>
+                          {item.time} {item.reason}
+                        </p>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </div>
           </CSSTransition>
         </div>
-        <a href="https://github.com/YaoZeyuan/stablog" className="fork-me-on-github" target="_blank">
+        <a href="https://github.com/YaoZeyuan/zhihuhelp" className="fork-me-on-github" target="_blank">
           <img
             width="149px"
             height="149px"
