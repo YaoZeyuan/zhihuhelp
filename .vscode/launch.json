@@ -45,12 +45,11 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "debug-ace",
+      "name": "生成电子书-win",
       "program": "${workspaceFolder}/src/ace.ts",
       "stopOnEntry": false,
       "args": [
-        "Generate:Topic", // 这里可以是任意命令
-        "19559052" // 拿自己的账号测试
+        "Generate:Customer" // 这里可以是任意命令
       ],
       "cwd": "${workspaceRoot}",
       "env": {
