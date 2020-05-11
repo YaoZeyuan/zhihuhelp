@@ -104,7 +104,7 @@ class FetchBase extends Base {
 
     // 替换图片地址(假定所有图片都在img文件夹下)
     function replaceImgSrc(rawHtml: string, isRaw = false) {
-      rawHtml = _.replace(rawHtml, /img src="data:image.+?"/g, 'img')
+      rawHtml = _.replace(rawHtml, / src="data:image.+?"/g, '  ')
       // 处理图片
       const imgContentList = rawHtml.match(/<img.+?>/g)
       let processedImgContentList = []
@@ -123,16 +123,33 @@ class FetchBase extends Base {
         let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
         let imgRawWidth = parseInt(_.get(matchImgRawWidth, [0], '0'))
+        // 有可能只有data-actualsrc属性, 没有data-original属性
+
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
+        let hasHdImg = imgContent.indexOf(`data-actualsrc="`) !== -1
+        let imgSrc = ''
+        if (hasHdImg) {
+          let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
+          imgSrc = _.get(matchImgSrc, [0], '')
+        }
+        if (imgSrc === '' && hasRawImg) {
+          let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
+          imgSrc = _.get(matchImgSrc, [0], '')
+        }
+        if(hasRawImg === false && hasHdImg === false){
+          // 只有src属性
+          let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
+          imgSrc = _.get(matchImgSrc, [0], '')
+        }
+        // 去掉最后的_r/_b后缀
+        let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
+        let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
+        // 彻底去除imgContent中的src属性
+        imgContent = _.replace(imgContent,  / src=".+?"/g, '  ')
+
         if (that.imageQuilty === 'raw') {
           // 原始图片
-          if (imgContent.includes('data-original')) {
-            // 没有指定属性就不需要再处理了
-            // 先替换掉原先的src地址
-            processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
-            // 再改成原图地址
-            processedImgContent = _.replace(processedImgContent, /data-original="https:/g, 'src="https:')
-          }
+          processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
         } else if (that.imageQuilty === 'none') {
           // 无图
           processedImgContent = ''
@@ -143,21 +160,16 @@ class FetchBase extends Base {
           // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
           let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
           if (isDisplayAsRawImg) {
-            // 原始图片
-            if (imgContent.includes('data-original')) {
-              // 先替换掉原先的src地址
-              processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
-              // 再改成原图地址
-              processedImgContent = _.replace(processedImgContent, /data-original="https:/g, 'src="https:')
-            }
+            processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
           } else {
             // 高清图
-            if (imgContent.includes('data-actualsrc')) {
-              // 先替换掉原先的src地址
-              processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
-              // 再改成标清图地址
-              processedImgContent = _.replace(processedImgContent, /data-actualsrc="https:/g, 'src="https:')
-            }
+            processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_hd}"`)
+            // if (imgContent.includes('data-actualsrc')) {
+            //   // 先替换掉原先的src地址
+            //   processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
+            //   // 再改成标清图地址
+            //   processedImgContent = _.replace(processedImgContent, /data-actualsrc="https:/g, 'src="https:')
+            // }
           }
         }
 
