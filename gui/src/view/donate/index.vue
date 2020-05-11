@@ -14,10 +14,19 @@
     </div>
     <div class="row">
       <el-card class="box-card">
-        <el-table :data="this.database.thankYouList">
-          <el-table-column prop="time" label="致谢列表(更新周期: <3天)"></el-table-column>
-          <el-table-column prop="reason" label></el-table-column>
+        <div class="thank-you-list-title">致谢列表</div>
+        <el-table :data="state.list">
+          <el-table-column prop="time" align="center"></el-table-column>
+          <el-table-column prop="reason"></el-table-column>
         </el-table>
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :page-size="state.pageSize"
+          :current-page.sync="state.currentPage"
+          :total="database.thankYouList.length"
+          @current-change="updateList"
+        ></el-pagination>
       </el-card>
     </div>
   </div>
@@ -33,21 +42,42 @@
         return {
           database:{
             thankYouList:[]
+          },
+          state:{
+            currentPage:1,
+            pageSize:10,
+            list:[]
           }
         }
     },
     async mounted(){
       await this.asyncGetDonateList()
+      this.updateList()
     },
     methods:{
       async asyncGetDonateList(){
         this.database.thankYouList = await http.asyncGet("https://api.bookflaneur.cn/zhihuhelp/thank_you/list")
-      }
-    }
+      },
+      updateList(){
+        console.log("update")
+         let rawList = this.database.thankYouList
+        console.log("raw list =>", rawList)
+        rawList = JSON.parse(JSON.stringify(rawList)) 
+        let splitStartIndex = (this.state.currentPage - 1) * this.state.pageSize 
+        let splitEndIndex = (this.state.currentPage) * this.state.pageSize 
+        this.state.list =  rawList.slice(splitStartIndex, splitEndIndex )
+        console.log("this.state.currentPage =>", this.state.currentPage)
+        return   
+      },
+    },
   }
 </script>
 
 <style lang="less" scoped>
+.thank-you-list-title {
+  display: flex;
+  justify-content: center;
+}
 .donate {
   display: flex;
   width: 80vw;
@@ -70,6 +100,15 @@
       max-width: 60vw;
       max-height: 40vw;
     }
+  }
+}
+</style>
+<style lang="less">
+.donate {
+  .el-pagination {
+    margin-top: 5px;
+    justify-content: center;
+    display: flex;
   }
 }
 </style>

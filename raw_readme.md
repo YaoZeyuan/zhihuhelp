@@ -325,7 +325,7 @@
 
 #   功能建议
 
-欢迎通过[issue](https://github.com/YaoZeyuan/zhihuhelp_with_node/issues)提建议
+欢迎通过[issue](https://github.com/YaoZeyuan/zhihuhelp/issues)提建议
 
 #   支持作者
 
