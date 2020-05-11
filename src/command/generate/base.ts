@@ -96,7 +96,8 @@ class FetchBase extends Base {
     // 删除noscript标签内的元素
     function removeNoScript(rawHtml: string) {
       rawHtml = _.replace(rawHtml, /<\/br>/g, '')
-      rawHtml = _.replace(rawHtml, /<br>/g, '<br/>')
+      rawHtml = _.replace(rawHtml, /<br +?>/g, '<br />')
+      rawHtml = _.replace(rawHtml, /<br>/g, '<br />')
       rawHtml = _.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
       rawHtml = _.replace(rawHtml, /\<noscript\>.*?\<\/noscript\>/g, '')
       return rawHtml
@@ -136,7 +137,7 @@ class FetchBase extends Base {
           let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
           imgSrc = _.get(matchImgSrc, [0], '')
         }
-        if(hasRawImg === false && hasHdImg === false){
+        if (hasRawImg === false && hasHdImg === false) {
           // 只有src属性
           let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
           imgSrc = _.get(matchImgSrc, [0], '')
@@ -145,7 +146,7 @@ class FetchBase extends Base {
         let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
         let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
         // 彻底去除imgContent中的src属性
-        imgContent = _.replace(imgContent,  / src=".+?"/g, '  ')
+        imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
 
         if (that.imageQuilty === 'raw') {
           // 原始图片
