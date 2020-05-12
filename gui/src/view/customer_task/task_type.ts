@@ -1,7 +1,7 @@
 export namespace TypeTaskConfig {
   export type Task_Type_用户提问过的所有问题 = 'author-ask-question'
   export type Task_Type_用户的所有回答 = 'author-answer'
-  export type Task_Type_用户的所有文章 = 'author-article'
+  export type Task_Type_用户发布的所有文章 = 'author-article'
   export type Task_Type_用户发布的所有想法 = 'author-pin'
   export type Task_Type_用户赞同过的所有回答 = 'author-agree-answer'
   export type Task_Type_用户赞同过的所有文章 = 'author-agree-article'
@@ -24,7 +24,7 @@ export namespace TypeTaskConfig {
   export type AuthorCollectionType =
     | Task_Type_用户提问过的所有问题
     | Task_Type_用户的所有回答
-    | Task_Type_用户的所有文章
+    | Task_Type_用户发布的所有文章
     | Task_Type_用户发布的所有想法
     | Task_Type_用户赞同过的所有回答
     | Task_Type_用户赞同过的所有文章
@@ -74,7 +74,7 @@ export namespace TypeTaskConfig {
   // 作为常量
   export const CONST_Task_Type_用户提问过的所有问题 = 'author-ask-question'
   export const CONST_Task_Type_用户的所有回答 = 'author-answer'
-  export const CONST_Task_Type_用户的所有文章 = 'author-article'
+  export const CONST_Task_Type_用户发布的所有文章 = 'author-article'
   export const CONST_Task_Type_用户发布的所有想法 = 'author-pin'
   export const CONST_Task_Type_用户赞同过的所有回答 = 'author-agree-answer'
   export const CONST_Task_Type_用户赞同过的所有文章 = 'author-agree-article'
