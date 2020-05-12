@@ -31,6 +31,10 @@ class FetchBase extends Base {
     return path.resolve(PathConfig.epubOutputPath)
   }
 
+  get epubOutputPathUri() {
+    return path.resolve(this.epubOutputPath, this.bookname + '.epub')
+  }
+
   get htmlCachePath() {
     return path.resolve(PathConfig.htmlCachePath, this.bookname)
   }
@@ -51,6 +55,10 @@ class FetchBase extends Base {
     return path.resolve(PathConfig.htmlOutputPath)
   }
 
+  get htmlOutputPathUri() {
+    return path.resolve(this.htmlOutputPath, this.bookname)
+  }
+
   static get signature() {
     return `
         Generate:Base
@@ -67,14 +75,14 @@ class FetchBase extends Base {
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     shelljs.rm('-rf', this.epubCachePath)
     this.log(`旧epub缓存目录删除完毕`)
-    this.log(`删除旧epub输出资源目录:${this.epubOutputPath}`)
-    shelljs.rm('-rf', this.epubOutputPath)
+    this.log(`删除旧epub输出资源目录:${this.epubOutputPathUri}`)
+    shelljs.rm('-rf', this.epubOutputPathUri)
     this.log(`旧epub输出目录删除完毕`)
     this.log(`删除旧html资源目录:${this.htmlCachePath}`)
     shelljs.rm('-rf', this.htmlCachePath)
     this.log(`旧html资源目录删除完毕`)
-    this.log(`删除旧html输出目录:${this.htmlOutputPath}`)
-    shelljs.rm('-rf', this.htmlOutputPath)
+    this.log(`删除旧html输出目录:${this.htmlOutputPathUri}`)
+    shelljs.rm('-rf', this.htmlOutputPathUri)
     this.log(`旧html输出目录删除完毕`)
 
     this.log(`创建电子书:${this.bookname}对应文件夹`)
