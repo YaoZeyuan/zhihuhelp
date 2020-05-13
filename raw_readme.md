@@ -321,7 +321,12 @@
 3.  注意事项
     1.  Electron需要编译sqlite3后才能启动, 不容易搞, 建议直接使用`npm run ace`命令行方式进行调试
     2.  命令使用说明详见代码
-
+    3.  建议最好配置淘宝镜像, 以便加快install速度
+        ```shell
+        npm config set registry https://registry.npm.taobao.org
+        npm config set disturl https://npm.taobao.org/dist
+        npm config set electron_mirror https://npm.taobao.org/mirrors/electron/
+        ```
 
 #   功能建议
 

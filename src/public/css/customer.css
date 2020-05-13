@@ -29,6 +29,13 @@ img[src=''],
 img[src$='./images/'] {
   display: none;
 }
+/* 对Latex图片, 以行内样式展示 */
+div.content img[eeimg] {
+  margin: 0 3px;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
 
 .text-center {
   text-align: center;

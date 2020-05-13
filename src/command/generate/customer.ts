@@ -531,7 +531,7 @@ class GenerateCustomer extends Base {
     this.bookname = StringUtil.encodeFilename(`${bookname}`)
     this.imageQuilty = imageQuilty
     let { questionList, articleList, pinList } = epubResourcePackage
-    this.imgUriPool = new Set()
+    this.imgUriPool = new Map()
 
     // 初始化文件夹
     this.initStaticRecource()

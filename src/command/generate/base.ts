@@ -14,12 +14,94 @@ import logger from '~/src/library/logger'
 import StringUtil from '~/src/library/util/string'
 import Epub from '~/src/library/epub'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
+import sharp from 'sharp'
+
+type TypeSrc2Download = string
+class ImgItem {
+  /**
+   * 文件名
+   */
+  filename: string
+  /**
+   * 真实文件名
+   */
+  realFilename: string
+  /**
+   * 是否为LatexImg文件(LatexImg文件为svg格式, 需要单独处理)
+   */
+  isLatexImg: boolean = false
+  /**
+   * 文件下载cache位置
+   */
+  downloadCacheUri: string
+  /**
+   * 文件实际存储cache位置(svg文件需要转换为jpg后使用)
+   */
+  fileCacheUri: string
+  /**
+   * 下载地址
+   */
+  rawImgSrc: string
+  /**
+   * html中展示的地址
+   */
+  htmlImguri: string
+
+  constructor(src: string, isLatexImg = false) {
+    this.isLatexImg = isLatexImg
+    this.filename = ImgItem.getImgName(src, isLatexImg)
+    if (this.isLatexImg) {
+      this.realFilename = this.filename.split('.svg')[0] + '.png'
+    } else {
+      this.realFilename = this.filename
+    }
+
+    this.rawImgSrc = src
+    this.downloadCacheUri = path.resolve(PathConfig.imgCachePath, this.filename)
+
+    if (this.isLatexImg) {
+      this.htmlImguri = '../image/' + this.realFilename
+      this.fileCacheUri = path.resolve(PathConfig.imgCachePath, this.realFilename)
+    } else {
+      this.htmlImguri = '../image/' + this.filename
+      this.fileCacheUri = path.resolve(PathConfig.imgCachePath, this.filename)
+    }
+  }
+
+  static getImgName(src: string, isLatexImg = false) {
+    // 直接将路径信息md5
+    let filename = ''
+    try {
+      let srcMd5 = md5(src)
+      let urlObj = new url.URL(src)
+      let pathname = urlObj.pathname
+      if (path.extname(pathname) === '') {
+        // 避免没有后缀名
+        if (isLatexImg) {
+          // Latex图片本身就没有后缀名
+          pathname = `${pathname}.svg`
+        } else {
+          pathname = `${pathname}.jpg`
+        }
+      }
+      if (pathname.length > 50) {
+        // 文件名不能过长, 否则用户无法直接删除该文件
+        pathname = pathname.substr(pathname.length - 50, 50)
+      }
+      filename = StringUtil.encodeFilename(`${srcMd5}_${pathname}`)
+    } catch (e) {
+      // 非url, 不需要进行处理, 返回空即可
+      logger.warn(`[警告]传入值src:${src}不是合法url, 将返回空filename`)
+    }
+    return filename
+  }
+}
 
 class FetchBase extends Base {
   epub: Epub | null = null
   imageQuilty: TypeTaskConfig.imageQuilty = 'hd'
 
-  imgUriPool: Set<string> = new Set()
+  imgUriPool: Map<TypeSrc2Download, ImgItem> = new Map()
 
   bookname = ''
 
@@ -136,6 +218,7 @@ class FetchBase extends Base {
 
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
         let hasHdImg = imgContent.indexOf(`data-actualsrc="`) !== -1
+        let isLatexImg = imgContent.indexOf(`eeimg`) !== -1
         let imgSrc = ''
         if (hasHdImg) {
           let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
@@ -150,11 +233,16 @@ class FetchBase extends Base {
           let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
           imgSrc = _.get(matchImgSrc, [0], '')
         }
+        let backupImgSrc = imgSrc
         // 去掉最后的_r/_b后缀
         let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
         let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
         // 彻底去除imgContent中的src属性
         imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
+        if (isLatexImg) {
+          // 如果是LatexImg, 不需要被处理
+          imgSrc = backupImgSrc
+        }
 
         if (that.imageQuilty === 'raw') {
           // 原始图片
@@ -182,10 +270,12 @@ class FetchBase extends Base {
           }
         }
 
-        // 支持多看内读图
-        processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
+        if (isLatexImg === false) {
+          // 支持多看内读图
+          processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
+        }
 
-        if (that.imageQuilty === 'none') {
+        if (that.imageQuilty === 'none' && isLatexImg === false) {
           // 没有图片, 也就不需要处理了, 直接跳过即可
           processedImgContentList.push(processedImgContent)
           continue
@@ -195,12 +285,11 @@ class FetchBase extends Base {
         // 将html内图片地址替换为html内的地址
         let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
         let rawImgSrc = _.get(matchImgSrc, [0], '')
+        let imgItem = new ImgItem(rawImgSrc, isLatexImg)
         if (rawImgSrc.length > 0) {
-          that.imgUriPool.add(rawImgSrc)
+          that.imgUriPool.set(rawImgSrc, imgItem)
         }
-        let filename = that.getImgName(rawImgSrc)
-        let htmlImgUri = '../image/' + filename
-        processedImgContent = _.replace(processedImgContent, rawImgSrc, htmlImgUri)
+        processedImgContent = _.replace(processedImgContent, imgItem.rawImgSrc, imgItem.htmlImguri)
 
         processedImgContentList.push(processedImgContent)
       }
@@ -226,19 +315,31 @@ class FetchBase extends Base {
    */
   async downloadImg() {
     let index = 0
-    for (let src of this.imgUriPool) {
+    for (let imgItem of this.imgUriPool.values()) {
       index++
-      let filename = this.getImgName(src)
-      let cacheUri = path.resolve(PathConfig.imgCachePath, filename)
       // 检查缓存中是否有该文件
-      if (fs.existsSync(cacheUri)) {
+      if (fs.existsSync(imgItem.fileCacheUri)) {
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片已存在,自动跳过`)
         continue
       }
 
-      // 分批下载
-      this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncDownloadImg(index, src, cacheUri), false, false)
+      if (fs.existsSync(imgItem.downloadCacheUri) === false) {
+        // 分批下载
+        this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
+        await CommonUtil.asyncAppendPromiseWithDebounce(
+          this.asyncDownloadImg(index, imgItem.rawImgSrc, imgItem.downloadCacheUri),
+          false,
+          false,
+        )
+      }
+      // 下载完成后, 将图片转为png格式
+      if (imgItem.isLatexImg) {
+        this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张图片为Latex-svg图片, 将之转换为png格式`)
+        await sharp(imgItem.downloadCacheUri)
+          .png()
+          .toFile(imgItem.fileCacheUri)
+        this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张Latex-svg图片转换完毕`)
+      }
     }
     this.log(`清空任务队列`)
     await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
@@ -266,23 +367,21 @@ class FetchBase extends Base {
     this.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
   }
 
-  copyImgToCache(imgCachePath: string) {
+  copyImgToCache(imgBookCachePath: string) {
     let index = 0
-    for (let src of this.imgUriPool) {
+    for (let imgItem of this.imgUriPool.values()) {
       index++
-      let filename = this.getImgName(src)
       // 避免文件名不存在的情况
-      if (filename === '') {
+      if (imgItem.realFilename === '') {
         continue
       }
-      let imgCacheUri = path.resolve(PathConfig.imgCachePath, filename)
-      let imgToUri = path.resolve(imgCachePath, filename)
-      if (fs.existsSync(imgCacheUri)) {
-        fs.copyFileSync(imgCacheUri, imgToUri)
+      let imgToUri = path.resolve(imgBookCachePath, imgItem.realFilename)
+      if (fs.existsSync(imgItem.fileCacheUri)) {
+        fs.copyFileSync(imgItem.fileCacheUri, imgToUri)
         this.log(`第${index}/${this.imgUriPool.size}张图片复制完毕`)
       } else {
         this.log(`第${index}/${this.imgUriPool.size}张图片不存在, 自动跳过`)
-        this.log(`src => ${src}`)
+        this.log(`src => ${imgItem.fileCacheUri}`)
       }
       this.epub.addImage(imgToUri)
     }
@@ -355,7 +454,7 @@ class FetchBase extends Base {
       let pathname = urlObj.pathname
       if (path.extname(pathname) === '') {
         // 避免没有后缀名
-        pathname = `${pathname}.jpg`
+        pathname = `${pathname}.svg`
       }
       if (pathname.length > 50) {
         // 文件名不能过长, 否则用户无法直接删除该文件
