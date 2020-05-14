@@ -21,7 +21,7 @@
     "pack": "npm run build && npm run buildgui && electron-builder --dir",
     "dist": "npm run build && npm run buildgui && electron-builder",
     "postinstall": "electron-builder install-app-deps",
-    "rebuild-sqlite3": "electron-rebuild -f -w sqlite3"
+    "rebuild-sqlite3": "electron-rebuild"
   },
   "build": {
     "productName": "知乎助手",
@@ -82,7 +82,7 @@
     "request-promise": "^4.2.2",
     "sharp": "^0.25.2",
     "shelljs": "^0.8.1",
-    "sqlite3": "^4.1.1",
+    "sqlite3": "4.1.1",
     "vue": "^2.6.5",
     "vue-class-component": "^7.0.2",
     "vue-router": "^3.0.2",
@@ -122,9 +122,9 @@
     "connect-history-api-fallback": "^1.6.0",
     "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^2.1.0",
-    "electron": "^6.0.12",
-    "electron-builder": "^21.2.0",
-    "electron-rebuild": "^1.8.6",
+    "electron": "6.0.12",
+    "electron-builder": "21.2.0",
+    "electron-rebuild": "1.8.6",
     "eslint-loader": "^2.1.2",
     "express": "^4.16.4",
     "file-loader": "^3.0.1",
@@ -133,6 +133,7 @@
     "http-proxy-middleware": "^0.19.1",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
+    "node-gyp": "^6.1.0",
     "nodemon": "^1.13.0",
     "opn": "^5.4.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
