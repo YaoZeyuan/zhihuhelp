@@ -318,7 +318,7 @@ class FetchBase extends Base {
     for (let imgItem of this.imgUriPool.values()) {
       index++
       // 检查缓存中是否有该文件
-      if (fs.existsSync(imgItem.fileCacheUri)) {
+      if (fs.existsSync(imgItem.downloadCacheUri)) {
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片已存在,自动跳过`)
         continue
       }
@@ -332,8 +332,22 @@ class FetchBase extends Base {
           false,
         )
       }
+    }
+    this.log(`清空任务队列`)
+    await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+    this.log(`所有图片下载完毕`)
+    this.log(`开始转换Latex图片`)
+    index = 0
+    for (let imgItem of this.imgUriPool.values()) {
+      index++
+
       // 下载完成后, 将图片转为png格式
       if (imgItem.isLatexImg) {
+        if (fs.existsSync(imgItem.fileCacheUri)) {
+          this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张Latex图片已转换,自动跳过`)
+          continue
+        }
+
         this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张图片为Latex-svg图片, 将之转换为png格式`)
         await sharp(imgItem.downloadCacheUri)
           .png()
@@ -341,9 +355,8 @@ class FetchBase extends Base {
         this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张Latex-svg图片转换完毕`)
       }
     }
-    this.log(`清空任务队列`)
-    await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
-    this.log(`所有图片下载完毕`)
+    this.log(`所有Latex图片转换完毕`)
+    this.log(`图片下载流程执行完毕`)
   }
 
   private async asyncDownloadImg(index: number, src: string, cacheUri: string) {
