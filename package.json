@@ -21,7 +21,7 @@
     "pack": "npm run build && npm run buildgui && electron-builder --dir",
     "dist": "npm run build && npm run buildgui && electron-builder",
     "postinstall": "electron-builder install-app-deps",
-    "rebuild-sqlite3": "electron-rebuild"
+    "rebuild-sqlite3": "electron-rebuild -f -w sqlite3 sharp"
   },
   "build": {
     "productName": "知乎助手",
@@ -69,7 +69,6 @@
     "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
     "element-ui": "^2.5.4",
-    "joi": "^14.3.1",
     "json5": "^2.1.0",
     "knex": "^0.19.5",
     "lodash": "^4.17.5",
@@ -78,15 +77,12 @@
     "query-string": "^6.4.2",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.2",
-    "sharp": "^0.25.2",
+    "sharp": "^0.23.0",
     "shelljs": "^0.8.1",
     "sqlite3": "4.1.1",
     "vue": "^2.6.5",
     "vue-class-component": "^7.0.2",
-    "vue-router": "^3.0.2",
-    "winston": "^2.4.0"
+    "vue-router": "^3.0.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.0",
@@ -113,7 +109,6 @@
     "@types/request": "^2.48.1",
     "@types/request-promise": "^4.1.42",
     "@types/shelljs": "^0.7.8",
-    "@types/winston": "^2.3.7",
     "@vue/babel-helper-vue-jsx-merge-props": "^1.0.0-beta.3",
     "@vue/babel-preset-jsx": "^1.0.0-beta.3",
     "babel-loader": "^8.0.5",
@@ -125,7 +120,6 @@
     "electron": "6.0.12",
     "electron-builder": "21.2.0",
     "electron-rebuild": "1.8.6",
-    "eslint-loader": "^2.1.2",
     "express": "^4.16.4",
     "file-loader": "^3.0.1",
     "friendly-errors-webpack-plugin": "^1.7.0",
