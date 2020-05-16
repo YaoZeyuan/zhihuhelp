@@ -41,11 +41,7 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "target": "nsis"
         }
       ],
       "icon": "src/public/icon/icon.png"
@@ -66,7 +62,6 @@
     "archiver": "^3.0.0",
     "async": "^2.6.0",
     "axios": "^0.18.0",
-    "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
     "element-ui": "^2.5.4",
     "json5": "^2.1.0",
