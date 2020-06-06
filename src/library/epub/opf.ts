@@ -64,31 +64,31 @@ class OPF {
 
   addIndexHtml (filename: string) {
     this.index = this.index + 1
-    this.manifestItemList.unshift(` <item href="./html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)
+    this.manifestItemList.unshift(` <item href="html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)
     this.spineItemList.unshift(` <itemref idref="index_${this.index}"  linear="no"/>`)
   }
 
   addHtml (filename: string) {
     this.index = this.index + 1
-    this.manifestItemList.push(` <item href="./html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)
+    this.manifestItemList.push(` <item href="html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`)
     this.spineItemList.push(` <itemref idref="index_${this.index}" />`)
   }
 
   addCss (filename: string) {
     this.index = this.index + 1
-    this.manifestItemList.push(` <item href="./css/${filename}" id="index_${this.index}" media-type="text/css" />`)
+    this.manifestItemList.push(` <item href="css/${filename}" id="index_${this.index}" media-type="text/css" />`)
   }
 
   addCoverImage (filename: string) {
     this.index = this.index + 1
         // metadata中已经将封面图id写死为了cover-image, 这里直接加上就行
-    this.manifestItemList.push(` <item href="./image/${filename}" id="cover-image" media-type="text/jpeg" />`)
+    this.manifestItemList.push(` <item href="image/${filename}" id="cover-image" media-type="text/jpeg" />`)
   }
 
   addImage (filename: string) {
     this.index = this.index + 1
         // 图片类型统一写成 media-type="text/jpeg", 应该没事
-    this.manifestItemList.push(` <item href="./image/${filename}" id="index_${this.index}" media-type="text/jpeg" />`)
+    this.manifestItemList.push(` <item href="image/${filename}" id="index_${this.index}" media-type="text/jpeg" />`)
   }
 }
 
