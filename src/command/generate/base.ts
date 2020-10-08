@@ -234,9 +234,9 @@ class FetchBase extends Base {
           imgSrc = _.get(matchImgSrc, [0], '')
         }
         let backupImgSrc = imgSrc
-        // 去掉最后的_r/_b后缀
-        let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
-        let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
+        // 去掉最后的_r/_b/_hd后缀
+        let imgSrc_raw = _.replace(imgSrc, /_\w{1,2}/g, '_r')
+        let imgSrc_hd = _.replace(imgSrc, /_\w{1,2}/g, '_b')
         // 彻底去除imgContent中的src属性
         imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
         if (isLatexImg) {
