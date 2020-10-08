@@ -29,9 +29,9 @@ class Collection extends Base {
     const baseUrl = `https://api.zhihu.com/collections/${collectionId}`
     const config = {
     }
-    const collectionInfoRecord: TypeCollection.Info = await Base.http.get(baseUrl, {
+    const collectionInfoRecord: TypeCollection.Info = (await Base.http.get(baseUrl, {
       params: config
-    })
+    })).collection
     return collectionInfoRecord
   }
 }
