@@ -61,7 +61,7 @@
     "@types/sharp": "^0.25.0",
     "archiver": "^3.0.0",
     "async": "^2.6.0",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "dotenv": "^4.0.0",
     "element-ui": "^2.5.4",
     "json5": "^2.1.0",
