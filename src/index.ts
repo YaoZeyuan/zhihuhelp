@@ -83,7 +83,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools()
   } else {
     // 线上地址
-    mainWindow.loadFile('./gui/dist/index.html')
+    mainWindow.loadFile('./client/dist/index.html')
   }
 
   // Emitted when the window is closed.
