@@ -204,15 +204,13 @@ import util from "~/client/src/library/util";
 import querystring from "query-string";
 import { TypeTaskConfig } from "./task_type";
 import packageConfig from "~/client/../package.json";
-import { Task } from "electron";
+
+// 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
+let { Task, ipcRenderer, remote } = require("electron");
 
 let currentVersion = parseFloat(packageConfig.version);
 
 let TaskConfigType = TypeTaskConfig;
-
-import { ipcRenderer, remote } from "electron";
-// const ipcRenderer = electron.ipcRenderer;
-// const remote = electron.remote;
 
 let pathConfig = remote.getGlobal("pathConfig");
 
