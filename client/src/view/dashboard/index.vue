@@ -62,7 +62,8 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import _ from "lodash";
 import fs from "fs";
 import http from "~/client/src/library/http";
@@ -73,7 +74,7 @@ let { ipcRenderer, remote } = require("electron");
 
 let pathConfig = remote.getGlobal("pathConfig");
 
-export default {
+export default defineComponent({
   name: "dashboard",
   data() {
     return {
@@ -184,7 +185,7 @@ export default {
       return taskList;
     },
   },
-};
+})
 </script>
 
 <style scoped></style>

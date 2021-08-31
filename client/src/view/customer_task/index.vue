@@ -197,6 +197,7 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
 import _ from "lodash";
 import fs from "fs";
 import http from "~/client/src/library/http";
@@ -283,7 +284,7 @@ const Translate_Image_Quilty = {
   [TaskConfigType.CONST_Image_Quilty_无图]: "无图",
 };
 
-export default {
+export default defineComponent({
   name: "customerTask",
 
   data(): {
@@ -532,7 +533,7 @@ export default {
       return this.database.taskConfig;
     },
   },
-};
+})
 </script>
 
 <style scoped></style>

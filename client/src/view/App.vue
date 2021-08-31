@@ -18,9 +18,6 @@
           <el-tab-pane label="使用说明" :name="constant.tab.helper">
             <Helper />
           </el-tab-pane>
-          <el-tab-pane label="支持作者" :name="constant.tab.donate">
-            <Donate />
-          </el-tab-pane>
         </el-tabs>
       </el-main>
       <el-footer></el-footer>
@@ -28,13 +25,13 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Dashboard from "./dashboard/index.vue";
 import CustomerTask from "./customer_task/index.vue";
 import Login from "./login/index.vue";
 import Log from "./log/index.vue";
 import Helper from "./helper/index.vue";
-import Donate from "./donate/index.vue";
 import _ from "lodash";
 
 // 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
@@ -42,7 +39,7 @@ const electron = require("electron");
 let { ipcRenderer, remote } = electron;
 let pathConfig = remote.getGlobal("pathConfig");
 
-export default {
+export default defineComponent({
   name: "App",
   components: {
     Dashboard,
@@ -50,7 +47,6 @@ export default {
     Log,
     Login,
     Helper,
-    Donate,
   },
   data() {
     return {
@@ -73,12 +69,8 @@ export default {
     };
   },
   methods: {
-    handleClickTab(a, b, c) {
-      console.log({
-        a,
-        b,
-        c,
-      });
+    handleClickTab() {
+     
     },
   },
   computed: {
@@ -86,7 +78,7 @@ export default {
       return;
     },
   },
-};
+})
 </script>
 
 <style lang="less" scoped>

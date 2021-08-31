@@ -9,15 +9,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import _ from 'lodash'
 
-export default {
+export default defineComponent({
   name: 'dashboard',
   data() {
     return {}
   },
-}
+})
 </script>
 
 <style scoped>
