@@ -8,7 +8,9 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "builtin-modules": "^3.2.0",
     "element-plus": "^1.1.0-beta.7",
+    "vite-plugin-commonjs-externals": "^0.1.1",
     "vue": "^3.2.6"
   },
   "devDependencies": {

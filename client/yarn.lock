@@ -209,6 +209,11 @@ acorn@^7.1.1:
   resolved "https://registry.nlark.com/acorn/download/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha1-/q7SVZc9LndVW4PbwIhRpsY1IPo=
 
+acorn@^8.1.0:
+  version "8.4.1"
+  resolved "https://registry.nlark.com/acorn/download/acorn-8.4.1.tgz#56c36251fc7cabc7096adc18f05afe814321a28c"
+  integrity sha1-VsNiUfx8q8cJatwY8Fr+gUMhoow=
+
 asap@~2.0.3:
   version "2.0.6"
   resolved "https://registry.npm.taobao.org/asap/download/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
@@ -240,6 +245,11 @@ bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.nlark.com/bluebird/download/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha1-nyKcFb4nJFT/qXOs4NvueaGww28=
+
+builtin-modules@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.nlark.com/builtin-modules/download/builtin-modules-3.2.0.tgz#45d5db99e7ee5e6bc4f362e008bf917ab5049887"
+  integrity sha1-RdXbmefuXmvE82LgCL+RerUEmIc=
 
 call-bind@^1.0.2:
   version "1.0.2"
@@ -357,6 +367,11 @@ entities@^2.0.0:
   version "2.2.0"
   resolved "https://registry.nlark.com/entities/download/entities-2.2.0.tgz#098dc90ebb83d8dffa089d55256b351d34c4da55"
   integrity sha1-CY3JDruD2N/6CJ1VJWs1HTTE2lU=
+
+es-module-lexer@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.nlark.com/es-module-lexer/download/es-module-lexer-0.4.1.tgz#dda8c6a14d8f340a24e34331e0fab0cb50438e0e"
+  integrity sha1-3ajGoU2PNAok40Mx4Pqwy1BDjg4=
 
 esbuild@^0.12.17:
   version "0.12.24"
@@ -809,6 +824,15 @@ util-deprecate@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npm.taobao.org/util-deprecate/download/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
+
+vite-plugin-commonjs-externals@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.nlark.com/vite-plugin-commonjs-externals/download/vite-plugin-commonjs-externals-0.1.1.tgz#2937fdd9a5e6dcf9e4798d95ce774ad1ac62629e"
+  integrity sha1-KTf92aXm3PnkeY2VzndK0axiYp4=
+  dependencies:
+    acorn "^8.1.0"
+    es-module-lexer "^0.4.1"
+    magic-string "^0.25.7"
 
 vite@^2.5.1:
   version "2.5.1"

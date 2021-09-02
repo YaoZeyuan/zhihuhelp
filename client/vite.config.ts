@@ -1,11 +1,29 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import commonjsExternals from 'vite-plugin-commonjs-externals';
+// node内置模块列表
+import builtinModules from 'builtin-modules';
+// 如果package.json里装了外部依赖, 也通过这个导入进去
+import pkg from './package.json';
+const commonjsPackages = [
+  'electron',
+  'electron/main',
+  'electron/common',
+  'electron/renderer',
+  'original-fs',
+  ...builtinModules,
+] as const;
+
 
 // https://cn.vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    // 解决vite不允许导入fs/path等非client包的问题
+    commonjsExternals({
+      externals: commonjsPackages,
+    }),
   ],
   server: {
     port: 8080,
