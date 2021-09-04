@@ -24,7 +24,7 @@
               style="width: 100%"
             >
               <el-table-column label="任务类型" width="220">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-select v-model="scope.row.type" placeholder="请选择">
                     <el-option
                       v-for="itemKey in Object.keys(constant.TaskType)"
@@ -36,7 +36,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="待抓取url">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-input
                     v-model="scope.row.rawInputText"
                     placeholder="请输入待抓取url"
@@ -44,22 +44,22 @@
                 </template>
               </el-table-column>
               <el-table-column label="任务id">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <span>{{ scope.row.id ? scope.row.id : "未解析到任务id" }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="备注">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-input v-model="scope.row.comment" placeholder="备注信息"></el-input>
                 </template>
               </el-table-column>
               <el-table-column label="跳过抓取">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-checkbox v-model="scope.row.skipFetch"></el-checkbox>
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="130">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-button
                     size="mini"
                     @click="addTask(scope.$index)"
@@ -88,7 +88,7 @@
               style="width: 100%"
             >
               <el-table-column label="排序指标(从上至下)" width="220">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-select v-model="scope.row.orderBy" placeholder="请选择">
                     <el-option
                       v-for="itemKey in Object.keys(constant.OrderBy)"
@@ -100,7 +100,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="规则">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-radio-group v-model="scope.row.order">
                     <el-radio :label="'asc'">
                       {{
@@ -122,7 +122,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="130">
-                <template slot-scope="scope">
+                <template v-slot="scope">
                   <el-button
                     size="mini"
                     @click="addOrder(scope.$index)"

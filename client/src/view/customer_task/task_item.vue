@@ -59,12 +59,12 @@
         <el-form-item label="待抓取id列表">
           <el-table :data="database.item.idList" size="mini">
             <el-table-column label="id">
-              <template slot-scope="scope">
+              <template v-slot="scope">
                 <p>{{ scope.row }}</p>
               </template>
             </el-table-column>
             <el-table-column label="操作" align="center">
-              <template slot-scope="scope">
+              <template v-slot="scope">
                 <el-button
                   size="mini"
                   type="danger"
