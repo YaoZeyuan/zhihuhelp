@@ -3,11 +3,8 @@
     <el-container>
       <el-main>
         <el-tabs v-model="status.tab" @tab-click="handleClickTab">
-          <el-tab-pane label="任务面板" :name="constant.tab.dashboard">
-            <Dashboard :currentTab.sync="status.tab" />
-          </el-tab-pane>
           <el-tab-pane label="自定义任务" :name="constant.tab.customerTask">
-            <CustomerTask :currentTab.sync="status.tab" />
+            <CustomerTask @switch-tab="handleClickTab" />
           </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log />
@@ -27,7 +24,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Dashboard from "./dashboard/index.vue";
 import CustomerTask from "./customer_task/index.vue";
 import Login from "./login/index.vue";
 import Log from "./log/index.vue";
@@ -39,10 +35,19 @@ const electron = require("electron");
 let { ipcRenderer, remote } = electron;
 let pathConfig = remote.getGlobal("pathConfig");
 
+type Type_Tab_Dashboard = 'dashboard'
+type Type_Tab_CustomerTask= "customerTask"
+type Type_Tab_Log= "log"
+type Type_Tab_Login= "login"
+type Type_Tab_Helper= "helper"
+type Type_Tab_Donate= "donate"
+
+type Type_Tab = Type_Tab_Dashboard | Type_Tab_CustomerTask | Type_Tab_Log | Type_Tab_Login | Type_Tab_Helper | Type_Tab_Donate
+
+
 export default defineComponent({
   name: "App",
   components: {
-    Dashboard,
     CustomerTask,
     Log,
     Login,
@@ -52,7 +57,7 @@ export default defineComponent({
     return {
       constant: {
         tab: {
-          // dashboard:'dashboard',
+          dashboard:'dashboard',
           customerTask: "customerTask",
           log: "log",
           login: "login",
@@ -69,8 +74,8 @@ export default defineComponent({
     };
   },
   methods: {
-    handleClickTab() {
-     
+    handleClickTab(tab:Type_Tab ) {
+      this.status.tab = tab
     },
   },
   computed: {

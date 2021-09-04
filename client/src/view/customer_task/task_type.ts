@@ -12,7 +12,7 @@ export namespace TypeTaskConfig {
   export type Task_Type_文章 = 'article'
   export type Task_Type_问题 = 'question'
   export type Task_Type_回答 = 'answer'
-  export type CONST_Task_Type_封号用户的所有回答 = 'block-account-answer'
+  export type Task_Type_封号用户的所有回答 = 'block-account-answer'
   export type Task_Type_想法 = 'pin'
   export type Order_By_创建时间 = 'createAt'
   export type Order_By_更新时间 = 'updateAt'

@@ -5,7 +5,7 @@
         <h1>自定义任务</h1>
       </el-col>
       <el-col :span="8">
-        <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
+        <el-button type="primary" @click="test">开始执行</el-button>
         <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
         <el-button type="primary" @click="asyncCheckUpdate" round>检查更新</el-button>
       </el-col>
@@ -198,6 +198,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { ElMessageBox } from 'element-plus';
 import _ from "lodash";
 import fs from "fs";
 import http from "~/client/src/library/http";
@@ -343,6 +344,7 @@ export default defineComponent({
       },
     };
   },
+  emits:['switchTab'],
   async mounted() {
     let jsonContent = util.getFileContent(pathConfig.customerTaskConfigUri);
     let taskConfig: TypeTaskConfig.Record = {
@@ -392,7 +394,10 @@ export default defineComponent({
       // 将当前任务配置发送给服务器
       ipcRenderer.sendSync("startCustomerTask");
       // 将面板切换到log上
-      this.$emit("update:currentTab", "log");
+      this.$emit("switchTab", "log");
+    },
+    test(){
+      this.$emit("switchTab", "log");
     },
     openOutputDir() {
       ipcRenderer.sendSync("openOutputDir");
@@ -494,9 +499,8 @@ export default defineComponent({
       let record = await http.asyncGet("https://www.zhihu.com/api/v4/me");
       this.status.isLogin = _.has(record, ["id"]);
       if (this.status.isLogin === false) {
-        // @ts-ignore
-        this.$alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {});
-        this.$emit("update:currentTab", "login");
+        ElMessageBox.alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {});
+        this.$emit("switchTab", "login");
       }
       console.log("checkIsLogin: record =>", record);
     },
@@ -515,7 +519,7 @@ export default defineComponent({
       if (this.status.remoteVersionConfig.version > currentVersion) {
         this.status.showUpgradeInfo = true;
       } else {
-        this.$alert(`当前已是最新版 => ${this.status.remoteVersionConfig.version}`);
+        ElMessageBox.alert(`当前已是最新版 => ${this.status.remoteVersionConfig.version}`);
       }
     },
   },
