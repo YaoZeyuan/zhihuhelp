@@ -37,7 +37,7 @@ export namespace TypeTaskConfig {
     | Task_Type_问题
     | Task_Type_回答
     | Task_Type_想法
-    | CONST_Task_Type_封号用户的所有回答
+    | Task_Type_封号用户的所有回答
   export type OrderBy = Order_By_创建时间 | Order_By_更新时间 | Order_By_赞同数 | Order_By_评论数
   export type ImageQuilty = Image_Quilty_高清 | Image_Quilty_原图 | Image_Quilty_无图
   export type TaskType = AuthorCollectionType | ItemCollectionType

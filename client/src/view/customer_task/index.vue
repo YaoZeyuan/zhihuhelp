@@ -68,7 +68,7 @@
                   <el-button
                     size="mini"
                     type="danger"
-                    @click="removeTaskByIndex(scope.$index, scope.row)"
+                    @click="removeTaskByIndex(scope.$index)"
                     icon="el-icon-minus"
                   ></el-button>
                 </template>
@@ -76,7 +76,8 @@
             </el-table>
           </template>
           <template v-else>
-            <el-button @click="addTask()">添加</el-button>
+            <!-- 长度为0时, 默认index也必然为0 -->
+            <el-button @click="addTask(0)">添加</el-button>
           </template>
         </el-form-item>
         <el-form-item label="排序规则">
@@ -131,7 +132,7 @@
                   <el-button
                     size="mini"
                     type="danger"
-                    @click="removeOrderByIndex(scope.$index, scope.row)"
+                    @click="removeOrderByIndex(scope.$index)"
                     icon="el-icon-minus"
                   ></el-button>
                 </template>
@@ -139,7 +140,7 @@
             </el-table>
           </template>
           <template v-else>
-            <el-button @click="addTask()">添加</el-button>
+            <el-button @click="addTask(0)">添加</el-button>
           </template>
         </el-form-item>
 
@@ -217,72 +218,69 @@ let TaskConfigType = TypeTaskConfig;
 let pathConfig = remote.getGlobal("pathConfig");
 
 const TaskType = {
-  用户提问过的所有问题: "author-ask-question",
-  用户的所有回答: "author-answer",
-  用户发布的所有文章: "author-article",
-  用户发布的所有想法: "author-pin",
-  用户赞同过的所有回答: "author-agree-answer",
-  用户赞同过的所有文章: "author-agree-article",
-  用户关注过的所有问题: "author-watch-question",
-  话题: "topic",
-  收藏夹: "collection",
-  专栏: "column",
-  文章: "article",
-  问题: "question",
-  回答: "answer",
-  封号用户的所有回答: "block-account-answer",
-  想法: "pin",
+  用户提问过的所有问题: "author-ask-question" as const,
+  用户的所有回答: "author-answer" as const,
+  用户发布的所有文章: "author-article" as const,
+  用户发布的所有想法: "author-pin" as const,
+  用户赞同过的所有回答: "author-agree-answer" as const,
+  用户赞同过的所有文章: "author-agree-article" as const,
+  用户关注过的所有问题: "author-watch-question" as const,
+  话题: "topic" as const,
+  收藏夹: "collection" as const,
+  专栏: "column" as const,
+  文章: "article"as const,
+  问题: "question"as const,
+  回答: "answer"as const,
+  封号用户的所有回答: "block-account-answer"as const,
+  想法: "pin"as const,
 };
-const OrderBy: {
-  创建时间: "createAt";
-  更新时间: "updateAt";
-  赞同数: "voteUpCount";
-  评论数: "commentCount";
-} = {
-  创建时间: "createAt",
-  更新时间: "updateAt",
-  赞同数: "voteUpCount",
-  评论数: "commentCount",
+
+
+type Type_TaskType = typeof TaskType
+type Type_TaskType_Key =  keyof typeof TaskType
+type Type_TaskType_Value =  Type_TaskType[Type_TaskType_Key]
+
+
+const OrderBy = {
+  创建时间: "createAt" as const,
+  更新时间: "updateAt" as const,
+  赞同数: "voteUpCount" as const,
+  评论数: "commentCount" as const,
 };
-const Order: {
-  从低到高: "asc";
-  从旧到新: "asc";
-  从高到低: "desc";
-  从新到旧: "desc";
-} = {
-  从低到高: "asc",
-  从旧到新: "asc",
-  从高到低: "desc",
-  从新到旧: "desc",
+const Order= {
+  从低到高: "asc" as const,
+  从旧到新: "asc" as const,
+  从高到低: "desc" as const,
+  从新到旧: "desc" as const,
 };
 const ImageQuilty = {
-  无图: "none",
-  原图: "raw",
-  高清: "hd",
+  无图: "none"  as const,
+  原图: "raw"  as const,
+  高清: "hd"  as const,
 };
 
 const Translate_Task_Type = {
-  [TaskConfigType.CONST_Task_Type_用户提问过的所有问题]: "用户提问过的所有问题",
-  [TaskConfigType.CONST_Task_Type_用户的所有回答]: "用户的所有回答",
-  [TaskConfigType.CONST_Task_Type_用户发布的所有文章]: "用户发布的所有文章",
-  [TaskConfigType.CONST_Task_Type_问题]: "问题",
-  [TaskConfigType.CONST_Task_Type_回答]: "回答",
-  [TaskConfigType.CONST_Task_Type_封号用户的所有回答]: "封号用户的所有回答(功能不可用)",
-  [TaskConfigType.CONST_Task_Type_想法]: "想法",
-  [TaskConfigType.CONST_Task_Type_用户发布的所有想法]: "用户发布的所有想法",
-  [TaskConfigType.CONST_Task_Type_用户赞同过的所有回答]: "用户赞同过的所有回答",
-  [TaskConfigType.CONST_Task_Type_用户赞同过的所有文章]: "用户赞同过的所有文章",
-  [TaskConfigType.CONST_Task_Type_用户关注过的所有问题]: "用户关注过的所有问题",
-  [TaskConfigType.CONST_Task_Type_话题]: "话题",
-  [TaskConfigType.CONST_Task_Type_收藏夹]: "收藏夹",
-  [TaskConfigType.CONST_Task_Type_专栏]: "专栏",
-  [TaskConfigType.CONST_Task_Type_文章]: "文章",
+  [TaskConfigType.CONST_Task_Type_用户提问过的所有问题]: "用户提问过的所有问题"  as const,
+  [TaskConfigType.CONST_Task_Type_用户的所有回答]: "用户的所有回答"  as const,
+  [TaskConfigType.CONST_Task_Type_用户发布的所有文章]: "用户发布的所有文章"  as const,
+  [TaskConfigType.CONST_Task_Type_问题]: "问题"  as const,
+  [TaskConfigType.CONST_Task_Type_回答]: "回答"  as const,
+  [TaskConfigType.CONST_Task_Type_封号用户的所有回答]: "封号用户的所有回答(功能不可用)"  as const,
+  [TaskConfigType.CONST_Task_Type_想法]: "想法"  as const,
+  [TaskConfigType.CONST_Task_Type_用户发布的所有想法]: "用户发布的所有想法"  as const,
+  [TaskConfigType.CONST_Task_Type_用户赞同过的所有回答]: "用户赞同过的所有回答"  as const,
+  [TaskConfigType.CONST_Task_Type_用户赞同过的所有文章]: "用户赞同过的所有文章"  as const,
+  [TaskConfigType.CONST_Task_Type_用户关注过的所有问题]: "用户关注过的所有问题"  as const,
+  [TaskConfigType.CONST_Task_Type_话题]: "话题"  as const,
+  [TaskConfigType.CONST_Task_Type_收藏夹]: "收藏夹"  as const,
+  [TaskConfigType.CONST_Task_Type_专栏]: "专栏"  as const,
+  [TaskConfigType.CONST_Task_Type_文章]: "文章"  as const,
 };
 
 const Translate_Image_Quilty = {
-  [TaskConfigType.CONST_Image_Quilty_高清]: "高清",
-  [TaskConfigType.CONST_Image_Quilty_原图]: "原图",
-  [TaskConfigType.CONST_Image_Quilty_无图]: "无图",
+  [TaskConfigType.CONST_Image_Quilty_高清]: "高清"  as const,
+  [TaskConfigType.CONST_Image_Quilty_原图]: "原图"  as const,
+  [TaskConfigType.CONST_Image_Quilty_无图]: "无图"  as const,
 };
 
 export default defineComponent({
@@ -303,7 +301,13 @@ export default defineComponent({
         releaseNote: string;
       };
     };
-    constant: {};
+    constant: { 
+      TaskType: typeof TaskType
+      OrderBy: typeof OrderBy,
+      Order: typeof Order,
+      ImageQuilty: typeof ImageQuilty,
+
+    };
   } {
     let configList: Array<TypeTaskConfig.ConfigItem> = [];
     let taskConfig: TypeTaskConfig.Record = {
