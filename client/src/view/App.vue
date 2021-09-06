@@ -4,7 +4,7 @@
       <el-main>
         <el-tabs v-model="status.tab" @tab-click="handleClickTab">
           <el-tab-pane label="自定义任务" :name="constant.tab.customerTask">
-            <CustomerTask @switch-tab="handleClickTab" />
+            <CustomerTask @switch-tab="handleSwitchTab" />
           </el-tab-pane>
           <el-tab-pane label="运行日志" :name="constant.tab.log">
             <Log />
@@ -74,7 +74,11 @@ export default defineComponent({
     };
   },
   methods: {
-    handleClickTab(tab:Type_Tab ) {
+    handleClickTab(tab: any, event:any ) {
+      this.status.tab = tab.paneName
+    },
+    handleSwitchTab(tab:Type_Tab ) {
+      console.log("tab =>" , tab)
       this.status.tab = tab
     },
   },
