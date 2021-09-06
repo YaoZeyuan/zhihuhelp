@@ -19,7 +19,14 @@ const commonjsPackages = [
 // https://cn.vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          // 忽略webview标签
+          isCustomElement: (tag) => tag === "webview"
+        }
+      }
+    }),
     // 解决vite不允许导入fs/path等非client包的问题
     commonjsExternals({
       externals: commonjsPackages,

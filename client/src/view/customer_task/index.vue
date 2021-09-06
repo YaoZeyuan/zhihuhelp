@@ -168,7 +168,7 @@
     </el-card>
     <el-dialog
       title="发现新版本"
-      :visible.sync="status.showUpgradeInfo"
+      v-model="status.showUpgradeInfo"
       width="80%"
       :before-close="handleCloseDialog"
     >
@@ -209,7 +209,7 @@ import { TypeTaskConfig } from "./task_type";
 import packageConfig from "~/client/../package.json";
 
 // 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
-let { Task, ipcRenderer, remote } = require("electron");
+let { Task, ipcRenderer, remote,shell } = require("electron");
 
 let currentVersion = parseFloat(packageConfig.version);
 
@@ -526,6 +526,13 @@ export default defineComponent({
         ElMessageBox.alert(`当前已是最新版 => ${this.status.remoteVersionConfig.version}`);
       }
     },
+    handleCloseDialog(){
+      this.status.showUpgradeInfo = false
+    },
+    jumpToUpgrade(){
+      this.status.showUpgradeInfo = false
+      shell.openExternal("https://www.yaozeyuan.online/zhihuhelp/")
+    }
   },
   computed: {
     watchTaskConfig(): TypeTaskConfig.Record {
