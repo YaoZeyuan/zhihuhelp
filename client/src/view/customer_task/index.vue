@@ -5,7 +5,7 @@
         <h1>自定义任务</h1>
       </el-col>
       <el-col :span="8">
-        <el-button type="primary" @click="test">开始执行</el-button>
+        <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
         <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
         <el-button type="primary" @click="asyncCheckUpdate" round>检查更新</el-button>
       </el-col>
@@ -201,15 +201,14 @@
 import { defineComponent } from 'vue'
 import { ElMessageBox } from 'element-plus';
 import _ from "lodash";
-import fs from "fs";
+import  fs from "fs";
 import http from "~/client/src/library/http";
 import util from "~/client/src/library/util";
 import querystring from "query-string";
 import { TypeTaskConfig } from "./task_type";
 import packageConfig from "~/client/../package.json";
 
-// 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
-let { Task, ipcRenderer, remote,shell } = require("electron");
+import { Task, ipcRenderer, remote,shell } from "electron";
 
 let currentVersion = parseFloat(packageConfig.version);
 
@@ -398,9 +397,6 @@ export default defineComponent({
       // 将当前任务配置发送给服务器
       ipcRenderer.sendSync("startCustomerTask");
       // 将面板切换到log上
-      this.$emit("switchTab", "log");
-    },
-    test(){
       this.$emit("switchTab", "log");
     },
     openOutputDir() {

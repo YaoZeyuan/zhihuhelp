@@ -30,8 +30,7 @@ import Log from "./log/index.vue";
 import Helper from "./helper/index.vue";
 import _ from "lodash";
 
-// 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
-const electron = require("electron");
+import electron from "electron";
 let { ipcRenderer, remote } = electron;
 let pathConfig = remote.getGlobal("pathConfig");
 

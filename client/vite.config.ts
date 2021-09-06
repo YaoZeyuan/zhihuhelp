@@ -8,13 +8,8 @@ import builtinModules from 'builtin-modules';
 import pkg from './package.json';
 const commonjsPackages = [
   'electron',
-  'electron/main',
-  'electron/common',
-  'electron/renderer',
-  'original-fs',
   ...builtinModules,
 ] as const;
-
 
 // https://cn.vitejs.dev/config/
 export default defineConfig({
@@ -30,6 +25,8 @@ export default defineConfig({
     // 解决vite不允许导入fs/path等非client包的问题
     commonjsExternals({
       externals: commonjsPackages,
+      // 需要主动指定处理.vue文件
+      exts: ["vue", 'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs']
     }),
   ],
   server: {

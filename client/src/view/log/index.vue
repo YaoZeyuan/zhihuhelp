@@ -15,8 +15,7 @@ import _ from "lodash";
 import fs from "fs";
 import util from "~/client/src/library/util";
 
-// 基于vite开发 electron项目时, 只能通过require('electron')导入electron包, 否则会报错无法且编译
-const electron = require("electron");
+import electron from "electron";
 let { ipcRenderer, remote } = electron;
 let pathConfig = remote.getGlobal("pathConfig");
 
