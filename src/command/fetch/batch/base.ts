@@ -25,16 +25,15 @@ class BaseBatchFetch {
     for (let id of idList) {
       index = index + 1
       let taskIndex = index
-      this.log(`将第${taskIndex}/${idList.length}个任务(${id})置入待抓取队列中`)
-      await CommonUtil.asyncAppendPromiseWithDebounce(
-        this.fetch(id)
-          .then(() => {
-            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
-          })
-          .catch(e => {
-            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
-          }),
-      )
+      this.log(`启动第${taskIndex}/${idList.length}个抓取任务(${id})`)
+      // 一个一个任务进行, 请求接口不搞并行. 切实保护知乎服务器
+      await this.fetch(id)
+        .then(() => {
+          this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
+        })
+        .catch(e => {
+          this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
+        })
     }
     this.log(`派发所有待抓取任务`)
     await CommonUtil.asyncDispatchAllPromiseInQueen()
