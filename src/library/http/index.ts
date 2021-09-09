@@ -58,6 +58,9 @@ class Http {
     })
     config.headers = {
       ...config.headers,
+      // 加上ua
+      'User-Agent': RequestConfig.ua,
+      cookie: RequestConfig.cookie,
       'x-zse-93': Const_Headers_x_zse_93,
       'x-zse-96': x_zst_96,
     }
@@ -65,9 +68,9 @@ class Http {
     const response = await http.get(url, config).catch(e => {
       logger.log(`网络请求失败, 两种可能: 1.知乎更换了接口签名算法, 知乎私信@姚泽源 更新代码 2. 您的账号可能因抓取频繁被知乎认为有风险, 在浏览器中访问知乎首页,输入验证码即可恢复`)
       logger.log(`错误内容=> message:${e.message}, stack=>${e.stack}`)
-      return {}
+      return { data: [] }
     })
-    const record = _.get(response, ['data'], {})
+    const record = response.data || {}
     return record
   }
 
