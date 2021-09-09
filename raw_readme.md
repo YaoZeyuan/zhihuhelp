@@ -339,6 +339,10 @@
 
 # 支持作者
 
-<!-- ![感谢支持](http://ww1.sinaimg.cn/large/6671cfa8ly1g08k8rm5grj20ri16sq4r.jpg) -->
-
 [致谢列表](https://api.bookflaneur.cn/zhihuhelp/thank_you/list)
+
+# todo
+
+1.  知乎目前确实会 ban ip , 考虑降低请求频率/自动识别验证码
+2.  为什么对每个回答要单独调用 api 接口, 不能批量请求?
+3.  在只有一个 url 的时候, 能否自动生成电子书标题?
