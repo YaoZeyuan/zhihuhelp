@@ -211,9 +211,9 @@ class FetchBase extends Base {
         // this.log(`处理第${index}/${imgContentList.length}个img标签`)
         let processedImgContent = imgContent
         let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
-        let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
+        let imgRawHeight = parseInt(matchImgRawHeight?.[0] || '0')
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
-        let imgRawWidth = parseInt(_.get(matchImgRawWidth, [0], '0'))
+        let imgRawWidth = parseInt(matchImgRawWidth?.[0] || '0')
         // 有可能只有data-actualsrc属性, 没有data-original属性
 
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
@@ -222,16 +222,16 @@ class FetchBase extends Base {
         let imgSrc = ''
         if (hasHdImg) {
           let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         if (imgSrc === '' && hasRawImg) {
           let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         if (hasRawImg === false && hasHdImg === false) {
           // 只有src属性
           let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         let backupImgSrc = imgSrc
         // 去掉最后的_r/_b后缀
@@ -284,7 +284,7 @@ class FetchBase extends Base {
         // 将图片地址提取到图片池中
         // 将html内图片地址替换为html内的地址
         let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
-        let rawImgSrc = _.get(matchImgSrc, [0], '')
+        let rawImgSrc = matchImgSrc?.[0] || ''
         let imgItem = new ImgItem(rawImgSrc, isLatexImg)
         if (rawImgSrc.length > 0) {
           that.imgUriPool.set(rawImgSrc, imgItem)
@@ -297,7 +297,7 @@ class FetchBase extends Base {
       let strMergeList = []
       for (let index = 0; index < rawHtmlWithoutImgContentList.length; index++) {
         strMergeList.push(rawHtmlWithoutImgContentList[index])
-        strMergeList.push(_.get(processedImgContentList, [index], ''))
+        strMergeList.push(processedImgContentList?.[index] || '')
       }
       let processedHtml = strMergeList.join('')
       return processedHtml

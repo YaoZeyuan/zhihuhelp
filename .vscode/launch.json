@@ -86,7 +86,8 @@
       "windows": {
         "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
       },
-      "args": ["."]
+      "sourceMaps": true,
+      "args": [".", "--debug"]
     }
   ]
 }
