@@ -16,6 +16,14 @@ import Epub from '~/src/library/epub'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
 import sharp from 'sharp'
 
+const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
+const Const_Zhihu_Img_CDN_List = [
+  "https://pic1.zhimg.com/",
+  "https://pic2.zhimg.com/",
+  "https://pic3.zhimg.com/",
+  "https://pic4.zhimg.com/",
+]
+
 type TypeSrc2Download = string
 class ImgItem {
   /**
@@ -363,13 +371,25 @@ class FetchBase extends Base {
     await CommonUtil.asyncSleep(1)
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
-    let imgContent = await http.downloadImg(src).catch(e => {
-      this.log(`[第${index}张图片]-1-2-第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
-      this.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
-      return ''
-    })
+
+    let imgContent = ''
+    // 知乎图片cdn不稳定, 需要把几个服务器都试下, 直到成功下载到图片为止
+    if (src.match(Const_Zhihu_Img_Prefix_Reg) !== null) {
+      // 匹配到说明是知乎的服务器
+      let rawSrc = src
+      let tryImgSrc = ''
+      for (let prefix of Const_Zhihu_Img_CDN_List) {
+        if (imgContent === '') {
+          tryImgSrc = rawSrc.replace(Const_Zhihu_Img_Prefix_Reg, prefix)
+          imgContent = await http.downloadImg(tryImgSrc).catch(e => {
+            return ''
+          })
+        }
+      }
+    }
+
     if (imgContent === '') {
-      this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
+      this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空, 原url=>${src}`)
       return
     }
     this.log(`[第${index}张图片]-2-第${index}/${this.imgUriPool.size}张图片下载完成, src => ${src}`)
