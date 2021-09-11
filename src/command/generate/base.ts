@@ -18,10 +18,10 @@ import sharp from 'sharp'
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
 const Const_Zhihu_Img_CDN_List = [
-  "https://pic1.zhimg.com/",
-  "https://pic2.zhimg.com/",
-  "https://pic3.zhimg.com/",
-  "https://pic4.zhimg.com/",
+  "https://pic1.zhimg.com",
+  "https://pic2.zhimg.com",
+  "https://pic3.zhimg.com",
+  "https://pic4.zhimg.com",
 ]
 
 type TypeSrc2Download = string
@@ -216,6 +216,9 @@ class FetchBase extends Base {
       let index = 0
       for (let imgContent of imgContentList) {
         index++
+        // imgContent 可能值 => 
+        // <img   data-caption="" data-size="normal" data-rawwidth="794" data-rawheight="588" data-default-watermark-src="https://pic4.zhimg.com/50/v2-df6f9458bad1873bc717ddf92a58f802_720w.jpg?source=c8b7c179" class="origin_image zh-lightbox-thumb lazy" width="794" data-original="https://pic1.zhimg.com/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179" data-actualsrc="https://pica.zhimg.com/50/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179">
+
         // this.log(`处理第${index}/${imgContentList.length}个img标签`)
         let processedImgContent = imgContent
         let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
@@ -243,8 +246,8 @@ class FetchBase extends Base {
         }
         let backupImgSrc = imgSrc
         // 去掉最后的_r/_b后缀
-        let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
-        let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
+        let imgSrc_raw = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
+        let imgSrc_hd = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
         // 彻底去除imgContent中的src属性
         imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
         if (isLatexImg) {
@@ -386,6 +389,11 @@ class FetchBase extends Base {
           })
         }
       }
+    } else {
+      // 非zhimg文件直接下载
+      imgContent = await http.downloadImg(src).catch(e => {
+        return ''
+      })
     }
 
     if (imgContent === '') {
