@@ -30,10 +30,6 @@ import Log from "./log/index.vue";
 import Helper from "./helper/index.vue";
 import _ from "lodash";
 
-import electron from "electron";
-let { ipcRenderer, remote } = electron;
-let pathConfig = remote.getGlobal("pathConfig");
-
 type Type_Tab_Dashboard = 'dashboard'
 type Type_Tab_CustomerTask= "customerTask"
 type Type_Tab_Log= "log"
