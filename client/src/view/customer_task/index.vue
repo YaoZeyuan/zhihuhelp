@@ -190,9 +190,8 @@
     <div></div>
     <h1>配置文件内容:</h1>
     <pre>
-        {{ JSON.stringify(database, null, 4) }}
-      </pre
-    >
+{{ JSON.stringify(database, null, 4) }}
+    </pre>
     <div data-comment="监控数据变动" :data-watch="JSON.stringify(watchTaskConfig)"></div>
   </div>
 </template>
