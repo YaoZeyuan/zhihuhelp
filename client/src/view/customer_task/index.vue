@@ -532,7 +532,11 @@ export default defineComponent({
         config.id = this.matchTaskId(config.type, config.rawInputText)
         // 只在id变动时才重新生成新默认标题, 避免卡顿/阻塞
         if (config.id !== config.lastId) {
-          config.defaultTitle = this.getDetaultTaskItemName(config.type, config.id)
+          if (config.id === '') {
+            config.defaultTitle = ''
+          } else {
+            config.defaultTitle = this.getDetaultTaskItemName(config.type, config.id)
+          }
           config.lastId = config.id
         }
         defaultBookTitle = defaultBookTitle ? `${defaultBookTitle}_${config.defaultTitle}` : `${config.defaultTitle}`
