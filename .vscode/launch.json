@@ -87,7 +87,7 @@
         "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
       },
       "sourceMaps": true,
-      "args": ["."]
+      "args": [".", "--zhihuhelp-debug"]
     }
   ]
 }
