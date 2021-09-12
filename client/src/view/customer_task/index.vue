@@ -230,7 +230,7 @@ const TaskType = {
   文章: "article"as const,
   问题: "question"as const,
   回答: "answer"as const,
-  封号用户的所有回答: "block-account-answer"as const,
+  销号用户的所有回答: "block-account-answer"as const,
   想法: "pin"as const,
 };
 
@@ -264,7 +264,7 @@ const Translate_Task_Type = {
   [TaskConfigType.CONST_Task_Type_用户发布的所有文章]: "用户发布的所有文章"  as const,
   [TaskConfigType.CONST_Task_Type_问题]: "问题"  as const,
   [TaskConfigType.CONST_Task_Type_回答]: "回答"  as const,
-  [TaskConfigType.CONST_Task_Type_封号用户的所有回答]: "封号用户的所有回答(功能不可用)"  as const,
+  [TaskConfigType.CONST_Task_Type_销号用户的所有回答]: "销号用户的所有回答(功能不可用)"  as const,
   [TaskConfigType.CONST_Task_Type_想法]: "想法"  as const,
   [TaskConfigType.CONST_Task_Type_用户发布的所有想法]: "用户发布的所有想法"  as const,
   [TaskConfigType.CONST_Task_Type_用户赞同过的所有回答]: "用户赞同过的所有回答"  as const,
@@ -442,7 +442,7 @@ export default defineComponent({
         case TaskConfigType.CONST_Task_Type_用户提问过的所有问题:
         case TaskConfigType.CONST_Task_Type_用户的所有回答:
         case TaskConfigType.CONST_Task_Type_用户发布的所有文章:
-        case TaskConfigType.CONST_Task_Type_封号用户的所有回答:
+        case TaskConfigType.CONST_Task_Type_销号用户的所有回答:
         case TaskConfigType.CONST_Task_Type_用户发布的所有想法:
         case TaskConfigType.CONST_Task_Type_用户赞同过的所有回答:
         case TaskConfigType.CONST_Task_Type_用户赞同过的所有文章:
