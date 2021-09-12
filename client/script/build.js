@@ -32,6 +32,7 @@ shell.rm('-rf', targetPath)
 console.log(`创建新资源目录 => ${targetPath}`)
 shell.mkdir('-p', targetPath)
 console.log(`复制文件 ${generatePath} => ${targetPath}`)
-shell.cp(generatePath, targetPath)
+// 不复制dist本身这一层目录, 使最终结果更容易理解
+shell.cp('-rf', generatePath + '/*', targetPath)
 // shell.mv(generatePath, targetPath)
 console.log(`构建完成`)
