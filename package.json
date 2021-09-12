@@ -12,7 +12,7 @@
   "scripts": {
     "startgui": "node client/script/start.js",
     "buildgui": "node client/script/build.js",
-    "start": "electron dist/index.js  --debug",
+    "start": "electron dist/index.js  --zhihuhelp-debug",
     "ace": "node dist/ace.js",
     "serve": "node dist/server.js",
     "watch-node": "nodemon dist/server.js",
