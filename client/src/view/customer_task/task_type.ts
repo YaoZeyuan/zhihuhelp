@@ -49,6 +49,8 @@ export namespace TypeTaskConfig {
     rawInputText: string
     comment: string // 备注
     skipFetch: boolean
+    defaultTitle: string // 任务类型对应的默认标题
+    lastId: string // 上一次匹配到的id, 用于判断id是否发生了改变
   }
 
   export type Order = 'asc' | 'desc'

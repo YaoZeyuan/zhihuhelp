@@ -393,15 +393,14 @@ export default defineComponent({
     },
     addTask(index: number) {
       let newTask: TypeTaskConfig.ConfigItem = {
-        type: _.get(
-          this.database.taskConfig.configList,
-          [index, 'type'],
-          TypeTaskConfig.CONST_Task_Type_用户的所有回答,
-        ),
+        type:
+          this?.database?.taskConfig?.configList?.[index]?.['type'] || TypeTaskConfig.CONST_Task_Type_用户的所有回答,
         id: '',
         rawInputText: '',
         comment: '',
         skipFetch: false,
+        defaultTitle: '',
+        lastId: '',
       }
       this.database.taskConfig.configList.splice(index + 1, 0, newTask)
     },
@@ -456,8 +455,8 @@ export default defineComponent({
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_专栏:
-          // https://zhuanlan.zhihu.com/advancing-react
-          rawId = _.get(rawContent.split('zhuanlan.zhihu.com/'), [1], '')
+          // https://www.zhihu.com/column/sovietmetro
+          rawId = _.get(rawContent.split('www.zhihu.com/column/'), [1], '')
           id = _.get(rawId.split('/'), [0], '')
           break
         case TaskConfigType.CONST_Task_Type_文章:
@@ -469,6 +468,13 @@ export default defineComponent({
           id = ''
       }
       return id
+    },
+    /**
+     * 获取任务名对应的默认标题, 用于拼接自动生成的文件名
+     */
+    getDetaultTaskItemName(taskType: TypeTaskConfig.TaskType, taskId: string): string {
+      let bookTitle = ipcRenderer.sendSync('get-task-default-title', taskType, taskId)
+      return bookTitle
     },
     async asyncCheckIsLogin() {
       // 已登陆则返回用户信息 =>
@@ -515,9 +521,21 @@ export default defineComponent({
         this.saveConfig()
       }
       // 监控configList值变动
+      let defaultBookTitle = ''
       for (let config of this.database.taskConfig.configList) {
         config.id = this.matchTaskId(config.type, config.rawInputText)
+        // 只在id变动时才重新生成新默认标题, 避免卡顿/阻塞
+        if (config.id !== config.lastId) {
+          config.defaultTitle = this.getDetaultTaskItemName(config.type, config.id)
+          config.lastId = config.id
+        }
+        defaultBookTitle = defaultBookTitle ? `${defaultBookTitle}_${config.defaultTitle}` : `${config.defaultTitle}`
       }
+      // 自动生成电子书标题
+      if (this.status.isAutoGenerateTitle) {
+        this.database.taskConfig.bookTitle = defaultBookTitle
+      }
+
       return this.database.taskConfig
     },
   },
