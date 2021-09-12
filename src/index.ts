@@ -175,6 +175,7 @@ ipcMain.on('getPathConfig', event => {
 
   let obj: any = {}
   for (let key in PathConfig) {
+    // @ts-ignore
     obj[key] = PathConfig[key]
   }
   let jsonStr = JSON.stringify(obj, null, 2)
