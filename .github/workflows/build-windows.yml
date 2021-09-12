@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -24,8 +24,9 @@ jobs:
         id: package-version
       - name: Show version number
         run: echo "current version is ${{ steps.package-version.outputs.version }}"
-      - run: npm ci
-      - run: npm run dist
+      - run: cd ./client ; yarn ; cd ..
+      - run: yarn
+      - run: yarn dist
         env:
           CI: true
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
@@ -46,5 +47,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./release/知乎助手 Setup ${{ steps.package-version.outputs.version }}.exe
-          asset_name: zhihuhelp-win32-${{ steps.package-version.outputs.version }}.exe
+          asset_name: zhihuhelp-win64-${{ steps.package-version.outputs.version }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
