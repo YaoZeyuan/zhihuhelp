@@ -7,6 +7,7 @@ import InitConfig from '~/src/config/init_config'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
 import fs from 'fs'
+import path from 'path'
 import _ from 'lodash'
 
 let argv = process.argv
@@ -81,13 +82,15 @@ function createWindow() {
   // and load the index.html of the app.
   if (isDebug) {
     // 本地调试 & 打开控制台
-    // mainWindow.loadFile('./client/dist/index.html')
+    // mainWindow.loadFile('./client/index.html')
     mainWindow.loadURL('http://127.0.0.1:8080')
     mainWindow.webContents.openDevTools()
   } else {
     // 线上地址
-    mainWindow.loadFile('./client/dist/index.html')
-    // mainWindow.webContents.openDevTools()
+    // 构建出来后所有文件都位于dist目录中
+    let targetPath = path.resolve(__dirname, "client", "index.html")
+    mainWindow.loadFile(targetPath)
+    mainWindow.webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
