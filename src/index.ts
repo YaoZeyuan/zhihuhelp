@@ -90,7 +90,7 @@ function createWindow() {
     // 构建出来后所有文件都位于dist目录中
     let targetPath = path.resolve(__dirname, "client", "index.html")
     mainWindow.loadFile(targetPath)
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
