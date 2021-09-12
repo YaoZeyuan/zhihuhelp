@@ -60,6 +60,24 @@
       "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "抓取知乎-win",
+      "program": "${workspaceFolder}/src/ace.ts",
+      "stopOnEntry": false,
+      "args": [
+        "Fetch:Customer" // 这里可以是任意命令
+      ],
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "runtimeExecutable": "C:/Users/yaoze/AppData/Roaming/nvm/v14.0.0/node.exe"
+    },
+    {
       "name": "Debug Electron",
       "type": "node",
       "request": "launch",
@@ -68,7 +86,8 @@
       "windows": {
         "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
       },
-      "args": ["."]
+      "sourceMaps": true,
+      "args": [".", "--zhihuhelp-debug"]
     }
   ]
 }

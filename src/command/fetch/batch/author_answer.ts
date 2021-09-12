@@ -1,11 +1,11 @@
 import AuthorApi from '~/src/api/author'
-import AnswerApi from '~/src/api/answer'
-import MAnswer from '~/src/model/answer'
 import MAuthor from '~/src/model/author'
+import MTotalAnswer from '~/src/model/total_answer'
 import Base from '~/src/command/fetch/batch/base'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import CommonUtil from '~/src/library/util/common'
 import RequestConfig from '~/src/config/request'
+
 
 class BatchFetchAuthorAnswer extends Base {
   async fetch(urlToken: string) {
@@ -18,14 +18,14 @@ class BatchFetchAuthorAnswer extends Base {
     const answerCount = authorInfo.answer_count
     this.log(`用户${name}(${urlToken})共有${answerCount}个回答`)
     this.log(`开始抓取回答列表`)
+    this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answerCount}条`)
     let answetIdList = []
     let batchFetchAnswer = new BatchFetchAnswer()
     let loopCounter = 0
     for (let offset = 0; offset < answerCount; offset = offset + this.max) {
-      let answerList = await AnswerApi.asyncGetAutherAnswerList(urlToken, offset, this.max)
+      let answerList = await AuthorApi.asyncGetAutherAnswerList(urlToken, offset, this.max)
       for (let answer of answerList) {
-        let answerId = `${answer.id}`
-        answetIdList.push(answerId)
+        await MTotalAnswer.asyncReplaceAnswer(answer)
       }
       this.log(`第${offset}~${offset + this.max}条回答记录抓取完毕`)
       loopCounter = loopCounter + 1
@@ -34,8 +34,8 @@ class BatchFetchAuthorAnswer extends Base {
         await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
-    this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
-    await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)
+    // this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
+    // await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)
     this.log(`用户${name}(${urlToken})的回答记录抓取完毕`)
   }
 }

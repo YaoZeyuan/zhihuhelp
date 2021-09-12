@@ -18,7 +18,7 @@ class BatchFetchColumn extends Base {
     let articleIdList: Array<string> = []
     let batchFetchArticle = new BatchFetchArticle()
     for (let offset = 0; offset < articleCount; offset = offset + this.max) {
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncGetColumnArticleExcerptList(id, offset, articleIdList))
+      await this.asyncGetColumnArticleExcerptList(id, offset, articleIdList)
       this.log(`将第${offset}~${offset + this.max}文章添加到任务队列中`)
     }
     await CommonUtil.asyncDispatchAllPromiseInQueen()

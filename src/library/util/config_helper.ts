@@ -6,7 +6,7 @@ class ConfigHelper {
   // 重新载入配置文件
   static reloadConfig() {
     let config = InitConfig.getConfig()
-    RequestConfig.cookie = _.get(config, ['config', 'cookie'], '')
+    RequestConfig.cookie = config?.request?.cookie || ''
   }
 }
 

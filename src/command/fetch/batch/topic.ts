@@ -17,7 +17,7 @@ class BatchFetchTopic extends Base {
     let batchFetchAnswer = new BatchFetchAnswer()
     this.log(`开始抓取话题精华回答列表`)
     for (let offset = 0; offset < baseAnswer; offset = offset + this.max) {
-      await CommonUtil.asyncAppendPromiseWithDebounce(this.asyncGetTopicAnswerList(id, offset, answerIdList))
+      await this.asyncGetTopicAnswerList(id, offset, answerIdList)
       this.log(`将抓取第${offset}~${offset + this.max}个回答任务添加到任务队列中`)
     }
     await CommonUtil.asyncDispatchAllPromiseInQueen()

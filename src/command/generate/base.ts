@@ -16,6 +16,14 @@ import Epub from '~/src/library/epub'
 import TypeTaskConfig from '~/src/type/namespace/task_config'
 import sharp from 'sharp'
 
+const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
+const Const_Zhihu_Img_CDN_List = [
+  "https://pic1.zhimg.com",
+  "https://pic2.zhimg.com",
+  "https://pic3.zhimg.com",
+  "https://pic4.zhimg.com",
+]
+
 type TypeSrc2Download = string
 class ImgItem {
   /**
@@ -208,12 +216,15 @@ class FetchBase extends Base {
       let index = 0
       for (let imgContent of imgContentList) {
         index++
+        // imgContent 可能值 => 
+        // <img   data-caption="" data-size="normal" data-rawwidth="794" data-rawheight="588" data-default-watermark-src="https://pic4.zhimg.com/50/v2-df6f9458bad1873bc717ddf92a58f802_720w.jpg?source=c8b7c179" class="origin_image zh-lightbox-thumb lazy" width="794" data-original="https://pic1.zhimg.com/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179" data-actualsrc="https://pica.zhimg.com/50/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179">
+
         // this.log(`处理第${index}/${imgContentList.length}个img标签`)
         let processedImgContent = imgContent
         let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
-        let imgRawHeight = parseInt(_.get(matchImgRawHeight, [0], '0'))
+        let imgRawHeight = parseInt(matchImgRawHeight?.[0] || '0')
         let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
-        let imgRawWidth = parseInt(_.get(matchImgRawWidth, [0], '0'))
+        let imgRawWidth = parseInt(matchImgRawWidth?.[0] || '0')
         // 有可能只有data-actualsrc属性, 没有data-original属性
 
         let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
@@ -222,21 +233,21 @@ class FetchBase extends Base {
         let imgSrc = ''
         if (hasHdImg) {
           let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         if (imgSrc === '' && hasRawImg) {
           let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         if (hasRawImg === false && hasHdImg === false) {
           // 只有src属性
           let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
-          imgSrc = _.get(matchImgSrc, [0], '')
+          imgSrc = matchImgSrc?.[0] || ''
         }
         let backupImgSrc = imgSrc
         // 去掉最后的_r/_b后缀
-        let imgSrc_raw = _.replace(imgSrc, /_\w/g, '_r')
-        let imgSrc_hd = _.replace(imgSrc, /_\w/g, '_b')
+        let imgSrc_raw = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
+        let imgSrc_hd = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
         // 彻底去除imgContent中的src属性
         imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
         if (isLatexImg) {
@@ -284,7 +295,7 @@ class FetchBase extends Base {
         // 将图片地址提取到图片池中
         // 将html内图片地址替换为html内的地址
         let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
-        let rawImgSrc = _.get(matchImgSrc, [0], '')
+        let rawImgSrc = matchImgSrc?.[0] || ''
         let imgItem = new ImgItem(rawImgSrc, isLatexImg)
         if (rawImgSrc.length > 0) {
           that.imgUriPool.set(rawImgSrc, imgItem)
@@ -297,7 +308,7 @@ class FetchBase extends Base {
       let strMergeList = []
       for (let index = 0; index < rawHtmlWithoutImgContentList.length; index++) {
         strMergeList.push(rawHtmlWithoutImgContentList[index])
-        strMergeList.push(_.get(processedImgContentList, [index], ''))
+        strMergeList.push(processedImgContentList?.[index] || '')
       }
       let processedHtml = strMergeList.join('')
       return processedHtml
@@ -363,13 +374,30 @@ class FetchBase extends Base {
     await CommonUtil.asyncSleep(1)
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
-    let imgContent = await http.downloadImg(src).catch(e => {
-      this.log(`[第${index}张图片]-1-2-第${index}/${this.imgUriPool.size}张图片下载失败, 自动跳过`)
-      this.log(`[第${index}张图片]-1-3-错误原因 =>`, e.message)
-      return ''
-    })
+
+    let imgContent = ''
+    // 知乎图片cdn不稳定, 需要把几个服务器都试下, 直到成功下载到图片为止
+    if (src.match(Const_Zhihu_Img_Prefix_Reg) !== null) {
+      // 匹配到说明是知乎的服务器
+      let rawSrc = src
+      let tryImgSrc = ''
+      for (let prefix of Const_Zhihu_Img_CDN_List) {
+        if (imgContent === '') {
+          tryImgSrc = rawSrc.replace(Const_Zhihu_Img_Prefix_Reg, prefix)
+          imgContent = await http.downloadImg(tryImgSrc).catch(e => {
+            return ''
+          })
+        }
+      }
+    } else {
+      // 非zhimg文件直接下载
+      imgContent = await http.downloadImg(src).catch(e => {
+        return ''
+      })
+    }
+
     if (imgContent === '') {
-      this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空`)
+      this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空, 原url=>${src}`)
       return
     }
     this.log(`[第${index}张图片]-2-第${index}/${this.imgUriPool.size}张图片下载完成, src => ${src}`)
