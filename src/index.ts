@@ -6,6 +6,7 @@ import PathConfig from '~/src/config/path'
 import InitConfig from '~/src/config/init_config'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
+import * as FrontTools from '~/src/library/util/front_tools'
 import fs from 'fs'
 import path from 'path'
 import _ from 'lodash'
@@ -98,6 +99,7 @@ function createWindow() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
+    // @ts-ignore
     mainWindow = null
   })
 
@@ -107,8 +109,20 @@ function createWindow() {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
     callback({ cancel: false, requestHeaders: details.requestHeaders })
   })
+}
 
-  global.pathConfig = PathConfig
+async function asyncUpdateCookie() {
+  let cookieContent = ''
+  let cookieList = await session.defaultSession.cookies.get({})
+  for (let cookie of cookieList) {
+    cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
+  }
+  // 将cookie更新到本地配置中
+  let config = InitConfig.getConfig()
+  _.set(config, ['request', 'cookie'], cookieContent)
+  fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
+  Logger.log(`重新载入cookie配置`)
+  ConfigHelperUtil.reloadConfig()
 }
 
 // This method will be called when Electron has finished
@@ -131,38 +145,6 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
-})
-
-ipcMain.on('start', async (event, taskConfigList) => {
-  if (isRunning) {
-    event.returnValue = '目前尚有任务执行, 请稍后'
-    return
-  }
-  isRunning = true
-  Logger.log('开始工作')
-  let cookieContent = ''
-  // 写入任务数据
-  fs.writeFileSync(PathConfig.customerTaskConfigUri, JSON.stringify(taskConfigList, null, 4))
-  // 获取页面cookie
-  let cookieList = await session.defaultSession.cookies.get({})
-  for (let cookie of cookieList) {
-    cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
-  }
-  // 将cookie更新到本地配置中
-  let config = InitConfig.getConfig()
-  _.set(config, ['request', 'cookie'], cookieContent)
-  fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
-  Logger.log(`任务配置生成完毕`)
-  Logger.log(`重新载入cookie配置`)
-  ConfigHelperUtil.reloadConfig()
-  Logger.log(`开始执行任务`)
-  event.returnValue = 'success'
-  let dispatchTaskCommand = new DispatchTaskCommand()
-  await dispatchTaskCommand.handle({}, {})
-  Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
-  // 输出打开文件夹
-  shell.showItemInFolder(PathConfig.outputPath)
-  isRunning = false
 })
 
 ipcMain.on('openOutputDir', event => {
@@ -191,18 +173,9 @@ ipcMain.on('startCustomerTask', async event => {
   }
   isRunning = true
   Logger.log('开始工作')
-  let cookieContent = ''
-  let cookieList = await session.defaultSession.cookies.get({})
-  for (let cookie of cookieList) {
-    cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
-  }
-  // 将cookie更新到本地配置中
-  let config = InitConfig.getConfig()
-  _.set(config, ['request', 'cookie'], cookieContent)
-  fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
-  Logger.log(`任务配置生成完毕`)
-  Logger.log(`重新载入cookie配置`)
-  ConfigHelperUtil.reloadConfig()
+
+  await asyncUpdateCookie()
+
   Logger.log(`开始执行任务`)
   event.returnValue = 'success'
   let dispatchTaskCommand = new DispatchTaskCommand()
@@ -212,5 +185,15 @@ ipcMain.on('startCustomerTask', async event => {
   shell.showItemInFolder(PathConfig.outputPath)
   isRunning = false
 })
+
+
+ipcMain.on("get-task-default-title", async (event, taskType, taskId: string) => {
+  await asyncUpdateCookie()
+
+  let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
+  event.returnValue = title
+  return
+})
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
