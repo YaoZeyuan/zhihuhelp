@@ -24,6 +24,8 @@ jobs:
         id: package-version
       - name: Show version number
         run: echo "current version is ${{ steps.package-version.outputs.version }}"
+      # mac需要提前安装vips, 否则无法启动sharp构建
+      - run: brew install vips
       - run: cd ./client && yarn && cd ..
       - run: yarn
       - run: yarn dist
