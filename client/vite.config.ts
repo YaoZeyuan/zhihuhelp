@@ -13,6 +13,8 @@ const commonjsPackages = [
 
 // https://cn.vitejs.dev/config/
 export default defineConfig({
+  // 使用相对路径指定index.html中入口js地址. 本身属于hack, 对个人项目而言可以接受
+  base: "./",
   plugins: [
     vue({
       template: {
@@ -36,6 +38,7 @@ export default defineConfig({
     }
   },
   build: {
+    assetsDir: '', // require时使用相对路径, 解决加载问题
     sourcemap: true,
     rollupOptions: {
       output: {
