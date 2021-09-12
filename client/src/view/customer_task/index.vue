@@ -187,6 +187,7 @@ import util from '~/client/src/library/util'
 import querystring from 'query-string'
 import { TypeTaskConfig } from './task_type'
 import packageConfig from '~/client/../package.json'
+import semver from 'semver'
 
 import { Task, ipcRenderer, shell } from 'electron'
 
@@ -498,11 +499,16 @@ export default defineComponent({
         .catch(e => {
           return {}
         })
-      // 已经通过Electron拿到了最新cookie并写入了配置文件中, 因此不需要再填写配置文件了
-      if (this.status.remoteVersionConfig.version > currentVersion) {
+
+      // 远程端口返回值不正确则不需要继续比较
+      let remoteVersion = `${this.status.remoteVersionConfig.version}`
+      if (semver.valid(remoteVersion === null)) {
+        ElMessageBox.alert(`当前已是最新版 => ${remoteVersion}`)
+      }
+      if (semver.lt(packageConfig.version, remoteVersion)) {
         this.status.showUpgradeInfo = true
       } else {
-        ElMessageBox.alert(`当前已是最新版 => ${this.status.remoteVersionConfig.version}`)
+        ElMessageBox.alert(`当前已是最新版 => ${remoteVersion}`)
       }
     },
     handleCloseDialog() {
