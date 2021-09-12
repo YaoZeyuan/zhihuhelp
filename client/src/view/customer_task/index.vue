@@ -207,13 +207,14 @@ import querystring from "query-string";
 import { TypeTaskConfig } from "./task_type";
 import packageConfig from "~/client/../package.json";
 
-import { Task, ipcRenderer, remote,shell } from "electron";
+import { Task, ipcRenderer, shell } from "electron";
 
 let currentVersion = parseFloat(packageConfig.version);
 
 let TaskConfigType = TypeTaskConfig;
 
-let pathConfig = remote.getGlobal("pathConfig");
+let pathConfigStr = ipcRenderer.sendSync("getPathConfig");
+let pathConfig = JSON.parse(pathConfigStr)
 
 const TaskType = {
   用户提问过的所有问题: "author-ask-question" as const,

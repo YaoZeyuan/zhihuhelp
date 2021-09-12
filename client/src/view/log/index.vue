@@ -16,8 +16,9 @@ import fs from "fs";
 import util from "~/client/src/library/util";
 
 import electron from "electron";
-let { ipcRenderer, remote } = electron;
-let pathConfig = remote.getGlobal("pathConfig");
+let { ipcRenderer } = electron;
+let pathConfigStr = ipcRenderer.sendSync("getPathConfig");
+let pathConfig = JSON.parse(pathConfigStr)
 
 export default defineComponent({
   name: "dashboard",
