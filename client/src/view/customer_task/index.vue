@@ -493,7 +493,7 @@ export default defineComponent({
       this.status.remoteVersionConfig = await http
         .asyncGet(checkUpgradeUri, {
           params: {
-            now: new Date().toISOString,
+            now: new Date().toISOString(),
           },
         })
         .catch(e => {
