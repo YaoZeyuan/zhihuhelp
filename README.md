@@ -6,7 +6,7 @@
 
 ## 使用说明
 
-1.  下载软件安装包[Windows 版](https://pan.baidu.com/s/1trVMD8XdwsR_uR-_b6Olzw)/[Mac 版](https://pan.baidu.com/s/1CaTrUGAcBjEbsMN39-4iaw), 双击安装
+1.  [下载软件安装包](https://www.yaozeyuan.online/zhihuhelp), 双击安装
 2.  在`任务输入框`中输入待抓取的网址信息
 3.  点击`开始执行`按钮
 4.  执行完毕后会打开电子书所在文件夹, 使用**多看阅读**或 Win10 下双击使用 Edge 浏览器打开均可
@@ -336,17 +336,3 @@
 # 功能建议
 
 欢迎通过[issue](https://github.com/YaoZeyuan/zhihuhelp/issues)提建议
-
-# 支持作者
-
-[致谢列表](https://api.bookflaneur.cn/zhihuhelp/thank_you/list)
-
-# todo
-
-1.  知乎目前确实会 ban ip , 考虑降低请求频率/自动识别验证码
-    1.  大约连续访问 5000 次左右会 ban ip, 出验证码
-    2.  区分 ban ip 和接口请求失败的不同
-2.  ✔ 处理图片 cdn 不稳定的问题
-3.  ✔ 为什么对每个回答要单独调用 api 接口, 不能批量请求?
-4.  在只有一个 url 的时候, 能否自动生成电子书标题?
-5.  前端构建脚本需要重新写. 基于 vite 构建, 而非 webpack
