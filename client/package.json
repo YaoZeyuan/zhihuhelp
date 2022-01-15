@@ -11,7 +11,7 @@
     "builtin-modules": "^3.2.0",
     "element-plus": "^1.1.0-beta.7",
     "semver": "^7.3.5",
-    "shelljs": "^0.8.4",
+    "shelljs": "^0.8.5",
     "vite-plugin-commonjs-externals": "^0.1.1",
     "vue": "^3.2.6"
   },
