@@ -60,7 +60,7 @@
     "@adonisjs/ace": "^5.0.8",
     "@types/sharp": "^0.25.0",
     "archiver": "^3.0.0",
-    "async": "^2.6.0",
+    "async": "^2.6.4",
     "atob": "^2.1.2",
     "axios": "^0.18.0",
     "dotenv": "^4.0.0",
