@@ -266,9 +266,9 @@
     1.  编译指南: https://www.cnblogs.com/DonaHero/p/9809325.html
     2.  流程
         1.  Windows 用户
-            1.  安装[VS 2015 社区版](http://download.microsoft.com/download/B/4/8/B4870509-05CB-447C-878F-2F80E4CB464C/vs2015.com_chs.iso), 是的你没看错
-            2.  文件-新建项目-Visual C++ -> 选择 安装 vs2015 所需的 C++开发环境
-            3.  好了一个小时过去了
+            1.  安装 Python3, 第一步时勾选`添加Python到Path`, 如果未勾选, 可以重装一遍
+            2.  安装[VS 2022 社区版](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false)
+            3.  文件-新建项目-Visual C++ -> 选择 安装 vs2022 所需的 C++开发环境
             4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成 sqlite3 之后, 就可以启动 GUI 界面了
         2.  Mac 用户
             1.  我没有 mac 谢谢
