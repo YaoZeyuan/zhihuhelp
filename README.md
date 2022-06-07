@@ -332,6 +332,7 @@
         npm config set disturl https://npm.taobao.org/dist
         npm config set electron_mirror https://npm.taobao.org/mirrors/electron/
         ```
+    4.  如果 sharp 无法安装, 可以尝试使用`npm install`进行安装
 
 # 功能建议
 
