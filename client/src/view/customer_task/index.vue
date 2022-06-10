@@ -293,7 +293,7 @@ export default defineComponent({
     let taskConfig: TypeTaskConfig.Record = {
       configList: [],
       imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
-      maxQuestionOrArticleInBook: 1000,
+      maxQuestionOrArticleInBook: 10000,
       orderByList: [
         {
           orderBy: TaskConfigType.CONST_Order_By_创建时间,
@@ -336,7 +336,7 @@ export default defineComponent({
       configList: [],
       imageQuilty: TaskConfigType.CONST_Image_Quilty_高清,
       bookTitle: '自定义知乎回答集锦',
-      maxQuestionOrArticleInBook: 1000,
+      maxQuestionOrArticleInBook: 10000,
       orderByList: [
         {
           orderBy: TaskConfigType.CONST_Order_By_创建时间,
