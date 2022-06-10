@@ -8,6 +8,7 @@
         <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
         <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
         <el-button type="primary" @click="asyncCheckUpdate" round>检查更新</el-button>
+        <el-button type="danger" @click="asyncDevtoolsClearAllSessionStorage" round>注销登录</el-button>
       </el-col>
     </el-row>
     <el-card>
@@ -510,6 +511,10 @@ export default defineComponent({
       } else {
         ElMessageBox.alert(`当前已是最新版 => ${remoteVersion}`)
       }
+    },
+    async asyncDevtoolsClearAllSessionStorage() {
+      ipcRenderer.sendSync('devtools-clear-all-session-storage')
+      ElMessageBox.alert(`注销成功, 请重新登录知乎`)
     },
     handleCloseDialog() {
       this.status.showUpgradeInfo = false

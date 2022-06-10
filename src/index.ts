@@ -29,7 +29,7 @@ function createWindow() {
           {
             label: 'Quit',
             accelerator: 'Command+Q',
-            click: function () {
+            click: function() {
               app.quit()
             },
           },
@@ -89,13 +89,13 @@ function createWindow() {
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
-    let targetPath = path.resolve(__dirname, "client", "index.html")
+    let targetPath = path.resolve(__dirname, 'client', 'index.html')
     mainWindow.loadFile(targetPath)
     // mainWindow.webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
+  mainWindow.on('closed', function() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
@@ -131,7 +131,7 @@ async function asyncUpdateCookie() {
 app.on('ready', createWindow)
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', function() {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
@@ -139,7 +139,7 @@ app.on('window-all-closed', function () {
   }
 })
 
-app.on('activate', function () {
+app.on('activate', function() {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
@@ -186,12 +186,21 @@ ipcMain.on('startCustomerTask', async event => {
   isRunning = false
 })
 
-
-ipcMain.on("get-task-default-title", async (event, taskType, taskId: string) => {
+ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => {
   await asyncUpdateCookie()
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
   event.returnValue = title
+  return
+})
+
+// 清空所有登录信息
+ipcMain.on('devtools-clear-all-session-storage', async event => {
+  await session.defaultSession.clearCache()
+  await session.defaultSession.clearStorageData()
+  await session.defaultSession.clearHostResolverCache()
+
+  event.returnValue = true
   return
 })
 
