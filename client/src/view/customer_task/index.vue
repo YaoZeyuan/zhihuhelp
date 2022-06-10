@@ -514,7 +514,9 @@ export default defineComponent({
     },
     async asyncDevtoolsClearAllSessionStorage() {
       ipcRenderer.sendSync('devtools-clear-all-session-storage')
-      ElMessageBox.alert(`注销成功, 请重新登录知乎`)
+      await ElMessageBox.alert(`注销成功, 请重新登录知乎`)
+      // 注销完成后刷新页面
+      location.reload()
     },
     handleCloseDialog() {
       this.status.showUpgradeInfo = false
