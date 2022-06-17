@@ -1003,10 +1003,10 @@
     ajv "^6.1.0"
     ajv-keywords "^3.1.0"
 
-"@electron/get@^1.0.1":
-  version "1.13.0"
-  resolved "https://registry.nlark.com/@electron/get/download/@electron/get-1.13.0.tgz#95c6bcaff4f9a505ea46792424f451efea89228c"
-  integrity sha1-lca8r/T5pQXqRnkkJPRR7+qJIow=
+"@electron/get@^1.13.0":
+  version "1.14.1"
+  resolved "https://registry.npmmirror.com/@electron/get/-/get-1.14.1.tgz#16ba75f02dffb74c23965e72d617adc721d27f40"
+  integrity sha512-BrZYyL/6m0ZXz/lDxy/nlVhQz+WF+iPS6qXolEU8atw7h6v1aYkjwJZ63m+bJMBTxDE66X+r2tPS4a/8C82sZw==
   dependencies:
     debug "^4.1.1"
     env-paths "^2.2.0"
@@ -1016,7 +1016,7 @@
     semver "^6.2.0"
     sumchecker "^3.0.1"
   optionalDependencies:
-    global-agent "^2.0.2"
+    global-agent "^3.0.0"
     global-tunnel-ng "^2.7.1"
 
 "@nicolo-ribaudo/chokidar-2@2.1.8-no-fsevents.2":
@@ -3131,11 +3131,6 @@ core-js@^2.4.0, core-js@^2.6.5:
   resolved "https://registry.nlark.com/core-js/download/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
   integrity sha1-2TM9+nsGXjR8xWgiGdb2kIWcwuw=
 
-core-js@^3.6.5:
-  version "3.17.3"
-  resolved "https://registry.nlark.com/core-js/download/core-js-3.17.3.tgz?cache=0&sync_timestamp=1631176914291&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fcore-js%2Fdownload%2Fcore-js-3.17.3.tgz#8e8bd20e91df9951e903cabe91f9af4a0895bc1e"
-  integrity sha1-jovSDpHfmVHpA8q+kfmvSgiVvB4=
-
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.npm.taobao.org/core-util-is/download/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
@@ -3872,12 +3867,12 @@ electron-to-chromium@^1.3.811:
   resolved "https://registry.nlark.com/electron-to-chromium/download/electron-to-chromium-1.3.822.tgz?cache=0&sync_timestamp=1630116372049&other_urls=https%3A%2F%2Fregistry.nlark.com%2Felectron-to-chromium%2Fdownload%2Felectron-to-chromium-1.3.822.tgz#7036edc7f669b0aa79e9801dc5f56866c6ddc0b2"
   integrity sha1-cDbtx/ZpsKp56YAdxfVoZsbdwLI=
 
-electron@14.0.0:
-  version "14.0.0"
-  resolved "https://registry.nlark.com/electron/download/electron-14.0.0.tgz?cache=0&sync_timestamp=1631225934654&other_urls=https%3A%2F%2Fregistry.nlark.com%2Felectron%2Fdownload%2Felectron-14.0.0.tgz#a096484bfbf71d87fc0fa85a943a7869d6b9bf94"
-  integrity sha1-oJZIS/v3HYf8D6halDp4ada5v5Q=
+electron@15.5.5:
+  version "15.5.5"
+  resolved "https://registry.npmmirror.com/electron/-/electron-15.5.5.tgz#796b7822bfb2b045b504e40657674f2869361681"
+  integrity sha512-cGS1ueek14WLvLJlJbId3fmqJLvkr7VuBI0hHt6gpKaj8m2iv/NMteRg0deLgwlxjEF6ZGGNerUJW6a96rNq/Q==
   dependencies:
-    "@electron/get" "^1.0.1"
+    "@electron/get" "^1.13.0"
     "@types/node" "^14.6.2"
     extract-zip "^1.0.3"
 
@@ -4719,13 +4714,12 @@ glob@^7.0.0, glob@^7.0.3, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, gl
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-global-agent@^2.0.2:
-  version "2.2.0"
-  resolved "https://registry.nlark.com/global-agent/download/global-agent-2.2.0.tgz#566331b0646e6bf79429a16877685c4a1fbf76dc"
-  integrity sha1-VmMxsGRua/eUKaFod2hcSh+/dtw=
+global-agent@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmmirror.com/global-agent/-/global-agent-3.0.0.tgz#ae7cd31bd3583b93c5a16437a1afe27cc33a1ab6"
+  integrity sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==
   dependencies:
     boolean "^3.0.1"
-    core-js "^3.6.5"
     es6-error "^4.1.1"
     matcher "^3.0.0"
     roarr "^2.15.3"
