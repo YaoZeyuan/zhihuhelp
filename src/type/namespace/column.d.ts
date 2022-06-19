@@ -1,6 +1,6 @@
 declare namespace Column {
   type Record = {
-    updated: 1543830773
+    updated: 1543830773|number
     description: '科学，以玩为本。'
     topics: [
       {
@@ -21,12 +21,12 @@ declare namespace Column {
     is_following: false
     url_token: 'kuangwan'
     id: 'kuangwan'
-    articles_count: 371
+    articles_count: 371|number
     accept_submission: false
     title: '狂丸科学'
     url: 'https://zhuanlan.zhihu.com/kuangwan'
     comment_permission: 'all'
-    created: 1497252346
+    created: 1497252346|number
     image_url: 'https://pic2.zhimg.com/v2-59c79c22006310ae562e83988491fcbb_b.jpg'
     author: {
       is_followed: false
@@ -40,13 +40,13 @@ declare namespace Column {
       name: '狂丸科学'
       is_advertiser: false
       headline: '微信公众号：狂丸科学，获取科学学习资源'
-      gender: 1
+      gender: 1|number
       url: '/people/5f33ef832172f703f4434ca4e2b7a0b4'
       avatar_url: 'https://pic4.zhimg.com/v2-cba887679509294b7b929970e9038056_l.jpg'
       is_org: false
       type: 'people'
     }
-    followers: 18724
+    followers: 18724|number
     type: 'column'
   }
 }

@@ -9,7 +9,7 @@ declare namespace Config {
     downloadUrl: 'http://www.baidu.com'
     releaseAt: '2019年2月11日12点08分'
     releaseNote: ''
-    version: 1
+    version: 1|number
   }
 }
 

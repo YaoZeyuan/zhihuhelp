@@ -1,14 +1,14 @@
 declare namespace Author {
   type Record = {
-    following_count: 46
-    shared_count: 67
+    following_count: 46|number
+    shared_count: 67|number
     included_text: ''
-    pins_count: 0
+    pins_count: 0|number
     is_activity_blocked: false
     is_force_renamed: false
-    lite_favorite_content_count: 0
+    lite_favorite_content_count: 0|number
     headline: '专业填坑'
-    participated_live_count: 2
+    participated_live_count: 2|number
     is_bind_sina: true
     location: [
       {
@@ -21,31 +21,31 @@ declare namespace Author {
         meta: {
           category: 'n_wiki'
           type: 'metapedia'
-          id: 1023602934113759200
+          id: 1023602934113759200|number
         }
         type: 'topic'
         id: '19550828'
       },
     ]
     type: 'people'
-    is_moments_user: 0
-    following_topic_count: 0
+    is_moments_user: 0|number
+    following_topic_count: 0|number
     sina_weibo_url: 'http://weibo.cn/u/1718734760'
     is_active: true
-    answer_count: 6
-    friendly_score: 5
+    answer_count: 6|number
+    friendly_score: 5|number
     is_noti_reset_password: false
     url_token: '404-Page-Not-found'
-    articles_count: 4
+    articles_count: 4|number
     has_daily_recommend_permission: false
     name: '姚泽源'
-    gender: 1
+    gender: 1|number
     is_force_reset_password: false
     sina_weibo_name: 'yaozeyuan93'
     is_locked: false
     phone_no: '183****6262'
-    reactions_count: 0
-    hosted_live_count: 0
+    reactions_count: 0|number
+    hosted_live_count: 0|number
     is_followed: false
     uid: '27865550684160'
     is_hanged: false
@@ -54,7 +54,7 @@ declare namespace Author {
     is_following: false
     marked_answers_text: ''
     account_status: []
-    included_articles_count: 0
+    included_articles_count: 0|number
     education: [
       {
         name: '青岛科技大学'
@@ -66,7 +66,7 @@ declare namespace Author {
         meta: {
           category: 'n_edu'
           type: 'metapedia'
-          id: 1029699836806824000
+          id: 1029699836806824000|number
         }
         type: 'topic'
         id: '19744073'
@@ -94,7 +94,7 @@ declare namespace Author {
           meta: {
             category: 'n_wiki'
             type: 'metapedia'
-            id: 1023614979664003100
+            id: 1023614979664003100|number
           }
           type: 'topic'
           id: '20020079'
@@ -131,7 +131,7 @@ declare namespace Author {
           meta: {
             category: 'n_wiki'
             type: 'metapedia'
-            id: 1023613111357591600
+            id: 1023613111357591600|number
           }
           type: 'topic'
           id: '19606711'
@@ -183,21 +183,21 @@ declare namespace Author {
       ],
     ]
     id: '57842aac37ccd0de3965f9b6e17cb555'
-    favorite_count: 30
-    voteup_count: 1304
-    live_count: 2
+    favorite_count: 30|number
+    voteup_count: 1304|number
+    live_count: 2|number
     is_blocking: false
-    following_columns_count: 14
+    following_columns_count: 14|number
     is_baned: false
     is_enable_signalment: true
     is_enable_watermark: true
-    following_favlists_count: 48
-    favorited_count: 32492
+    following_favlists_count: 48|number
+    favorited_count: 32492|number
     open_ebook_feature: true
-    follower_count: 2953
+    follower_count: 2953|number
     badge: []
     email: '54****@qq.com'
-    draft_count: 0
+    draft_count: 0|number
     infinity: {
       is_activated: true
       url: 'https://www.zhihu.com/zhi?utm_campaign=zhi_three&utm_source=zhihuapp&utm_medium=button'
@@ -213,36 +213,36 @@ declare namespace Author {
       meta: {
         category: 'n_wiki'
         type: 'metapedia'
-        id: 1023603385198465000
+        id: 1023603385198465000|number
       }
       type: 'topic'
       id: '19550517'
     }
     renamed_fullname: ''
-    columns_count: 1
+    columns_count: 1|number
     cover_url: 'https://pic2.zhimg.com/v2-a7ccbbf10686298e23cedec8bdd1b7ef_r.jpg'
-    question_count: 0
+    question_count: 0|number
     url: 'https://api.zhihu.com/people/57842aac37ccd0de3965f9b6e17cb555'
-    created_at: 1337032972
+    created_at: 1337032972|number
     vip_info: {
       is_vip: false
     }
-    included_answers_count: 0
+    included_answers_count: 0|number
     avatar_url: 'http://pic4.zhimg.com/50/dce9dde98c91a4d1e3cb86e627ecca86_s.jpg'
-    following_question_count: 689
-    thanked_count: 561
+    following_question_count: 689|number
+    thanked_count: 561|number
     is_apply_renamed: false
-    independent_articles_count: 0
+    independent_articles_count: 0|number
   }
 
   type Question = {
     question_type: 'normal'
     title: '有没有面向中老年人的正三观媒体？'
     url: 'https://www.zhihu.com/questions/295503169'
-    created: 1537496423
+    created: 1537496423|number
     type: 'question'
-    id: 295503169
-    updated_time: 1537496492
+    id: 295503169|number
+    updated_time: 1537496492|number
   }
 
   type Answer = {
@@ -257,7 +257,7 @@ declare namespace Author {
       is_advertiser: false
       avatar_url: 'https://pic4.zhimg.com/v2-62a3bf35a8f4b07301690b59d91ef582_is.jpg'
       url: 'https://www.zhihu.com/people/69ed13f3ddc662d6ecd8261512117e85'
-      gender: 1
+      gender: 1|number
       badge: [
         {
           type: 'best_answerer'
@@ -268,20 +268,20 @@ declare namespace Author {
       is_org: false
     }
     url: 'https://www.zhihu.com/answers/618283325'
-    id: 618283325
+    id: 618283325|number
     question: {
       question_type: 'normal'
-      created: 1552091859
+      created: 1552091859|number
       url: 'https://www.zhihu.com/questions/315167802'
       title: '5G 时代，客户端运行等编程环境会发生些什么变化？'
       type: 'question'
-      id: 315167802
-      updated_time: 1552533940
+      id: 315167802|number
+      updated_time: 1552533940|number
     }
-    updated_time: 1552177149
+    updated_time: 1552177149|number
     extras: ''
     answer_type: 'answer'
-    created_time: 1552130225
+    created_time: 1552130225|number
     type: 'answer'
     thumbnail: ''
     is_copyable: false
@@ -292,14 +292,14 @@ declare namespace Author {
       is_liked: false
       is_favorited: false
     }
-    updated: 1554523087
-    repin_count: 2
+    updated: 1554523087|number
+    repin_count: 2|number
     tags: []
     admin_closed_comment: false
     meet_reaction_guide_conditions: true
-    like_count: 0
+    like_count: 0|number
     id: '1097830077735231488'
-    reaction_count: 61
+    reaction_count: 61|number
     view_permission: 'all'
     upvoted_followees: []
     is_deleted: false
@@ -308,14 +308,14 @@ declare namespace Author {
       is_blocking: false
       name: '丧心病狂刘老湿'
       headline: '会讲点儿故事，略懂点儿历史，稍有点儿意思。'
-      gender: 1
+      gender: 1|number
       user_type: 'people'
       id: 'dd2a620fbc04bf35f833006745a46e84'
       vip_info: {
         widget: {
           night_mode_url: 'https://pic3.zhimg.com/50/v2-6f3b7cd3f2422c39d07216685d7bee6c_r.png'
           url: 'https://pic1.zhimg.com/50/v2-26f3fde381472751735f607fcd947da3_r.png'
-          id: 12001
+          id: 12001|number
         }
         is_vip: true
         vip_icon: {
@@ -336,12 +336,12 @@ declare namespace Author {
       is_blocked: false
       type: 'people'
       url_token: 'bingo-liu-66'
-      reaction_count: 30039
+      reaction_count: 30039|number
     }
     url: '/pins/1097830077735231488'
-    source_pin_id: 0
-    created: 1554523087
-    comment_count: 22
+    source_pin_id: 0|number
+    created: 1554523087|number
+    comment_count: 22|number
     comments: []
     content: [
       {
@@ -353,8 +353,8 @@ declare namespace Author {
       {
         url: 'https://pic2.zhimg.com/50/v2-e42ce349576557e5a739d2621d518679_qhd.jpg'
         thumbnail: ''
-        width: 4096
-        height: 3072
+        width: 4096|number
+        height: 3072|number
         type: 'image'
         is_gif: false
       },
@@ -368,7 +368,7 @@ declare namespace Author {
   }
 
   type Article = {
-    updated: 1550592417
+    updated: 1550592417|number
     title: '2019, (也不能)导出你的知乎'
     url: 'https://zhuanlan.zhihu.com/p/56977099'
     comment_permission: 'all'
@@ -378,7 +378,7 @@ declare namespace Author {
       name: '姚泽源'
       is_advertiser: false
       url: 'https://www.zhihu.com/people/57842aac37ccd0de3965f9b6e17cb555'
-      gender: 1
+      gender: 1|number
       user_type: 'people'
       headline: '知乎再见'
       avatar_url: 'https://pic2.zhimg.com/v2-da5cb60c7351ec4756c2f6f0983ba99f_is.jpg'
@@ -388,11 +388,11 @@ declare namespace Author {
       id: '57842aac37ccd0de3965f9b6e17cb555'
     }
     excerpt: '从13年第一次看到导出知乎内容的<a href="https://www.zhihu.com/question/21417409/answer/19263304">问答</a>到现在, 6年之后, 官方还是没能提供导出功能. 也罢, 撸袖子自己上吧. <b>update: 响应官方号召</b> 功能如下(并没有):导出你在知乎上赞同过的所有回答和文章导出任意用户的所有知乎回答导出任意收藏夹内的所有回答导出任意话题…'
-    created: 1550434318
+    created: 1550434318|number
     image_url: 'https://pic2.zhimg.com/v2-6bdf5969d09c4de5adf49da2788911bf_r.jpg'
     excerpt_title: ''
     type: 'article'
-    id: 56977099
+    id: 56977099|number
   }
 }
 export default Author

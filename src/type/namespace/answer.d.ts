@@ -1,18 +1,18 @@
 declare namespace Answer {
   type Record = {
-    id: 100898227
+    id: 100898227|number
     type: 'answer'
     answer_type: 'normal'
     question: {
       type: 'question'
-      id: 32314049
+      id: 32314049|number
       title: 'Web 前端怎样入门？'
       question_type: 'normal'
-      created: 1437189815
-      updated_time: 1528027391
+      created: 1437189815|number
+      updated_time: 1528027391|number
       url: 'https://www.zhihu.com/api/v4/questions/32314049'
-      answer_count: 105
-      follower_count: 5073
+      answer_count: 105|number
+      follower_count: 5073|number
       excerpt: 'css+html5+javascript同时学的模式对吗？'
       detail: 'css+html5+javascript同时学的模式对吗？'
       relationship: {
@@ -31,9 +31,9 @@ declare namespace Answer {
       user_type: 'people'
       headline: ''
       badge: []
-      gender: 1
+      gender: 1|number
       is_advertiser: false
-      follower_count: 0
+      follower_count: 0|number
       is_following: false
       is_followed: false
       is_celebrity: false
@@ -43,13 +43,13 @@ declare namespace Answer {
     }
     url: 'https://www.zhihu.com/api/v4/answers/100898227'
     is_collapsed: false
-    created_time: 1463239874
-    updated_time: 1522244512
+    created_time: 1463239874|number
+    updated_time: 1522244512|number
     extras: ''
     is_copyable: false
     is_normal: true
-    voteup_count: 5591
-    comment_count: 212
+    voteup_count: 5591|number
+    comment_count: 212|number
     is_sticky: false
     admin_closed_comment: false
     comment_permission: 'all'
@@ -79,7 +79,7 @@ declare namespace Answer {
         status: ''
         description: ''
         reason: ''
-        reason_id: 0
+        reason_id: 0|number
         note: ''
       }
       url: ''
@@ -88,8 +88,8 @@ declare namespace Answer {
     reward_info: {
       can_open_reward: false
       is_rewardable: false
-      reward_member_count: 0
-      reward_total_money: 0
+      reward_member_count: 0|number
+      reward_total_money: 0|number
       tagline: ''
     }
     relationship: {
@@ -99,7 +99,7 @@ declare namespace Answer {
       is_thanked: false
       is_recognized: false
       once_recognized: false
-      voting: 0
+      voting: 0|number
       upvoted_followees: []
     }
   }
@@ -108,10 +108,10 @@ declare namespace Answer {
     question_type: 'normal'
     title: '有哪些免费开放且收录城市较完整的天气 API 接口？'
     url: 'https://www.zhihu.com/questions/20521716'
-    created: 1349832855
+    created: 1349832855|number
     type: 'question'
-    id: 20521716
-    updated_time: 1450363792
+    id: 20521716|number
+    updated_time: 1450363792|number
   }
 }
 

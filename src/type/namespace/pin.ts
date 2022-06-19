@@ -11,18 +11,18 @@ declare namespace Pin {
         is_liked: false
         is_favorited: false
       }
-      updated: 1564934770
-      repin_count: 1558
+      updated: 1564934770|number
+      repin_count: 1558|number
       likers: []
       tags: ['#我和机构号锁了#']
       admin_closed_comment: false
       meet_reaction_guide_conditions: true
-      like_count: 0
+      like_count: 0|number
       top_reactions: {
-        like: 270
+        like: 270|number
       }
       id: '1141499842592423936'
-      reaction_count: 270
+      reaction_count: 270|number
       view_permission: 'all'
       is_deleted: false
       author: {
@@ -46,8 +46,8 @@ declare namespace Pin {
         avatar_url: 'https://pic1.zhimg.com/50/v2-35355de49be8cb27a4e54bd134ef31ab_l.jpg'
         is_following: false
         url: '/people/a6756d2515bb9c23170424b57630a2aa'
-        gender: 0
-        follower_count: 87092
+        gender: 0|number
+        follower_count: 87092|number
         is_blocked: false
         badge: [
           {
@@ -56,12 +56,12 @@ declare namespace Pin {
           },
         ]
         url_token: 'St.Pancras'
-        reaction_count: 646
+        reaction_count: 646|number
       }
       url: '/pins/1141499842592423936'
-      source_pin_id: 0
-      created: 1564934770
-      comment_count: 1410
+      source_pin_id: 0|number
+      created: 1564934770|number
+      comment_count: 1410|number
       comments: []
       content: [
         {
@@ -73,8 +73,8 @@ declare namespace Pin {
         {
           url: 'https://pic1.zhimg.com/50/v2-6f5fc80a21c7f9642da166ea21a69146_qhd.jpg'
           thumbnail: ''
-          width: 750
-          height: 10451
+          width: 750|number
+          height: 10451|number
           type: 'image'
           is_gif: false
         },
@@ -89,18 +89,18 @@ declare namespace Pin {
       content_html: '<div><a class="hash_tag" href="https://www.zhihu.com/pin/special/1140593814099091456">#我和机构号锁了#</a> 官宣：机构号在知乎已经陪伴大家三年啦！在这样一个超有仪式感的日子里，63 家机构号集体撒糖～带着爱意满满的大礼来啦～<br><br>转发这条想法，即有机会成为机构号「团宠」，获得「捧在手心大礼包」！<br><br>幸运的小手赶快猛戳「转发」吧～详情查看下方攻略！</div><img src="https://pic1.zhimg.com/50/v2-6f5fc80a21c7f9642da166ea21a69146_b.jpg" data-rawwidth="750" data-rawheight="10451" class="origin_image zh-lightbox-thumb" width="750" data-original="https://pic1.zhimg.com/50/v2-6f5fc80a21c7f9642da166ea21a69146_r.jpg">'
       is_admin_close_repin: false
     }
-    updated: 1564965116
-    repin_count: 9
+    updated: 1564965116|number
+    repin_count: 9|number
     likers: []
     tags: []
     admin_closed_comment: false
     meet_reaction_guide_conditions: false
-    like_count: 0
+    like_count: 0|number
     top_reactions: {
-      like: 18
+      like: 18|number
     }
     id: '1141627123784638464'
-    reaction_count: 18
+    reaction_count: 18|number
     view_permission: 'all'
     is_deleted: false
     author: {
@@ -108,14 +108,14 @@ declare namespace Pin {
       is_blocking: false
       name: '丧心病狂刘老湿'
       headline: '会讲点儿故事，略懂点儿历史，稍有点儿意思。'
-      gender: 1
+      gender: 1|number
       user_type: 'people'
       id: 'dd2a620fbc04bf35f833006745a46e84'
       vip_info: {
         widget: {
           night_mode_url: 'https://pic3.zhimg.com/50/v2-6f3b7cd3f2422c39d07216685d7bee6c_r.png'
           url: 'https://pic1.zhimg.com/50/v2-26f3fde381472751735f607fcd947da3_r.png'
-          id: 12001
+          id: 12001|number
         }
         is_vip: true
         vip_icon: {
@@ -133,34 +133,34 @@ declare namespace Pin {
       avatar_url: 'https://pic4.zhimg.com/50/v2-42465aafac11e5439225008a987e0034_l.jpg'
       is_following: true
       url: '/people/dd2a620fbc04bf35f833006745a46e84'
-      follower_count: 153532
+      follower_count: 153532|number
       is_blocked: false
       type: 'people'
       url_token: 'bingo-liu-66'
-      reaction_count: 37300
+      reaction_count: 37300|number
     }
     url: '/pins/1141627123784638464'
-    source_pin_id: 1141499842592424000
-    created: 1564965116
-    comment_count: 10
+    source_pin_id: 1141499842592424000|number
+    created: 1564965116|number
+    comment_count: 10|number
     comments: []
     repin: {
       virtuals: {
         is_liked: false
         is_favorited: false
       }
-      updated: 1564934770
-      repin_count: 1558
+      updated: 1564934770|number
+      repin_count: 1558|number
       likers: []
       tags: ['#我和机构号锁了#']
       admin_closed_comment: false
       meet_reaction_guide_conditions: true
-      like_count: 0
+      like_count: 0|number
       top_reactions: {
-        like: 270
+        like: 270|number
       }
       id: '1141499842592423936'
-      reaction_count: 270
+      reaction_count: 270|number
       view_permission: 'all'
       is_deleted: false
       author: {
@@ -184,8 +184,8 @@ declare namespace Pin {
         avatar_url: 'https://pic1.zhimg.com/50/v2-35355de49be8cb27a4e54bd134ef31ab_l.jpg'
         is_following: false
         url: '/people/a6756d2515bb9c23170424b57630a2aa'
-        gender: 0
-        follower_count: 87092
+        gender: 0|number
+        follower_count: 87092|number
         is_blocked: false
         badge: [
           {
@@ -194,12 +194,12 @@ declare namespace Pin {
           },
         ]
         url_token: 'St.Pancras'
-        reaction_count: 646
+        reaction_count: 646|number
       }
       url: '/pins/1141499842592423936'
-      source_pin_id: 0
-      created: 1564934770
-      comment_count: 1410
+      source_pin_id: 0|number
+      created: 1564934770|number
+      comment_count: 1410|number
       comments: []
       content: [
         {
@@ -211,8 +211,8 @@ declare namespace Pin {
         {
           url: 'https://pic1.zhimg.com/50/v2-6f5fc80a21c7f9642da166ea21a69146_qhd.jpg'
           thumbnail: ''
-          width: 750
-          height: 10451
+          width: 750|number
+          height: 10451|number
           type: 'image'
           is_gif: false
         },
@@ -268,14 +268,14 @@ declare namespace Pin {
       is_blocking: false
       name: '丧心病狂刘老湿'
       headline: '会讲点儿故事，略懂点儿历史，稍有点儿意思。'
-      gender: 1
+      gender: 1|number
       user_type: 'people'
       id: 'dd2a620fbc04bf35f833006745a46e84'
       vip_info: {
         widget: {
           night_mode_url: 'https://pic3.zhimg.com/50/v2-6f3b7cd3f2422c39d07216685d7bee6c_r.png'
           url: 'https://pic1.zhimg.com/50/v2-26f3fde381472751735f607fcd947da3_r.png'
-          id: 12001
+          id: 12001|number
         }
         is_vip: true
         vip_icon: {
@@ -293,16 +293,16 @@ declare namespace Pin {
       avatar_url: 'https://pic2.zhimg.com/50/d6dc9e33e_l.jpg'
       is_following: true
       url: '/people/dd2a620fbc04bf35f833006745a46e84'
-      follower_count: 111779
+      follower_count: 111779|number
       is_blocked: false
       type: 'people'
       url_token: 'bingo-liu-66'
-      reaction_count: 30039
+      reaction_count: 30039|number
     }
     url: '/pins/1097830077735231488'
-    source_pin_id: 0
-    created: 1554523087
-    comment_count: 22
+    source_pin_id: 0|number
+    created: 1554523087|number
+    comment_count: 22|number
     comments: []
     content: [
       {
@@ -314,8 +314,8 @@ declare namespace Pin {
       {
         url: 'https://pic2.zhimg.com/50/v2-e42ce349576557e5a739d2621d518679_qhd.jpg'
         thumbnail: ''
-        width: 4096
-        height: 3072
+        width: 4096|number
+        height: 3072|number
         type: 'image'
         is_gif: false
       },
