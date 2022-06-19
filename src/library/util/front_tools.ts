@@ -89,7 +89,7 @@ export async function asyncGetTaskDefaultTitle(taskType: TypeTaskConfig.TaskType
         case ConstTaskConfig.CONST_Task_Type_收藏夹:
             {
                 let info = await CollectionApi.asyncGetCollectionInfo(taskId)
-                let name = info?.title || taskId
+                let name = info?.collection?.title || taskId
                 bookTitle = `收藏夹_${name}(${taskId})回答合集`
             }
             break

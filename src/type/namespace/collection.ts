@@ -1,5 +1,6 @@
 declare namespace Collection {
     type Info = {
+        collection:{
         "description": "我喜欢的内容，管他对不对呢= =",
         "creator": {
             "is_followed": false,
@@ -31,6 +32,7 @@ declare namespace Collection {
         "updated_time": 1549525381,
         "type": "collection",
         "id": 32755791
+    }
     }
     type AnswerExcerpt = {
         "question": {
