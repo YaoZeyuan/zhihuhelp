@@ -75,7 +75,6 @@
       "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "runtimeExecutable": "C:/Users/yaoze/AppData/Roaming/nvm/v14.0.0/node.exe"
     },
     {
       "name": "Debug Electron",
