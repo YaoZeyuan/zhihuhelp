@@ -53,7 +53,7 @@ declare namespace Pin {
           {
             type: 'identity'
             description: '知乎 官方帐号'
-          }
+          },
         ]
         url_token: 'St.Pancras'
         reaction_count: 646
@@ -77,7 +77,7 @@ declare namespace Pin {
           height: 10451
           type: 'image'
           is_gif: false
-        }
+        },
       ]
       state: 'normal'
       tag_specials: {
@@ -191,7 +191,7 @@ declare namespace Pin {
           {
             type: 'identity'
             description: '知乎 官方帐号'
-          }
+          },
         ]
         url_token: 'St.Pancras'
         reaction_count: 646
@@ -215,7 +215,7 @@ declare namespace Pin {
           height: 10451
           type: 'image'
           is_gif: false
-        }
+        },
       ]
       state: 'normal'
       tag_specials: {
@@ -233,7 +233,7 @@ declare namespace Pin {
         fold_type: 'raw'
         own_text: '转一记，假如我中奖了的话，我会在转发我这条想法的朋友里抽一个把奖品转给他……'
         type: 'text'
-      }
+      },
     ]
     state: 'normal'
     tag_specials: {}
@@ -249,19 +249,19 @@ declare namespace Pin {
       is_liked: false
       is_favorited: false
     }
-    updated: 1554523087
-    repin_count: 2
+    updated: 1554523087 | number
+    repin_count: 2 | number
     likers: []
     tags: []
     admin_closed_comment: false
     meet_reaction_guide_conditions: true
-    like_count: 0
+    like_count: 0 | number
     top_reactions: {
-      like: 61
+      like: 61 | number
     }
-    id: '1097830077735231488'
-    reaction_count: 61
-    view_permission: 'all'
+    id: '1097830077735231488' | string
+    reaction_count: 61 | number
+    view_permission: 'all' | string
     is_deleted: false
     author: {
       is_followed: false
@@ -318,7 +318,7 @@ declare namespace Pin {
         height: 3072
         type: 'image'
         is_gif: false
-      }
+      },
     ]
     state: 'normal'
     tag_specials: {}
