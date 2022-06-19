@@ -4,13 +4,7 @@ import _ from 'lodash'
 
 class Answer extends Base {
   static TABLE_NAME = `Answer`
-  static TABLE_COLUMN = [
-    `id`,
-    `author_url_token`,
-    `author_id`,
-    `question_id`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`id`, `author_url_token`, `author_id`, `question_id`, `raw_json`]
 
   /**
    * 从数据库中获取用户信息
@@ -21,11 +15,12 @@ class Answer extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('author_url_token', '=', urlToken)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
 
     let answerRecordList = []
     for (let record of recordList) {
-
       let answerRecordJson = _.get(record, ['raw_json'], '{}')
       let answerRecord
       try {
@@ -52,7 +47,7 @@ class Answer extends Base {
       author_url_token,
       author_id,
       question_id,
-      raw_json
+      raw_json,
     })
     return
   }

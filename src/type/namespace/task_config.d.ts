@@ -81,7 +81,6 @@ declare namespace TaskConfig {
     orderBy: OrderBy
     order: Order
   }
-
 }
 
 export default TaskConfig

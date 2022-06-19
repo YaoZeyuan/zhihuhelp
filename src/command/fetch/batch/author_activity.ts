@@ -36,10 +36,7 @@ class BatchFetchAuthorActivity extends Base {
           `经检查, 用户${name}(${urlToken})在${moment.unix(checkAt).format(DATE_FORMAT.DISPLAY_BY_SECOND)}前有活动记录`,
         )
         this.log(`检查完毕`)
-        startAt = moment
-          .unix(checkAt)
-          .startOf(DATE_FORMAT.UNIT.MONTH)
-          .unix()
+        startAt = moment.unix(checkAt).startOf(DATE_FORMAT.UNIT.MONTH).unix()
         break
       } else {
         this.log(
@@ -48,10 +45,7 @@ class BatchFetchAuthorActivity extends Base {
             .format(DATE_FORMAT.DISPLAY_BY_SECOND)}前没有活动记录`,
         )
         this.log(`向后推一个月, 继续检查`)
-        let newCheckAt = moment
-          .unix(checkAt)
-          .add(1, DATE_FORMAT.UNIT.MONTH)
-          .unix()
+        let newCheckAt = moment.unix(checkAt).add(1, DATE_FORMAT.UNIT.MONTH).unix()
         checkAt = newCheckAt
       }
       loopCounter = loopCounter + 1
@@ -67,10 +61,7 @@ class BatchFetchAuthorActivity extends Base {
     )
     for (let fetchAt = startAt; startAt <= fetchAt && fetchAt <= endAt; ) {
       let fetchStartAt = fetchAt
-      let fetchEndAt = moment
-        .unix(fetchAt)
-        .endOf(DATE_FORMAT.UNIT.MONTH)
-        .unix()
+      let fetchEndAt = moment.unix(fetchAt).endOf(DATE_FORMAT.UNIT.MONTH).unix()
       fetchAt = fetchEndAt + 1
       await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
     }

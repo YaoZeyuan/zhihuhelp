@@ -8,9 +8,7 @@ class Activity extends Base {
   static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.DISPLAY_BY_SECOND)
     .startOf(DATE_FORMAT.UNIT.MONTH)
     .unix() // 知乎活动开始时间
-  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment()
-    .endOf(DATE_FORMAT.UNIT.MONTH)
-    .unix() // 知乎活动结束时间
+  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment().endOf(DATE_FORMAT.UNIT.MONTH).unix() // 知乎活动结束时间
 
   static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP' // 点赞
   static readonly VERB_MEMBER_FOLLOW_COLLECTION = 'MEMBER_FOLLOW_COLLECTION' // 关注收藏夹
@@ -42,7 +40,12 @@ class Activity extends Base {
    * 从数据库中获取指定用户指定类别的行为列表
    * @param id
    */
-  static async asyncGetActivityList(urlToken: string, startAt: number, endAt: number, verbList = [Activity.VERB_ANSWER_VOTE_UP, Activity.VERB_MEMBER_VOTEUP_ARTICLE]): Promise<Array<TypeActivity.Record>> {
+  static async asyncGetActivityList(
+    urlToken: string,
+    startAt: number,
+    endAt: number,
+    verbList = [Activity.VERB_ANSWER_VOTE_UP, Activity.VERB_MEMBER_VOTEUP_ARTICLE],
+  ): Promise<Array<TypeActivity.Record>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -74,7 +77,10 @@ class Activity extends Base {
    * 从数据库中获取指定用户指定类别的目标id列表
    * @param id
    */
-  static async asyncGetAllActivityTargetIdList(urlToken: string, verbType = Activity.VERB_ANSWER_VOTE_UP): Promise<Array<string>> {
+  static async asyncGetAllActivityTargetIdList(
+    urlToken: string,
+    verbType = Activity.VERB_ANSWER_VOTE_UP,
+  ): Promise<Array<string>> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)

@@ -7,12 +7,11 @@ class Article extends Base {
    * 获取单篇文章详情
    * @param articleId
    */
-  static async asyncGetArticle (articleId: number): Promise<TypeArticle.Record> {
+  static async asyncGetArticle(articleId: number): Promise<TypeArticle.Record> {
     const baseUrl = `https://www.zhihu.com/api/v4/articles/${articleId}`
-    const config = {
-    }
+    const config = {}
     const record = await Base.http.get(baseUrl, {
-      params: config
+      params: config,
     })
     const articleRecord = record
     return articleRecord

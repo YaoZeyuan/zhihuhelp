@@ -12,7 +12,12 @@ class Answer extends Base {
    * @param limit
    * @param sortBy
    */
-  static async asyncGetAutherAnswerList(url_token: string, offset: number = 0, limit: number = 20, sortBy: string = Base.CONST_SORT_BY_CREATED): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAutherAnswerList(
+    url_token: string,
+    offset: number = 0,
+    limit: number = 20,
+    sortBy: string = Base.CONST_SORT_BY_CREATED,
+  ): Promise<Array<TypeAnswer.Record>> {
     return AuthorApi.asyncGetAutherAnswerList(url_token, offset, limit, sortBy)
   }
 

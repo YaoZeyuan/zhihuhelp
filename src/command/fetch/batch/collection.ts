@@ -33,7 +33,7 @@ class BatchFetchCollection extends Base {
     for (let answer of answerList) {
       // 传递给外部
       answerIdList.push(`${answer.id}`)
-      await MCollection.asyncReplaceColumnAnswerExcerpt(id, answer).catch(e => {
+      await MCollection.asyncReplaceColumnAnswerExcerpt(id, answer).catch((e) => {
         console.log('catch error')
         console.log(e)
       })

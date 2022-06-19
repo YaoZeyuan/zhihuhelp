@@ -130,8 +130,7 @@ class Author extends Base {
       is_subscribing: false,
       infinity: {
         is_activated: true,
-        url:
-          'https://www.zhihu.com/zhi/people/821832649168535552/conversation?utm_campaign=zhi_three\u0026utm_source=zhihuapp\u0026utm_medium=button',
+        url: 'https://www.zhihu.com/zhi/people/821832649168535552/conversation?utm_campaign=zhi_three\u0026utm_source=zhihuapp\u0026utm_medium=button',
         show_my_infinity_entrance: true,
       },
       mcn_user_info: {

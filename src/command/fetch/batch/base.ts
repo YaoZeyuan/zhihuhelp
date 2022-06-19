@@ -31,7 +31,7 @@ class BaseBatchFetch {
         .then(() => {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
         })
-        .catch(e => {
+        .catch((e) => {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
         })
     }

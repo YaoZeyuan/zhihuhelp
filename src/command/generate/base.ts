@@ -314,7 +314,7 @@ class FetchBase extends Base {
       return processedHtml
     }
     content = removeNoScript(content)
-    let tinyContentList = content.split(`<div data-key='single-page'`).map(value => {
+    let tinyContentList = content.split(`<div data-key='single-page'`).map((value) => {
       return replaceImgSrc(value)
     })
     content = tinyContentList.join(`<div data-key='single-page'`)
@@ -360,9 +360,7 @@ class FetchBase extends Base {
         }
 
         this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张图片为Latex-svg图片, 将之转换为png格式`)
-        await sharp(imgItem.downloadCacheUri)
-          .png()
-          .toFile(imgItem.fileCacheUri)
+        await sharp(imgItem.downloadCacheUri).png().toFile(imgItem.fileCacheUri)
         this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张Latex-svg图片转换完毕`)
       }
     }
@@ -384,14 +382,14 @@ class FetchBase extends Base {
       for (let prefix of Const_Zhihu_Img_CDN_List) {
         if (imgContent === '') {
           tryImgSrc = rawSrc.replace(Const_Zhihu_Img_Prefix_Reg, prefix)
-          imgContent = await http.downloadImg(tryImgSrc).catch(e => {
+          imgContent = await http.downloadImg(tryImgSrc).catch((e) => {
             return ''
           })
         }
       }
     } else {
       // 非zhimg文件直接下载
-      imgContent = await http.downloadImg(src).catch(e => {
+      imgContent = await http.downloadImg(src).catch((e) => {
         return ''
       })
     }

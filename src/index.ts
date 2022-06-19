@@ -29,7 +29,7 @@ function createWindow() {
           {
             label: 'Quit',
             accelerator: 'Command+Q',
-            click: function() {
+            click: function () {
               app.quit()
             },
           },
@@ -95,7 +95,7 @@ function createWindow() {
   }
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', function() {
+  mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
@@ -131,7 +131,7 @@ async function asyncUpdateCookie() {
 app.on('ready', createWindow)
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function() {
+app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
@@ -139,7 +139,7 @@ app.on('window-all-closed', function() {
   }
 })
 
-app.on('activate', function() {
+app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
@@ -147,12 +147,12 @@ app.on('activate', function() {
   }
 })
 
-ipcMain.on('openOutputDir', event => {
+ipcMain.on('openOutputDir', (event) => {
   // 打开输出文件夹
   shell.showItemInFolder(PathConfig.outputPath)
 })
 
-ipcMain.on('getPathConfig', event => {
+ipcMain.on('getPathConfig', (event) => {
   // 获取pathConfig
 
   let obj: any = {}
@@ -166,7 +166,7 @@ ipcMain.on('getPathConfig', event => {
   return
 })
 
-ipcMain.on('startCustomerTask', async event => {
+ipcMain.on('startCustomerTask', async (event) => {
   if (isRunning) {
     event.returnValue = '目前尚有任务执行, 请稍后'
     return
@@ -195,7 +195,7 @@ ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => 
 })
 
 // 清空所有登录信息
-ipcMain.on('devtools-clear-all-session-storage', async event => {
+ipcMain.on('devtools-clear-all-session-storage', async (event) => {
   await session.defaultSession.clearCache()
   await session.defaultSession.clearStorageData()
   await session.defaultSession.clearHostResolverCache()

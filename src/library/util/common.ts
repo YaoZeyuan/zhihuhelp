@@ -21,10 +21,10 @@ class Common {
       Common.promiseList = []
       logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
       // 模拟allSettled方法, 需要所有任务都完成后才能继续
-      let wrappedPromises = taskList.map(p =>
+      let wrappedPromises = taskList.map((p) =>
         Promise.resolve(p).then(
-          val => ({ state: 'fulfilled', value: val }),
-          err => ({ state: 'rejected', reason: err }),
+          (val) => ({ state: 'fulfilled', value: val }),
+          (err) => ({ state: 'rejected', reason: err }),
         ),
       )
       await Promise.all(wrappedPromises)
@@ -51,7 +51,7 @@ class Common {
    * @param {number} ms
    */
   static async asyncSleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   static getUuid() {
@@ -73,8 +73,7 @@ class Common {
         JSON.stringify(
           {
             request: {
-              ua:
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+              ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
               cookie: '',
             },
           },
@@ -90,8 +89,7 @@ class Common {
     } catch (e) {
       config = {
         request: {
-          ua:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+          ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
           cookie: '',
         },
       }

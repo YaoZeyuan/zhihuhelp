@@ -33,7 +33,7 @@ class BatchFetchTopic extends Base {
     for (let answer of answerList) {
       // 传递给外部
       answerIdList.push(`${answer.id}`)
-      await MTopic.asyncReplaceTopicAnswer(topicId, answer).catch(e => {
+      await MTopic.asyncReplaceTopicAnswer(topicId, answer).catch((e) => {
         console.log('catch error')
         console.log(e)
       })

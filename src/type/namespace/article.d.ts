@@ -6,7 +6,7 @@ declare namespace Article {
         type: 'topic'
         id: '19590813'
         name: '前端入门'
-      }
+      },
     ]
     excerpt: '本来想写很多东西，但认真想想还是不浪费大家时间了。直接上结论： 如果真的有什么计算机名著可以只看目录的话，09年出版的《高性能网站建设进阶》显然算一本。09年在前端历史上是什么概念？直到09年5月，Chrome都还没有Mac版如果你不是<strong>专业</strong>的前端工程师，…'
     admin_closed_comment: false
@@ -52,7 +52,7 @@ declare namespace Article {
         state: 'accepted'
         type: 'first_publish'
         id: 455405
-      }
+      },
     ]
     id: 23141946
     commercial_info: {

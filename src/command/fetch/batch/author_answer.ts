@@ -6,7 +6,6 @@ import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import CommonUtil from '~/src/library/util/common'
 import RequestConfig from '~/src/config/request'
 
-
 class BatchFetchAuthorAnswer extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的数据`)

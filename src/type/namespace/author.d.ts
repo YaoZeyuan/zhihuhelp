@@ -25,7 +25,7 @@ declare namespace Author {
         }
         type: 'topic'
         id: '19550828'
-      }
+      },
     ]
     type: 'people'
     is_moments_user: 0
@@ -80,7 +80,7 @@ declare namespace Author {
         avatar_url: 'https://pic1.zhimg.com/50/eea93b06a6887cf71bb62a8b6ab88261_s.jpg'
         type: 'topic'
         id: '19761398'
-      }
+      },
     ]
     employment: [
       [
@@ -108,7 +108,7 @@ declare namespace Author {
           avatar_url: 'https://pic1.zhimg.com/50/v2-5477c1cd9f1b385014b48cae9301acfb_s.jpg'
           type: 'topic'
           id: '19573936'
-        }
+        },
       ],
       [
         {
@@ -135,7 +135,7 @@ declare namespace Author {
           }
           type: 'topic'
           id: '19606711'
-        }
+        },
       ],
       [
         {
@@ -157,7 +157,7 @@ declare namespace Author {
           excerpt: ''
           type: 'topic'
           id: ''
-        }
+        },
       ],
       [
         {
@@ -179,8 +179,8 @@ declare namespace Author {
           excerpt: ''
           type: 'topic'
           id: ''
-        }
-      ]
+        },
+      ],
     ]
     id: '57842aac37ccd0de3965f9b6e17cb555'
     favorite_count: 30
@@ -262,7 +262,7 @@ declare namespace Author {
         {
           type: 'best_answerer'
           description: '优秀回答者'
-        }
+        },
       ]
       id: '69ed13f3ddc662d6ecd8261512117e85'
       is_org: false
@@ -357,7 +357,7 @@ declare namespace Author {
         height: 3072
         type: 'image'
         is_gif: false
-      }
+      },
     ]
     state: 'normal'
     tag_specials: {}

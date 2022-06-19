@@ -25,7 +25,7 @@ class Base extends Command {
    */
   async handle(args: any, options: any) {
     this.log('command start')
-    await this.execute(args, options).catch(e => {
+    await this.execute(args, options).catch((e) => {
       this.log('catch error')
       this.log(e.stack)
     })

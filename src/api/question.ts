@@ -11,7 +11,11 @@ class Question extends Base {
    * @param offset
    * @param limit
    */
-  static async asyncGetAnswerList(questionId: number | string, offset: number = 0, limit: number = 20): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerList(
+    questionId: number | string,
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<Array<TypeAnswer.Record>> {
     const baseUrl = `https://www.zhihu.com/api/v4/questions/${questionId}/answers`
     const config = {
       include:

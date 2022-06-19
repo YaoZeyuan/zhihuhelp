@@ -34,7 +34,7 @@ class BatchFetchColumn extends Base {
     for (let articleExcerpt of articleExcerptList) {
       // 传递给外部
       articleIdList.push(`${articleExcerpt.id}`)
-      await MColumn.asyncReplaceColumnArticleExcerpt(columnId, articleExcerpt).catch(e => {
+      await MColumn.asyncReplaceColumnArticleExcerpt(columnId, articleExcerpt).catch((e) => {
         console.log('catch error')
         console.log(e)
       })

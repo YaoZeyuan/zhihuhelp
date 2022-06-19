@@ -4,11 +4,7 @@ import _ from 'lodash'
 
 class Author extends Base {
   static TABLE_NAME = `Author`
-  static TABLE_COLUMN = [
-    `id`,
-    `url_token`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`id`, `url_token`, `raw_json`]
 
   /**
    * 从数据库中获取用户信息
@@ -19,7 +15,9 @@ class Author extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
-      .catch(() => { return [] })
+      .catch(() => {
+        return []
+      })
     let authorInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
     let authorInfo
     try {
@@ -41,7 +39,7 @@ class Author extends Base {
     await this.replaceInto({
       id,
       url_token,
-      raw_json
+      raw_json,
     })
     return
   }
