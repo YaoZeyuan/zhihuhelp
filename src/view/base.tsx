@@ -145,7 +145,7 @@ class Base {
             <div className="author-info">
               <div className="author-base">
                 <div className="author-logo">
-                  <img src={answerRecord.author.avatar_url} width="25" height="25" />
+                  <img src={answerRecord.author.avatar_url} width="25" height="25" alt="" />
                 </div>
 
                 <span className="author-name">
@@ -228,7 +228,7 @@ class Base {
             <div className="author-info">
               <div className="author-base">
                 <div className="author-logo">
-                  <img src={articleRecord.author.avatar_url} width="25" height="25" />
+                  <img src={articleRecord.author.avatar_url} width="25" height="25" alt="" />
                 </div>
 
                 <span className="author-name">
@@ -325,7 +325,7 @@ class Base {
             <div className="author-info">
               <div className="author-base">
                 <div className="author-logo">
-                  <img src={rawPinRecord.author.avatar_url} width="25" height="25" />
+                  <img src={rawPinRecord.author.avatar_url} width="25" height="25" alt="" />
                 </div>
 
                 <span className="author-name">

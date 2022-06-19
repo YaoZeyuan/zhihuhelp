@@ -96,6 +96,7 @@ class GenerateCustomer extends Base {
           let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}发表过的所有文章获取完毕`)
           articleList = articleList.concat(articleListByAuthor)
+          break
         case 'topic':
           this.log(`获取话题${targetId}下所有精华回答id`)
           let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)

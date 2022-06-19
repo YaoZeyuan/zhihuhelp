@@ -197,7 +197,7 @@ class FetchBase extends Base {
       rawHtml = _.replace(rawHtml, /<br +?>/g, '<br />')
       rawHtml = _.replace(rawHtml, /<br>/g, '<br />')
       rawHtml = _.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
-      rawHtml = _.replace(rawHtml, /\<noscript\>.*?\<\/noscript\>/g, '')
+      rawHtml = _.replace(rawHtml, /<noscript>.*?<\/noscript>/g, '')
       return rawHtml
     }
 
