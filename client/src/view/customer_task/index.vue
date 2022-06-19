@@ -363,11 +363,9 @@ export default defineComponent({
         }
       }
       rawTaskConfig.configList = taskConfigList
-      // @todo(yaozeyuan) 测试期间, 暂停文件写入
-      console.log(`@todo(yaozeyuan) 测试期间, 暂停文件写入`)
-      console.log(`pathConfig.customerTaskConfigUri => ${pathConfig.customerTaskConfigUri}`)
-      console.log(`rawTaskConfig => ${JSON.stringify(rawTaskConfig, null, 2)}`)
-      // fs.writeFileSync(pathConfig.customerTaskConfigUri, JSON.stringify(rawTaskConfig, null, 4))
+      // console.log(`pathConfig.customerTaskConfigUri => ${pathConfig.customerTaskConfigUri}`)
+      // console.log(`rawTaskConfig => ${JSON.stringify(rawTaskConfig, null, 2)}`)
+      fs.writeFileSync(pathConfig.customerTaskConfigUri, JSON.stringify(rawTaskConfig, null, 4))
     },
     async asyncHandleStartTask() {
       this.saveConfig()
