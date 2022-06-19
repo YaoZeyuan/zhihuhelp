@@ -21,7 +21,10 @@
     "pack": "npm run build && npm run buildgui && electron-builder --dir",
     "dist": "npm run build && npm run buildgui && electron-builder",
     "postinstall": "electron-builder install-app-deps",
-    "rebuild-sqlite3": "electron-rebuild -f -w sqlite3 sharp"
+    "rebuild-sqlite3": "electron-rebuild -f -w sqlite3 sharp",
+    "lint": "tsc && NODE_ENV=production eslint src",
+    "eslint": "eslint src",
+    "prettier-with-fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,less,css}\""
   },
   "build": {
     "productName": "知乎助手",
@@ -119,6 +122,10 @@
     "electron": "14.0.0",
     "electron-builder": "21.2.0",
     "electron-rebuild": "^3.2.7",
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "express": "^4.16.4",
     "file-loader": "^3.0.1",
     "friendly-errors-webpack-plugin": "^1.7.0",
@@ -132,6 +139,7 @@
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "ora": "^3.1.0",
     "portfinder": "^1.0.20",
+    "prettier": "^2.7.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "stylus": "^0.54.5",
