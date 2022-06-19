@@ -14,7 +14,7 @@ declare namespace Activity {
       created_time: 1548463831 | number
       preview_type: 'expand' | string
       id: 582222330 | number
-      is_copyable: true
+      is_copyable: true | boolean
       author: {
         is_followed: false | boolean
         type: 'people' | string
@@ -45,7 +45,7 @@ declare namespace Activity {
           url: 'https://api.zhihu.com/people/dd00a1331c92c5f94e28c007443271b5' | string
           avatar_url: 'https://pic4.zhimg.com/50/v2-3b1f2e192ac6d2ee0af97b46bc564200_s.jpg' | string
           is_following: false | boolean
-          is_org: true
+          is_org: true | boolean
           gender: 1 | number
           badge: []
           id: 'dd00a1331c92c5f94e28c007443271b5' | string
@@ -71,7 +71,7 @@ declare namespace Activity {
       excerpt_new: '把文章看完。不过我觉得…' | string
       preview_text: '把文章看完了，作者是色幽默吧。' | string
       can_comment: {
-        status: true
+        status: true | boolean
         reason: '' | string
       }
       type: 'answer' | string
@@ -86,7 +86,7 @@ declare namespace Activity {
       url_token: '404-Page-Not-found' | string
       user_type: 'people' | string
       vip_info: {
-        is_vip: false
+        is_vip: false | boolean
       }
       url: 'https://api.zhihu.com/people/57842aac37ccd0de3965f9b6e17cb555' | string
       avatar_url: 'https://pic4.zhimg.com/50/dce9dde98c91a4d1e3cb86e627ecca86_s.jpg' | string
@@ -184,7 +184,7 @@ declare namespace Activity {
       url_token: '404-Page-Not-found' | string
       user_type: 'people' | string
       vip_info: {
-        is_vip: false
+        is_vip: false | boolean
       }
       url: 'https://api.zhihu.com/people/57842aac37ccd0de3965f9b6e17cb555' | string
       avatar_url: 'https://pic4.zhimg.com/50/dce9dde98c91a4d1e3cb86e627ecca86_s.jpg' | string
