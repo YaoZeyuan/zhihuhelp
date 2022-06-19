@@ -103,7 +103,7 @@ class Collection extends Base {
    * @param columnRecord
    */
   static async asyncReplaceColumnAnswerExcerpt(
-    collectionId: number,
+    collectionId: number | string,
     answerExcerptRecord: TypeCollection.AnswerExcerpt,
   ): Promise<void> {
     let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)

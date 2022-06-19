@@ -9,7 +9,7 @@ class Collection extends Base {
    * @param limit
    */
   static async asyncGetAnswerExcerptList(
-    colectionId: number,
+    colectionId: number | string,
     offset: number = 0,
     limit: number = 20,
   ): Promise<Array<TypeCollection.AnswerExcerpt>> {

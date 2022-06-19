@@ -28,7 +28,7 @@ class BatchFetchCollection extends Base {
     this.log(`收藏夹${collectionInfo.title}(${collectionInfo.id})下所有回答抓取完毕`)
   }
 
-  private async asyncGetCollectionAnswerList(id: number, offset: number, answerIdList: Array<string>) {
+  private async asyncGetCollectionAnswerList(id: number | string, offset: number, answerIdList: Array<string>) {
     let answerList = await CollectionApi.asyncGetAnswerExcerptList(id, offset, this.max)
     for (let answer of answerList) {
       // 传递给外部

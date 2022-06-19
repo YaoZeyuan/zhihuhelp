@@ -22,6 +22,7 @@
     "dist": "npm run build && npm run buildgui && electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "rebuild-sqlite3": "electron-rebuild -f -w sqlite3 sharp",
+    "tsc": "tsc",
     "lint": "tsc && NODE_ENV=production eslint src",
     "eslint": "eslint src",
     "prettier-with-fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,less,css}\""
