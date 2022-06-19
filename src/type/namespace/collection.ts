@@ -1,38 +1,36 @@
 declare namespace Collection {
   type Info = {
-    collection: {
-      description: '我喜欢的内容，管他对不对呢= =' | string
-      creator: {
-        is_followed: false | boolean
-        badge: [
-          {
-            topics: []
-            type: 'best_answerer' | string
-            description: '优秀回答者' | string
-          },
-        ]
-        name: '高玄晔' | string
-        url: 'https://api.zhihu.com/people/54779956889a3d72ed66eab2fd54e3cb' | string
-        gender: 1 | number
-        user_type: 'people' | string
-        headline: '应无所住而生其心' | string
-        avatar_url: 'http://pic3.zhimg.com/50/fc1f0ab619b3cb9dae7871ea8bd4213f_s.jpg' | string
-        is_following: false | boolean
-        type: 'people' | string
-        id: '54779956889a3d72ed66eab2fd54e3cb' | string
-      }
-      url: 'https://api.zhihu.com/collections/32755791' | string
-      title: '摘录（有赞有感谢，仅仅是喜欢）' | string
-      answer_count: 352 | number
-      item_count: 352 | number
-      created_time: 1395368585 | number
-      comment_count: 0 | number
-      follower_count: 999 | number
-      is_public: true | boolean
-      updated_time: 1549525381 | number
-      type: 'collection' | string
-      id: 32755791 | number
+    description: '我喜欢的内容，管他对不对呢= =' | string
+    creator: {
+      is_followed: false | boolean
+      badge: [
+        {
+          topics: []
+          type: 'best_answerer' | string
+          description: '优秀回答者' | string
+        },
+      ]
+      name: '高玄晔' | string
+      url: 'https://api.zhihu.com/people/54779956889a3d72ed66eab2fd54e3cb' | string
+      gender: 1 | number
+      user_type: 'people' | string
+      headline: '应无所住而生其心' | string
+      avatar_url: 'http://pic3.zhimg.com/50/fc1f0ab619b3cb9dae7871ea8bd4213f_s.jpg' | string
+      is_following: false | boolean
+      type: 'people' | string
+      id: '54779956889a3d72ed66eab2fd54e3cb' | string
     }
+    url: 'https://api.zhihu.com/collections/32755791' | string
+    title: '摘录（有赞有感谢，仅仅是喜欢）' | string
+    answer_count: 352 | number
+    item_count: 352 | number
+    created_time: 1395368585 | number
+    comment_count: 0 | number
+    follower_count: 999 | number
+    is_public: true | boolean
+    updated_time: 1549525381 | number
+    type: 'collection' | string
+    id: 32755791 | number
   }
   type AnswerExcerpt = {
     question: {

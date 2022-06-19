@@ -114,7 +114,7 @@ class BatchFetchAuthorActivity extends Base {
       for (let activityRecord of activityList) {
         activityCounter = activityCounter + 1
         // 更新时间(id是毫秒值)
-        fetchAt = Number.parseInt(activityRecord.id / 1000)
+        fetchAt = Number.parseInt(`${activityRecord.id / 1000}`)
         if (_.isNumber(fetchAt) === false) {
           fetchAt = 0
         }

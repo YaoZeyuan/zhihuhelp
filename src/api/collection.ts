@@ -32,9 +32,10 @@ class Collection extends Base {
   static async asyncGetCollectionInfo(collectionId: number | string): Promise<TypeCollection.Info> {
     const baseUrl = `https://api.zhihu.com/collections/${collectionId}`
     const config = {}
-    const collectionInfoRecord: TypeCollection.Info = await Base.http.get(baseUrl, {
+    const rawCollectionInfoRecord: any = await Base.http.get(baseUrl, {
       params: config,
     })
+    const collectionInfoRecord = rawCollectionInfoRecord?.collection ?? {}
     return collectionInfoRecord
   }
 }
