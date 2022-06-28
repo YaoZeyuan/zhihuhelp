@@ -5,7 +5,7 @@ import TypeAuthor from '~/src/type/namespace/author'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
-import Base from '~/src/view/base'
+import Base from '~/src/public/template/react/base'
 import _ from 'lodash'
 
 class Answer extends Base {

@@ -1,5 +1,5 @@
 import TypePin from '~/src/type/namespace/pin'
-import Base from '~/src/view/base'
+import Base from '~/src/public/template/react/base'
 import _ from 'lodash'
 import moment from 'moment'
 import DATE_FORMAT from '~/src/constant/date_format'
