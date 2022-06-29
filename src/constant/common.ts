@@ -16,6 +16,8 @@ export const Const_Task_Type_文章 = 'article' as const
 export const Const_Task_Type_问题 = 'question' as const
 export const Const_Task_Type_回答 = 'answer' as const
 export const Const_Task_Type_想法 = 'pin' as const
+// 将多种类型混合为一本电子书进行输出
+export const Const_Task_Type_多类别内容合集 = 'mix-type' as const
 
 // 排序类目
 export const Const_Order_By_创建时间 = 'createAt' as const
