@@ -1,21 +1,19 @@
-import { Command } from '@adonisjs/ace'
+import { BaseCommand, args, flags } from '@adonisjs/ace'
 import _ from 'lodash'
 import logger from '~/src/library/logger'
 
-class Base extends Command {
-  static get signature() {
-    return `
-     Parse:Base
+class Base extends BaseCommand {
+  public static commandName = 'Parse:Base'
+  public static description = '解析kafka日志, Base'
 
-     {--onlyFlag:[必传]flag,只有true/false两个值}
-     {--logName=@value:[必传]日志文件名}
-     {--isTest?=@value:[可选]是否处于测试环境}
-     `
-  }
+  @flags.boolean({ description: '[必传]flag,只有true/false两个值' })
+  onlyFlag: boolean = false
 
-  static get description() {
-    return '解析kafka日志, Base'
-  }
+  @args.string({ description: '[必传]日志文件名' })
+  logName: string = ''
+
+  @flags.boolean({ description: '[可选]是否处于测试环境' })
+  isTest: boolean = false
 
   /**
    * 在最外层进行一次封装, 方便获得报错信息

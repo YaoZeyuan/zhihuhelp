@@ -1,4 +1,4 @@
-import ace from '@adonisjs/ace'
+import { Ignitor } from '@adonisjs/core/build/standalone'
 
 /*
 |--------------------------------------------------------------------------
@@ -28,11 +28,18 @@ const registedCommandList = [
   './command/fetch/customer', //  [抓取]执行自定义任务
   './command/generate/customer', //  [生成]执行自定义任务
 ]
-// register commands
-for (const command of registedCommandList) {
-  ace.addCommand(require(command)['default'])
-}
+// // register commands
+// for (const command of registedCommandList) {
+//   ace.BaseCommand(require(command)['default'])
+// }
 
-// Boot ace to execute commands
-ace.wireUpWithCommander()
-ace.invoke()
+// // Boot ace to execute commands
+// ace.wireUpWithCommander()
+// ace.invoke()
+
+// require('reflect-metadata')
+// require('source-map-support').install({ handleUncaughtExceptions: false })
+
+let ace = new Ignitor(__dirname).ace()
+
+ace.handle(process.argv.slice(2))
