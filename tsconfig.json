@@ -60,7 +60,9 @@
     // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
     // 避免对node_modules中的内容进行检测
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // 启用修饰器, 以支持ace的新命令行参数声明方式
+    "experimentalDecorators": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
