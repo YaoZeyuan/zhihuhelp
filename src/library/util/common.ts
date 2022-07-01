@@ -5,46 +5,91 @@ import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import { CommonConfig } from '~/src/config/common'
 
+// 每计数x次后, 重置任务
+const Const_Max_TaskCompleteCounter = 1000000000
+class TaskManager {
+  maxTaskRunner = 10
+
+  taskCompleteCounter = 0
+
+  taskList: Promise<any>[] = []
+
+  constructor(initalTaskRunner = 100) {
+    // 初始化时直接派发initalTaskRunner个任务
+    let counter = 0
+    while (counter < initalTaskRunner) {
+      let runnerId = counter
+      this.runner(runnerId)
+      counter++
+    }
+  }
+
+  async runner(runnerId: number) {
+    while (true) {
+      // 当前总任务数
+      let totalTaskCount = this.taskList.length
+      // 是否有任务需要执行
+      let hasTaskToRun = totalTaskCount > 0
+      // 当前runner是否需要执行任务(用于动态控制最大并发数)
+      let isRunnerNeedToRun = runnerId > this.maxTaskRunner
+
+      if (isRunnerNeedToRun === false || hasTaskToRun === false) {
+        // 没有任务时休眠1s
+        await Common.asyncSleep(1000)
+        continue
+      }
+
+      let task = this.taskList.pop()
+      logger.log(
+        `[开始执行]由slave_${runnerId}号负责执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`,
+      )
+
+      await task?.catch((e) => {
+        logger.log(
+          `[执行异常]由slave_${runnerId}号负责执行的第${this.taskCompleteCounter}个任务执行失败, 报错信息为: ${e}`,
+        )
+      })
+
+      logger.log(
+        `[执行完成]由slave_${runnerId}号负责执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`,
+      )
+
+      // 累加任务计数器
+      this.taskCompleteCounter++
+
+      if (this.taskCompleteCounter > Const_Max_TaskCompleteCounter) {
+        // 运行次数足够多后, 重置任务计数器
+        this.taskCompleteCounter = 0
+      }
+    }
+  }
+
+  /**
+   * 整体休眠sleep_ms, 期间不会执行新任务, 以便保护知乎服务器
+   * @param sleep_ms
+   */
+  async suspendAllTask(sleep_ms: number) {
+    let currentMaxTaskRunner = this.maxTaskRunner
+    this.maxTaskRunner = 0
+    await Common.asyncSleep(sleep_ms)
+    this.maxTaskRunner = currentMaxTaskRunner
+  }
+
+  // 添加任务
+  addTask(task: Promise<any>) {
+    this.taskList.push(task)
+  }
+}
+
 class Common {
-  static promiseList: Array<Promise<any>> = []
-  // 并发数限制到10即可
-  static maxBuf = 10
+  static taskManager = new TaskManager()
   /**
    * 添加promise, 到指定容量后再执行
    * 警告, 该函数只能用于独立任务. 如果任务中依然调用asyncAppendPromiseWithDebounce方法, 会导致任务队列异常, 运行出非预期结果(外层函数结束后内层代码仍处于未完成,进行中状态)
    */
-  static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false, protectZhihuServer = true) {
-    Common.promiseList.push(promise)
-    if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
-      // 在执行的时候, 需要清空公共的promiseList数组.
-      // 否则, 会出现: 执行公共PromiseList中第一个任务时, 第一个任务又向PromiseList中添加了一个待执行任务, 然后又从第一个任务开始执行(但因为第一个任务此时正在执行, 不可能执行一个正在执行的任务, 就会导致node崩溃, 而且不会打印错误)
-      let taskList = Common.promiseList
-      Common.promiseList = []
-      logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
-      // 模拟allSettled方法, 需要所有任务都完成后才能继续
-      let wrappedPromises = taskList.map((p) =>
-        Promise.resolve(p).then(
-          (val) => ({ state: 'fulfilled', value: val }),
-          (err) => ({ state: 'rejected', reason: err }),
-        ),
-      )
-      await Promise.all(wrappedPromises)
-      if (protectZhihuServer) {
-        // 每完成一组抓取, 休眠1s
-        logger.log(`队列已满, 休眠${CommonConfig.wait2ProtectZhihuServer_s}s, 保护知乎服务器`)
-        await Common.asyncSleep(CommonConfig.wait2ProtectZhihuServer_s * 1000)
-      }
-      logger.log(`任务队列内所有任务执行完毕`)
-    }
+  static async asyncAppendPromiseWithDebounce(promise: Promise<any>) {
+    this.taskManager.addTask(promise)
     return
-  }
-
-  /**
-   * 派发所有未发出的Promise请求
-   */
-  static async asyncDispatchAllPromiseInQueen() {
-    await Common.asyncAppendPromiseWithDebounce(Promise.resolve(true), true)
-    return true
   }
 
   /**
