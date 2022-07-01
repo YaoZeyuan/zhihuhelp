@@ -1,3 +1,0 @@
-{
-  "commands": ["./command/base.js"]
-}

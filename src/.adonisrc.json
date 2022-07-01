@@ -1,0 +1,4 @@
+{
+  "typescript": false,
+  "commands": ["./command/base.js", "./command/demo.js"]
+}
