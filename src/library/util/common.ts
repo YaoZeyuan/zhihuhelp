@@ -1,8 +1,9 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
-import TypeConfig from '~/src/type/namespace/config'
-import RequestConfig from '~/src/config/request'
+import * as Type_TaskConfig from '~/src/type/task_config'
+import * as Const_TaskConfig from '~/src/constant/task_config'
+import { CommonConfig } from '~/src/config/common'
 
 class Common {
   static promiseList: Array<Promise<any>> = []
@@ -30,8 +31,8 @@ class Common {
       await Promise.all(wrappedPromises)
       if (protectZhihuServer) {
         // 每完成一组抓取, 休眠1s
-        logger.log(`队列已满, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await Common.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
+        logger.log(`队列已满, 休眠${CommonConfig.wait2ProtectZhihuServer_s}s, 保护知乎服务器`)
+        await Common.asyncSleep(CommonConfig.wait2ProtectZhihuServer_s * 1000)
       }
       logger.log(`任务队列内所有任务执行完毕`)
     }
@@ -65,47 +66,32 @@ class Common {
     return uuid
   }
 
-  static getConfig() {
+  static getConfig(): Type_TaskConfig.Type_Config {
     if (fs.existsSync(PathConfig.configUri) === false) {
       // 没有就初始化一份
-      fs.writeFileSync(
-        PathConfig.configUri,
-        JSON.stringify(
-          {
-            request: {
-              ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-              cookie: '',
-            },
-          },
-          null,
-          4,
-        ),
-      )
+      fs.writeFileSync(PathConfig.configUri, JSON.stringify(Const_TaskConfig.Const_Default_Config, null, 2))
     }
-    let configJson = fs.readFileSync(PathConfig.configUri)
-    let config: TypeConfig.Local
+    let configJson = fs.readFileSync(PathConfig.configUri)?.toString() ?? ''
+    let config: Type_TaskConfig.Type_Config
     try {
-      config = JSON.parse(configJson.toString())
+      config = JSON.parse(configJson)
     } catch (e) {
       config = {
-        request: {
-          ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-          cookie: '',
-        },
+        ...Const_TaskConfig.Const_Default_Config,
       }
     }
     return config
   }
 
-  static getPackageJsonConfig() {
-    let configJson = fs.readFileSync(PathConfig.packageJsonUri)
-    let config
+  static getVersion() {
+    let packageJson = fs.readFileSync(PathConfig.packageJsonUri)
+    let packageConfig
     try {
-      config = JSON.parse(configJson.toString())
+      packageConfig = JSON.parse(packageJson.toString())
     } catch (e) {
-      config = {}
+      packageConfig = {}
     }
-    return config
+    return packageConfig?.['version'] ?? '0.0.0'
   }
 }
 

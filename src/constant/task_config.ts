@@ -1,3 +1,6 @@
+// 任务相关配置
+import * as Type_TaskConfig from '~/src/type/task_config'
+
 // 常量类别并不多, 因此可以集中编写, 不用额外拆分
 
 // 任务类别
@@ -33,3 +36,27 @@ export const Const_Order_Asc = 'asc' as const
 export const Const_Image_Quilty_高清 = 'raw' as const
 export const Const_Image_Quilty_原图 = 'hd' as const
 export const Const_Image_Quilty_无图 = 'none' as const
+
+// 默认ua
+export const Const_Default_Ua =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' as const
+// 默认cookie
+export const Const_Default_Cookie = '' as const
+
+/**
+ * 默认任务配置
+ */
+export const Const_Default_Config: Type_TaskConfig.Type_Config = {
+  fetchTaskList: [],
+  generateConfig: {
+    imageQuilty: 'hd', // 图片质量
+    bookTitle: '', // 书名
+    comment: '', // 备注
+    maxQuestionOrArticleInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
+    orderByList: [],
+  },
+  requestConfig: {
+    cookie: Const_Default_Cookie,
+    ua: Const_Default_Ua,
+  },
+}

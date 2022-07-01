@@ -57,7 +57,7 @@ export type Type_Order_By_Config = {
 export type Type_Order_By_Config_List = Type_Order_By_Config[]
 
 export type Type_Max_Question_Or_Article_In_Book = number // 自动分卷: 单本电子书中最大问题/文章数量
-export type Type_Config_Item = {
+export type Type_Task_Config = {
   type: Type_Item_Collection_Type | Type_Author_Collection_Type
   id: string | number
   rawInputText: string
@@ -66,11 +66,19 @@ export type Type_Config_Item = {
 }
 
 // 自定义抓取
-export type Type_Customer = {
-  configList: Type_Config_Item[]
-  imageQuilty: Type_Image_Quilty // 图片质量
-  bookTitle: string // 书名
-  comment: string // 备注
-  maxQuestionOrArticleInBook: Type_Max_Question_Or_Article_In_Book // 自动分卷: 单本电子书中最大问题/文章数量
-  orderByList: Type_Order_By_Config_List
+export type Type_Config = {
+  fetchTaskList: Type_Task_Config[]
+  generateConfig: {
+    imageQuilty: Type_Image_Quilty // 图片质量
+    bookTitle: string // 书名
+    comment: string // 备注
+    maxQuestionOrArticleInBook: Type_Max_Question_Or_Article_In_Book // 自动分卷: 单本电子书中最大问题/文章数量
+    orderByList: Type_Order_By_Config_List
+  }
+  requestConfig: {
+    ua:
+      | 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+      | string
+    cookie: '' | string
+  }
 }
