@@ -4,3 +4,5 @@ import path from 'path'
 let currentPath = path.resolve(__dirname)
 let ace = new Ignitor(currentPath).ace()
 ace.handle(process.argv.slice(2))
+// 手工调用示例
+// ace.handle(['Command:Demo'])
