@@ -12,9 +12,9 @@ class Base extends BaseCommand {
    * @param options
    * @returns {Promise<void>}
    */
-  async handle(args: any, options: any) {
+  async run() {
     this.log('command start')
-    await this.execute(args, options).catch((e) => {
+    await this.execute().catch((e) => {
       this.log('catch error')
       this.log(e.stack)
     })
@@ -33,7 +33,7 @@ class Base extends BaseCommand {
    * @param args
    * @param options
    */
-  async execute(args: any, options: any): Promise<any> {}
+  async execute(): Promise<any> {}
 
   /**
    * 简易logger

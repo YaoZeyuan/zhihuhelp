@@ -1,12 +1,12 @@
 import moment from 'moment'
 import _ from 'lodash'
-import DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format'
 import PathConfig from '~/src/config/path'
 import fs from 'fs'
 
 class Logger {
   private static formatArgument(...arg: Array<any>) {
-    const triggerAt = moment().format(DATE_FORMAT.DISPLAY_BY_MILLSECOND)
+    const triggerAt = moment().format(DATE_FORMAT.Const_Display_By_Millsecond)
     let stringLogItemList = []
     for (let logItem of [...arg]) {
       if (_.isString(logItem)) {
