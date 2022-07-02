@@ -46,7 +46,7 @@ export const Const_Default_Cookie = '' as const
 /**
  * 默认任务配置
  */
-export const Const_Default_Config: Type_TaskConfig.Type_Config = {
+export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
   fetchTaskList: [],
   generateConfig: {
     imageQuilty: 'hd', // 图片质量

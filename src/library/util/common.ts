@@ -228,13 +228,13 @@ export default class CommonUtil {
     return uuid
   }
 
-  static getConfig(): Type_TaskConfig.Type_Config {
+  static getConfig(): Type_TaskConfig.Type_Task_Config {
     if (fs.existsSync(PathConfig.configUri) === false) {
       // 没有就初始化一份
       fs.writeFileSync(PathConfig.configUri, JSON.stringify(Const_TaskConfig.Const_Default_Config, null, 2))
     }
     let configJson = fs.readFileSync(PathConfig.configUri)?.toString() ?? ''
-    let config: Type_TaskConfig.Type_Config
+    let config: Type_TaskConfig.Type_Task_Config
     try {
       config = JSON.parse(configJson)
     } catch (e) {
