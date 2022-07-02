@@ -1,5 +1,5 @@
 import knex from 'knex'
-import { CommonConfig } from '~/src/config/common'
+import CommonConfig from '~/src/config/common'
 /**  knex 方式 */
 
 const Knex = knex({

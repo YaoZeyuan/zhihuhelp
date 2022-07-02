@@ -1,5 +1,5 @@
 import path from 'path'
-export class PathConfig {
+export default class PathConfig {
   // 根路径
   static readonly rootPath = path.resolve(__dirname, '../../')
   // 项目打包时只打包dist目录, 因此路径中不能带src

@@ -1,6 +1,6 @@
 import Base from '~/src/command/fetch/base'
 import * as Type_Task_Config from '~/src/type/task_config'
-import { PathConfig } from '~/src/config/path'
+import PathConfig from '~/src/config/path'
 import fs from 'fs'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import BatchFetchArticle from '~/src/command/fetch/batch/article'

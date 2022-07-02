@@ -1,9 +1,9 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
-import { PathConfig } from '~/src/config/path'
+import PathConfig from '~/src/config/path'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
-import { CommonConfig } from '~/src/config/common'
+import CommonConfig from '~/src/config/common'
 
 // 每计数x次后, 重置任务
 class TaskManager {
@@ -176,7 +176,7 @@ class TaskManager {
   }
 }
 
-export class CommonUtil {
+export default class CommonUtil {
   static taskManagerWithProtect = new TaskManager({
     protectConfig: {
       needProtect: true,

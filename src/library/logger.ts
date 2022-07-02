@@ -1,7 +1,7 @@
 import moment from 'moment'
 import _ from 'lodash'
 import * as DATE_FORMAT from '~/src/constant/date_format'
-import { PathConfig } from '~/src/config/path'
+import PathConfig from '~/src/config/path'
 import fs from 'fs'
 
 class Logger {

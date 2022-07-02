@@ -1,4 +1,4 @@
-import * as Consts from '~/src/constant/common'
+import * as Consts from '~/src/constant/task_config'
 
 export type Type_Task_Type_用户提问过的所有问题 = typeof Consts.Const_Task_Type_用户提问过的所有问题
 export type Type_Task_Type_用户的所有回答 = typeof Consts.Const_Task_Type_用户的所有回答

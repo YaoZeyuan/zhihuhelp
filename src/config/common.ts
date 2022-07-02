@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { PathConfig } from '~/src/config/path'
+import PathConfig from '~/src/config/path'
 
 function getVersion() {
   let packageJson = fs.readFileSync(PathConfig.packageJsonUri)
@@ -13,7 +13,7 @@ function getVersion() {
   return packageConfig?.['version'] ?? '0.0.0'
 }
 
-export class CommonConfig {
+export default class CommonConfig {
   // 使用serverless实现
   static readonly checkUpgradeUri = 'https://api.yaozeyuan.online/zhihuhelp/version'
 

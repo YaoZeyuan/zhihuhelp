@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { CommonConfig } from '~/src/config/common'
-import { RequestConfig } from '~/src/config/request'
+import CommonConfig from '~/src/config/common'
+import RequestConfig from '~/src/config/request'
 import logger from '~/src/library/logger'
 import getZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
@@ -26,7 +26,7 @@ function fixedEncodeURIComponent(str: string) {
   })
 }
 
-export class http {
+export default class httpClient {
   /**
    * 封装get方法
    * @param rawUrl
