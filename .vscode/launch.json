@@ -6,8 +6,8 @@
   "configurations": [
     {
       // 调试命令生成
-      "command": "npm run ace  generate:manifest",
-      "name": "npm run ace generate:manifest",
+      "command": "npm run ace  Init:Env",
+      "name": "npm run ace Init:Env",
       "request": "launch",
       "type": "node-terminal"
     },

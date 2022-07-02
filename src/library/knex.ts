@@ -1,11 +1,11 @@
 import knex from 'knex'
-import Database from '~/src/config/database'
+import { CommonConfig } from '~/src/config/common'
 /**  knex 方式 */
 
 const Knex = knex({
   client: 'sqlite3',
   connection: {
-    filename: Database.uri,
+    filename: CommonConfig.db_uri,
   },
   useNullAsDefault: true,
   pool: {
