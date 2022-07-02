@@ -7,12 +7,11 @@ export class CommonConfig {
   static readonly db_uri: string = path.resolve(__dirname, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
 
   /**
-   * 保护知乎服务器的时间
+   * 每次停止执行任务时长
    */
-  static wait2ProtectZhihuServer_s = 1
+  static protect_To_Wait_ms = 1000
   /**
-   * 每x次抓取触发一次保护
+   * 每x次任务, 触发一次执行保护
    */
-  static perLoop2TriggerProtect = 10
-  static timeoutMs = 20 * 1000
+  static protect_Loop_Count = 10
 }

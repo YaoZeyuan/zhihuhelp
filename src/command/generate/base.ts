@@ -337,15 +337,14 @@ class FetchBase extends Base {
       if (fs.existsSync(imgItem.downloadCacheUri) === false) {
         // 分批下载
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
-        await CommonUtil.asyncAppendPromiseWithDebounce(
-          this.asyncDownloadImg(index, imgItem.rawImgSrc, imgItem.downloadCacheUri),
-          false,
-          false,
-        )
+        await CommonUtil.asyncAddTask({
+          task: this.asyncDownloadImg(index, imgItem.rawImgSrc, imgItem.downloadCacheUri),
+          needProtect: false,
+        })
       }
     }
     this.log(`清空任务队列`)
-    await CommonUtil.asyncAppendPromiseWithDebounce(this.emptyPromiseFunction(), true)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`所有图片下载完毕`)
     this.log(`开始转换Latex图片`)
     index = 0
