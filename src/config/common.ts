@@ -1,5 +1,18 @@
 import path from 'path'
-import { CommonUtil } from '~/src/library/util/common'
+import fs from 'fs'
+import { PathConfig } from '~/src/config/path'
+
+function getVersion() {
+  let packageJson = fs.readFileSync(PathConfig.packageJsonUri)
+  let packageConfig
+  try {
+    packageConfig = JSON.parse(packageJson.toString())
+  } catch (e) {
+    packageConfig = {}
+  }
+  return packageConfig?.['version'] ?? '0.0.0'
+}
+
 export class CommonConfig {
   // 使用serverless实现
   static readonly checkUpgradeUri = 'https://api.yaozeyuan.online/zhihuhelp/version'
@@ -16,20 +29,11 @@ export class CommonConfig {
    */
   static protect_Loop_Count = 10
 
+  /**
+   * 请求超时时长(虽然是request相关, 但因为这个配置项在http实例中也有用到, 为避免循环引用, 所以还是放在common里)
+   */
   static readonly request_timeout_ms = 20 * 1000
 
-  // 通过CommonConfig统一管理cookie/ua
-  static ua = ''
-  static cookie = ''
-  static version = '1.0.0'
-
-  static reloadTaskConfig() {
-    // 更新版本号
-    this.version = CommonUtil.getVersion()
-
-    // 更新配置信息
-    let config = CommonUtil.getConfig()
-    this.ua = config.requestConfig.ua
-    this.cookie = config.requestConfig.cookie
-  }
+  // 软件版本号
+  static version = getVersion()
 }

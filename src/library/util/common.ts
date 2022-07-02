@@ -247,17 +247,6 @@ export class CommonUtil {
     return config
   }
 
-  static getVersion() {
-    let packageJson = fs.readFileSync(PathConfig.packageJsonUri)
-    let packageConfig
-    try {
-      packageConfig = JSON.parse(packageJson.toString())
-    } catch (e) {
-      packageConfig = {}
-    }
-    return packageConfig?.['version'] ?? '0.0.0'
-  }
-
   /**
    *
    * @param rawFilename

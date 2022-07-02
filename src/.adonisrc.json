@@ -1,4 +1,4 @@
 {
   "typescript": false,
-  "commands": ["./command/base.js", "./command/demo.js"]
+  "commands": ["./command/base.js", "./command/demo.js", "./command/init_env.js"]
 }

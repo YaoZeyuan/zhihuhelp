@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { CommonConfig } from '~/src/config/common'
+import { RequestConfig } from '~/src/config/request'
 import logger from '~/src/library/logger'
 import getZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
@@ -13,8 +14,8 @@ const httpInstance = axios.create({
   timeout: CommonConfig.request_timeout_ms,
   headers: {
     // 加上ua
-    'User-Agent': CommonConfig.ua,
-    cookie: CommonConfig.cookie,
+    'User-Agent': RequestConfig.ua,
+    cookie: RequestConfig.cookie,
   },
 })
 
@@ -34,7 +35,7 @@ export class http {
   static async get(rawUrl: string, config: AxiosRequestConfig = {}) {
     // 发送知乎请求时, 需要额外附带校验header, 否则报错
 
-    let cookie_item_list = CommonConfig.cookie
+    let cookie_item_list = RequestConfig.cookie
       .split(';')
       .map((item: string) => item.trim())
       .filter((item: string) => item.startsWith('d_c0'))
@@ -60,8 +61,8 @@ export class http {
     config.headers = {
       ...config.headers,
       // 加上ua
-      'User-Agent': CommonConfig.ua,
-      cookie: CommonConfig.cookie,
+      'User-Agent': RequestConfig.ua,
+      cookie: RequestConfig.cookie,
       'x-zse-93': Const_Headers_x_zse_93,
       'x-zse-96': x_zst_96,
     }
