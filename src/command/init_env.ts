@@ -25,7 +25,7 @@ class InitEnv extends Base {
 
   async execute() {
     let isRebase = this.rebase
-
+    console.log('isRebase => ', isRebase)
     this.log(`检查更新`)
     let remoteVersionConfig: Type_Res_Version = await http
       .get(CommonConfig.checkUpgradeUri, {
@@ -52,6 +52,7 @@ class InitEnv extends Base {
     this.log('文件夹初始化完毕')
 
     if (isRebase) {
+      this.log(`isRebase => ${isRebase}, 重置旧代码`)
       this.log('重建数据库')
       this.log('删除旧数据库')
       shelljs.rm(CommonConfig.db_uri)
