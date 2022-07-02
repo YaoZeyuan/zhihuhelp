@@ -25,6 +25,11 @@ class TaskManager {
   private taskList: Promise<any>[] = []
 
   /**
+   * 是否暂停运行
+   */
+  private isSuspend = false
+
+  /**
    * 保护配置
    */
   private protectedConfig = {
@@ -38,8 +43,6 @@ class TaskManager {
    * @param param0
    */
   constructor({
-    // 初始化时直接派发initalTaskRunner个任务
-    initalTaskRunner = 100,
     protectConfig = {
       // 是否需要保护
       needProtect: false,
@@ -62,66 +65,59 @@ class TaskManager {
     this.protectedConfig.needProtect = needProtect
     this.protectedConfig.protect2wait_ms = protect2wait_ms
     this.protectedConfig.protectLoopCounter = protectLoopCounter
-
-    let counter = 0
-    while (counter < initalTaskRunner) {
-      let runnerId = counter
-      this.runner(runnerId)
-      counter++
-    }
   }
 
-  async runner(runnerId: number) {
-    while (true) {
-      // 当前总任务数
-      let totalTaskCount = this.taskList.length
-      // 是否有任务需要执行
-      let hasTaskToRun = totalTaskCount > 0
-      // 当前runner是否需要执行任务(用于动态控制最大并发数)
-      let isRunnerNeedToRun = runnerId > this.maxTaskRunner
+  canBeRun() {
+    return this.isSuspend === false && this.runingRunner < this.maxTaskRunner
+  }
 
-      if (isRunnerNeedToRun === false || hasTaskToRun === false) {
-        // 没有任务时休眠1s
-        await CommonUtil.asyncSleep(1000)
-        continue
-      }
+  async runner() {
+    // 先检查能否运行
+    let canBeRun = this.canBeRun()
+    while (canBeRun === false) {
+      await CommonUtil.asyncSleep(1000)
+      canBeRun = this.canBeRun()
+    }
 
-      // 正在执行任务数+1
-      this.runingRunner++
+    // 当前总任务数
+    let totalTaskCount = this.taskList.length
+    // 是否有任务需要执行
+    let hasTaskToRun = totalTaskCount > 0
 
-      let task = this.taskList.pop()
-      logger.log(
-        `[开始执行]由slave_${runnerId}号负责执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`,
-      )
+    if (hasTaskToRun === false) {
+      // 没有任务需要执行, 直接返回即可
+      return
+    }
 
-      await Promise.all([
-        task,
-        new Promise((reslove, reject) => {
-          setTimeout(() => {
-            reject(new Error(`任务执行超时`))
-          }, this.Const_Task_Timeout_ms)
-        }),
-      ]).catch((e) => {
-        logger.log(
-          `[执行异常]由slave_${runnerId}号负责执行的第${this.taskCompleteCounter}个任务执行失败, 报错信息为: ${e}`,
-        )
-      })
+    // 正在执行任务数+1
+    this.runingRunner++
 
-      // 正在执行任务数-1
-      this.runingRunner--
+    let task = this.taskList.pop()
+    logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
 
-      logger.log(
-        `[执行完成]由slave_${runnerId}号负责执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`,
-      )
+    await Promise.all([
+      task,
+      new Promise((reslove, reject) => {
+        setTimeout(() => {
+          reject(new Error(`任务执行超时`))
+        }, this.Const_Task_Timeout_ms)
+      }),
+    ]).catch((e) => {
+      logger.log(`[执行异常]第${this.taskCompleteCounter}个任务执行失败, 报错信息为: ${e}`)
+    })
 
-      // 累加任务计数器(不考虑溢出的情况)
-      this.taskCompleteCounter++
+    // 正在执行任务数-1
+    this.runingRunner--
 
-      if (this.taskCompleteCounter > this.Const_Max_Task_Counter) {
-        logger.log(`[重置任务完成数]任务完成数已抵达阈值${this.Const_Max_Task_Counter}, 自动重置`)
-        // 运行次数足够多后, 重置任务计数器
-        this.taskCompleteCounter = 0
-      }
+    logger.log(`[执行完成]第${this.taskCompleteCounter}个任务执行完成, 当前剩余${totalTaskCount}个任务待执行`)
+
+    // 累加任务计数器(不考虑溢出的情况)
+    this.taskCompleteCounter++
+
+    if (this.taskCompleteCounter > this.Const_Max_Task_Counter) {
+      logger.log(`[重置任务完成数]任务完成数已抵达阈值${this.Const_Max_Task_Counter}, 自动重置`)
+      // 运行次数足够多后, 重置任务计数器
+      this.taskCompleteCounter = 0
     }
   }
 
@@ -130,8 +126,7 @@ class TaskManager {
    * @param sleep_ms
    */
   async suspendAllTask(sleep_ms: number) {
-    let currentMaxTaskRunner = this.maxTaskRunner
-    this.maxTaskRunner = 0
+    this.isSuspend = true
     logger.log(
       `[任务暂停]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠${
         sleep_ms / 1000
@@ -144,9 +139,9 @@ class TaskManager {
     logger.log(`[任务暂停]所有待执行任务均已执行完毕, 开始休眠计时, 休眠时长:${sleep_ms / 1000}s`)
     await CommonUtil.asyncSleep(sleep_ms)
     logger.log(
-      `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束, 当前runner数:${currentMaxTaskRunner}, 当前剩余${this.taskList.length}个任务待执行`,
+      `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束,  当前剩余${this.taskList.length}个任务待执行`,
     )
-    this.maxTaskRunner = currentMaxTaskRunner
+    this.isSuspend = false
   }
 
   // 添加任务
@@ -159,6 +154,9 @@ class TaskManager {
         this.suspendAllTask(this.protectedConfig.protect2wait_ms)
       }
     }
+
+    // 每次添加任务后, 直接分发出去一个runner即可, runner自己可以判断应该何时运行
+    this.runner()
 
     if (this.taskDispatchCounter > this.Const_Max_Task_Counter) {
       // 运行次数足够多后, 重置任务计数器
