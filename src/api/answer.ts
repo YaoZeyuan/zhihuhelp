@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeAnswer from '~/src/type/namespace/answer'
+import TypeAnswer from '~/src/type/zhihu/answer'
 import AuthorApi from '~/src/api/author'
 
 class Answer extends Base {
@@ -18,7 +18,7 @@ class Answer extends Base {
     limit: number = 20,
     sortBy: string = Base.CONST_SORT_BY_CREATED,
   ): Promise<Array<TypeAnswer.Record>> {
-    return AuthorApi.asyncGetAutherAnswerList(url_token, offset, limit, sortBy)
+    return AuthorApi.asyncGetAutherAnswerList(url_token, offset, limit, sortBy) as any
   }
 
   /**

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeArticle from '~/src/type/namespace/article'
+import TypeArticle from '~/src/type/zhihu/article'
 
 class Article extends Base {
   /**

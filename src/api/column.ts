@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeColumn from '~/src/type/namespace/column'
-import TypeArticleExcerpt from '~/src/type/namespace/article_excerpt'
+import TypeColumn from '~/src/type/zhihu/column'
+import TypeArticleExcerpt from '~/src/type/zhihu/article_excerpt'
 
 class Column extends Base {
   /**

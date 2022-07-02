@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeTopic from '~/src/type/namespace/topic'
-import TypeAnswer from '~/src/type/namespace/answer'
+import * as TypeTopic from '~/src/type/zhihu/topic'
+import TypeAnswer from '~/src/type/zhihu/answer'
 
 class Topic extends Base {
   /**

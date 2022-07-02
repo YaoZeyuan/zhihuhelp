@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeCollection from '~/src/type/namespace/collection'
+import * as TypeCollection from '~/src/type/zhihu/collection'
 
 class Collection extends Base {
   /**

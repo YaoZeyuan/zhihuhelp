@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import Base from '~/src/api/base'
-import TypeActivity from '~/src/type/namespace/activity'
+import TypeActivity from '~/src/type/zhihu/activity'
 import moment from 'moment'
 
 class Activity extends Base {
