@@ -3,8 +3,8 @@ import _ from 'lodash'
 import logger from '~/src/library/logger'
 
 class Base extends BaseCommand {
-  public static commandName = 'Parse:Base'
-  public static description = '解析kafka日志, Base'
+  public static commandName = 'Command:Base'
+  public static description = '命令基类, 无实际功能'
 
   /**
    * 在最外层进行一次封装, 方便获得报错信息
@@ -19,13 +19,6 @@ class Base extends BaseCommand {
       this.log(e.stack)
     })
     this.log('command finish')
-  }
-
-  /**
-   * 空promise函数, 方便清空promise队列
-   */
-  async emptyPromiseFunction() {
-    return
   }
 
   /**
