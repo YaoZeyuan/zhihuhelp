@@ -257,6 +257,41 @@ class Common {
     }
     return packageConfig?.['version'] ?? '0.0.0'
   }
+
+  /**
+   *
+   * @param rawFilename
+   */
+  static encodeFilename(rawFilename: string) {
+    let encodeFilename = rawFilename
+    let illegalCharMap = {
+      '\\': '＼',
+      '/': '／',
+      ':': '：',
+      '*': '＊',
+      '?': '？',
+      '=': '＝',
+      '%': '％',
+      '+': '＋',
+      '<': '《',
+      '>': '》',
+      '|': '｜',
+      '"': '〃',
+      '!': '！',
+      '\n': '',
+      '\r': '',
+      '&': '＆',
+    }
+
+    type Type_Key = keyof typeof illegalCharMap
+
+    for (let key of Object.keys(illegalCharMap)) {
+      let legalChar: string = illegalCharMap?.[key as Type_Key] ?? ''
+      // 全局替换, 将非法文件名替换为合法Unicode字符
+      encodeFilename = encodeFilename.replaceAll(`\\${key}`, legalChar)
+    }
+    return encodeFilename
+  }
 }
 
 export default Common
