@@ -1,6 +1,6 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
-import PathConfig from '~/src/config/path'
+import { PathConfig } from '~/src/config/path'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import { CommonConfig } from '~/src/config/common'
@@ -82,7 +82,7 @@ class TaskManager {
 
       if (isRunnerNeedToRun === false || hasTaskToRun === false) {
         // 没有任务时休眠1s
-        await Common.asyncSleep(1000)
+        await CommonUtil.asyncSleep(1000)
         continue
       }
 
@@ -139,10 +139,10 @@ class TaskManager {
     )
     while (this.runingRunner > 0) {
       logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 等待所有待执行任务运行完毕后进行休眠`)
-      await Common.asyncSleep(1000)
+      await CommonUtil.asyncSleep(1000)
     }
     logger.log(`[任务暂停]所有待执行任务均已执行完毕, 开始休眠计时, 休眠时长:${sleep_ms / 1000}s`)
-    await Common.asyncSleep(sleep_ms)
+    await CommonUtil.asyncSleep(sleep_ms)
     logger.log(
       `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束, 当前runner数:${currentMaxTaskRunner}, 当前剩余${this.taskList.length}个任务待执行`,
     )
@@ -172,13 +172,13 @@ class TaskManager {
    */
   async asyncWaitAllTaskComplete() {
     while (this.taskList.length > 0 && this.runingRunner === 0) {
-      await Common.asyncSleep(1000)
+      await CommonUtil.asyncSleep(1000)
     }
     return true
   }
 }
 
-class Common {
+export class CommonUtil {
   static taskManagerWithProtect = new TaskManager({
     protectConfig: {
       needProtect: true,
@@ -293,5 +293,3 @@ class Common {
     return encodeFilename
   }
 }
-
-export default Common

@@ -1,8 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import RequestConfig from '~/src/config/request'
+import { CommonConfig } from '~/src/config/common'
 import logger from '~/src/library/logger'
 import getZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
-import request from 'request-promise'
 import querystring from 'querystring'
 import _ from 'lodash'
 import URL from 'url'
@@ -10,12 +9,12 @@ import URL from 'url'
 const Const_Headers_x_zse_93 = '101_3_2.0'
 
 // 创建axios实例
-const http = axios.create({
-  timeout: RequestConfig.timeoutMs,
+const httpInstance = axios.create({
+  timeout: CommonConfig.request_timeout_ms,
   headers: {
     // 加上ua
-    'User-Agent': RequestConfig.ua,
-    cookie: RequestConfig.cookie,
+    'User-Agent': CommonConfig.ua,
+    cookie: CommonConfig.cookie,
   },
 })
 
@@ -26,7 +25,7 @@ function fixedEncodeURIComponent(str: string) {
   })
 }
 
-class Http {
+export class http {
   /**
    * 封装get方法
    * @param rawUrl
@@ -35,10 +34,10 @@ class Http {
   static async get(rawUrl: string, config: AxiosRequestConfig = {}) {
     // 发送知乎请求时, 需要额外附带校验header, 否则报错
 
-    let cookie_item_list = RequestConfig.cookie
+    let cookie_item_list = CommonConfig.cookie
       .split(';')
-      .map((item) => item.trim())
-      .filter((item) => item.startsWith('d_c0'))
+      .map((item: string) => item.trim())
+      .filter((item: string) => item.startsWith('d_c0'))
     let raw_d_c0 = cookie_item_list?.[0] || ''
     let cookie_d_c0 = raw_d_c0.split('d_c0=')?.[1] || ''
 
@@ -61,13 +60,13 @@ class Http {
     config.headers = {
       ...config.headers,
       // 加上ua
-      'User-Agent': RequestConfig.ua,
-      cookie: RequestConfig.cookie,
+      'User-Agent': CommonConfig.ua,
+      cookie: CommonConfig.cookie,
       'x-zse-93': Const_Headers_x_zse_93,
       'x-zse-96': x_zst_96,
     }
 
-    const response = await http.get(url, config).catch((e) => {
+    const response = await httpInstance.get(url, config).catch((e) => {
       logger.log(
         `网络请求失败, 两种可能: 1.知乎更换了接口签名算法, 知乎私信@姚泽源 更新代码 2. 您的账号可能因抓取频繁被知乎认为有风险, 在浏览器中访问知乎首页,输入验证码即可恢复`,
       )
@@ -83,15 +82,11 @@ class Http {
    * 因此改用request封装图片下载请求
    * @param url
    */
-  static async downloadImg(url: string): Promise<request.RequestPromise> {
-    return await request({
-      url,
-      method: 'get',
-      // 数据以二进制形式返回
-      encoding: null,
-      timeout: RequestConfig.timeoutMs,
+  static async downloadImg(url: string): Promise<Buffer> {
+    let res = await httpInstance.get(url, {
+      responseType: 'blob',
+      timeout: CommonConfig.request_timeout_ms,
     })
+    return res.data
   }
 }
-
-export default Http
