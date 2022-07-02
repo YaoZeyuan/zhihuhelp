@@ -29,7 +29,6 @@ class BatchFetchQuestion extends Base {
     let answerIndex = 0
     let answerIdList = []
     let batchFetchAnswer = new BatchFetchAnswer()
-    let loopCounter = 0
     for (let offset = 0; offset < answerCount; offset = offset + this.max) {
       let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.max)
       for (let answer of answerList) {
@@ -37,11 +36,6 @@ class BatchFetchQuestion extends Base {
         await MQuestion.asyncReplaceQuestionAnswer(questionId, answer)
         let answerId = `${answer.id}`
         answerIdList.push(answerId)
-      }
-      loopCounter = loopCounter + 1
-      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
       }
     }
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)

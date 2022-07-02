@@ -1,7 +1,3 @@
-import TypeAnswer from '~/src/type/namespace/answer'
-import AnswerApi from '~/src/api/answer'
-import CommonUtil from '~/src/library/util/common'
-import MTotalAnswer from '~/src/model/total_answer'
 import Logger from '~/src/library/logger'
 import _ from 'lodash'
 
@@ -35,8 +31,6 @@ class BaseBatchFetch {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
         })
     }
-    this.log(`派发所有待抓取任务`)
-    await CommonUtil.asyncDispatchAllPromiseInQueen()
     this.log(`所有抓取任务执行完毕`)
   }
 

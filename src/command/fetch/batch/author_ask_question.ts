@@ -19,18 +19,12 @@ class BatchFetchAuthorQuestion extends Base {
     this.log(`用户${name}(${urlToken})共提了${questionCount}个问题`)
     this.log(`开始抓取提问列表`)
     let batchFetchQuestion = new BatchFetchQuestion()
-    let loopCounter = 0
     for (let offset = 0; offset < questionCount; offset = offset + this.max) {
       let authorQuestionList = await AuthorApi.asyncGetAutherQuestionList(urlToken, offset, this.max)
       for (let authorQuestion of authorQuestionList) {
         await MAuthorAskQuestion.asyncReplaceAuthorQuestion(urlToken, authorId, authorQuestion)
       }
       this.log(`第${offset}~${offset + this.max}条用户提问记录获取完毕`)
-      loopCounter = loopCounter + 1
-      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
-      }
     }
     let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(urlToken)
     this.log(`开始抓取用户${name}(${urlToken})的所有提问下的回答记录,共${questionIdList.length}条`)
