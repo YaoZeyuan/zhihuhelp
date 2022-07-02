@@ -1,16 +1,10 @@
 import Base from '~/src/command/base'
 
 class FetchBase extends Base {
-  max = 20
-  static get signature() {
-    return `
-        Fetch:Base
-        `
-  }
+  public static commandName = 'Fetch:Base'
+  public static description = '基类:抓取知乎接口'
 
-  static get description() {
-    return '抓取知乎接口'
-  }
+  max = 20
 }
 
 export default FetchBase
