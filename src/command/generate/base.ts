@@ -1,19 +1,17 @@
 import Base from '~/src/command/base'
-import http from '~/src/library/http'
+import { http } from '~/src/library/http'
 import md5 from 'md5'
 import url from 'url'
-import moment from 'moment'
 import _ from 'lodash'
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
-import PathConfig from '~/src/config/path'
-import DATE_FORMAT from '~/src/constant/date_format'
-import CommonUtil from '~/src/library/util/common'
+import { PathConfig } from '~/src/config/path'
+import * as DATE_FORMAT from '~/src/constant/date_format'
+import { CommonUtil } from '~/src/library/util/common'
 import logger from '~/src/library/logger'
-import StringUtil from '~/src/library/util/string'
 import Epub from '~/src/library/epub'
-import TypeTaskConfig from '~/src/type/namespace/task_config'
+import * as Type_TaskConfig from '~/src/type/task_config'
 import sharp from 'sharp'
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
@@ -96,7 +94,7 @@ class ImgItem {
         // 文件名不能过长, 否则用户无法直接删除该文件
         pathname = pathname.substr(pathname.length - 50, 50)
       }
-      filename = StringUtil.encodeFilename(`${srcMd5}_${pathname}`)
+      filename = CommonUtil.encodeFilename(`${srcMd5}_${pathname}`)
     } catch (e) {
       // 非url, 不需要进行处理, 返回空即可
       logger.warn(`[警告]传入值src:${src}不是合法url, 将返回空filename`)
@@ -107,7 +105,7 @@ class ImgItem {
 
 class FetchBase extends Base {
   epub: Epub = new Epub('', '')
-  imageQuilty: TypeTaskConfig.imageQuilty = 'hd'
+  imageQuilty: Type_TaskConfig.Type_Image_Quilty = 'hd'
 
   imgUriPool: Map<TypeSrc2Download, ImgItem> = new Map()
 
@@ -372,28 +370,28 @@ class FetchBase extends Base {
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
 
-    let imgContent = ''
+    let imgContent: Buffer = new Buffer('')
     // 知乎图片cdn不稳定, 需要把几个服务器都试下, 直到成功下载到图片为止
     if (src.match(Const_Zhihu_Img_Prefix_Reg) !== null) {
       // 匹配到说明是知乎的服务器
       let rawSrc = src
       let tryImgSrc = ''
       for (let prefix of Const_Zhihu_Img_CDN_List) {
-        if (imgContent === '') {
+        if (imgContent.length === 0) {
           tryImgSrc = rawSrc.replace(Const_Zhihu_Img_Prefix_Reg, prefix)
           imgContent = await http.downloadImg(tryImgSrc).catch((e) => {
-            return ''
+            return new Buffer('')
           })
         }
       }
     } else {
       // 非zhimg文件直接下载
       imgContent = await http.downloadImg(src).catch((e) => {
-        return ''
+        return new Buffer('')
       })
     }
 
-    if (imgContent === '') {
+    if (imgContent.length === 0) {
       this.log(`[第${index}张图片]-1-4-下载失败, 图片内容为空, 原url=>${src}`)
       return
     }
@@ -498,7 +496,7 @@ class FetchBase extends Base {
         // 文件名不能过长, 否则用户无法直接删除该文件
         pathname = pathname.substr(pathname.length - 50, 50)
       }
-      filename = StringUtil.encodeFilename(`${srcMd5}_${pathname}`)
+      filename = CommonUtil.encodeFilename(`${srcMd5}_${pathname}`)
     } catch (e) {
       // 非url, 不需要进行处理, 返回空即可
       logger.warn(`[警告]传入值src:${src}不是合法url, 将返回空filename`)
