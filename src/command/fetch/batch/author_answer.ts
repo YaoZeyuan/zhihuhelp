@@ -24,7 +24,7 @@ class BatchFetchAuthorAnswer extends Base {
         }
         this.log(`第${offset}~${offset + this.max}条回答记录抓取完毕`)
       }
-      CommonUtil.addTask({
+      CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         label: this,
         needProtect: true,

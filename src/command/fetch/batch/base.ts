@@ -19,6 +19,7 @@ class BaseBatchFetch {
    */
   async fetchListAndSaveToDb(idList: Array<string>) {
     let index = 0
+    let taskLabel = Symbol(`${this.constructor.name}-fetchListAndSaveToDb`)
     for (let id of idList) {
       index = index + 1
       let taskIndex = index
@@ -33,13 +34,13 @@ class BaseBatchFetch {
           })
       }
       // 通过统一的任务中心执行
-      CommonUtil.addTask({
+      CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         needProtect: true,
-        label: this,
+        label: taskLabel,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
     this.log(`所有抓取任务执行完毕`)
   }
 

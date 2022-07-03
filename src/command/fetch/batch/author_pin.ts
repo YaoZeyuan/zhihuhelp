@@ -19,21 +19,25 @@ class BatchFetchAuthorPin extends Base {
     this.log(`用户${name}(${urlToken})共发布了${pinCount}个想法`)
     this.log(`开始抓取想法列表`)
     let batchFetchPin = new BatchFetchPin()
-    let pinIdList = []
-    let loopCounter = 0
+    let pinIdList: string[] = []
+    let taskLabel = Symbol('BatchFetchAuthorPin-fetch')
     for (let offset = 0; offset < pinCount; offset = offset + this.max) {
-      let authorPinsList = await AuthorApi.asyncGetAutherPinList(urlToken, offset, this.max)
-      for (let authorPin of authorPinsList) {
-        let pinId = `${authorPin.id}`
-        pinIdList.push(pinId)
+      let asyncTaskFunc = async () => {
+        let authorPinsList = await AuthorApi.asyncGetAutherPinList(urlToken, offset, this.max)
+        for (let authorPin of authorPinsList) {
+          let pinId = `${authorPin.id}`
+          pinIdList.push(pinId)
+        }
+        this.log(`第${offset}~${offset + this.max}条用户想法记录获取完毕`)
       }
-      this.log(`第${offset}~${offset + this.max}条用户想法记录获取完毕`)
-      loopCounter = loopCounter + 1
-      if (loopCounter % CommonConfig.protect_Loop_Count === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠${CommonConfig.protect_To_Wait_ms / 1000}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
-      }
+
+      CommonUtil.addAsyncTaskFunc({
+        asyncTaskFunc,
+        needProtect: true,
+        label: taskLabel,
+      })
     }
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
     this.log(`开始抓取用户${name}(${urlToken})的所有想法详情记录,共${pinIdList.length}条`)
     await batchFetchPin.fetchListAndSaveToDb(pinIdList)
     this.log(`用户${name}(${urlToken})的想法列表抓取完毕`)

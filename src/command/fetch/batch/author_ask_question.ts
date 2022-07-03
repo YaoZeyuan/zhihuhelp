@@ -3,8 +3,6 @@ import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MAuthor from '~/src/model/author'
 import Base from '~/src/command/fetch/batch/base'
 import BatchFetchQuestion from '~/src/command/fetch/batch/question'
-import CommonUtil from '~/src/library/util/common'
-import RequestConfig from '~/src/config/request'
 
 class BatchFetchAuthorQuestion extends Base {
   async fetch(urlToken: string) {

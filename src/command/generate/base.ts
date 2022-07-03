@@ -336,7 +336,7 @@ class FetchBase extends Base {
         // 分批下载
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
         let currentIndex = index
-        await CommonUtil.addTask({
+        await CommonUtil.addAsyncTaskFunc({
           asyncTaskFunc: async () => {
             await this.asyncDownloadImg(currentIndex, imgItem.rawImgSrc, imgItem.downloadCacheUri)
           },
