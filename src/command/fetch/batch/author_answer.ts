@@ -18,8 +18,6 @@ class BatchFetchAuthorAnswer extends Base {
     this.log(`用户${name}(${urlToken})共有${answerCount}个回答`)
     this.log(`开始抓取回答列表`)
     this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answerCount}条`)
-    let answetIdList = []
-    let batchFetchAnswer = new BatchFetchAnswer()
     let loopCounter = 0
     for (let offset = 0; offset < answerCount; offset = offset + this.max) {
       let answerList = await AuthorApi.asyncGetAutherAnswerList(urlToken, offset, this.max)
@@ -30,11 +28,9 @@ class BatchFetchAuthorAnswer extends Base {
       loopCounter = loopCounter + 1
       if (loopCounter % CommonConfig.protect_Loop_Count === 0) {
         this.log(`第${loopCounter}次抓取, 休眠${CommonConfig.protect_To_Wait_ms / 1000}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms )
+        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
       }
     }
-    // this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
-    // await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)
     this.log(`用户${name}(${urlToken})的回答记录抓取完毕`)
   }
 }
