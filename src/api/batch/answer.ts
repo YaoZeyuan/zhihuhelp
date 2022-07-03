@@ -1,7 +1,7 @@
 import AnswerApi from '~/src/api/answer'
 import MTotalAnswer from '~/src/model/total_answer'
 import _ from 'lodash'
-import Base from '~/src/command/fetch/batch/base'
+import Base from '~/src/api/batch/base'
 
 class BatchFetchAnswer extends Base {
   /**

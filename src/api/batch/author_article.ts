@@ -1,7 +1,7 @@
 import AuthorApi from '~/src/api/author'
 import MAuthor from '~/src/model/author'
-import BatchFetchArticle from '~/src/command/fetch/batch/article'
-import Base from '~/src/command/fetch/batch/base'
+import BatchFetchArticle from '~/src/api/batch/article'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
 import CommonConfig from '~/src/config/common'
 

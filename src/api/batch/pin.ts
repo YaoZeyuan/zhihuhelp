@@ -1,6 +1,6 @@
 import PinApi from '~/src/api/pin'
 import MPin from '~/src/model/pin'
-import Base from '~/src/command/fetch/batch/base'
+import Base from '~/src/api/batch/base'
 
 class BatchFetchPin extends Base {
   async fetch(id: string) {

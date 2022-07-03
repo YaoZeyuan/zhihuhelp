@@ -1,8 +1,8 @@
 import AuthorApi from '~/src/api/author'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MAuthor from '~/src/model/author'
-import BatchFetchPin from '~/src/command/fetch/batch/pin'
-import Base from '~/src/command/fetch/batch/base'
+import BatchFetchPin from '~/src/api/batch/pin'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
 import CommonConfig from '~/src/config/common'
 

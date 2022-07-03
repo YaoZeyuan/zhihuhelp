@@ -1,8 +1,8 @@
 import ColumnApi from '~/src/api/column'
 import MColumn from '~/src/model/column'
-import Base from '~/src/command/fetch/batch/base'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
-import BatchFetchArticle from '~/src/command/fetch/batch/article'
+import BatchFetchArticle from '~/src/api/batch/article'
 import Logger from '~/src/library/logger'
 
 class BatchFetchColumn extends Base {

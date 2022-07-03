@@ -2,8 +2,8 @@ import QuestionApi from '~/src/api/question'
 import MQuestion from '~/src/model/question'
 import Logger from '~/src/library/logger'
 import _ from 'lodash'
-import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
-import Base from '~/src/command/fetch/batch/base'
+import BatchFetchAnswer from '~/src/api/batch/answer'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
 
 class BatchFetchQuestion extends Base {

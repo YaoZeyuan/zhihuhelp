@@ -1,8 +1,8 @@
 import CollectionApi from '~/src/api/collection'
 import MCollection from '~/src/model/collection'
-import Base from '~/src/command/fetch/batch/base'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
-import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
+import BatchFetchAnswer from '~/src/api/batch/answer'
 import Logger from '~/src/library/logger'
 
 class BatchFetchCollection extends Base {

@@ -1,8 +1,8 @@
 import TopicApi from '~/src/api/topic'
 import MTopic from '~/src/model/topic'
-import Base from '~/src/command/fetch/batch/base'
+import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
-import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
+import BatchFetchAnswer from '~/src/api/batch/answer'
 
 class BatchFetchTopic extends Base {
   async fetch(id: string) {

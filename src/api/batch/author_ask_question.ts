@@ -1,8 +1,8 @@
 import AuthorApi from '~/src/api/author'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MAuthor from '~/src/model/author'
-import Base from '~/src/command/fetch/batch/base'
-import BatchFetchQuestion from '~/src/command/fetch/batch/question'
+import Base from '~/src/api/batch/base'
+import BatchFetchQuestion from '~/src/api/batch/question'
 
 class BatchFetchAuthorQuestion extends Base {
   async fetch(urlToken: string) {
