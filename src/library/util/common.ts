@@ -252,7 +252,7 @@ export default class CommonUtil {
   /**
    * 添加promise到任务队列
    */
-  static async asyncAddTask({
+  static addTask({
     task,
     needProtect = false,
     label = 'default_label',

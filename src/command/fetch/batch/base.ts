@@ -31,7 +31,7 @@ class BaseBatchFetch {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
         })
       // 通过统一的任务中心执行
-      CommonUtil.asyncAddTask({
+      CommonUtil.addTask({
         task,
         needProtect: true,
         label: this,
