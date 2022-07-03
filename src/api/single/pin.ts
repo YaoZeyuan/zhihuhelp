@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Base from '~/src/api/base'
+import Base from '~/src/api/single/base'
 import * as TypePin from '~/src/type/zhihu/pin'
 
 class Pin extends Base {

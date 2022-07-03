@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Base from '~/src/api/base'
+import Base from '~/src/api/single/base'
 import TypeAuthor from '~/src/type/zhihu/author'
 
 class Author extends Base {

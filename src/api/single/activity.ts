@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Base from '~/src/api/base'
+import Base from '~/src/api/single/base'
 import TypeActivity from '~/src/type/zhihu/activity'
 import moment from 'moment'
 

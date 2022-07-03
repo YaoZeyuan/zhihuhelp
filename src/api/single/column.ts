@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Base from '~/src/api/base'
+import Base from '~/src/api/single/base'
 import TypeColumn from '~/src/type/zhihu/column'
 import TypeArticleExcerpt from '~/src/type/zhihu/article_excerpt'
 
