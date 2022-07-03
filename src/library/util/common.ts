@@ -42,7 +42,7 @@ class TaskManager {
   > = new Map()
 
   private taskList: {
-    task: Type_Asnyc_Task_Runner
+    asyncTaskFunc: Type_Asnyc_Task_Runner
     label: any
   }[] = []
 
@@ -114,12 +114,12 @@ class TaskManager {
     // 正在执行任务数+1
     this.runingRunner++
 
-    let taskConfig = this.taskList.pop() ?? { task: Const_Default_Task_Runner, label: this.defaultLabel }
-    let { task = Const_Default_Task_Runner, label = this.defaultLabel } = taskConfig
+    let taskConfig = this.taskList.pop() ?? { asyncTaskFunc: Const_Default_Task_Runner, label: this.defaultLabel }
+    let { asyncTaskFunc = Const_Default_Task_Runner, label = this.defaultLabel } = taskConfig
     logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
 
     await Promise.race([
-      task(),
+      asyncTaskFunc(),
       new Promise((reslove, reject) => {
         setTimeout(() => {
           reject(new Error(`任务执行超时`))
@@ -176,11 +176,11 @@ class TaskManager {
   }
 
   // 添加任务
-  addTask({
-    task,
+  addAsyncTaskFunc({
+    asyncTaskFunc,
     label = this.defaultLabel,
   }: {
-    task: Type_Asnyc_Task_Runner
+    asyncTaskFunc: Type_Asnyc_Task_Runner
     // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
     label?: any
   }) {
@@ -191,7 +191,7 @@ class TaskManager {
     labelCounter.total = labelCounter.total + 1
     this.taskStateMapByLabel.set(label, labelCounter)
     this.taskList.push({
-      task,
+      asyncTaskFunc,
       label,
     })
     this.taskDispatchCounter++
@@ -256,18 +256,18 @@ export default class CommonUtil {
    * 添加promise到任务队列
    */
   static addTask({
-    task,
+    asyncTaskFunc,
     needProtect = false,
     label = 'default_label',
   }: {
-    task: Type_Asnyc_Task_Runner
+    asyncTaskFunc: Type_Asnyc_Task_Runner
     needProtect: boolean
     label?: any
   }) {
     if (needProtect) {
-      this.taskManagerWithProtect.addTask({ task, label })
+      this.taskManagerWithProtect.addAsyncTaskFunc({ asyncTaskFunc, label })
     } else {
-      this.taskManagerWithoutProtect.addTask({ task, label })
+      this.taskManagerWithoutProtect.addAsyncTaskFunc({ asyncTaskFunc, label })
     }
     return
   }
