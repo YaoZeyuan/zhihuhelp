@@ -18,14 +18,14 @@ class BatchFetchAuthorArticle extends Base {
     this.log(`开始抓取文章列表`)
     let batchFetchArticle = new BatchFetchArticle()
     let articleIdList: string[] = []
-    for (let offset = 0; offset < articleCount; offset = offset + this.max) {
+    for (let offset = 0; offset < articleCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let authorArticlesList = await AuthorApi.asyncGetAutherArticleList(urlToken, offset, this.max)
+        let authorArticlesList = await AuthorApi.asyncGetAutherArticleList(urlToken, offset, this.fetchLimit)
         for (let authorArticle of authorArticlesList) {
           let articleId = `${authorArticle.id}`
           articleIdList.push(articleId)
         }
-        this.log(`用户发表的第${offset}~${offset + this.max}篇文章简介获取完毕`)
+        this.log(`用户发表的第${offset}~${offset + this.fetchLimit}篇文章简介获取完毕`)
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,

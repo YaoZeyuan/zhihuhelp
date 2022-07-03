@@ -18,9 +18,9 @@ class BatchFetchColumn extends Base {
     this.log(`开始抓取文章概要列表`)
     let articleIdList: Array<string> = []
     let batchFetchArticle = new BatchFetchArticle()
-    for (let offset = 0; offset < articleCount; offset = offset + this.max) {
+    for (let offset = 0; offset < articleCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let articleExcerptList = await ColumnApi.asyncGetArticleExcerptList(id, offset, this.max)
+        let articleExcerptList = await ColumnApi.asyncGetArticleExcerptList(id, offset, this.fetchLimit)
         for (let articleExcerpt of articleExcerptList) {
           articleIdList.push(`${articleExcerpt.id}`)
           await MColumn.asyncReplaceColumnArticleExcerpt(id, articleExcerpt).catch((e) => {

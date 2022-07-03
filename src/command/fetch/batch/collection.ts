@@ -18,10 +18,10 @@ class BatchFetchCollection extends Base {
     let batchFetchAnswer = new BatchFetchAnswer()
     // @todo 收藏夹目前支持收藏文章和想法, 需要根据收藏类型进行分类处理. 数据库表结构也需要改一下
     this.log(`开始抓取回答列表`)
-    for (let offset = 0; offset < answerCount; offset = offset + this.max) {
+    for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
         // 先拿到AnswerExcerpt, 然后再去获取回答详情
-        let answerList = await CollectionApi.asyncGetAnswerExcerptList(id, offset, this.max)
+        let answerList = await CollectionApi.asyncGetAnswerExcerptList(id, offset, this.fetchLimit)
         for (let answer of answerList) {
           answerIdList.push(`${answer.id}`)
           await MCollection.asyncReplaceColumnAnswerExcerpt(id, answer).catch((e) => {

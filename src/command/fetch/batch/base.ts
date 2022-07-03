@@ -3,7 +3,10 @@ import CommonUtil from '~/src/library/util/common'
 import _ from 'lodash'
 
 class BaseBatchFetch {
-  max = 20
+  /**
+   * 单次获取的数据条数
+   */
+  fetchLimit = 20
 
   /**
    * 获取单个回答,并存入数据库中

@@ -21,14 +21,14 @@ class BatchFetchAuthorPin extends Base {
     let batchFetchPin = new BatchFetchPin()
     let pinIdList: string[] = []
     let taskLabel = Symbol('BatchFetchAuthorPin-fetch')
-    for (let offset = 0; offset < pinCount; offset = offset + this.max) {
+    for (let offset = 0; offset < pinCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let authorPinsList = await AuthorApi.asyncGetAutherPinList(urlToken, offset, this.max)
+        let authorPinsList = await AuthorApi.asyncGetAutherPinList(urlToken, offset, this.fetchLimit)
         for (let authorPin of authorPinsList) {
           let pinId = `${authorPin.id}`
           pinIdList.push(pinId)
         }
-        this.log(`第${offset}~${offset + this.max}条用户想法记录获取完毕`)
+        this.log(`第${offset}~${offset + this.fetchLimit}条用户想法记录获取完毕`)
       }
 
       CommonUtil.addAsyncTaskFunc({

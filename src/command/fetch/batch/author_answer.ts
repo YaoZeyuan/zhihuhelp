@@ -16,13 +16,13 @@ class BatchFetchAuthorAnswer extends Base {
     this.log(`用户${name}(${urlToken})共有${answerCount}个回答`)
     this.log(`开始抓取回答列表`)
     this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answerCount}条`)
-    for (let offset = 0; offset < answerCount; offset = offset + this.max) {
+    for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let answerList = await AuthorApi.asyncGetAutherAnswerList(urlToken, offset, this.max)
+        let answerList = await AuthorApi.asyncGetAutherAnswerList(urlToken, offset, this.fetchLimit)
         for (let answer of answerList) {
           await MTotalAnswer.asyncReplaceAnswer(answer)
         }
-        this.log(`第${offset}~${offset + this.max}条回答记录抓取完毕`)
+        this.log(`第${offset}~${offset + this.fetchLimit}条回答记录抓取完毕`)
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,

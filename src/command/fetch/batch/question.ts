@@ -27,9 +27,9 @@ class BatchFetchQuestion extends Base {
     this.log(`开始抓取问题${title}(${questionId})下的回答列表`)
     let answerIdList: string[] = []
     let batchFetchAnswer = new BatchFetchAnswer()
-    for (let offset = 0; offset < answerCount; offset = offset + this.max) {
+    for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.max)
+        let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.fetchLimit)
         for (let answer of answerList) {
           await MQuestion.asyncReplaceQuestionAnswer(questionId, answer)
           let answerId = `${answer.id}`

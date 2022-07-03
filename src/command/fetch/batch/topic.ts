@@ -16,9 +16,9 @@ class BatchFetchTopic extends Base {
     let answerIdList: Array<string> = []
     let batchFetchAnswer = new BatchFetchAnswer()
     this.log(`开始抓取话题精华回答列表`)
-    for (let offset = 0; offset < baseAnswer; offset = offset + this.max) {
+    for (let offset = 0; offset < baseAnswer; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
-        let answerList = await TopicApi.asyncGetAnswerList(id, offset, this.max)
+        let answerList = await TopicApi.asyncGetAnswerList(id, offset, this.fetchLimit)
         for (let answer of answerList) {
           // 传递给外部
           answerIdList.push(`${answer.id}`)
