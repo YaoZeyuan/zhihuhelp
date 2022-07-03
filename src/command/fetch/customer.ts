@@ -1,4 +1,4 @@
-import Base from '~/src/command/fetch/base'
+import Base from '~/src/command/base'
 import * as Type_Task_Config from '~/src/type/task_config'
 import * as Const_Task_Config from '~/src/constant/task_config'
 import PathConfig from '~/src/config/path'

@@ -3,7 +3,7 @@ import MAuthor from '~/src/model/author'
 import BatchFetchArticle from '~/src/command/fetch/batch/article'
 import Base from '~/src/command/fetch/batch/base'
 import CommonUtil from '~/src/library/util/common'
-import RequestConfig from '~/src/config/request'
+import CommonConfig from '~/src/config/common'
 
 class BatchFetchAuthorArticle extends Base {
   async fetch(urlToken: string) {
@@ -28,9 +28,9 @@ class BatchFetchAuthorArticle extends Base {
       }
       this.log(`用户发表的第${offset}~${offset + this.max}篇文章简介获取完毕`)
       loopCounter = loopCounter + 1
-      if (loopCounter % RequestConfig.perLoop2TriggerProtect === 0) {
-        this.log(`第${loopCounter}次抓取, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
+      if (loopCounter % CommonConfig.protect_Loop_Count === 0) {
+        this.log(`第${loopCounter}次抓取, 休眠${CommonConfig.protect_To_Wait_ms / 1000}s, 保护知乎服务器`)
+        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
       }
     }
     this.log(`开始抓取用户${name}(${urlToken})的所有文章详情,共${articleIdList.length}篇`)

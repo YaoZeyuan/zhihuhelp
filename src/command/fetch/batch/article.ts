@@ -10,7 +10,7 @@ class BatchFetchArticle extends Base {
    */
   async fetch(id: string) {
     this.log(`准备抓取文章${id}`)
-    let article = await ArticleApi.asyncGetArticle(id)
+    let article = await ArticleApi.asyncGetArticle(id as unknown as number)
     if (_.isEmpty(article)) {
       this.log(`文章${id}抓取失败`)
       return
