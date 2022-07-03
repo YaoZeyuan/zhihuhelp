@@ -5,23 +5,6 @@ import AuthorApi from '~/src/api/author'
 
 class Answer extends Base {
   /**
-   * @deprecated 已废弃, 迁移至Author中
-   * 获取用户回答列表
-   * @param url_token
-   * @param offset
-   * @param limit
-   * @param sortBy
-   */
-  static async asyncGetAutherAnswerList(
-    url_token: string,
-    offset: number = 0,
-    limit: number = 20,
-    sortBy: string = Base.CONST_SORT_BY_CREATED,
-  ): Promise<Array<TypeAnswer.Record>> {
-    return AuthorApi.asyncGetAutherAnswerList(url_token, offset, limit, sortBy) as any
-  }
-
-  /**
    * 获取单个回答
    * @param id
    */
