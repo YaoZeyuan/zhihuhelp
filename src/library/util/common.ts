@@ -5,6 +5,9 @@ import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import CommonConfig from '~/src/config/common'
 
+type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
+const Const_Default_Task_Runner: Type_Asnyc_Task_Runner = async () => {}
+
 // 每计数x次后, 重置任务
 class TaskManager {
   private maxTaskRunner = 10
@@ -39,7 +42,7 @@ class TaskManager {
   > = new Map()
 
   private taskList: {
-    task: Promise<any>
+    task: Type_Asnyc_Task_Runner
     label: any
   }[] = []
 
@@ -111,12 +114,12 @@ class TaskManager {
     // 正在执行任务数+1
     this.runingRunner++
 
-    let taskConfig = this.taskList.pop() ?? { task: Promise.resolve(true), label: this.defaultLabel }
-    let { task = Promise.resolve(true), label = this.defaultLabel } = taskConfig
+    let taskConfig = this.taskList.pop() ?? { task: Const_Default_Task_Runner, label: this.defaultLabel }
+    let { task = Const_Default_Task_Runner, label = this.defaultLabel } = taskConfig
     logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
 
-    await Promise.all([
-      task,
+    await Promise.race([
+      task(),
       new Promise((reslove, reject) => {
         setTimeout(() => {
           reject(new Error(`任务执行超时`))
@@ -177,7 +180,7 @@ class TaskManager {
     task,
     label = this.defaultLabel,
   }: {
-    task: Promise<any>
+    task: Type_Asnyc_Task_Runner
     // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
     label?: any
   }) {
@@ -257,7 +260,7 @@ export default class CommonUtil {
     needProtect = false,
     label = 'default_label',
   }: {
-    task: Promise<any>
+    task: Type_Asnyc_Task_Runner
     needProtect: boolean
     label?: any
   }) {
