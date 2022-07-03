@@ -1,4 +1,4 @@
-import AuthorApi from '~/src/api/author'
+import AuthorApi from '~/src/api/single/author'
 import MAuthor from '~/src/model/author'
 import BatchFetchArticle from '~/src/api/batch/article'
 import Base from '~/src/api/batch/base'

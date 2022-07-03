@@ -1,4 +1,4 @@
-import TopicApi from '~/src/api/topic'
+import TopicApi from '~/src/api/single/topic'
 import MTopic from '~/src/model/topic'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'

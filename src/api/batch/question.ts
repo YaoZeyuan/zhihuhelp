@@ -1,4 +1,4 @@
-import QuestionApi from '~/src/api/question'
+import QuestionApi from '~/src/api/single/question'
 import MQuestion from '~/src/model/question'
 import Logger from '~/src/library/logger'
 import _ from 'lodash'

@@ -1,4 +1,4 @@
-import ArticleApi from '~/src/api/article'
+import ArticleApi from '~/src/api/single/article'
 import MArticle from '~/src/model/article'
 import _ from 'lodash'
 import Base from '~/src/api/batch/base'

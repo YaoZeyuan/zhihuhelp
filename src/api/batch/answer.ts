@@ -1,4 +1,4 @@
-import AnswerApi from '~/src/api/answer'
+import AnswerApi from '~/src/api/single/answer'
 import MTotalAnswer from '~/src/model/total_answer'
 import _ from 'lodash'
 import Base from '~/src/api/batch/base'

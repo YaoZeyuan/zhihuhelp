@@ -1,4 +1,4 @@
-import AuthorApi from '~/src/api/author'
+import AuthorApi from '~/src/api/single/author'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MAuthor from '~/src/model/author'
 import BatchFetchPin from '~/src/api/batch/pin'

@@ -1,4 +1,4 @@
-import PinApi from '~/src/api/pin'
+import PinApi from '~/src/api/single/pin'
 import MPin from '~/src/model/pin'
 import Base from '~/src/api/batch/base'
 

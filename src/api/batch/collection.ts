@@ -1,4 +1,4 @@
-import CollectionApi from '~/src/api/collection'
+import CollectionApi from '~/src/api/single/collection'
 import MCollection from '~/src/model/collection'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'

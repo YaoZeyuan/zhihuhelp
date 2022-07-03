@@ -1,4 +1,4 @@
-import ColumnApi from '~/src/api/column'
+import ColumnApi from '~/src/api/single/column'
 import MColumn from '~/src/model/column'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
