@@ -92,7 +92,7 @@ class ImgItem {
       }
       if (pathname.length > 50) {
         // 文件名不能过长, 否则用户无法直接删除该文件
-        pathname = pathname.substr(pathname.length - 50, 50)
+        pathname = pathname.slice(pathname.length - 50)
       }
       filename = CommonUtil.encodeFilename(`${srcMd5}_${pathname}`)
     } catch (e) {
@@ -497,7 +497,7 @@ class FetchBase extends Base {
       }
       if (pathname.length > 50) {
         // 文件名不能过长, 否则用户无法直接删除该文件
-        pathname = pathname.substr(pathname.length - 50, 50)
+        pathname = pathname.slice(pathname.length - 50)
       }
       filename = CommonUtil.encodeFilename(`${srcMd5}_${pathname}`)
     } catch (e) {

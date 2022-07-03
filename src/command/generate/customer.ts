@@ -1,8 +1,8 @@
 import Base from '~/src/command/generate/base'
-import TypeTaskConfig from '~/src/type/namespace/task_config'
-import TypeAnswer from '~/src/type/namespace/answer'
-import TypePin from '~/src/type/namespace/pin'
-import TypeArticle from '~/src/type/namespace/article'
+import TypeTaskConfig from '~/src/type/task_config'
+import TypeAnswer from '~/src/type/zhihu/answer'
+import * as TypePin from '~/src/type/zhihu/pin'
+import TypeArticle from '~/src/type/zhihu/article'
 import PathConfig from '~/src/config/path'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MActivity from '~/src/model/activity'
@@ -15,13 +15,13 @@ import MPin from '~/src/model/pin'
 import _ from 'lodash'
 import json5 from 'json5'
 
-import AnswerView from '~/src/view/answer'
-import PinView from '~/src/view/pin'
-import ArticleView from '~/src/view/article'
-import BaseView from '~/src/view/base'
+import AnswerView from '~/src/public/template/react/answer'
+import PinView from '~/src/public/template/react/pin'
+import ArticleView from '~/src/public/template/react/article'
+import BaseView from '~/src/public/template/react/base'
 import fs from 'fs'
 import path from 'path'
-import StringUtil from '~/src/library/util/string'
+import CommonUtil from '~/src/library/util/common'
 
 type EpubResourcePackage = {
   questionList: Array<Array<TypeAnswer.Record>>
@@ -40,9 +40,9 @@ class GenerateCustomer extends Base {
     return '输出自定义电子书'
   }
 
-  async execute(args: any, options: any): Promise<any> {
-    this.log(`从${PathConfig.customerTaskConfigUri}中读取配置文件`)
-    let fetchConfigJSON = fs.readFileSync(PathConfig.customerTaskConfigUri).toString()
+  async execute(): Promise<any> {
+    this.log(`从${PathConfig.configUri}中读取配置文件`)
+    let fetchConfigJSON = fs.readFileSync(PathConfig.configUri).toString()
     this.log('content =>', fetchConfigJSON)
     let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
 
@@ -529,7 +529,7 @@ class GenerateCustomer extends Base {
     epubResourcePackage: EpubResourcePackage,
   ) {
     // 初始化资源, 重置所有静态类变量
-    this.bookname = StringUtil.encodeFilename(`${bookname}`)
+    this.bookname = CommonUtil.encodeFilename(`${bookname}`)
     this.imageQuilty = imageQuilty
     let { questionList, articleList, pinList } = epubResourcePackage
     this.imgUriPool = new Map()
