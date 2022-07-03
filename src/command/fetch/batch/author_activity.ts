@@ -112,7 +112,7 @@ class BatchFetchAuthorActivity extends Base {
     this.log(`抓取时间范围为:${rangeString}内的记录`)
     let taskLabel = Symbol('fetchActivityInRange') // 保证label的唯一性
     for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt; ) {
-      let fetchFunc = async () => {
+      let asyncTaskFunc = async () => {
         this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
         let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
         if (activityList.length === 0) {
@@ -131,7 +131,7 @@ class BatchFetchAuthorActivity extends Base {
       }
       // 通过统一的任务中心执行
       CommonUtil.addTask({
-        asyncTaskFunc: fetchFunc,
+        asyncTaskFunc,
         needProtect: true,
         label: taskLabel,
       })

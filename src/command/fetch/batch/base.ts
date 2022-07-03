@@ -23,7 +23,7 @@ class BaseBatchFetch {
       index = index + 1
       let taskIndex = index
       this.log(`启动第${taskIndex}/${idList.length}个抓取任务(${id})`)
-      let asyncTaskRunner = async () => {
+      let asyncTaskFunc = async () => {
         await this.fetch(id)
           .then(() => {
             this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
@@ -34,7 +34,7 @@ class BaseBatchFetch {
       }
       // 通过统一的任务中心执行
       CommonUtil.addTask({
-        asyncTaskFunc: asyncTaskRunner,
+        asyncTaskFunc,
         needProtect: true,
         label: this,
       })
