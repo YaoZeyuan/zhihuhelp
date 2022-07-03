@@ -1,4 +1,5 @@
 import Logger from '~/src/library/logger'
+import CommonUtil from '~/src/library/util/common'
 import _ from 'lodash'
 
 class BaseBatchFetch {
@@ -22,15 +23,21 @@ class BaseBatchFetch {
       index = index + 1
       let taskIndex = index
       this.log(`启动第${taskIndex}/${idList.length}个抓取任务(${id})`)
-      // 一个一个任务进行, 请求接口不搞并行. 切实保护知乎服务器
-      await this.fetch(id)
+      let task = this.fetch(id)
         .then(() => {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
         })
         .catch((e) => {
           this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
         })
+      // 通过统一的任务中心执行
+      CommonUtil.asyncAddTask({
+        task,
+        needProtect: true,
+        label: this,
+      })
     }
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
     this.log(`所有抓取任务执行完毕`)
   }
 

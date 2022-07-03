@@ -65,8 +65,14 @@ class BatchFetchAuthorActivity extends Base {
       let fetchStartAt = fetchAt
       let fetchEndAt = moment.unix(fetchAt).endOf(DATE_FORMAT.Const_Unit_Month).unix()
       fetchAt = fetchEndAt + 1
-      await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
+      let task = this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
+      CommonUtil.asyncAddTask({
+        task,
+        needProtect: true,
+        label: this,
+      })
     }
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
 
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
@@ -103,32 +109,34 @@ class BatchFetchAuthorActivity extends Base {
       .unix(endAt)
       .format(DATE_FORMAT.Const_Display_By_Day)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
-    let activityCounter = 0
-    let loopCounter = 0
+    let taskLabel = Symbol('fetchActivityInRange') // 保证label的唯一性
     for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt; ) {
-      this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
-      let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
-      if (activityList.length === 0) {
-        // 没有这段时间的记录或者接口调用失败, 自动往前挪一天
-        fetchAt = fetchAt - 86400
-        continue
-      }
-      for (let activityRecord of activityList) {
-        activityCounter = activityCounter + 1
-        // 更新时间(id是毫秒值)
-        fetchAt = Number.parseInt(`${activityRecord.id / 1000}`)
-        if (_.isNumber(fetchAt) === false) {
-          fetchAt = 0
+      let fetchFunc = async () => {
+        this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
+        let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
+        if (activityList.length === 0) {
+          // 没有这段时间的记录或者接口调用失败, 自动往前挪一天
+          fetchAt = fetchAt - 86400
+          return
         }
-        await MActivity.asyncReplaceActivity(activityRecord)
+        for (let activityRecord of activityList) {
+          // 更新时间(id是毫秒值)
+          fetchAt = Number.parseInt(`${activityRecord.id / 1000}`)
+          if (_.isNumber(fetchAt) === false) {
+            fetchAt = 0
+          }
+          await MActivity.asyncReplaceActivity(activityRecord)
+        }
       }
-      loopCounter = loopCounter + 1
-      if (loopCounter % CommonConfig.protect_Loop_Count === 0) {
-        this.log(`本轮第${loopCounter}次抓取, 休眠${CommonConfig.protect_To_Wait_ms / 1000}s, 保护知乎服务器`)
-        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
-      }
+      // 通过统一的任务中心执行
+      CommonUtil.asyncAddTask({
+        task: fetchFunc(),
+        needProtect: true,
+        label: taskLabel,
+      })
     }
-    this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕, 共${activityCounter}条`)
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
+    this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕`)
   }
 }
 
