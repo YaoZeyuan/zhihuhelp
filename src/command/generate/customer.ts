@@ -30,15 +30,8 @@ type EpubResourcePackage = {
 }
 
 class GenerateCustomer extends Base {
-  static get signature() {
-    return `
-        Generate:Customer
-    `
-  }
-
-  static get description() {
-    return '输出自定义电子书'
-  }
+  public static commandName = 'Generate:Customer'
+  public static description = `输出自定义电子书`
 
   async execute(): Promise<any> {
     this.log(`从${PathConfig.configUri}中读取配置文件`)
