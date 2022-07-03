@@ -23,16 +23,18 @@ class BaseBatchFetch {
       index = index + 1
       let taskIndex = index
       this.log(`启动第${taskIndex}/${idList.length}个抓取任务(${id})`)
-      let task = this.fetch(id)
-        .then(() => {
-          this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
-        })
-        .catch((e) => {
-          this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
-        })
+      let asyncTaskRunner = async () => {
+        await this.fetch(id)
+          .then(() => {
+            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行完毕`)
+          })
+          .catch((e) => {
+            this.log(`第${taskIndex}/${idList.length}个任务(${id})执行失败, 错误原因=>`, e)
+          })
+      }
       // 通过统一的任务中心执行
       CommonUtil.addTask({
-        task,
+        asyncTaskFunc: asyncTaskRunner,
         needProtect: true,
         label: this,
       })

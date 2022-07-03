@@ -65,9 +65,10 @@ class BatchFetchAuthorActivity extends Base {
       let fetchStartAt = fetchAt
       let fetchEndAt = moment.unix(fetchAt).endOf(DATE_FORMAT.Const_Unit_Month).unix()
       fetchAt = fetchEndAt + 1
-      let task = this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
       CommonUtil.addTask({
-        task,
+        asyncTaskFunc: async () => {
+          await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
+        },
         needProtect: true,
         label: this,
       })
@@ -130,7 +131,7 @@ class BatchFetchAuthorActivity extends Base {
       }
       // 通过统一的任务中心执行
       CommonUtil.addTask({
-        task: fetchFunc(),
+        asyncTaskFunc: fetchFunc,
         needProtect: true,
         label: taskLabel,
       })

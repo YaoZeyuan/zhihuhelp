@@ -27,9 +27,8 @@ class BatchFetchAuthorArticle extends Base {
         }
         this.log(`用户发表的第${offset}~${offset + this.max}篇文章简介获取完毕`)
       }
-      let task = asyncTaskRunner()
       CommonUtil.addTask({
-        task,
+        asyncTaskFunc: asyncTaskRunner,
         needProtect: true,
         label: this,
       })

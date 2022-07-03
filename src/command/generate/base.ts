@@ -335,8 +335,11 @@ class FetchBase extends Base {
       if (fs.existsSync(imgItem.downloadCacheUri) === false) {
         // 分批下载
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
+        let currentIndex = index
         await CommonUtil.addTask({
-          task: this.asyncDownloadImg(index, imgItem.rawImgSrc, imgItem.downloadCacheUri),
+          asyncTaskFunc: async () => {
+            await this.asyncDownloadImg(currentIndex, imgItem.rawImgSrc, imgItem.downloadCacheUri)
+          },
           needProtect: false,
         })
       }
