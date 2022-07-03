@@ -7,6 +7,7 @@ import CommonConfig from '~/src/config/common'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
 const Const_Default_Task_Runner: Type_Asnyc_Task_Runner = async () => {}
+const Const_Default_Task_Label = Symbol('default_label')
 
 // 每计数x次后, 重置任务
 class TaskManager {
@@ -24,8 +25,6 @@ class TaskManager {
   private readonly Const_Task_Timeout_ms = 20 * 1000
   // 最大记录的任务派发数/执行数, 超过该数自动重置计数器
   private readonly Const_Max_Task_Counter = 10000 * 10000 * 10000
-
-  private readonly defaultLabel = 'default_label'
 
   /**
    * 按label统计加入任务已完成的任务数, 和总任务数
@@ -114,8 +113,11 @@ class TaskManager {
     // 正在执行任务数+1
     this.runingRunner++
 
-    let taskConfig = this.taskList.pop() ?? { asyncTaskFunc: Const_Default_Task_Runner, label: this.defaultLabel }
-    let { asyncTaskFunc = Const_Default_Task_Runner, label = this.defaultLabel } = taskConfig
+    let taskConfig = this.taskList.pop() ?? {
+      asyncTaskFunc: Const_Default_Task_Runner,
+      label: Const_Default_Task_Label,
+    }
+    let { asyncTaskFunc = Const_Default_Task_Runner, label = Const_Default_Task_Label } = taskConfig
     logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
 
     await Promise.race([
@@ -178,7 +180,7 @@ class TaskManager {
   // 添加任务
   addAsyncTaskFunc({
     asyncTaskFunc,
-    label = this.defaultLabel,
+    label = Const_Default_Task_Label,
   }: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
     // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
@@ -227,7 +229,7 @@ class TaskManager {
    * @param label
    * @returns
    */
-  async asyncWaitTaskCompleteByLabel(label = this.defaultLabel) {
+  async asyncWaitTaskCompleteByLabel(label = Const_Default_Task_Label) {
     while (true) {
       let labelCounter = this.taskStateMapByLabel.get(label) ?? {
         complete: 0,
@@ -257,11 +259,11 @@ export default class CommonUtil {
    */
   static addAsyncTaskFunc({
     asyncTaskFunc,
-    needProtect = false,
-    label = 'default_label',
+    needProtect = true,
+    label = Const_Default_Task_Label,
   }: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
-    needProtect: boolean
+    needProtect?: boolean
     label?: any
   }) {
     if (needProtect) {

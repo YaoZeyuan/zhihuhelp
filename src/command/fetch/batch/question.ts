@@ -5,7 +5,6 @@ import _ from 'lodash'
 import BatchFetchAnswer from '~/src/command/fetch/batch/answer'
 import Base from '~/src/command/fetch/batch/base'
 import CommonUtil from '~/src/library/util/common'
-import RequestConfig from '~/src/config/request'
 
 class BatchFetchQuestion extends Base {
   /**
@@ -26,18 +25,23 @@ class BatchFetchQuestion extends Base {
     this.log(`问题:${title}(${questionId})信息成功存入数据库`)
     this.log(`问题${title}(${questionId})下共有${answerCount}个回答`)
     this.log(`开始抓取问题${title}(${questionId})下的回答列表`)
-    let answerIndex = 0
-    let answerIdList = []
+    let answerIdList: string[] = []
     let batchFetchAnswer = new BatchFetchAnswer()
     for (let offset = 0; offset < answerCount; offset = offset + this.max) {
-      let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.max)
-      for (let answer of answerList) {
-        answerIndex = answerIndex + 1
-        await MQuestion.asyncReplaceQuestionAnswer(questionId, answer)
-        let answerId = `${answer.id}`
-        answerIdList.push(answerId)
+      let asyncTaskFunc = async () => {
+        let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.max)
+        for (let answer of answerList) {
+          await MQuestion.asyncReplaceQuestionAnswer(questionId, answer)
+          let answerId = `${answer.id}`
+          answerIdList.push(answerId)
+        }
       }
+      CommonUtil.addAsyncTaskFunc({
+        asyncTaskFunc,
+        label: this,
+      })
     }
+    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
     this.log(`问题${title}(${questionId})下全部回答抓取完毕`)
   }

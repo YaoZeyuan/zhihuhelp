@@ -10,7 +10,7 @@ class Topic extends Base {
    * @param limit
    */
   static async asyncGetAnswerList(
-    topicId: number,
+    topicId: string,
     offset: number = 0,
     limit: number = 20,
   ): Promise<Array<TypeAnswer.Record>> {

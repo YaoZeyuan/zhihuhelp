@@ -108,7 +108,7 @@ class Topic extends Base {
    * 存储话题答案数据
    * @param columnRecord
    */
-  static async asyncReplaceTopicAnswer(topicId: number, answerRecord: TypeAnswer.Record): Promise<void> {
+  static async asyncReplaceTopicAnswer(topicId: string, answerRecord: TypeAnswer.Record): Promise<void> {
     let raw_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
     await this.replaceInto(
