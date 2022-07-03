@@ -22,7 +22,26 @@ class TaskManager {
   // 最大记录的任务派发数/执行数, 超过该数自动重置计数器
   private readonly Const_Max_Task_Counter = 10000 * 10000 * 10000
 
-  private taskList: Promise<any>[] = []
+  private readonly defaultLabel = 'default_label'
+
+  /**
+   * 按label统计加入任务已完成的任务数, 和总任务数
+   */
+  private taskStateMapByLabel: Map<
+    // 任意key
+    any,
+    {
+      // 总任务数
+      total: number
+      // 已完成任务数
+      complete: number
+    }
+  > = new Map()
+
+  private taskList: {
+    task: Promise<any>
+    label: any
+  }[] = []
 
   /**
    * 是否暂停运行
@@ -92,7 +111,8 @@ class TaskManager {
     // 正在执行任务数+1
     this.runingRunner++
 
-    let task = this.taskList.pop()
+    let taskConfig = this.taskList.pop() ?? { task: Promise.resolve(true), label: this.defaultLabel }
+    let { task = Promise.resolve(true), label = this.defaultLabel } = taskConfig
     logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
 
     await Promise.all([
@@ -108,6 +128,14 @@ class TaskManager {
 
     // 正在执行任务数-1
     this.runingRunner--
+
+    // 更新任务计数
+    let labelCounter = this.taskStateMapByLabel.get(label) ?? {
+      complete: 0,
+      total: 1,
+    }
+    labelCounter.complete = labelCounter.complete + 1
+    this.taskStateMapByLabel.set(label, labelCounter)
 
     logger.log(`[执行完成]第${this.taskCompleteCounter}个任务执行完成, 当前剩余${totalTaskCount}个任务待执行`)
 
@@ -145,8 +173,24 @@ class TaskManager {
   }
 
   // 添加任务
-  addTask(task: Promise<any>) {
-    this.taskList.push(task)
+  addTask({
+    task,
+    label = this.defaultLabel,
+  }: {
+    task: Promise<any>
+    // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
+    label?: any
+  }) {
+    let labelCounter = this.taskStateMapByLabel.get(label) ?? {
+      complete: 0,
+      total: 0,
+    }
+    labelCounter.total = labelCounter.total + 1
+    this.taskStateMapByLabel.set(label, labelCounter)
+    this.taskList.push({
+      task,
+      label,
+    })
     this.taskDispatchCounter++
 
     if (this.protectedConfig.needProtect) {
@@ -174,6 +218,25 @@ class TaskManager {
     }
     return true
   }
+
+  /**
+   * 等待指定任务label完成
+   * @param label
+   * @returns
+   */
+  async asyncWaitTaskCompleteByLabel(label = this.defaultLabel) {
+    while (true) {
+      let labelCounter = this.taskStateMapByLabel.get(label) ?? {
+        complete: 0,
+        total: 0,
+      }
+      if (labelCounter.complete >= labelCounter.total) {
+        return true
+      }
+      // 否则需要一直等待任务完成
+      await CommonUtil.asyncSleep(1000)
+    }
+  }
 }
 
 export default class CommonUtil {
@@ -189,11 +252,19 @@ export default class CommonUtil {
   /**
    * 添加promise到任务队列
    */
-  static async asyncAddTask({ task, needProtect = false }: { task: Promise<any>; needProtect: boolean }) {
+  static async asyncAddTask({
+    task,
+    needProtect = false,
+    label = 'default_label',
+  }: {
+    task: Promise<any>
+    needProtect: boolean
+    label?: any
+  }) {
     if (needProtect) {
-      this.taskManagerWithProtect.addTask(task)
+      this.taskManagerWithProtect.addTask({ task, label })
     } else {
-      this.taskManagerWithoutProtect.addTask(task)
+      this.taskManagerWithoutProtect.addTask({ task, label })
     }
     return
   }
@@ -207,6 +278,14 @@ export default class CommonUtil {
   static async asyncWaitAllTaskComplete() {
     await this.taskManagerWithProtect.asyncWaitAllTaskComplete()
     await this.taskManagerWithoutProtect.asyncWaitAllTaskComplete()
+  }
+
+  /**
+   * 等待指定label下所有任务执行完毕
+   */
+  static async asyncWaitAllTaskCompleteByLabel(label: any) {
+    await this.taskManagerWithProtect.asyncWaitTaskCompleteByLabel(label)
+    await this.taskManagerWithoutProtect.asyncWaitTaskCompleteByLabel(label)
   }
 
   /**
