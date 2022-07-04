@@ -15,7 +15,6 @@ export type Type_Task_Type_文章 = typeof Consts.Const_Task_Type_文章
 export type Type_Task_Type_问题 = typeof Consts.Const_Task_Type_问题
 export type Type_Task_Type_回答 = typeof Consts.Const_Task_Type_回答
 export type Type_Task_Type_想法 = typeof Consts.Const_Task_Type_想法
-export type Type_Task_Type_多类别内容合集 = typeof Consts.Const_Task_Type_多类别内容合集
 export type Type_Order = typeof Consts.Const_Order_Asc | typeof Consts.Const_Order_Desc
 export type Type_Order_By_创建时间 = typeof Consts.Const_Order_By_创建时间
 export type Type_Order_By_更新时间 = typeof Consts.Const_Order_By_更新时间
@@ -41,12 +40,21 @@ export type Type_Item_Collection_Type =
   | Type_Task_Type_问题
   | Type_Task_Type_回答
   | Type_Task_Type_想法
-  | Type_Task_Type_多类别内容合集
 export type Type_Order_By =
   | Type_Order_By_创建时间
   | Type_Order_By_更新时间
   | Type_Order_By_赞同数
   | Type_Order_By_评论数
+
+export type Type_Generate_Type_独立输出电子书 = typeof Consts.Const_Generate_Type_独立输出电子书
+export type Type_Generate_Type_合并输出电子书_内容混排 = typeof Consts.Const_Generate_Type_合并输出电子书_内容混排
+export type Type_Generate_Type_合并输出电子书_按内容分章节 =
+  typeof Consts.Const_Generate_Type_合并输出电子书_按内容分章节
+
+export type Type_Generate_Type =
+  | Type_Generate_Type_独立输出电子书
+  | Type_Generate_Type_合并输出电子书_内容混排
+  | Type_Generate_Type_合并输出电子书_按内容分章节
 export type Type_Image_Quilty = Type_Image_Quilty_高清 | Type_Image_Quilty_原图 | Type_Image_Quilty_无图
 export type Type_Task_Type = Type_Author_Collection_Type | Type_Item_Collection_Type
 
@@ -74,6 +82,7 @@ export type Type_Task_Config = {
     comment: string // 备注
     maxQuestionOrArticleInBook: Type_Max_Question_Or_Article_In_Book // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: Type_Order_By_Config_List
+    generateType: Type_Generate_Type
   }
   requestConfig: {
     ua:

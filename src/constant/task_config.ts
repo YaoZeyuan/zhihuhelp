@@ -19,8 +19,11 @@ export const Const_Task_Type_文章 = 'article' as const
 export const Const_Task_Type_问题 = 'question' as const
 export const Const_Task_Type_回答 = 'answer' as const
 export const Const_Task_Type_想法 = 'pin' as const
-// 将多种类型混合为一本电子书进行输出
-export const Const_Task_Type_多类别内容合集 = 'mix-type' as const
+
+// 内容输出策略
+export const Const_Generate_Type_独立输出电子书 = 'single' as const
+export const Const_Generate_Type_合并输出电子书_内容混排 = 'merge_by_all' as const
+export const Const_Generate_Type_合并输出电子书_按内容分章节 = 'merge_by_task' as const
 
 // 排序类目
 export const Const_Order_By_创建时间 = 'createAt' as const
@@ -54,6 +57,7 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
     comment: '', // 备注
     maxQuestionOrArticleInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
+    generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
   },
   requestConfig: {
     cookie: Const_Default_Cookie,

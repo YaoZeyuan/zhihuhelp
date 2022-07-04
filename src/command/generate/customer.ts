@@ -37,7 +37,9 @@ class GenerateCustomer extends Base {
     this.log(`从${PathConfig.configUri}中读取配置文件`)
     let fetchConfigJSON = fs.readFileSync(PathConfig.configUri).toString()
     this.log('content =>', fetchConfigJSON)
-    let customerTaskConfig: TypeTaskConfig.Customer = json5.parse(fetchConfigJSON)
+    let customerTaskConfig: TypeTaskConfig.Type_Task_Config = json5.parse(fetchConfigJSON)
+
+    let generateConfig = customerTaskConfig.generateConfig
 
     let bookname = customerTaskConfig.bookTitle
     let comment = customerTaskConfig.comment
