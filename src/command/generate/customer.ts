@@ -1,4 +1,7 @@
 import Base from '~/src/command/generate/base'
+import * as Types from './resource/type/index'
+import * as Consts from './resource/const/index'
+import * as Const_TaskConfig from '~/src/constant/task_config'
 import TypeTaskConfig from '~/src/type/task_config'
 import TypeAnswer from '~/src/type/zhihu/answer'
 import * as TypePin from '~/src/type/zhihu/pin'
@@ -40,6 +43,7 @@ class GenerateCustomer extends Base {
     let customerTaskConfig: TypeTaskConfig.Type_Task_Config = json5.parse(fetchConfigJSON)
 
     let generateConfig = customerTaskConfig.generateConfig
+    let fetchTaskList = customerTaskConfig.fetchTaskList
 
     // 生成类型
     let generateType = generateConfig.generateType
@@ -50,6 +54,17 @@ class GenerateCustomer extends Base {
     let orderByList = generateConfig.orderByList
 
     // 根据生成类型, 制定最终结果数据集
+
+    // 最终电子书数据列表
+    let epubRecordList: Types.Type_Ebook_Column_Item[] = []
+    switch (generateType) {
+      case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
+        break
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容混排:
+        break
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按内容分章节:
+        break
+    }
 
     // 生成最终结果集
 
@@ -63,7 +78,7 @@ class GenerateCustomer extends Base {
 
     // 全部完成后打开文件夹
 
-    this.log(`开始输出自定义电子书, 共有${customerTaskConfig.configList.length}个任务`)
+    this.log(`开始输出自定义电子书, 共有${fetchTaskList.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总
     let answerList: Array<TypeAnswer.Record> = []
     let questionList: Array<Array<TypeAnswer.Record>> = []
@@ -72,15 +87,15 @@ class GenerateCustomer extends Base {
 
     this.log(`将任务中的数据按照问题/文章/想法进行汇总`)
     let taskIndex = 0
-    for (let taskConfig of customerTaskConfig.configList) {
+    for (let taskConfig of fetchTaskList) {
       taskIndex = taskIndex + 1
       this.log(
-        `处理第${taskIndex}/${customerTaskConfig.configList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`,
+        `处理第${taskIndex}/${fetchTaskList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`,
       )
       let taskType = taskConfig.type
       let targetId = `${taskConfig.id}`
       switch (taskConfig.type) {
-        case 'author-ask-question':
+        case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
           this.log(`获取用户${targetId}所有提问过的问题`)
           let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
           this.log(`用户${targetId}所有提问过的问题id列表获取完毕`)
@@ -89,26 +104,26 @@ class GenerateCustomer extends Base {
           this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
           answerList = answerList.concat(answerListInAuthorAskQuestion)
           break
-        case 'author-answer':
-        case 'block-account-answer':
+        case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+        case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
           this.log(`获取用户${targetId}所有回答过的答案`)
           let answerListInAuthorHasAnswer = await MTotalAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}所有回答过的答案获取完毕`)
           answerList = answerList.concat(answerListInAuthorHasAnswer)
           break
-        case 'author-pin':
+        case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
           this.log(`获取用户${targetId}所有发表过的想法`)
           let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}所有发表过的想法获取完毕`)
           pinList = pinList.concat(pinListByAuthorPost)
           break
-        case 'author-article':
+        case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
           this.log(`获取用户${targetId}发表过的所有文章`)
           let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
           this.log(`用户${targetId}发表过的所有文章获取完毕`)
           articleList = articleList.concat(articleListByAuthor)
           break
-        case 'topic':
+        case Const_TaskConfig.Const_Task_Type_话题:
           this.log(`获取话题${targetId}下所有精华回答id`)
           let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)
           this.log(`话题${targetId}下精华回答id列表获取完毕`)
@@ -117,7 +132,7 @@ class GenerateCustomer extends Base {
           this.log(`话题${targetId}下精华回答列表获取完毕`)
           answerList = answerList.concat(answerListInTopic)
           break
-        case 'collection':
+        case Const_TaskConfig.Const_Task_Type_收藏夹:
           this.log(`获取收藏夹${targetId}下所有回答id`)
           let answerIdListInCollection = await MCollection.asyncGetAnswerIdList(targetId)
           this.log(`收藏夹${targetId}下回答id列表获取完毕`)
@@ -126,13 +141,13 @@ class GenerateCustomer extends Base {
           this.log(`收藏夹${targetId}下回答列表获取完毕`)
           answerList = answerList.concat(answerListInCollection)
           break
-        case 'column':
+        case Const_TaskConfig.Const_Task_Type_专栏:
           this.log(`获取专栏${targetId}下所有文章`)
           let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
           this.log(`专栏${targetId}下所有文章获取完毕`)
           articleList = articleList.concat(articleListInColumn)
           break
-        case 'article':
+        case Const_TaskConfig.Const_Task_Type_文章:
           this.log(`获取文章${targetId}`)
           let singleArticle = await MArticle.asyncGetArticle(targetId)
           if (_.isEmpty(singleArticle)) {
@@ -142,13 +157,13 @@ class GenerateCustomer extends Base {
           this.log(`文章${targetId}获取完毕`)
           articleList.push(singleArticle)
           break
-        case 'question':
+        case Const_TaskConfig.Const_Task_Type_问题:
           this.log(`获取问题${targetId}下的回答列表`)
           let answerListInQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([targetId])
           this.log(`问题${targetId}下的回答列表获取完毕`)
           answerList = answerList.concat(answerListInQuestion)
           break
-        case 'answer':
+        case Const_TaskConfig.Const_Task_Type_回答:
           this.log(`获取回答${targetId}`)
           let singleAnswer = await MTotalAnswer.asyncGetAnswer(targetId)
           if (_.isEmpty(singleAnswer)) {
@@ -158,7 +173,7 @@ class GenerateCustomer extends Base {
           this.log(`回答${targetId}获取完毕`)
           answerList.push(singleAnswer)
           break
-        case 'pin':
+        case Const_TaskConfig.Const_Task_Type_想法:
           this.log(`获取想法${targetId}`)
           let singlePin = await MPin.asyncGetPin(targetId)
           if (_.isEmpty(singlePin)) {
@@ -168,7 +183,7 @@ class GenerateCustomer extends Base {
           this.log(`想法${targetId}获取完毕`)
           pinList.push(singlePin)
           break
-        case 'author-agree-article':
+        case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
           this.log(`获取用户${targetId}赞同过的所有文章id`)
           let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
             targetId,
@@ -180,7 +195,7 @@ class GenerateCustomer extends Base {
           this.log(`用户${targetId}赞同过的所有文章获取完毕`)
           articleList = articleList.concat(articleListInAuthorAgreeArticle)
           break
-        case 'author-agree-answer':
+        case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
           this.log(`获取用户${targetId}赞同过的所有回答id`)
           let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
             targetId,
@@ -192,7 +207,7 @@ class GenerateCustomer extends Base {
           this.log(`用户${targetId}赞同过的所有回答获取完毕`)
           answerList = answerList.concat(answerListInAuthorAgreeAnswer)
           break
-        case 'author-watch-question':
+        case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
           this.log(`获取用户${targetId}关注过的所有问题id`)
           let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
             targetId,
