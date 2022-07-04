@@ -41,11 +41,27 @@ class GenerateCustomer extends Base {
 
     let generateConfig = customerTaskConfig.generateConfig
 
-    let bookname = customerTaskConfig.bookTitle
-    let comment = customerTaskConfig.comment
-    let imageQuilty = customerTaskConfig.imageQuilty
-    let maxQuestionOrArticleInBook = customerTaskConfig.maxQuestionOrArticleInBook
-    let orderByList = customerTaskConfig.orderByList
+    // 生成类型
+    let generateType = generateConfig.generateType
+    let bookname = generateConfig.bookTitle
+    let comment = generateConfig.comment
+    let imageQuilty = generateConfig.imageQuilty
+    let maxQuestionOrArticleInBook = generateConfig.maxQuestionOrArticleInBook
+    let orderByList = generateConfig.orderByList
+
+    // 根据生成类型, 制定最终结果数据集
+
+    // 生成最终结果集
+
+    // 按配置拆分电子书
+
+    // 针对每一个结果, 生成epub
+
+    // 处理html
+    // 下载图片
+    // 输出内容
+
+    // 全部完成后打开文件夹
 
     this.log(`开始输出自定义电子书, 共有${customerTaskConfig.configList.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总
