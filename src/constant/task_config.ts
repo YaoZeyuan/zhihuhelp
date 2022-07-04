@@ -19,6 +19,7 @@ export const Const_Task_Type_文章 = 'article' as const
 export const Const_Task_Type_问题 = 'question' as const
 export const Const_Task_Type_回答 = 'answer' as const
 export const Const_Task_Type_想法 = 'pin' as const
+export const Const_Task_Type_混合类型 = 'mix' as const
 
 // 内容输出策略
 export const Const_Generate_Type_独立输出电子书 = 'single' as const

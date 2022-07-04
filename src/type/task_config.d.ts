@@ -15,6 +15,7 @@ export type Type_Task_Type_文章 = typeof Consts.Const_Task_Type_文章
 export type Type_Task_Type_问题 = typeof Consts.Const_Task_Type_问题
 export type Type_Task_Type_回答 = typeof Consts.Const_Task_Type_回答
 export type Type_Task_Type_想法 = typeof Consts.Const_Task_Type_想法
+export type Type_Task_Type_混合类型 = typeof Consts.Const_Task_Type_混合类型
 export type Type_Order = typeof Consts.Const_Order_Asc | typeof Consts.Const_Order_Desc
 export type Type_Order_By_创建时间 = typeof Consts.Const_Order_By_创建时间
 export type Type_Order_By_更新时间 = typeof Consts.Const_Order_By_更新时间
