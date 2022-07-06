@@ -30,12 +30,12 @@ type Type_Page_Question_Item = {
 
 type Type_Page_Article_Item = {
   type: Type_Item_Article
-  record: Type_Article.Record
+  recordList: Type_Article.Record[]
 }
 
 type Type_Page_Pin_Item = {
   type: Type_Item_Pin
-  record: Type_Pin.Record
+  recordList: Type_Pin.Record[]
 }
 
 // 实际的item元素-对应每一页的内容
