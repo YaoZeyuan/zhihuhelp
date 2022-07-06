@@ -44,19 +44,19 @@ export type Type_Page_Item = Type_Page_Question_Item | Type_Page_Article_Item | 
 export type Type_Unit_Item_收藏夹 = {
   type: Type_Task_Type_收藏夹
   info: Type_Collection.Info
-  page: Type_Page_Item[]
+  pageList: Type_Page_Item[]
 }
 
 export type Type_Unit_Item_话题 = {
   type: Types.Type_Task_Type_话题
   info: Type_Topic.Info
-  page: Type_Page_Item[]
+  pageList: Type_Page_Item[]
 }
 
 export type Type_Unit_Item_专栏 = {
   type: Types.Type_Task_Type_专栏
   info: Type_Column.Info
-  page: Type_Page_Item[]
+  pageList: Type_Page_Item[]
 }
 
 export type Type_Unit_Item_用户 = {

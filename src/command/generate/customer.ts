@@ -622,15 +622,33 @@ class GenerateCustomer extends Base {
         this.log(`用户${userName}关注过的所有问题获取完毕`)
         return unitPackage
       }
-      case Const_TaskConfig.Const_Task_Type_话题:
-        this.log(`获取话题${targetId}下所有精华回答id`)
+      case Const_TaskConfig.Const_Task_Type_话题: {
+        this.log(`获取话题${targetId}信息`)
+        let topicInfo = await MTopic.asyncGetTopicInfo(targetId)
+        let topicName = `${topicInfo.name}(${targetId})`
+        this.log(`获取话题${topicName}下所有精华回答id`)
         let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)
-        this.log(`话题${targetId}下精华回答id列表获取完毕`)
-        this.log(`话题${targetId}下精华回答列表`)
-        let answerListInTopic = await MTotalAnswer.asyncGetAnswerList(answerIdListInTopic)
-        this.log(`话题${targetId}下精华回答列表获取完毕`)
-        answerList = answerList.concat(answerListInTopic)
-        break
+        this.log(`话题${topicName}下精华回答id列表获取完毕`)
+        this.log(`获取话题${topicName}下精华回答列表`)
+        let pageList: Types.Type_Page_Item[] = []
+        for (let answerId of answerIdListInTopic) {
+          let answerRecord = await MTotalAnswer.asyncGetAnswer(answerId)
+          let page: Types.Type_Page_Question_Item = {
+            baseInfo: answerRecord.question,
+            recordList: [answerRecord],
+            type: Consts.Const_Type_Question,
+          }
+          pageList.push(page)
+        }
+        // 填充单元对象
+        unitPackage = {
+          info: topicInfo,
+          type: 'topic',
+          pageList: pageList,
+        }
+        this.log(`话题${topicName}下精华回答列表获取完毕`)
+        return unitPackage
+      }
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         this.log(`获取收藏夹${targetId}下所有回答id`)
         let answerIdListInCollection = await MCollection.asyncGetAnswerIdList(targetId)
