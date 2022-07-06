@@ -17,7 +17,6 @@ import * as Type_Topic from '~/src/type/zhihu/topic'
 // 卷中页码容量不能超过限制, 如果超过, 需要将溢出单元拆分为两个单元, 归属到下一卷
 
 type Type_Item_Question = typeof Consts.Const_Type_Question
-type Type_Item_Answer = typeof Consts.Const_Type_Answer
 type Type_Item_Article = typeof Consts.Const_Type_Article
 type Type_Item_Pin = typeof Consts.Const_Type_Pin
 
