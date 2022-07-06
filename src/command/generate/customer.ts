@@ -11,7 +11,6 @@ import MAuthor from '~/src/model/author'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MActivity from '~/src/model/activity'
 import MTotalAnswer from '~/src/model/total_answer'
-import MQuestion from '~/src/model/question'
 import MArticle from '~/src/model/article'
 import MTopic from '~/src/model/topic'
 import MCollection from '~/src/model/collection'
@@ -439,8 +438,13 @@ class GenerateCustomer extends Base {
         this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
         this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
         for (let questionId of questionIdList) {
-          let questionInfo = await MQuestion.asyncGetQuestionInfo(questionId)
           let answerListInAuthorAskQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([questionId])
+          // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 TotalAnswer 表中, 不需要来回更新数据)
+          if (answerListInAuthorAskQuestion.length === 0) {
+            this.log(`问题${questionId}下没有回答, 自动跳过`)
+            continue
+          }
+          let questionInfo = answerListInAuthorAskQuestion[0]?.question
           let page: Types.Type_Page_Question_Item = {
             baseInfo: questionInfo,
             recordList: answerListInAuthorAskQuestion,
@@ -603,8 +607,13 @@ class GenerateCustomer extends Base {
         this.log(`开始获取用户${userName}关注过的所有问题下的回答列表`)
         let pageList: Types.Type_Page_Item[] = []
         for (let questionId of questionIdListInAuthorWatchQuestion) {
-          let questionInfo = await MQuestion.asyncGetQuestionInfo(questionId)
           let answerListInAuthorAskQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([questionId])
+          // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 TotalAnswer 表中, 不需要来回更新数据)
+          if (answerListInAuthorAskQuestion.length === 0) {
+            this.log(`问题${questionId}下没有回答, 自动跳过`)
+            continue
+          }
+          let questionInfo = answerListInAuthorAskQuestion[0]?.question
           let page: Types.Type_Page_Question_Item = {
             baseInfo: questionInfo,
             recordList: answerListInAuthorAskQuestion,
