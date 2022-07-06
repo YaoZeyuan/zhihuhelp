@@ -495,7 +495,7 @@ class GenerateCustomer extends Base {
         let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
         for (let item of pinListByAuthorPost) {
           let page: Types.Type_Page_Pin_Item = {
-            record: item,
+            recordList: [item],
             type: Consts.Const_Type_Pin,
           }
           pageList.push(page)
@@ -519,7 +519,7 @@ class GenerateCustomer extends Base {
         let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
         for (let item of articleListByAuthor) {
           let page: Types.Type_Page_Article_Item = {
-            record: item,
+            recordList: [item],
             type: Consts.Const_Type_Article,
           }
           pageList.push(page)
@@ -549,7 +549,7 @@ class GenerateCustomer extends Base {
         let pageList: Types.Type_Page_Item[] = []
         for (let item of articleListInAuthorAgreeArticle) {
           let page: Types.Type_Page_Article_Item = {
-            record: item,
+            recordList: [item],
             type: Consts.Const_Type_Article,
           }
           pageList.push(page)
@@ -652,7 +652,7 @@ class GenerateCustomer extends Base {
         // 填充单元对象
         unitPackage = {
           info: topicInfo,
-          type: 'topic',
+          type: taskConfig.type,
           pageList: pageList,
         }
         this.log(`话题${topicName}下精华回答列表获取完毕`)
@@ -667,49 +667,102 @@ class GenerateCustomer extends Base {
         this.log(`收藏夹${targetId}下回答列表获取完毕`)
         answerList = answerList.concat(answerListInCollection)
         break
-      case Const_TaskConfig.Const_Task_Type_专栏:
-        this.log(`获取专栏${targetId}下所有文章`)
+      case Const_TaskConfig.Const_Task_Type_专栏: {
+        this.log(`获取专栏${targetId}信息`)
+        let columnInfo = await MColumn.asyncGetColumnInfo(targetId)
+        let columnName = `${columnInfo.title}(${targetId})`
+        this.log(`获取专栏${columnName}下所有文章`)
         let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
-        this.log(`专栏${targetId}下所有文章获取完毕`)
-        articleList = articleList.concat(articleListInColumn)
-        break
-      case Const_TaskConfig.Const_Task_Type_文章:
+        let pageList: Types.Type_Page_Item[] = []
+        for (let item of articleListInColumn) {
+          let page: Types.Type_Page_Article_Item = {
+            recordList: [item],
+            type: Consts.Const_Type_Article,
+          }
+          pageList.push(page)
+        }
+        // 填充单元对象
+        unitPackage = {
+          info: columnInfo,
+          type: taskConfig.type,
+          pageList: pageList,
+        }
+        this.log(`专栏${columnName}下文章获取完毕`)
+        return unitPackage
+      }
+      case Const_TaskConfig.Const_Task_Type_文章: {
         this.log(`获取文章${targetId}`)
         let singleArticle = await MArticle.asyncGetArticle(targetId)
-        if (_.isEmpty(singleArticle)) {
-          this.log(`文章${targetId}不存在, 自动跳过`)
-          continue
+        let pageList: Types.Type_Page_Item[] = []
+
+        let page: Types.Type_Page_Article_Item = {
+          recordList: [singleArticle],
+          type: Consts.Const_Type_Article,
+        }
+        pageList.push(page)
+        // 填充单元对象
+        unitPackage = {
+          type: Const_TaskConfig.Const_Task_Type_混合类型,
+          pageList: pageList,
         }
         this.log(`文章${targetId}获取完毕`)
-        articleList.push(singleArticle)
-        break
-      case Const_TaskConfig.Const_Task_Type_问题:
+        return unitPackage
+      }
+      case Const_TaskConfig.Const_Task_Type_问题: {
         this.log(`获取问题${targetId}下的回答列表`)
         let answerListInQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([targetId])
+        let pageList: Types.Type_Page_Item[] = []
+        let questionInfo = answerListInQuestion[0]?.question
+        let page: Types.Type_Page_Question_Item = {
+          baseInfo: questionInfo,
+          recordList: answerListInQuestion,
+          type: Consts.Const_Type_Question,
+        }
+        pageList.push(page)
+        // 填充单元对象
+        unitPackage = {
+          type: Const_TaskConfig.Const_Task_Type_混合类型,
+          pageList: pageList,
+        }
         this.log(`问题${targetId}下的回答列表获取完毕`)
-        answerList = answerList.concat(answerListInQuestion)
-        break
-      case Const_TaskConfig.Const_Task_Type_回答:
+        return unitPackage
+      }
+      case Const_TaskConfig.Const_Task_Type_回答: {
         this.log(`获取回答${targetId}`)
         let singleAnswer = await MTotalAnswer.asyncGetAnswer(targetId)
-        if (_.isEmpty(singleAnswer)) {
-          this.log(`回答${targetId}不存在, 自动跳过`)
-          continue
+        let pageList: Types.Type_Page_Item[] = []
+        let questionInfo = singleAnswer?.question
+        let page: Types.Type_Page_Question_Item = {
+          baseInfo: questionInfo,
+          recordList: [singleAnswer],
+          type: Consts.Const_Type_Question,
+        }
+        pageList.push(page)
+        // 填充单元对象
+        unitPackage = {
+          type: Const_TaskConfig.Const_Task_Type_混合类型,
+          pageList: pageList,
         }
         this.log(`回答${targetId}获取完毕`)
-        answerList.push(singleAnswer)
-        break
-      case Const_TaskConfig.Const_Task_Type_想法:
+        return unitPackage
+      }
+      case Const_TaskConfig.Const_Task_Type_想法: {
         this.log(`获取想法${targetId}`)
         let singlePin = await MPin.asyncGetPin(targetId)
-        if (_.isEmpty(singlePin)) {
-          this.log(`想法${targetId}不存在, 自动跳过`)
-          continue
+        let pageList: Types.Type_Page_Item[] = []
+        let page: Types.Type_Page_Pin_Item = {
+          recordList: [singlePin],
+          type: Consts.Const_Type_Pin,
+        }
+        pageList.push(page)
+        // 填充单元对象
+        unitPackage = {
+          type: Const_TaskConfig.Const_Task_Type_混合类型,
+          pageList: pageList,
         }
         this.log(`想法${targetId}获取完毕`)
-        pinList.push(singlePin)
-        break
-
+        return unitPackage
+      }
       default:
         this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
     }

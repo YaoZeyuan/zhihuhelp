@@ -70,13 +70,18 @@ export type Type_Unit_Item_用户 = {
  */
 export type Type_Unit_Item_混合类型 = {
   type: Types.Type_Task_Type_混合类型
-  page: Type_Page_Item[]
+  pageList: Type_Page_Item[]
 }
 
 /**
  * 单元类型
  */
-export type Type_Unit_Item = Type_Unit_Item_收藏夹 | Type_Unit_Item_话题 | Type_Unit_Item_专栏 | Type_Unit_Item_用户
+export type Type_Unit_Item =
+  | Type_Unit_Item_收藏夹
+  | Type_Unit_Item_话题
+  | Type_Unit_Item_专栏
+  | Type_Unit_Item_用户
+  | Type_Unit_Item_混合类型
 
 /**
  * 电子书分卷信息
