@@ -26,6 +26,28 @@ class Collection extends Base {
   }
 
   /**
+   * 获取收藏夹内内容列表
+   * @param offset
+   * @param limit
+   */
+  static async asyncGetItemList(
+    colectionId: number | string,
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<TypeCollection.Type_Collection_Item[]> {
+    const baseUrl = `https://www.zhihu.com/api/v4/collections/${colectionId}/items`
+    const config = {
+      offset: offset,
+      limit: limit,
+    }
+    const record = await Base.http.get(baseUrl, {
+      params: config,
+    })
+    const recordList = record?.data?.data ?? []
+    return recordList
+  }
+
+  /**
    * 获取收藏夹信息
    * @param collectionId
    */

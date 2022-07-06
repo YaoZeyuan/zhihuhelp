@@ -90,7 +90,7 @@ export type AnswerExcerpt = {
   thanks_count: 55 | number
 }
 
-type Type_Collection_Item_Pin = {
+export type Type_Collection_Item_Pin = {
   content: {
     author: {
       id: 'ffbe1e25d78aa1aa39b6baf6a6a5c781' | string
@@ -368,7 +368,7 @@ type Type_Collection_Item_Pin = {
   }
   created: '2022-01-13T00:08:14+08:00' | string
 }
-type Type_Collection_Item_Article = {
+export type Type_Collection_Item_Article = {
   content: {
     id: 526672568 | number
     title: '趁着618 ，试搞一个私有云耍一下' | string
@@ -529,7 +529,7 @@ type Type_Collection_Item_Article = {
   }
   created: '2022-06-09T22:36:27+08:00' | string
 }
-type Type_Collection_Item_Answer = {
+export type Type_Collection_Item_Answer = {
   content: {
     id: 2548272276 | number
     type: 'answer' | string
@@ -785,8 +785,8 @@ type Type_Collection_Item_Answer = {
   created: '2022-06-28T03:49:25+08:00' | string
 }
 
-type Type_Collection_Item = Type_Collection_Item_Answer | Type_Collection_Item_Article | Type_Collection_Item_Pin
-type Type_Collection_Response = {
+export type Type_Collection_Item = Type_Collection_Item_Answer | Type_Collection_Item_Article | Type_Collection_Item_Pin
+export type Type_Collection_Response = {
   paging: {
     is_end: boolean
     is_start: boolean
