@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import TypePin from '~/src/type/namespace/pin'
+import * as TypePin from '~/src/type/zhihu/pin'
 import _ from 'lodash'
 
 class Pin extends Base {
@@ -51,7 +51,7 @@ class Pin extends Base {
     try {
       pinRecord = JSON.parse(pinRecordJson)
     } catch {
-      pinRecord = {}
+      pinRecord = {} as any
     }
 
     return pinRecord

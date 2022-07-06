@@ -1,5 +1,5 @@
 export type Record = {
-  id: 100898227 | number
+  id: '100898227' | string
   type: 'answer' | string
   answer_type: 'normal' | string
   question: {

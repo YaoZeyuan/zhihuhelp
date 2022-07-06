@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
-import TypeColumn from '~/src/type/namespace/column'
-import TypeArticleExcerpt from '~/src/type/namespace/article_excerpt'
+import TypeColumn from '~/src/type/zhihu/column'
+import TypeArticleExcerpt from '~/src/type/zhihu/article_excerpt'
 import _ from 'lodash'
 
 class Column extends Base {
@@ -65,7 +65,7 @@ class Column extends Base {
    * 从数据库中获取专栏文章id列表
    * @param columnId
    */
-  static async asyncGetArticleIdList(columnId: string): Promise<Array<string>> {
+  static async asyncGetArticleIdList(columnId: string): Promise<string[]> {
     let recordList = await this.db
       .select(this.COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN)
       .from(this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)
@@ -73,14 +73,14 @@ class Column extends Base {
       .catch(() => {
         return []
       })
-    let articleIdList = []
+    let articleIdList: string[] = []
     for (let record of recordList) {
       let articleExcerptRecordJson = _.get(record, ['raw_json'], '{}')
       let articleExcerptRecord: TypeArticleExcerpt.Record
       try {
         articleExcerptRecord = JSON.parse(articleExcerptRecordJson)
       } catch {
-        articleExcerptRecord = {}
+        articleExcerptRecord = {} as any
       }
       if (_.isEmpty(articleExcerptRecord) === false) {
         articleIdList.push(articleExcerptRecord.id)

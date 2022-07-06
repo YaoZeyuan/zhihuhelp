@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
-import TypeCollection from '~/src/type/namespace/collection'
-import TypeAnswer from '~/src/type/namespace/answer'
+import * as TypeCollection from '~/src/type/zhihu/collection'
+import TypeAnswer from '~/src/type/zhihu/answer'
 import _ from 'lodash'
 
 class Collection extends Base {

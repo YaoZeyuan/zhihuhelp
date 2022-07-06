@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
-import TypeQuestion from '~/src/type/namespace/question'
-import TypeAnswer from '~/src/type/namespace/answer'
+import * as TypeQuestion from '~/src/type/zhihu/question'
+import * as TypeAnswer from '~/src/type/zhihu/answer'
 import _ from 'lodash'
 
 class Question extends Base {

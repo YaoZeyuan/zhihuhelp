@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
-import TypeTopic from '~/src/type/namespace/topic'
-import TypeAnswer from '~/src/type/namespace/answer'
+import * as TypeTopic from '~/src/type/zhihu/topic'
+import * as TypeAnswer from '~/src/type/zhihu/answer'
 import _ from 'lodash'
 
 class Topic extends Base {
@@ -65,7 +65,7 @@ class Topic extends Base {
    * 从数据库中获取话题内的答案id列表
    * @param topicId
    */
-  static async asyncGetAnswerIdList(topicId: string): Promise<Array<string>> {
+  static async asyncGetAnswerIdList(topicId: string): Promise<string[]> {
     let recordList = await this.db
       .select(this.TOPIC_ANSWER_TABLE_COLUMN)
       .from(this.TOPIC_ANSWER_TABLE_NAME)
@@ -73,14 +73,14 @@ class Topic extends Base {
       .catch(() => {
         return []
       })
-    let answerIdList = []
+    let answerIdList: string[] = []
     for (let record of recordList) {
       let answerRecordJson = _.get(record, ['raw_json'], '{}')
       let answerRecord: TypeAnswer.Record
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
-        answerRecord = {}
+        answerRecord = {} as any
       }
       if (_.isEmpty(answerRecord) === false) {
         answerIdList.push(answerRecord.id)

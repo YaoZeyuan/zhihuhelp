@@ -5,7 +5,7 @@ export type Record = {
     | '<img src="https://pic2.zhimg.com/v2-734508f9fcc73c9dd1c6ad29f73743bd_200x112.jpg" data-caption="------每天晚上 · 一起看趣味科学------" data-size="normal" data-rawwidth="300" data-rawheight="300" data-watermark="" data-original-src="" data-watermark-src="" data-private-watermark-src="" class="origin_image inline-img zh-lightbox-thumb" data-original="https://pic2.zhimg.com/v2-734508f9fcc73c9dd1c6ad29f73743bd_r.jpg">今天是除夕，过了今晚我们就算是真真正正地踏入了2019了。说起来，每年年初国家都会发布新一年的放假安排，而今年放假安排刚下来的时候，网上纷纷讨论起了另一件事：<b>2262年我们有两个春节</b>。 <b>为什么一年里会出现两个春节呢</b>？我们先来看看2262年的日历： 我们…'
     | string
   admin_closed_comment: false | boolean
-  id: 56254270 | number
+  id: '56254270' | string
   voteup_count: 41 | number
   title_image: 'https://pic4.zhimg.com/v2-bbe00c929d85902d26b805dd6a0d0cdc_b.jpg' | string
   title: '告诉大家一个好消息，2262年可以过两个春节！' | string

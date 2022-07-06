@@ -23,7 +23,7 @@ class TotalAnswer extends Base {
     try {
       answerRecord = JSON.parse(answerRecordJson)
     } catch {
-      answerRecord = {}
+      answerRecord = {} as any
     }
 
     return answerRecord
@@ -36,7 +36,7 @@ class TotalAnswer extends Base {
   static async asyncGetAnswerList(answerIdList: Array<string>): Promise<Array<TypeAnswer.Record>> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('answer_id', answerIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch((e) => {
+    let recordList = await this.rawClient.raw(sql, []).catch((e: any) => {
       console.log('error =>', e)
       return []
     })
