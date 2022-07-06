@@ -1,4 +1,4 @@
-import * as Consts from '~/src/constant/task_config'
+import * as Consts from '../const/index'
 import * as Types from '~/src/type/task_config'
 
 import * as Type_Activity from '~/src/type/zhihu/activity'
@@ -63,7 +63,7 @@ export type Type_Unit_Item_专栏 = {
 export type Type_Unit_Item_用户 = {
   type: Types.Type_Author_Collection_Type
   info: Type_Author.Info
-  page: Type_Page_Item[]
+  pageList: Type_Page_Item[]
 }
 
 /**
