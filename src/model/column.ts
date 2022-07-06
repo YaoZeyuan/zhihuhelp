@@ -7,7 +7,7 @@ class Column extends Base {
   static TABLE_NAME = `Column`
   static TABLE_COLUMN = [`column_id`, `raw_json`]
 
-  static COLUMN_ARTICLE_EXCERPT_TABLE_NAME = `ColumnArticleExcerpt`
+  static COLUMN_ARTICLE_EXCERPT_TABLE_NAME = `Column_Article_Excerpt`
   static COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN = [`column_id`, `article_id`, `raw_json`]
 
   /**

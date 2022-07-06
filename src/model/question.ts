@@ -7,7 +7,7 @@ class Question extends Base {
   static TABLE_NAME = `Question`
   static TABLE_COLUMN = [`question_id`, `raw_json`]
 
-  static QUESTION_ANSWER_TABLE_NAME = `QuestionAnswer`
+  static QUESTION_ANSWER_TABLE_NAME = `Question_Answer`
   static QUESTION_ANSWER_TABLE_COLUMN = [`question_id`, `answer_id`, `raw_json`]
 
   /**

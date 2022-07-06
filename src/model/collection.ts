@@ -7,11 +7,23 @@ class Collection extends Base {
   static TABLE_NAME = `Collection`
   static TABLE_COLUMN = [`collection_id`, `raw_json`]
 
-  static COLLECTION_ANSWER_TABLE_NAME = `CollectionAnswer`
-  static COLLECTION_ANSWER_TABLE_COLUMN = [`collection_id`, `answer_id`, `raw_answer_excerpt_json`, `raw_answer_json`]
+  static COLLECTION_RECORD_TABLE_NAME = `Collection_Record`
+  static COLLECTION_RECORD_TABLE_COLUMN = [
+    `collection_id`,
+    // 记录类型: answer/pin/article
+    `record_type`,
+    `record_id`,
+    // 添加到收藏夹的时间戳
+    `collection_at`,
+    `raw_json`,
+  ]
+
+  static readonly Const_Record_Type_回答 = 'answer' as const
+  static readonly Const_Record_Type_想法 = 'pin' as const
+  static readonly Const_Record_Type_文章 = 'article' as const
 
   /**
-   * 从数据库中获取专栏信息
+   * 从数据库中获取收藏夹信息
    * @param collectionId
    */
   static async asyncGetCollectionInfo(collectionId: string): Promise<TypeCollection.Info> {
@@ -38,8 +50,8 @@ class Collection extends Base {
    */
   static async asyncGetAnswerList(collectionId: string): Promise<Array<TypeAnswer.Record>> {
     let recordList = await this.db
-      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
-      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .select(this.COLLECTION_RECORD_TABLE_COLUMN)
+      .from(this.COLLECTION_RECORD_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .catch(() => {
         return []
@@ -67,8 +79,8 @@ class Collection extends Base {
    */
   static async asyncGetAnswerIdList(collectionId: string): Promise<Array<string>> {
     let recordList = await this.db
-      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
-      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .select(this.COLLECTION_RECORD_TABLE_COLUMN)
+      .from(this.COLLECTION_RECORD_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .catch(() => {
         return []
@@ -99,19 +111,19 @@ class Collection extends Base {
   }
 
   /**
-   * 存储收藏夹答案概览数据
+   * 存储收藏夹元素概览数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnAnswerExcerpt(
+  static async asyncReplaceColumnItem(
     collectionId: number | string,
-    answerExcerptRecord: TypeCollection.AnswerExcerpt,
+    collectionRecord: TypeCollection.Type_Collection_Item,
   ): Promise<void> {
-    let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)
-    let answerId = answerExcerptRecord.id
+    let raw_answer_excerpt_json = JSON.stringify(collectionRecord)
+    let answerId = collectionRecord.id
     // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
     let oldRecordList = await this.db
-      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
-      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .select(this.COLLECTION_RECORD_TABLE_COLUMN)
+      .from(this.COLLECTION_RECORD_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .andWhere('answer_id', '=', answerId)
       .catch(() => {
@@ -126,7 +138,40 @@ class Collection extends Base {
         raw_answer_excerpt_json,
         raw_answer_json,
       },
-      this.COLLECTION_ANSWER_TABLE_NAME,
+      this.COLLECTION_RECORD_TABLE_NAME,
+    )
+    return
+  }
+
+  /**
+   * 存储收藏夹答案概览数据
+   * @param columnRecord
+   */
+  static async asyncReplaceColumnAnswerExcerpt(
+    collectionId: number | string,
+    answerExcerptRecord: TypeCollection.AnswerExcerpt,
+  ): Promise<void> {
+    let raw_answer_excerpt_json = JSON.stringify(answerExcerptRecord)
+    let answerId = answerExcerptRecord.id
+    // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
+    let oldRecordList = await this.db
+      .select(this.COLLECTION_RECORD_TABLE_COLUMN)
+      .from(this.COLLECTION_RECORD_TABLE_NAME)
+      .where('collection_id', '=', collectionId)
+      .andWhere('answer_id', '=', answerId)
+      .catch(() => {
+        return []
+      })
+
+    let raw_answer_json = _.get(oldRecordList, [0, 'raw_answer_json'], '{}')
+    await this.replaceInto(
+      {
+        collection_id: collectionId,
+        answer_id: answerId,
+        raw_answer_excerpt_json,
+        raw_answer_json,
+      },
+      this.COLLECTION_RECORD_TABLE_NAME,
     )
     return
   }
@@ -140,8 +185,8 @@ class Collection extends Base {
     let answerId = answerRecord.id
     // 直接使用replaceInto会把另外一列置换成null, 所以这里手工完善一下replace into吧
     let oldRecordList = await this.db
-      .select(this.COLLECTION_ANSWER_TABLE_COLUMN)
-      .from(this.COLLECTION_ANSWER_TABLE_NAME)
+      .select(this.COLLECTION_RECORD_TABLE_COLUMN)
+      .from(this.COLLECTION_RECORD_TABLE_NAME)
       .where('collection_id', '=', collectionId)
       .andWhere('answer_id', '=', answerId)
       .catch(() => {
@@ -156,7 +201,7 @@ class Collection extends Base {
         raw_answer_excerpt_json,
         raw_answer_json,
       },
-      this.COLLECTION_ANSWER_TABLE_NAME,
+      this.COLLECTION_RECORD_TABLE_NAME,
     )
     return
   }
