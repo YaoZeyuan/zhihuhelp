@@ -429,46 +429,59 @@ class GenerateCustomer extends Base {
     let unitPackage: Types.Type_Unit_Item
     let targetId = taskConfig.id
     switch (taskConfig.type) {
-      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
-        {
-          this.log(`获取用户${targetId}信息`)
-          let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-          let userName = `${authorInfo.name}(${targetId})`
-
-          // 初始化单元对象
-          unitPackage = {
-            info: authorInfo,
-            type: Const_TaskConfig.Const_Task_Type_用户提问过的所有问题,
-            pageList: [],
+      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题: {
+        this.log(`获取用户${targetId}信息`)
+        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        let userName = `${authorInfo.name}(${targetId})`
+        this.log(`获取用户${userName}所有提问过的问题`)
+        let pageList: Types.Type_Page_Item[] = []
+        let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
+        this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
+        this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
+        for (let questionId of questionIdList) {
+          let questionInfo = await MQuestion.asyncGetQuestionInfo(questionId)
+          let answerListInAuthorAskQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([questionId])
+          let page: Types.Type_Page_Question_Item = {
+            baseInfo: questionInfo,
+            recordList: answerListInAuthorAskQuestion,
+            type: Consts.Const_Type_Question,
           }
-
-          let pageList: Types.Type_Page_Item[] = []
-          this.log(`获取用户${userName}所有提问过的问题`)
-          let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
-          this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
-          this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
-          for (let questionId of questionIdList) {
-            let questionInfo = await MQuestion.asyncGetQuestionInfo(questionId)
-            let answerListInAuthorAskQuestion = await MTotalAnswer.asyncGetAnswerListByQuestionIdList([questionId])
-            let page: Types.Type_Page_Question_Item = {
-              baseInfo: questionInfo,
-              recordList: answerListInAuthorAskQuestion,
-              type: Consts.Const_Type_Question,
-            }
-            pageList.push(page)
-          }
-          this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
-          unitPackage.pageList = pageList
-          return unitPackage
+          pageList.push(page)
         }
-        break
+        this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
+        // 填充单元对象
+        unitPackage = {
+          info: authorInfo,
+          type: taskConfig.type,
+          pageList: pageList,
+        }
+        return unitPackage
+      }
       case Const_TaskConfig.Const_Task_Type_用户的所有回答:
-      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
-        this.log(`获取用户${targetId}所有回答过的答案`)
+      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答: {
+        this.log(`获取用户${targetId}信息`)
+        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        let userName = `${authorInfo.name}(${targetId})`
+        this.log(`获取用户${userName}所有回答过的答案`)
+        let pageList: Types.Type_Page_Item[] = []
         let answerListInAuthorHasAnswer = await MTotalAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
-        this.log(`用户${targetId}所有回答过的答案获取完毕`)
-        answerList = answerList.concat(answerListInAuthorHasAnswer)
-        break
+        for (let item of answerListInAuthorHasAnswer) {
+          let page: Types.Type_Page_Question_Item = {
+            baseInfo: item.question,
+            recordList: [item],
+            type: Consts.Const_Type_Question,
+          }
+          pageList.push(page)
+        }
+        // 填充单元对象
+        unitPackage = {
+          info: authorInfo,
+          type: taskConfig.type,
+          pageList: pageList,
+        }
+        this.log(`用户${userName}所有回答过的答案获取完毕`)
+        return unitPackage
+      }
       case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
         this.log(`获取用户${targetId}所有发表过的想法`)
         let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
