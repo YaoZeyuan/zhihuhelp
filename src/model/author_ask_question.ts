@@ -1,5 +1,5 @@
 import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/namespace/author'
+import TypeAuthor from '~/src/type/zhihu/author'
 import _ from 'lodash'
 
 class AuthorAskQuestion extends Base {
