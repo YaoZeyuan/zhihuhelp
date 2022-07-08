@@ -428,247 +428,225 @@ class GenerateCustomer extends Base {
     let unitPackage: Types.Type_Unit_Item
     let targetId = taskConfig.id
     switch (taskConfig.type) {
-      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}所有提问过的问题`)
-        let pageList: Types.Type_Page_Item[] = []
-        let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
-        this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
-        this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
-        for (let questionId of questionIdList) {
-          let answerListInAuthorAskQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([questionId])
-          // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 Answer 表中, 不需要来回更新数据)
-          if (answerListInAuthorAskQuestion.length === 0) {
-            this.log(`问题${questionId}下没有回答, 自动跳过`)
-            continue
-          }
-          let questionInfo = answerListInAuthorAskQuestion[0]?.question
-          let page: Types.Type_Page_Question_Item = {
-            baseInfo: questionInfo,
-            recordList: answerListInAuthorAskQuestion,
-            type: Consts.Const_Type_Question,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
-          pageList.push(page)
-        }
-        this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        return unitPackage
-      }
+      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
       case Const_TaskConfig.Const_Task_Type_用户的所有回答:
-      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}所有回答过的答案`)
-        let pageList: Types.Type_Page_Item[] = []
-        let answerListInAuthorHasAnswer = await MAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
-        for (let item of answerListInAuthorHasAnswer) {
-          let page: Types.Type_Page_Question_Item = {
-            baseInfo: item.question,
-            recordList: [item],
-            type: Consts.Const_Type_Question,
-            first_action_at: 0,
-            last_action_at: 0,
+      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
+        {
+          // 提取公共代码
+          this.log(`获取用户${targetId}信息`)
+          let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+          if (_.isEmpty(authorInfo)) {
+            this.log(`用户${targetId}信息获取失败, 自动跳过`)
+            return
           }
-          pageList.push(page)
-        }
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}所有回答过的答案获取完毕`)
-        return unitPackage
-      }
-      case Const_TaskConfig.Const_Task_Type_用户发布的所有想法: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}所有发表过的想法`)
-        let pageList: Types.Type_Page_Item[] = []
-        let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
-        for (let item of pinListByAuthorPost) {
-          let page: Types.Type_Page_Pin_Item = {
-            recordList: [item],
-            type: Consts.Const_Type_Pin,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
-          pageList.push(page)
-        }
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}所有发表过的想法获取完毕`)
-        return unitPackage
-      }
-      case Const_TaskConfig.Const_Task_Type_用户发布的所有文章: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}发表过的所有文章`)
+          let userName = `${authorInfo.name}(${targetId})`
+          switch (taskConfig.type) {
+            case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题: {
+              this.log(`获取用户${userName}所有提问过的问题`)
+              let pageList: Types.Type_Page_Item[] = []
+              let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
+              this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
+              this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
+              for (let questionId of questionIdList) {
+                let answerListInAuthorAskQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([questionId])
+                // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 Answer 表中, 不需要来回更新数据)
+                if (answerListInAuthorAskQuestion.length === 0) {
+                  this.log(`问题${questionId}下没有回答, 自动跳过`)
+                  continue
+                }
+                let questionInfo = answerListInAuthorAskQuestion[0]?.question
+                let page: Types.Type_Page_Question_Item = {
+                  baseInfo: questionInfo,
+                  recordList: answerListInAuthorAskQuestion,
+                  type: Consts.Const_Type_Question,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+            case Const_TaskConfig.Const_Task_Type_销号用户的所有回答: {
+              this.log(`获取用户${userName}所有回答过的答案`)
+              let pageList: Types.Type_Page_Item[] = []
+              let answerListInAuthorHasAnswer = await MAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
+              for (let item of answerListInAuthorHasAnswer) {
+                let page: Types.Type_Page_Question_Item = {
+                  baseInfo: item.question,
+                  recordList: [item],
+                  type: Consts.Const_Type_Question,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}所有回答过的答案获取完毕`)
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有想法: {
+              this.log(`获取用户${userName}所有发表过的想法`)
+              let pageList: Types.Type_Page_Item[] = []
+              let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
+              for (let item of pinListByAuthorPost) {
+                let page: Types.Type_Page_Pin_Item = {
+                  recordList: [item],
+                  type: Consts.Const_Type_Pin,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}所有发表过的想法获取完毕`)
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有文章: {
+              this.log(`获取用户${userName}发表过的所有文章`)
+              let pageList: Types.Type_Page_Item[] = []
+              let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
+              for (let item of articleListByAuthor) {
+                let page: Types.Type_Page_Article_Item = {
+                  recordList: [item],
+                  type: Consts.Const_Type_Article,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}发表过的所有文章获取完毕`)
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章: {
+              this.log(`获取用户${userName}赞同过的所有文章id`)
+              let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
+                targetId,
+                MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
+              )
+              this.log(`用户${userName}赞同过的所有文章id获取完毕`)
+              this.log(`获取用户${userName}赞同过的所有文章`)
+              let articleListInAuthorAgreeArticle = await MArticle.asyncGetArticleList(
+                articleIdListInAuthorAgreeArticle,
+              )
 
-        let pageList: Types.Type_Page_Item[] = []
-        let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
-        for (let item of articleListByAuthor) {
-          let page: Types.Type_Page_Article_Item = {
-            recordList: [item],
-            type: Consts.Const_Type_Article,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
-          pageList.push(page)
-        }
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}发表过的所有文章获取完毕`)
-        return unitPackage
-      }
-      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}赞同过的所有文章id`)
-        let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
-          targetId,
-          MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
-        )
-        this.log(`用户${userName}赞同过的所有文章id获取完毕`)
-        this.log(`获取用户${userName}赞同过的所有文章`)
-        let articleListInAuthorAgreeArticle = await MArticle.asyncGetArticleList(articleIdListInAuthorAgreeArticle)
+              let pageList: Types.Type_Page_Item[] = []
+              for (let item of articleListInAuthorAgreeArticle) {
+                let page: Types.Type_Page_Article_Item = {
+                  recordList: [item],
+                  type: Consts.Const_Type_Article,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}赞同过的所有文章获取完毕`)
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答: {
+              this.log(`获取用户${userName}赞同过的所有回答id`)
+              let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
+                targetId,
+                MActivity.VERB_ANSWER_VOTE_UP,
+              )
+              this.log(`用户${userName}赞同过的所有回答id获取完毕`)
+              this.log(`获取用户${userName}赞同过的所有回答`)
+              let answerListInAuthorAgreeAnswer = await MAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
 
-        let pageList: Types.Type_Page_Item[] = []
-        for (let item of articleListInAuthorAgreeArticle) {
-          let page: Types.Type_Page_Article_Item = {
-            recordList: [item],
-            type: Consts.Const_Type_Article,
-            first_action_at: 0,
-            last_action_at: 0,
+              let pageList: Types.Type_Page_Item[] = []
+              for (let item of answerListInAuthorAgreeAnswer) {
+                let page: Types.Type_Page_Question_Item = {
+                  recordList: [item],
+                  baseInfo: item.question,
+                  type: Consts.Const_Type_Question,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}赞同过的所有回答获取完毕`)
+              return unitPackage
+            }
+            case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题: {
+              this.log(`获取用户${userName}关注过的所有问题id`)
+              let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
+                targetId,
+                MActivity.VERB_QUESTION_FOLLOW,
+              )
+              this.log(`用户${userName}关注过的所有问题id获取完毕`)
+              this.log(`开始获取用户${userName}关注过的所有问题下的回答列表`)
+              let pageList: Types.Type_Page_Item[] = []
+              for (let questionId of questionIdListInAuthorWatchQuestion) {
+                let answerListInAuthorAskQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([questionId])
+                // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 Answer 表中, 不需要来回更新数据)
+                if (answerListInAuthorAskQuestion.length === 0) {
+                  this.log(`问题${questionId}下没有回答, 自动跳过`)
+                  continue
+                }
+                let questionInfo = answerListInAuthorAskQuestion[0]?.question
+                let page: Types.Type_Page_Question_Item = {
+                  baseInfo: questionInfo,
+                  recordList: answerListInAuthorAskQuestion,
+                  type: Consts.Const_Type_Question,
+                  first_action_at: 0,
+                  last_action_at: 0,
+                }
+                pageList.push(page)
+              }
+              this.log(`用户${targetId}关注过的所有问题下的回答列表获取完毕`)
+              // 填充单元对象
+              unitPackage = {
+                info: authorInfo,
+                type: taskConfig.type,
+                pageList: pageList,
+              }
+              this.log(`用户${userName}关注过的所有问题获取完毕`)
+              return unitPackage
+            }
           }
-          pageList.push(page)
         }
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}赞同过的所有文章获取完毕`)
-        return unitPackage
-      }
-      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}赞同过的所有回答id`)
-        let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
-          targetId,
-          MActivity.VERB_ANSWER_VOTE_UP,
-        )
-        this.log(`用户${userName}赞同过的所有回答id获取完毕`)
-        this.log(`获取用户${userName}赞同过的所有回答`)
-        let answerListInAuthorAgreeAnswer = await MAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
+        break
 
-        let pageList: Types.Type_Page_Item[] = []
-        for (let item of answerListInAuthorAgreeAnswer) {
-          let page: Types.Type_Page_Question_Item = {
-            recordList: [item],
-            baseInfo: item.question,
-            type: Consts.Const_Type_Question,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
-          pageList.push(page)
-        }
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}赞同过的所有回答获取完毕`)
-        return unitPackage
-      }
-      case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题: {
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
-          this.log(`用户${targetId}信息获取失败, 自动跳过`)
-          return
-        }
-        let userName = `${authorInfo.name}(${targetId})`
-        this.log(`获取用户${userName}关注过的所有问题id`)
-        let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
-          targetId,
-          MActivity.VERB_QUESTION_FOLLOW,
-        )
-        this.log(`用户${userName}关注过的所有问题id获取完毕`)
-        this.log(`开始获取用户${userName}关注过的所有问题下的回答列表`)
-        let pageList: Types.Type_Page_Item[] = []
-        for (let questionId of questionIdListInAuthorWatchQuestion) {
-          let answerListInAuthorAskQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([questionId])
-          // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 Answer 表中, 不需要来回更新数据)
-          if (answerListInAuthorAskQuestion.length === 0) {
-            this.log(`问题${questionId}下没有回答, 自动跳过`)
-            continue
-          }
-          let questionInfo = answerListInAuthorAskQuestion[0]?.question
-          let page: Types.Type_Page_Question_Item = {
-            baseInfo: questionInfo,
-            recordList: answerListInAuthorAskQuestion,
-            type: Consts.Const_Type_Question,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
-          pageList.push(page)
-        }
-        this.log(`用户${targetId}关注过的所有问题下的回答列表获取完毕`)
-        // 填充单元对象
-        unitPackage = {
-          info: authorInfo,
-          type: taskConfig.type,
-          pageList: pageList,
-        }
-        this.log(`用户${userName}关注过的所有问题获取完毕`)
-        return unitPackage
-      }
       case Const_TaskConfig.Const_Task_Type_话题: {
         this.log(`获取话题${targetId}信息`)
         let topicInfo = await MTopic.asyncGetTopicInfo(targetId)
