@@ -1,6 +1,4 @@
 import QuestionApi from '~/src/api/single/question'
-import MQuestion from '~/src/model/question'
-import Logger from '~/src/library/logger'
 import _ from 'lodash'
 import BatchFetchAnswer from '~/src/api/batch/answer'
 import Base from '~/src/api/batch/base'
@@ -20,18 +18,17 @@ class BatchFetchQuestion extends Base {
     }
     let title = question.title
     let answerCount = question.answer_count
-    this.log(`问题:${title}(${questionId})信息抓取成功, 存入数据库`)
-    await MQuestion.asyncReplaceQuestionInfo(question)
-    this.log(`问题:${title}(${questionId})信息成功存入数据库`)
+    this.log(`问题:${title}(${questionId})信息抓取成功`)
+    // question的信息不需要存入数据库, 直接使用answer进行保存即可
+    // this.log(`问题:${title}(${questionId})信息成功存入数据库`)
     this.log(`问题${title}(${questionId})下共有${answerCount}个回答`)
     this.log(`开始抓取问题${title}(${questionId})下的回答列表`)
+    // 首先先获取所有answerId
     let answerIdList: string[] = []
-    let batchFetchAnswer = new BatchFetchAnswer()
     for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
         let answerList = await QuestionApi.asyncGetAnswerList(questionId, offset, this.fetchLimit)
         for (let answer of answerList) {
-          await MQuestion.asyncReplaceQuestionAnswer(questionId, answer)
           let answerId = `${answer.id}`
           answerIdList.push(answerId)
         }
@@ -42,6 +39,8 @@ class BatchFetchQuestion extends Base {
       })
     }
     await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    // 然后集中获取相关回答内容
+    let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
     this.log(`问题${title}(${questionId})下全部回答抓取完毕`)
   }

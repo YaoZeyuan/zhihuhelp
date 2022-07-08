@@ -90,22 +90,6 @@ CREATE TABLE  IF NOT EXISTS `Topic_Answer` (
   PRIMARY KEY (`topic_id`, `answer_id`)
 ) ; 
 
-CREATE TABLE  IF NOT EXISTS `Question` (
-  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- 问题信息表
-  PRIMARY KEY (`question_id`)
-) ; 
-
-CREATE TABLE  IF NOT EXISTS `Question_Answer` (
-  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
-  `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- 问题下回答列表
-  PRIMARY KEY (`question_id`, `answer_id`)
-) ; 
-
-
 CREATE TABLE  IF NOT EXISTS `Author_Ask_Question` (
   `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
   `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
