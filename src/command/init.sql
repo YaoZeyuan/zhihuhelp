@@ -1,3 +1,24 @@
+---- 三大原子型数据: 回答/想法/文章, 构成知乎助手的基础
+---- 其余均为集合型数据
+CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
+  `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id，唯一值',
+  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
+  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
+  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
+  `raw_json` json, --- COMMENT '原始响应json'
+  --- '总答案记录表'
+  PRIMARY KEY (`answer_id`)
+); 
+
+CREATE TABLE  IF NOT EXISTS `V2_Total_Pin` (
+  `pin_id` varchar(100) NOT NULL , ---- COMMENT '想法id',
+  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
+  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
+  `raw_json` json, --- COMMENT '原始响应json'
+  --- '总想法记录表'
+  PRIMARY KEY (`pin_id`)
+); 
+
 CREATE TABLE  IF NOT EXISTS `Article` (
   `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
   `author_url_token` varchar(100) NOT NULL  , ---- COMMENT '答主url_token',
@@ -87,33 +108,4 @@ CREATE TABLE  IF NOT EXISTS `Author_Ask_Question` (
   `raw_json` json, --- COMMENT '原始响应json'
   --- '总答案记录表'
   PRIMARY KEY (`question_id`)
-); 
-
-CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
-  `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id，唯一值',
-  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
-  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
-  `question_id` varchar(100) NOT NULL , ---- COMMENT '问题id',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- '总答案记录表'
-  PRIMARY KEY (`answer_id`)
-); 
-
-CREATE TABLE  IF NOT EXISTS `V2_Total_Pin` (
-  `pin_id` varchar(100) NOT NULL , ---- COMMENT '想法id',
-  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
-  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- '总想法记录表'
-  PRIMARY KEY (`pin_id`)
-); 
-
-CREATE TABLE  IF NOT EXISTS `V2_Total_Article` (
-  `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
-  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
-  `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
-  `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- '总想法记录表'
-  PRIMARY KEY (`article_id`)
 ); 
