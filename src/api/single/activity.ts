@@ -16,7 +16,7 @@ class Activity extends Base {
     url_token: string,
     afterTimeAt: number = 0,
     limit: number = 20,
-  ): Promise<Array<TypeActivity.Record>> {
+  ): Promise<TypeActivity.Record[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/activities`
     const config = {
       after_id: afterTimeAt,

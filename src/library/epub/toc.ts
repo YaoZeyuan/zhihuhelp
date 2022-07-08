@@ -9,7 +9,7 @@ class TOC {
 
   publisher = 'zhihuhelp'
 
-  navMapList: Array<string> = []
+  navMapList: string[] = []
 
   get content() {
     return `<?xml version="1.0"?>

@@ -176,7 +176,7 @@ class Author extends Base {
     offset: number = 0,
     limit: number = 20,
     sortBy: string = Base.CONST_SORT_BY_CREATED,
-  ): Promise<Array<TypeAuthor.Answer>> {
+  ): Promise<TypeAuthor.Answer[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/answers`
     const config = {
       include:
@@ -202,7 +202,7 @@ class Author extends Base {
     url_token: string,
     offset: number = 0,
     limit: number = 20,
-  ): Promise<Array<TypeAuthor.Question>> {
+  ): Promise<TypeAuthor.Question[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/questions`
     const config = {
       offset: offset,
@@ -225,7 +225,7 @@ class Author extends Base {
     url_token: string,
     offset: number = 0,
     limit: number = 20,
-  ): Promise<Array<TypeAuthor.Pin>> {
+  ): Promise<TypeAuthor.Pin[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/pins`
     const config = {
       offset: offset,
@@ -248,7 +248,7 @@ class Author extends Base {
     url_token: string,
     offset: number = 0,
     limit: number = 20,
-  ): Promise<Array<TypeAuthor.Article>> {
+  ): Promise<TypeAuthor.Article[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/articles`
     const config = {
       offset: offset,

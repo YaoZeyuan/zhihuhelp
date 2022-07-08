@@ -10,7 +10,7 @@ class Answer extends Base {
    * 从数据库中获取用户信息
    * @param urlToken
    */
-  static async asyncGetAnswerList(urlToken: string): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerList(urlToken: string): Promise<TypeAnswer.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)

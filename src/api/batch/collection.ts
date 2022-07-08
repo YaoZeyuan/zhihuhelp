@@ -21,14 +21,10 @@ class BatchFetchCollection extends Base {
       let asyncTaskFunc = async () => {
         // 先拿到AnswerExcerpt, 然后再去获取回答详情
         let itemList = await CollectionApi.asyncGetItemList(id, offset, this.fetchLimit)
-        for (let answer of itemList) {
-          answerIdList.push(`${answer.id}`)
-          await MCollection.asyncReplaceColumnAnswerExcerpt(id, answer).catch((e) => {
-            Logger.log('catch error')
-            Logger.log(e)
-          })
+        for (let item of itemList) {
+          await MCollection.asyncReplaceColumnItem(id, item)
         }
-        this.log(`列表中第${offset}~${offset + itemList.length}条回答摘要抓取完毕`)
+        this.log(`收藏列表中第${offset}~${offset + itemList.length}条记录抓取完毕`)
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
@@ -37,7 +33,8 @@ class BatchFetchCollection extends Base {
       })
     }
     await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
-    this.log(`全部回答摘要列表抓取完毕`)
+    this.log(`全部收藏摘要列表抓取完毕`)
+    // 然后需要抓取涉及的回答/想法/文章
 
     this.log(`开始抓取收藏夹${collectionInfo.title}(${collectionInfo.id})的下所有回答详情,共${answerIdList.length}条`)
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)

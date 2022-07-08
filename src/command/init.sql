@@ -67,7 +67,7 @@ CREATE TABLE  IF NOT EXISTS `Collection_Record` (
   `collection_id` varchar(100) NOT NULL , ---- COMMENT '收藏夹id',
   `record_type` varchar(100) NOT NULL , ---- COMMENT '收藏夹记录类型:answer/pin/article',
   `record_id` varchar(100) NOT NULL , ---- COMMENT '收藏夹记录id',
-  `collection_at` int(11) NOT NULL , ---- COMMENT '添加到收藏的时间戳',
+  `record_at` int(11) NOT NULL , ---- COMMENT '添加到收藏的时间戳',
   `raw_json` json, --- COMMENT '收藏夹内的消息内容json'
   --- 收藏夹内回答列表(收藏夹接口只提供了answer响应, 没有返回文章列表)
   PRIMARY KEY (`collection_id`, `record_type`, `record_id`)

@@ -32,7 +32,7 @@ class Article extends Base {
    * 从数据库中根据专栏id获取文章列表
    * @param columnId
    */
-  static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<TypeArticle.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -61,7 +61,7 @@ class Article extends Base {
    * 从数据库中根据专栏id获取文章列表
    * @param columnId
    */
-  static async asyncGetArticleListByColumnId(columnId: string): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleListByColumnId(columnId: string): Promise<TypeArticle.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -90,7 +90,7 @@ class Article extends Base {
    * 从数据库中获取文章列表
    * @param articleIdList
    */
-  static async asyncGetArticleList(articleIdList: Array<string>): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleList(articleIdList: string[]): Promise<TypeArticle.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('article_id', articleIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch(() => {

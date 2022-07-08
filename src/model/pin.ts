@@ -10,7 +10,7 @@ class Pin extends Base {
    * 从数据库中获取用户的想法列表
    * @param questionId
    */
-  static async asyncGetPinListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypePin.Record>> {
+  static async asyncGetPinListByAuthorUrlToken(authorUrlToken: string): Promise<TypePin.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -51,7 +51,7 @@ class Pin extends Base {
     try {
       pinRecord = JSON.parse(pinRecordJson)
     } catch {
-      pinRecord = {} as any
+      pinRecord = {}
     }
 
     return pinRecord
@@ -61,7 +61,7 @@ class Pin extends Base {
    * 根据pinId从数据库中获取用户的想法列表
    * @param pinIdList
    */
-  static async asyncGetPinList(pinIdList: Array<string>): Promise<Array<TypePin.Record>> {
+  static async asyncGetPinList(pinIdList: string[]): Promise<TypePin.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('pin_id', pinIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch(() => {

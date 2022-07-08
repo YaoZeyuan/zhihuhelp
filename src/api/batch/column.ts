@@ -16,7 +16,7 @@ class BatchFetchColumn extends Base {
     const articleCount = columnInfo.articles_count
     this.log(`专栏${title}(${id})下共有${articleCount}篇文章`)
     this.log(`开始抓取文章概要列表`)
-    let articleIdList: Array<string> = []
+    let articleIdList: string[] = []
     let batchFetchArticle = new BatchFetchArticle()
     for (let offset = 0; offset < articleCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {

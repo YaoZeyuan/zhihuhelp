@@ -19,7 +19,7 @@ class Pin extends Base {
    * @param title 最后生成html的标题
    * @param pinRecordList 文章列表
    */
-  static renderInSinglePage(title: string, pinRecordList: Array<TypePin.Record>) {
+  static renderInSinglePage(title: string, pinRecordList: TypePin.Record[]) {
     let pinElementList = []
     for (let pinRecord of pinRecordList) {
       let pinElement = this.generateSinglePinElement(pinRecord)

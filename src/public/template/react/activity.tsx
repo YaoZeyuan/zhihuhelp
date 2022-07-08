@@ -10,7 +10,6 @@ import DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 import Base from '~/src/public/template/react/base'
 
-
 class Activity extends Base {
   static generateActivityElement(activityRecord: TypeActivity.Record) {
     let activityElement = <div></div>
@@ -49,7 +48,7 @@ class Activity extends Base {
     return content
   }
 
-  static renderInSinglePage(title: string, activityRecordList: Array<TypeActivity.Record>) {
+  static renderInSinglePage(title: string, activityRecordList: TypeActivity.Record[]) {
     let activityElementList = []
     for (let activityRecord of activityRecordList) {
       let activityElement = this.generateActivityElement(activityRecord)

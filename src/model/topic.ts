@@ -36,7 +36,7 @@ class Topic extends Base {
    * 从数据库中获取话题内的答案列表
    * @param topicId
    */
-  static async asyncGetAnswerList(topicId: string): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerList(topicId: string): Promise<TypeAnswer.Record[]> {
     let recordList = await this.db
       .select(this.TOPIC_ANSWER_TABLE_COLUMN)
       .from(this.TOPIC_ANSWER_TABLE_NAME)

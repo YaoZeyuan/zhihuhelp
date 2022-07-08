@@ -13,7 +13,7 @@ class BatchFetchTopic extends Base {
     let baseAnswer = topicInfo.best_answers_count
     this.log(`话题${topicInfo.name}(${topicInfo.id})信息获取完毕, 共有精华回答${baseAnswer}个`)
 
-    let answerIdList: Array<string> = []
+    let answerIdList: string[] = []
     let batchFetchAnswer = new BatchFetchAnswer()
     this.log(`开始抓取话题精华回答列表`)
     for (let offset = 0; offset < baseAnswer; offset = offset + this.fetchLimit) {

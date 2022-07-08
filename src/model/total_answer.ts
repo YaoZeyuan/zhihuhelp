@@ -33,7 +33,7 @@ class TotalAnswer extends Base {
    * 从数据库中获取指定内答案列表
    * @param answerIdList
    */
-  static async asyncGetAnswerList(answerIdList: Array<string>): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerList(answerIdList: string[]): Promise<TypeAnswer.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('answer_id', answerIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch((e: any) => {
@@ -61,7 +61,7 @@ class TotalAnswer extends Base {
    * 根据问题idList从数据库中获取指定内答案列表
    * @param questionIdList
    */
-  static async asyncGetAnswerListByQuestionIdList(questionIdList: Array<string>): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerListByQuestionIdList(questionIdList: string[]): Promise<TypeAnswer.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('question_id', questionIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch(() => {
@@ -88,7 +88,7 @@ class TotalAnswer extends Base {
    * 根据作者urlToken从数据库中获取指定内答案列表
    * @param authorUrlToken
    */
-  static async asyncGetAnswerListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypeAnswer.Record>> {
+  static async asyncGetAnswerListByAuthorUrlToken(authorUrlToken: string): Promise<TypeAnswer.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)

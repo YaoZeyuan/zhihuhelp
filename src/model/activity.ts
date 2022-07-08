@@ -45,7 +45,7 @@ class Activity extends Base {
     startAt: number,
     endAt: number,
     verbList = [Activity.VERB_ANSWER_VOTE_UP, Activity.VERB_MEMBER_VOTEUP_ARTICLE],
-  ): Promise<Array<TypeActivity.Record>> {
+  ): Promise<TypeActivity.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -80,7 +80,7 @@ class Activity extends Base {
   static async asyncGetAllActivityTargetIdList(
     urlToken: string,
     verbType = Activity.VERB_ANSWER_VOTE_UP,
-  ): Promise<Array<string>> {
+  ): Promise<string[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)

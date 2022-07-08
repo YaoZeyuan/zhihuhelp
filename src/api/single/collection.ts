@@ -12,7 +12,7 @@ class Collection extends Base {
     colectionId: number | string,
     offset: number = 0,
     limit: number = 20,
-  ): Promise<Array<TypeCollection.AnswerExcerpt>> {
+  ): Promise<TypeCollection.AnswerExcerpt[]> {
     const baseUrl = `https://api.zhihu.com/collections/${colectionId}/answers`
     const config = {
       offset: offset,

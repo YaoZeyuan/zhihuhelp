@@ -61,9 +61,9 @@ class Base {
 
   static renderIndex(
     bookname: string,
-    recordList: Array<TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record>,
+    recordList: (TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record)[],
   ) {
-    let indexList: Array<React.ReactElement<any>> = []
+    let indexList: React.ReactElement<any>[] = []
     for (let record of recordList) {
       let id = 0
       let title = ''
@@ -186,7 +186,7 @@ class Base {
    */
   static generateQuestionElement(
     questionRecord: TypeAnswer.Question,
-    answerElementList: Array<React.ReactElement<any>> = [],
+    answerElementList: React.ReactElement<any>[] = [],
   ) {
     if (_.isEmpty(questionRecord)) {
       return <div key={CommonUtil.getUuid()} />
@@ -380,7 +380,7 @@ class Base {
     return pin
   }
 
-  static generatePageElement(title: string, contentElementList: Array<React.ReactElement<any>>) {
+  static generatePageElement(title: string, contentElementList: React.ReactElement<any>[]) {
     return (
       <html xmlns="http://www.w3.org/1999/xhtml">
         <head>

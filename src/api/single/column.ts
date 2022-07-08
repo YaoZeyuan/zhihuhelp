@@ -26,7 +26,7 @@ class Column extends Base {
     columnId: string,
     offset = 0,
     limit = 10,
-  ): Promise<Array<TypeArticleExcerpt.Record>> {
+  ): Promise<TypeArticleExcerpt.Record[]> {
     const baseUrl = `https://www.zhihu.com/api/v4/columns/${columnId}/articles`
     const config = {
       offset,

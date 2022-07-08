@@ -30,7 +30,7 @@ class FetchCustomer extends Base {
     this.log(`开始进行自定义抓取, 共有${customerTaskConfig.fetchTaskList.length}个任务`)
     // 首先, 将任务进行汇总
     type TypeTaskPackage = {
-      [key: string]: Array<string>
+      [key: string]: string[]
     }
     let taskListPackage: TypeTaskPackage = {}
     this.log(`合并抓取任务`)

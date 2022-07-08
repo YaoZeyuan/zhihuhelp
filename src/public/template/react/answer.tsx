@@ -13,7 +13,7 @@ class Answer extends Base {
    * 生成单个问题对应的react元素
    * @param answerRecordList
    */
-  private static generateSingleItemElement(answerRecordList: Array<TypeAnswer.Record>) {
+  private static generateSingleItemElement(answerRecordList: TypeAnswer.Record[]) {
     let baseAnswerRecord: TypeAnswer.Record = _.get(answerRecordList, [0])
     let answerElementList = []
     for (let answerRecord of answerRecordList) {
@@ -24,7 +24,7 @@ class Answer extends Base {
     return questionElement
   }
 
-  static render(answerInSameQuestionRecordList: Array<TypeAnswer.Record>) {
+  static render(answerInSameQuestionRecordList: TypeAnswer.Record[]) {
     // 都是同一个
     let baseAnswerRecord: TypeAnswer.Record = _.get(answerInSameQuestionRecordList, [0])
     let title = baseAnswerRecord.question.title
@@ -39,7 +39,7 @@ class Answer extends Base {
    * @param title 最后生成html的标题
    * @param answerRecordList 按相同问题对答案进行分组
    */
-  static renderInSinglePage(title: string, answerRecordList: Array<Array<TypeAnswer.Record>>) {
+  static renderInSinglePage(title: string, answerRecordList: TypeAnswer.Record[][]) {
     let questionElementList = []
     for (let answerInSameQuestionRecordList of answerRecordList) {
       let questionElement = this.generateSingleItemElement(answerInSameQuestionRecordList)

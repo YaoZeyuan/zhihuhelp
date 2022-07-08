@@ -36,7 +36,7 @@ class Column extends Base {
    * 从数据库中获取专栏文章列表
    * @param columnId
    */
-  static async asyncGetArticleExcerptList(columnId: string): Promise<Array<TypeArticleExcerpt.Record>> {
+  static async asyncGetArticleExcerptList(columnId: string): Promise<TypeArticleExcerpt.Record[]> {
     let recordList = await this.db
       .select(this.COLUMN_ARTICLE_EXCERPT_TABLE_COLUMN)
       .from(this.COLUMN_ARTICLE_EXCERPT_TABLE_NAME)

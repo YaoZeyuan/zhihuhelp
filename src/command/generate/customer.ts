@@ -28,9 +28,9 @@ import path from 'path'
 import CommonUtil from '~/src/library/util/common'
 
 type EpubResourcePackage = {
-  questionList: Array<Array<TypeAnswer.Record>>
-  articleList: Array<TypeArticle.Record>
-  pinList: Array<TypePin.Record>
+  questionList: TypeAnswer.Record[][]
+  articleList: TypeArticle.Record[]
+  pinList: TypePin.Record[]
 }
 
 class GenerateCustomer extends Base {
@@ -81,10 +81,10 @@ class GenerateCustomer extends Base {
 
     this.log(`开始输出自定义电子书, 共有${fetchTaskList.length}个任务`)
     // 将任务中的数据按照问题/文章/想法进行汇总
-    let answerList: Array<TypeAnswer.Record> = []
-    let questionList: Array<Array<TypeAnswer.Record>> = []
-    let articleList: Array<TypeArticle.Record> = []
-    let pinList: Array<TypePin.Record> = []
+    let answerList: TypeAnswer.Record[] = []
+    let questionList: TypeAnswer.Record[][] = []
+    let articleList: TypeArticle.Record[] = []
+    let pinList: TypePin.Record[] = []
 
     this.log(`将任务中的数据按照问题/文章/想法进行汇总`)
     let taskIndex = 0
@@ -342,12 +342,12 @@ class GenerateCustomer extends Base {
     }
 
     // 按最大允许值切分列表
-    let epubResourceList: Array<EpubResourcePackage> = []
+    let epubResourceList: EpubResourcePackage[] = []
     let fileCounter = 0
 
-    let splitQuestionList: Array<Array<TypeAnswer.Record>> = []
-    let splitArticleList: Array<TypeArticle.Record> = []
-    let splitPinList: Array<TypePin.Record> = []
+    let splitQuestionList: TypeAnswer.Record[][] = []
+    let splitArticleList: TypeArticle.Record[] = []
+    let splitPinList: TypePin.Record[] = []
 
     for (let answerList of questionList) {
       splitQuestionList.push(answerList)

@@ -23,7 +23,7 @@ class Column extends Base {
    * @param title 最后生成html的标题
    * @param articleRecordList 文章列表
    */
-  static renderInSinglePage(title: string, articleRecordList: Array<TypeArticle.Record>) {
+  static renderInSinglePage(title: string, articleRecordList: TypeArticle.Record[]) {
     let articleElementList = []
     for (let articleRecord of articleRecordList) {
       let articleElement = this.generateSingleArticleElement(articleRecord)

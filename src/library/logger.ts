@@ -5,7 +5,7 @@ import PathConfig from '~/src/config/path'
 import fs from 'fs'
 
 class Logger {
-  private static formatArgument(...arg: Array<any>) {
+  private static formatArgument(...arg: any[]) {
     const triggerAt = moment().format(DATE_FORMAT.Const_Display_By_Millsecond)
     let stringLogItemList = []
     for (let logItem of [...arg]) {
@@ -24,13 +24,13 @@ class Logger {
     return
   }
 
-  static log(...arg: Array<any>) {
+  static log(...arg: any[]) {
     let logContent = Logger.formatArgument(...arg)
     // 将日志存入Electron全局变量中
     Logger.pushLogContentToFile(logContent)
     console.log(logContent)
   }
-  static warn(...arg: Array<any>) {
+  static warn(...arg: any[]) {
     let logContent = Logger.formatArgument(...arg)
     Logger.pushLogContentToFile(logContent)
     console.warn(logContent)

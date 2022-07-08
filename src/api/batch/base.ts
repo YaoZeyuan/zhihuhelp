@@ -20,7 +20,7 @@ class BaseBatchFetch {
    * 获取回答列表,并存入数据库中
    * @param idList
    */
-  async fetchListAndSaveToDb(idList: Array<string>) {
+  async fetchListAndSaveToDb(idList: string[]) {
     let index = 0
     let taskLabel = Symbol(`${this.constructor.name}-fetchListAndSaveToDb`)
     for (let id of idList) {

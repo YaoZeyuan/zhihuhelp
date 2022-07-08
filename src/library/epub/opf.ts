@@ -10,8 +10,8 @@ class OPF {
   publishTime = moment().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
   publisher = 'zhihuhelp'
 
-  manifestItemList: Array<string> = []
-  spineItemList: Array<string> = []
+  manifestItemList: string[] = []
+  spineItemList: string[] = []
 
   get content() {
     return `<?xml version='1.0' encoding='utf-8'?>

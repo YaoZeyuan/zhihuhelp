@@ -357,7 +357,7 @@ export type Type_Collection_Item_Pin = {
     id: '1464750338461233152' | string
     like_count: 0 | number
     reaction_count: 122 | number
-    type: 'pin' | string
+    type: 'pin'
     updated: 1642003694 | number
     url: 'https://www.zhihu.com/pin/1464750338461233152' | string
     virtuals: {
@@ -370,9 +370,9 @@ export type Type_Collection_Item_Pin = {
 }
 export type Type_Collection_Item_Article = {
   content: {
-    id: 526672568 | number
+    id: '526672568' | string
     title: '趁着618 ，试搞一个私有云耍一下' | string
-    type: 'article' | string
+    type: 'article'
     excerpt_title:
       | '书接上回，去年年底的时候我萌发了一个要搞一个私有云来解决我这个电子产品存储困难的问题，当时我写过一个文章，想要跟大家探讨下，一个普通人想要的私有云是什么样子的。 [文章: 普通人想要的私有云是什么样的？] 没想到我一个技术白，在评论区里引…'
       | string
@@ -531,8 +531,8 @@ export type Type_Collection_Item_Article = {
 }
 export type Type_Collection_Item_Answer = {
   content: {
-    id: 2548272276 | number
-    type: 'answer' | string
+    id: '2548272276' | string
+    type: 'answer'
     answer_type: 'NORMAL' | string
     url: 'https://www.zhihu.com/question/523766203/answer/2548272276' | string
     created_time: 1656359365 | number

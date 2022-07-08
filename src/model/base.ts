@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 class Base {
   static TABLE_NAME = ``
-  static TABLE_COLUMN: Array<string>
+  static TABLE_COLUMN: string[]
   static PRIMARY_KEY = ``
 
   /**

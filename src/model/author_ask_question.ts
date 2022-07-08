@@ -10,7 +10,7 @@ class AuthorAskQuestion extends Base {
    * 从数据库中获取用户提问的问题id列表
    * @param urlToken
    */
-  static async asyncGetAuthorAskQuestionIdList(urlToken: string): Promise<Array<string>> {
+  static async asyncGetAuthorAskQuestionIdList(urlToken: string): Promise<string[]> {
     let recordList = await this.db
       .select(`question_id`)
       .from(this.TABLE_NAME)
