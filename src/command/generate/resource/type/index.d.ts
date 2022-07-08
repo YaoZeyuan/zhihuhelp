@@ -26,16 +26,43 @@ type Type_Page_Question_Item = {
   type: Type_Item_Question
   baseInfo: Type_Answer.Question
   recordList: Type_Answer.Record[]
+  /**
+   * 首次添加到记录的时间戳, 方便针对收藏夹/用户行为型记录, 配置记录时间.
+   * 对于文章/想法型记录,first_record_at等于last_record_at
+   */
+  first_action_at: number
+  /**
+   * 末次添加到记录的时间戳
+   */
+  last_action_at: number
 }
 
 type Type_Page_Article_Item = {
   type: Type_Item_Article
   recordList: Type_Article.Record[]
+  /**
+   * 首次添加到记录的时间戳, 方便针对收藏夹/用户行为型记录, 配置记录时间
+   * 对于文章/想法型记录,first_record_at等于last_record_at
+   */
+  first_action_at: number
+  /**
+   * 末次添加到记录的时间戳
+   */
+  last_action_at: number
 }
 
 type Type_Page_Pin_Item = {
   type: Type_Item_Pin
   recordList: Type_Pin.Record[]
+  /**
+   * 首次添加到记录的时间戳, 方便针对收藏夹/用户行为型记录, 配置记录时间
+   * 对于文章/想法型记录,first_record_at等于last_record_at
+   */
+  first_action_at: number
+  /**
+   * 末次添加到记录的时间戳
+   */
+  last_action_at: number
 }
 
 // 实际的item元素-对应每一页的内容

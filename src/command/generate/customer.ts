@@ -449,6 +449,8 @@ class GenerateCustomer extends Base {
             baseInfo: questionInfo,
             recordList: answerListInAuthorAskQuestion,
             type: Consts.Const_Type_Question,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -474,6 +476,8 @@ class GenerateCustomer extends Base {
             baseInfo: item.question,
             recordList: [item],
             type: Consts.Const_Type_Question,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -497,6 +501,8 @@ class GenerateCustomer extends Base {
           let page: Types.Type_Page_Pin_Item = {
             recordList: [item],
             type: Consts.Const_Type_Pin,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -521,6 +527,8 @@ class GenerateCustomer extends Base {
           let page: Types.Type_Page_Article_Item = {
             recordList: [item],
             type: Consts.Const_Type_Article,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -551,6 +559,8 @@ class GenerateCustomer extends Base {
           let page: Types.Type_Page_Article_Item = {
             recordList: [item],
             type: Consts.Const_Type_Article,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -582,6 +592,8 @@ class GenerateCustomer extends Base {
             recordList: [item],
             baseInfo: item.question,
             type: Consts.Const_Type_Question,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -618,6 +630,8 @@ class GenerateCustomer extends Base {
             baseInfo: questionInfo,
             recordList: answerListInAuthorAskQuestion,
             type: Consts.Const_Type_Question,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -646,6 +660,8 @@ class GenerateCustomer extends Base {
             baseInfo: answerRecord.question,
             recordList: [answerRecord],
             type: Consts.Const_Type_Question,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -678,6 +694,8 @@ class GenerateCustomer extends Base {
                   baseInfo: answer.question,
                   recordList: [answer],
                   type: Consts.Const_Type_Question,
+                  first_action_at: record.record_at,
+                  last_action_at: record.record_at,
                 }
                 if (questionPageMap.has(answer.question.id) === false) {
                   // 将page元素保留在map列表中, 方便合并收藏夹中的元素
@@ -687,6 +705,8 @@ class GenerateCustomer extends Base {
                   // 之前已经有过page元素, 则不需要新建元素, 直接复用即可
                   page = questionPageMap.get(answer.question.id) as Types.Type_Page_Question_Item
                   page.recordList.push(answer)
+                  page.first_action_at = Math.min(page.first_action_at, record.record_at)
+                  page.last_action_at = Math.max(page.last_action_at, record.record_at)
                 }
               }
               break
@@ -696,6 +716,8 @@ class GenerateCustomer extends Base {
                 let page: Types.Type_Page_Pin_Item = {
                   recordList: [pin],
                   type: Consts.Const_Type_Pin,
+                  first_action_at: record.record_at,
+                  last_action_at: record.record_at,
                 }
                 pageList.push(page)
               }
@@ -706,6 +728,8 @@ class GenerateCustomer extends Base {
                 let page: Types.Type_Page_Article_Item = {
                   recordList: [article],
                   type: Consts.Const_Type_Article,
+                  first_action_at: record.record_at,
+                  last_action_at: record.record_at,
                 }
                 pageList.push(page)
               }
@@ -734,6 +758,8 @@ class GenerateCustomer extends Base {
           let page: Types.Type_Page_Article_Item = {
             recordList: [item],
             type: Consts.Const_Type_Article,
+            first_action_at: 0,
+            last_action_at: 0,
           }
           pageList.push(page)
         }
@@ -754,6 +780,8 @@ class GenerateCustomer extends Base {
         let page: Types.Type_Page_Article_Item = {
           recordList: [singleArticle],
           type: Consts.Const_Type_Article,
+          first_action_at: 0,
+          last_action_at: 0,
         }
         pageList.push(page)
         // 填充单元对象
@@ -773,6 +801,8 @@ class GenerateCustomer extends Base {
           baseInfo: questionInfo,
           recordList: answerListInQuestion,
           type: Consts.Const_Type_Question,
+          first_action_at: 0,
+          last_action_at: 0,
         }
         pageList.push(page)
         // 填充单元对象
@@ -792,6 +822,8 @@ class GenerateCustomer extends Base {
           baseInfo: questionInfo,
           recordList: [singleAnswer],
           type: Consts.Const_Type_Question,
+          first_action_at: 0,
+          last_action_at: 0,
         }
         pageList.push(page)
         // 填充单元对象
@@ -809,6 +841,8 @@ class GenerateCustomer extends Base {
         let page: Types.Type_Page_Pin_Item = {
           recordList: [singlePin],
           type: Consts.Const_Type_Pin,
+          first_action_at: 0,
+          last_action_at: 0,
         }
         pageList.push(page)
         // 填充单元对象
