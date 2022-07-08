@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
 import * as TypeActivity from '~/src/type/zhihu/activity'
-import _ from 'lodash'
+import lodash from 'lodash'
 import moment from 'moment'
 import * as DATE_FORMAT from '~/src/constant/date_format'
 
@@ -62,7 +62,7 @@ class Activity extends Base {
       } catch {
         activityRecord = {} as any
       }
-      if (_.isEmpty(activityRecord) === false) {
+      if (lodash.isEmpty(activityRecord) === false) {
         activityTargetIdList.push(`${activityRecord.target.id}`)
       }
     }

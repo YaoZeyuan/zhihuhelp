@@ -1,6 +1,5 @@
 import Base from '~/src/model/base'
 import TypeAuthor from '~/src/type/zhihu/author'
-import _ from 'lodash'
 
 class AuthorAskQuestion extends Base {
   static TABLE_NAME = `Author_Ask_Question`
@@ -21,7 +20,7 @@ class AuthorAskQuestion extends Base {
 
     let questionIdList = []
     for (let record of recordList) {
-      let questionId: string = _.get(record, ['question_id'], '')
+      let questionId: string = record?.question_id ?? ''
       if (questionId === '') {
         continue
       }

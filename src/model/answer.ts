@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
 import TypeAnswer from '~/src/type/zhihu/answer'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 class Answer extends Base {
   static TABLE_NAME = `Answer`
@@ -18,7 +18,7 @@ class Answer extends Base {
       .catch(() => {
         return []
       })
-    let answerRecordJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let answerRecordJson = recordList[0]?.raw_json
     let answerRecord: TypeAnswer.Record
     try {
       answerRecord = JSON.parse(answerRecordJson)
@@ -42,14 +42,14 @@ class Answer extends Base {
     })
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_json'], '{}')
+      let answerRecordJson = record?.raw_json
       let answerRecord
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
         answerRecord = {}
       }
-      if (_.isEmpty(answerRecord) === false) {
+      if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
     }
@@ -69,14 +69,14 @@ class Answer extends Base {
     })
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_json'], '{}')
+      let answerRecordJson = record?.raw_json
       let answerRecord
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
         answerRecord = {}
       }
-      if (_.isEmpty(answerRecord) === false) {
+      if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
     }
@@ -98,14 +98,14 @@ class Answer extends Base {
       })
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_json'], '{}')
+      let answerRecordJson = record?.raw_json
       let answerRecord
       try {
         answerRecord = JSON.parse(answerRecordJson)
       } catch {
         answerRecord = {}
       }
-      if (_.isEmpty(answerRecord) === false) {
+      if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
     }

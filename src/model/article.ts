@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
 import TypeArticle from '~/src/type/zhihu/article'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
@@ -18,7 +18,7 @@ class Article extends Base {
       .catch(() => {
         return []
       })
-    let articleJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let articleJson = recordList?.[0]?.raw_json
     let article
     try {
       article = JSON.parse(articleJson)
@@ -43,14 +43,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
@@ -72,14 +72,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
@@ -99,14 +99,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
