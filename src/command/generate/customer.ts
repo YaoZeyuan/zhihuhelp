@@ -424,7 +424,7 @@ class GenerateCustomer extends Base {
    * 根据任务类型, 返回单元包
    * @param taskConfig
    */
-  async getRecord(taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item): Types.Type_Unit_Item {
+  async getRecord(taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item): Promise<Types.Type_Unit_Item | undefined> {
     let unitPackage: Types.Type_Unit_Item
     let targetId = taskConfig.id
     switch (taskConfig.type) {
@@ -658,15 +658,71 @@ class GenerateCustomer extends Base {
         this.log(`话题${topicName}下精华回答列表获取完毕`)
         return unitPackage
       }
-      case Const_TaskConfig.Const_Task_Type_收藏夹:
-        this.log(`获取收藏夹${targetId}下所有回答id`)
-        let answerIdListInCollection = await MCollection.asyncGetAnswerIdList(targetId)
-        this.log(`收藏夹${targetId}下回答id列表获取完毕`)
-        this.log(`获取收藏夹${targetId}下回答列表`)
-        let answerListInCollection = await MTotalAnswer.asyncGetAnswerList(answerIdListInCollection)
-        this.log(`收藏夹${targetId}下回答列表获取完毕`)
-        answerList = answerList.concat(answerListInCollection)
-        break
+      case Const_TaskConfig.Const_Task_Type_收藏夹: {
+        this.log(`获取收藏夹${targetId}信息`)
+        let columnInfo = await MCollection.asyncGetCollectionInfo(targetId)
+        let columnName = `${columnInfo.title}(${targetId})`
+        this.log(`获取收藏夹${columnName}下所有收藏`)
+        let recordList = await MCollection.asyncGetRecordList(targetId)
+        let pageList: Types.Type_Page_Item[] = []
+        // 如果收藏夹中有重复元素, 则合并之
+        let questionPageMap: Map<TypeAnswer.Question['id'], Types.Type_Page_Question_Item> = new Map()
+        // @todo 这里可以考虑对收藏元素进行排序
+        for (let record of recordList) {
+          switch (record.record_type) {
+            case MCollection.Const_Record_Type_回答:
+              {
+                let answer = await MTotalAnswer.asyncGetAnswer(record.record_id)
+                // 先不考虑合并问题
+                let page: Types.Type_Page_Question_Item = {
+                  baseInfo: answer.question,
+                  recordList: [answer],
+                  type: Consts.Const_Type_Question,
+                }
+                if (questionPageMap.has(answer.question.id) === false) {
+                  // 将page元素保留在map列表中, 方便合并收藏夹中的元素
+                  questionPageMap.set(answer.question.id, page)
+                  pageList.push(page)
+                } else {
+                  // 之前已经有过page元素, 则不需要新建元素, 直接复用即可
+                  page = questionPageMap.get(answer.question.id) as Types.Type_Page_Question_Item
+                  page.recordList.push(answer)
+                }
+              }
+              break
+            case MCollection.Const_Record_Type_想法:
+              {
+                let pin = await MPin.asyncGetPin(record.record_id)
+                let page: Types.Type_Page_Pin_Item = {
+                  recordList: [pin],
+                  type: Consts.Const_Type_Pin,
+                }
+                pageList.push(page)
+              }
+              break
+            case MCollection.Const_Record_Type_文章:
+              {
+                let article = await MArticle.asyncGetArticle(record.record_id)
+                let page: Types.Type_Page_Article_Item = {
+                  recordList: [article],
+                  type: Consts.Const_Type_Article,
+                }
+                pageList.push(page)
+              }
+              break
+            default:
+              continue
+          }
+        }
+        // 填充单元对象
+        unitPackage = {
+          info: columnInfo,
+          type: taskConfig.type,
+          pageList: pageList,
+        }
+        this.log(`收藏夹${columnName}下收藏元素列表获取完毕`)
+        return unitPackage
+      }
       case Const_TaskConfig.Const_Task_Type_专栏: {
         this.log(`获取专栏${targetId}信息`)
         let columnInfo = await MColumn.asyncGetColumnInfo(targetId)
