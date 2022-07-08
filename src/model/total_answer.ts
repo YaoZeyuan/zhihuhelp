@@ -3,7 +3,7 @@ import TypeAnswer from '~/src/type/zhihu/answer'
 import _ from 'lodash'
 
 class TotalAnswer extends Base {
-  static TABLE_NAME = `V2_Total_Answer`
+  static TABLE_NAME = `Answer`
   static TABLE_COLUMN = [`answer_id`, `question_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**

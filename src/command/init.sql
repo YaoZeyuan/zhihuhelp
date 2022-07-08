@@ -1,6 +1,6 @@
 ---- 三大原子型数据: 回答/想法/文章, 构成知乎助手的基础
 ---- 其余均为集合型数据
-CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
+CREATE TABLE  IF NOT EXISTS `Answer` (
   `answer_id` varchar(100) NOT NULL , ---- COMMENT '答案id，唯一值',
   `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',
   `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
@@ -10,7 +10,7 @@ CREATE TABLE  IF NOT EXISTS `V2_Total_Answer` (
   PRIMARY KEY (`answer_id`)
 ); 
 
-CREATE TABLE  IF NOT EXISTS `V2_Total_Pin` (
+CREATE TABLE  IF NOT EXISTS `Pin` (
   `pin_id` varchar(100) NOT NULL , ---- COMMENT '想法id',
   `author_id` varchar(100) NOT NULL , ---- COMMENT '答主id',
   `author_url_token` varchar(100) NOT NULL , ---- COMMENT '答主url_token',

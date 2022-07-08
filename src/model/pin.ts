@@ -3,7 +3,7 @@ import * as TypePin from '~/src/type/zhihu/pin'
 import _ from 'lodash'
 
 class Pin extends Base {
-  static TABLE_NAME = `V2_Total_Pin`
+  static TABLE_NAME = `Pin`
   static TABLE_COLUMN = [`pin_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**
