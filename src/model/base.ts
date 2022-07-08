@@ -1,6 +1,4 @@
 import Knex from '~/src/library/knex'
-import TypeKnex from 'knex'
-import _ from 'lodash'
 
 class Base {
   static TABLE_NAME = ``
@@ -32,7 +30,7 @@ class Base {
     for (let key of Object.keys(data)) {
       columnList.push(`\`${key}\``)
       markList.push(`?`)
-      valueList.push(_.get(data, [key], ''))
+      valueList.push((data as any)?.[key] ?? '')
     }
     let rawSql = `
         REPLACE INTO ${tableName} (${columnList.join(',')}) VALUES (${markList.join(',')})

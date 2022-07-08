@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import * as TypeTopic from '~/src/type/zhihu/topic'
 import TypeAnswer from '~/src/type/zhihu/answer'
@@ -23,7 +22,7 @@ class Topic extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const rawTopicAnswerList = _.get(record, ['data'], [])
+    const rawTopicAnswerList = record?.data ?? []
     let answerList = []
     for (let rawTopicAnswer of rawTopicAnswerList) {
       answerList.push(rawTopicAnswer.target)

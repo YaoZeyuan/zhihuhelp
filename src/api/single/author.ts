@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import TypeAuthor from '~/src/type/zhihu/author'
 
@@ -151,7 +150,7 @@ class Author extends Base {
     }
 
     // 利用模板伪造一份用户信息
-    let rawAnswerUserInfo = _.get(record, ['data', 0, 'author'])
+    let rawAnswerUserInfo = record?.data?.[0]?.author ?? {}
 
     let answerUserInfo: TypeAuthor.Record = {
       ...templateInfo,
@@ -159,7 +158,7 @@ class Author extends Base {
     }
 
     // 只提供核心数据
-    answerUserInfo.answer_count = _.get(record, ['paging', 'totals'], 0)
+    answerUserInfo.answer_count = record?.paging?.totals ?? 0
 
     return answerUserInfo
   }
@@ -188,7 +187,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = _.get(record, ['data'], [])
+    const answerList = record?.data ?? []
     return answerList
   }
 
@@ -211,7 +210,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const questionList = _.get(record, ['data'], [])
+    const questionList = record?.data ?? []
     return questionList
   }
 
@@ -234,7 +233,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const pinList = _.get(record, ['data'], [])
+    const pinList = record?.data ?? []
     return pinList
   }
 
@@ -257,7 +256,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const articleList = _.get(record, ['data'], [])
+    const articleList = record?.data ?? []
     return articleList
   }
 }

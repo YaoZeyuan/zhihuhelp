@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import TypeColumn from '~/src/type/zhihu/column'
 import TypeArticleExcerpt from '~/src/type/zhihu/article_excerpt'
@@ -35,7 +34,7 @@ class Column extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const articleExcerptList = _.get(record, ['data'], {})
+    const articleExcerptList = record?.data ?? []
     return articleExcerptList
   }
 }

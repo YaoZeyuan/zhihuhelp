@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import TypeActivity from '~/src/type/zhihu/activity'
 import moment from 'moment'
@@ -26,7 +25,7 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const activityList = _.get(record, ['data'], [])
+    const activityList = record?.data ?? []
     return activityList
   }
 
@@ -45,7 +44,7 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const hasActivity = _.get(record, ['paging', 'is_end'], false)
+    const hasActivity = record?.paging?.is_end ?? false
     return hasActivity === false
   }
 
@@ -64,7 +63,7 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    let lastActivityMsAt = _.get(record, ['data', 0, 'id'], 0)
+    let lastActivityMsAt = record?.data?.[0]?.id ?? 0
     let lastActivityAt = lastActivityMsAt / 1000 // 取到的id是毫秒值, 因此需要除以1000
     if (lastActivityAt <= 0) {
       lastActivityAt = now

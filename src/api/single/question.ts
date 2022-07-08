@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import * as TypeQuestion from '~/src/type/zhihu/question'
 import TypeAnswer from '~/src/type/zhihu/answer'
@@ -26,7 +25,7 @@ class Question extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = _.get(record, ['data'], [])
+    const answerList = record?.data ?? []
     return answerList
   }
 

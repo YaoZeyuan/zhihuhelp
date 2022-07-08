@@ -1,12 +1,5 @@
-import React from 'react'
-import ReactDomServer from 'react-dom/server'
-import TypeAnswer from '~/src/type/namespace/answer'
-import TypeAuthor from '~/src/type/namespace/author'
-import moment from 'moment'
-import DATE_FORMAT from '~/src/constant/date_format'
-import logger from '~/src/library/logger'
+import TypeAnswer from '~/src/type/zhihu/answer'
 import Base from '~/src/public/template/react/base'
-import _ from 'lodash'
 
 class Answer extends Base {
   /**
@@ -14,7 +7,7 @@ class Answer extends Base {
    * @param answerRecordList
    */
   private static generateSingleItemElement(answerRecordList: TypeAnswer.Record[]) {
-    let baseAnswerRecord: TypeAnswer.Record = _.get(answerRecordList, [0])
+    let baseAnswerRecord: TypeAnswer.Record = answerRecordList?.[0]
     let answerElementList = []
     for (let answerRecord of answerRecordList) {
       let answerElement = this.generateSingleAnswerElement(answerRecord)
@@ -26,7 +19,7 @@ class Answer extends Base {
 
   static render(answerInSameQuestionRecordList: TypeAnswer.Record[]) {
     // 都是同一个
-    let baseAnswerRecord: TypeAnswer.Record = _.get(answerInSameQuestionRecordList, [0])
+    let baseAnswerRecord: TypeAnswer.Record = answerInSameQuestionRecordList?.[0]
     let title = baseAnswerRecord.question.title
     let questionElement = this.generateSingleItemElement(answerInSameQuestionRecordList)
     let pageElement = this.generatePageElement(title, [questionElement])

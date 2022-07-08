@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
 import archiver from 'archiver'
-import _ from 'lodash'
 import OPF from './opf'
 import TOC from './toc'
 
@@ -75,7 +74,7 @@ class Epub {
 
   parseFilename(uri: string) {
     let uriSplitList = uri.split(path.sep)
-    let filename = _.get(uriSplitList, uriSplitList.length - 1, '')
+    let filename = uriSplitList?.[uriSplitList.length - 1] ?? ''
     return filename
   }
 
