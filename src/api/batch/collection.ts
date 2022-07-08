@@ -10,7 +10,7 @@ class BatchFetchCollection extends Base {
     this.log(`开始抓取收藏夹${id}内的回答`)
     this.log(`获取收藏夹信息`)
     const collectionInfo = await CollectionApi.asyncGetCollectionInfo(id)
-    await MCollection.asyncReplaceColumnInfo(collectionInfo)
+    await MCollection.asyncReplaceCollectionInfo(collectionInfo)
     let answerCount = collectionInfo.answer_count
     this.log(`话题${collectionInfo.title}(${collectionInfo.id})信息获取完毕, 共有回答${answerCount}个`)
 
@@ -22,7 +22,7 @@ class BatchFetchCollection extends Base {
         // 先拿到AnswerExcerpt, 然后再去获取回答详情
         let itemList = await CollectionApi.asyncGetItemList(id, offset, this.fetchLimit)
         for (let item of itemList) {
-          await MCollection.asyncReplaceColumnItem(id, item)
+          await MCollection.asyncReplaceCollectionRecord(id, item)
         }
         this.log(`收藏列表中第${offset}~${offset + itemList.length}条记录抓取完毕`)
       }

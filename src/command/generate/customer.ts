@@ -648,7 +648,7 @@ class GenerateCustomer extends Base {
         }
         let columnName = `${columnInfo.title}(${targetId})`
         this.log(`获取收藏夹${columnName}下所有收藏`)
-        let recordList = await MCollection.asyncGetRecordList(targetId)
+        let recordList = await MCollection.asyncGetCollectionRecordList(targetId)
         let pageList: Types.Type_Page_Item[] = []
         // 如果收藏夹中有重复元素, 则合并之
         let questionPageMap: Map<TypeAnswer.Question['id'], Types.Type_Page_Question_Item> = new Map()

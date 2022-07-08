@@ -56,7 +56,7 @@ class Collection extends Base {
    * 从数据库中获取收藏夹内的记录id列表
    * @param collectionId
    */
-  static async asyncGetRecordList(collectionId: string): Promise<Type_Record[]> {
+  static async asyncGetCollectionRecordList(collectionId: string): Promise<Type_Record[]> {
     let recordList = await this.db
       .select(this.COLLECTION_RECORD_TABLE_COLUMN)
       .from(this.COLLECTION_RECORD_TABLE_NAME)
@@ -72,7 +72,7 @@ class Collection extends Base {
    * 存储收藏夹数据
    * @param collectionRecord
    */
-  static async asyncReplaceColumnInfo(collectionRecord: TypeCollection.Info): Promise<void> {
+  static async asyncReplaceCollectionInfo(collectionRecord: TypeCollection.Info): Promise<void> {
     let collectionId = collectionRecord.id
     let raw_json = JSON.stringify(collectionRecord)
     await this.replaceInto({
@@ -86,7 +86,7 @@ class Collection extends Base {
    * 存储收藏夹元素概览数据
    * @param columnRecord
    */
-  static async asyncReplaceColumnItem(
+  static async asyncReplaceCollectionRecord(
     collectionId: number | string,
     rawCollectionRecord: TypeCollection.Type_Collection_Item,
   ): Promise<void> {
