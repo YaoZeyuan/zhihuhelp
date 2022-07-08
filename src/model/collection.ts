@@ -42,7 +42,7 @@ class Collection extends Base {
       .catch(() => {
         return []
       })
-    let collectionInfoJson = recordList?.[0]?.['raw_json'] ?? '{}'
+    let collectionInfoJson = recordList?.[0]?.['raw_json']
     let collectionInfo
     try {
       collectionInfo = JSON.parse(collectionInfoJson)

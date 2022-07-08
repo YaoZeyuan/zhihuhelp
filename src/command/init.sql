@@ -37,17 +37,6 @@ CREATE TABLE  IF NOT EXISTS `Column` (
   PRIMARY KEY (`column_id`)
 ) ; 
 
-
-CREATE TABLE  IF NOT EXISTS `Column_Article_Excerpt` (
-  `column_id` varchar(100) NOT NULL  , ---- COMMENT '专栏id',
-  `article_id` varchar(100) NOT NULL  , ---- COMMENT '文章id',
-  `raw_json` json, --- COMMENT '原始响应json'
-  --- 专栏文章摘要列表(用于获取专栏列表)
-  PRIMARY KEY (`column_id`, `article_id`)
-) ; 
-
-
-
 CREATE TABLE  IF NOT EXISTS `Author` (
   `id` varchar(100) NOT NULL DEFAULT '' , ---- COMMENT 'hash_id',
   `url_token` varchar(200) NOT NULL , ---- COMMENT '用户主页id.随时可能会更换',
@@ -96,7 +85,6 @@ CREATE TABLE  IF NOT EXISTS `Topic` (
 CREATE TABLE  IF NOT EXISTS `Topic_Answer` (
   `topic_id` int(11) NOT NULL , ---- COMMENT '话题id',
   `answer_id` int(11) NOT NULL , ---- COMMENT '答案id',
-  `raw_json` json, --- COMMENT '原始响应json'
   --- 话题下精华回答表
   PRIMARY KEY (`topic_id`, `answer_id`)
 ) ; 

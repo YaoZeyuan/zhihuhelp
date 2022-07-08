@@ -1,14 +1,13 @@
 import Base from '~/src/model/base'
 import * as TypeTopic from '~/src/type/zhihu/topic'
 import * as TypeAnswer from '~/src/type/zhihu/answer'
-import _ from 'lodash'
 
 class Topic extends Base {
   static TABLE_NAME = `Topic`
   static TABLE_COLUMN = [`topic_id`, `raw_json`]
 
   static TOPIC_ANSWER_TABLE_NAME = `Topic_Answer`
-  static TOPIC_ANSWER_TABLE_COLUMN = [`topic_id`, `answer_id`, `raw_json`]
+  static TOPIC_ANSWER_TABLE_COLUMN = [`topic_id`, `answer_id`]
 
   /**
    * 从数据库中获取话题信息
@@ -22,7 +21,7 @@ class Topic extends Base {
       .catch(() => {
         return []
       })
-    let topicInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let topicInfoJson = recordList?.[0]?.raw_json
     let topicInfo
     try {
       topicInfo = JSON.parse(topicInfoJson)
@@ -30,35 +29,6 @@ class Topic extends Base {
       topicInfo = {}
     }
     return topicInfo
-  }
-
-  /**
-   * 从数据库中获取话题内的答案列表
-   * @param topicId
-   */
-  static async asyncGetAnswerList(topicId: string): Promise<TypeAnswer.Record[]> {
-    let recordList = await this.db
-      .select(this.TOPIC_ANSWER_TABLE_COLUMN)
-      .from(this.TOPIC_ANSWER_TABLE_NAME)
-      .where('topic_id', '=', topicId)
-      .catch(() => {
-        return []
-      })
-    let answerRecordList = []
-    for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_json'], '{}')
-      let answerRecord
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {}
-      }
-      if (_.isEmpty(answerRecord) === false) {
-        answerRecordList.push(answerRecord)
-      }
-    }
-
-    return answerRecordList
   }
 
   /**
@@ -75,16 +45,7 @@ class Topic extends Base {
       })
     let answerIdList: string[] = []
     for (let record of recordList) {
-      let answerRecordJson = _.get(record, ['raw_json'], '{}')
-      let answerRecord: TypeAnswer.Record
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {} as any
-      }
-      if (_.isEmpty(answerRecord) === false) {
-        answerIdList.push(answerRecord.id)
-      }
+      answerIdList.push(record.answer_id)
     }
 
     return answerIdList
@@ -109,13 +70,11 @@ class Topic extends Base {
    * @param columnRecord
    */
   static async asyncReplaceTopicAnswer(topicId: string, answerRecord: TypeAnswer.Record): Promise<void> {
-    let raw_json = JSON.stringify(answerRecord)
     let answerId = answerRecord.id
     await this.replaceInto(
       {
         topic_id: topicId,
         answer_id: answerId,
-        raw_json,
       },
       this.TOPIC_ANSWER_TABLE_NAME,
     )

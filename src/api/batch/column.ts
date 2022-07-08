@@ -14,7 +14,8 @@ class BatchFetchColumn extends Base {
     this.log(`专栏信息获取完毕`)
     const title = columnInfo.title
     const articleCount = columnInfo.articles_count
-    this.log(`专栏${title}(${id})下共有${articleCount}篇文章`)
+    let columnTitle = `${title}(${columnInfo.id})`
+    this.log(`专栏${columnTitle}下共有${articleCount}篇文章`)
     this.log(`开始抓取文章概要列表`)
     let articleIdList: string[] = []
     let batchFetchArticle = new BatchFetchArticle()
@@ -23,12 +24,8 @@ class BatchFetchColumn extends Base {
         let articleExcerptList = await ColumnApi.asyncGetArticleExcerptList(id, offset, this.fetchLimit)
         for (let articleExcerpt of articleExcerptList) {
           articleIdList.push(`${articleExcerpt.id}`)
-          await MColumn.asyncReplaceColumnArticleExcerpt(id, articleExcerpt).catch((e) => {
-            Logger.log('catch error')
-            Logger.log(e)
-          })
         }
-        this.log(`专栏:${id}中第${offset}~${offset + articleExcerptList.length}篇文章摘要抓取完毕`)
+        this.log(`专栏${columnTitle}下中第${offset}~${offset + articleExcerptList.length}篇文章id抓取完毕`)
       }
 
       CommonUtil.addAsyncTaskFunc({
@@ -37,11 +34,11 @@ class BatchFetchColumn extends Base {
       })
     }
     await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
-    this.log(`全部文章概要抓取完毕`)
+    this.log(`专栏${columnTitle}下全部文章id抓取完毕`)
 
-    this.log(`开始抓取专栏${columnInfo.title}(${columnInfo.id})的下所有文章,共${articleIdList.length}条`)
+    this.log(`开始抓取专栏${columnTitle}下所有文章,共${articleIdList.length}条`)
     await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
-    this.log(`专栏${columnInfo.title}(${columnInfo.id})下的所有文章抓取完毕`)
+    this.log(`专栏${columnTitle}下所有文章抓取完毕`)
   }
 }
 

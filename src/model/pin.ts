@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
 import * as TypePin from '~/src/type/zhihu/pin'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 class Pin extends Base {
   static TABLE_NAME = `Pin`
@@ -20,14 +20,14 @@ class Pin extends Base {
       })
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = _.get(record, ['raw_json'], '{}')
+      let pinRecordJson = record?.raw_json
       let pinRecord
       try {
         pinRecord = JSON.parse(pinRecordJson)
       } catch {
         pinRecord = {}
       }
-      if (_.isEmpty(pinRecord) === false) {
+      if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
     }
@@ -46,7 +46,7 @@ class Pin extends Base {
       .catch(() => {
         return []
       })
-    let pinRecordJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let pinRecordJson = recordList?.[0]?.raw_json
     let pinRecord: TypePin.Record
     try {
       pinRecord = JSON.parse(pinRecordJson)
@@ -69,14 +69,14 @@ class Pin extends Base {
     })
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = _.get(record, ['raw_json'], '{}')
+      let pinRecordJson = record?.raw_json
       let pinRecord
       try {
         pinRecord = JSON.parse(pinRecordJson)
       } catch {
         pinRecord = {}
       }
-      if (_.isEmpty(pinRecord) === false) {
+      if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
     }

@@ -1,6 +1,5 @@
 import Base from '~/src/model/base'
 import TypeAuthor from '~/src/type/zhihu/author'
-import _ from 'lodash'
 
 class Author extends Base {
   static TABLE_NAME = `Author`
@@ -18,7 +17,7 @@ class Author extends Base {
       .catch(() => {
         return []
       })
-    let authorInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let authorInfoJson = recordList?.[0]?.raw_json
     let authorInfo
     try {
       authorInfo = JSON.parse(authorInfoJson)
