@@ -606,6 +606,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_话题: {
         this.log(`获取话题${targetId}信息`)
         let topicInfo = await MTopic.asyncGetTopicInfo(targetId)
+        if (_.isEmpty(topicInfo)) {
+          this.log(`话题${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let topicName = `${topicInfo.name}(${targetId})`
         this.log(`获取话题${topicName}下所有精华回答id`)
         let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)
@@ -614,6 +618,9 @@ class GenerateCustomer extends Base {
         let pageList: Types.Type_Page_Item[] = []
         for (let answerId of answerIdListInTopic) {
           let answerRecord = await MAnswer.asyncGetAnswer(answerId)
+          if (_.isEmpty(answerRecord)) {
+            continue
+          }
           let page: Types.Type_Page_Question_Item = {
             baseInfo: answerRecord.question,
             recordList: [answerRecord],
@@ -635,6 +642,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_收藏夹: {
         this.log(`获取收藏夹${targetId}信息`)
         let columnInfo = await MCollection.asyncGetCollectionInfo(targetId)
+        if (_.isEmpty(columnInfo)) {
+          this.log(`收藏夹${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let columnName = `${columnInfo.title}(${targetId})`
         this.log(`获取收藏夹${columnName}下所有收藏`)
         let recordList = await MCollection.asyncGetRecordList(targetId)
@@ -647,6 +658,9 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_回答:
               {
                 let answer = await MAnswer.asyncGetAnswer(record.record_id)
+                if (_.isEmpty(answer)) {
+                  continue
+                }
                 // 先不考虑合并问题
                 let page: Types.Type_Page_Question_Item = {
                   baseInfo: answer.question,
@@ -671,6 +685,9 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_想法:
               {
                 let pin = await MPin.asyncGetPin(record.record_id)
+                if (_.isEmpty(pin)) {
+                  continue
+                }
                 let page: Types.Type_Page_Pin_Item = {
                   recordList: [pin],
                   type: Consts.Const_Type_Pin,
@@ -683,6 +700,9 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_文章:
               {
                 let article = await MArticle.asyncGetArticle(record.record_id)
+                if (_.isEmpty(article)) {
+                  continue
+                }
                 let page: Types.Type_Page_Article_Item = {
                   recordList: [article],
                   type: Consts.Const_Type_Article,
@@ -708,11 +728,18 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_专栏: {
         this.log(`获取专栏${targetId}信息`)
         let columnInfo = await MColumn.asyncGetColumnInfo(targetId)
+        if (_.isEmpty(columnInfo)) {
+          this.log(`专栏${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let columnName = `${columnInfo.title}(${targetId})`
         this.log(`获取专栏${columnName}下所有文章`)
         let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
         let pageList: Types.Type_Page_Item[] = []
         for (let item of articleListInColumn) {
+          if (_.isEmpty(item)) {
+            continue
+          }
           let page: Types.Type_Page_Article_Item = {
             recordList: [item],
             type: Consts.Const_Type_Article,
@@ -733,6 +760,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_文章: {
         this.log(`获取文章${targetId}`)
         let singleArticle = await MArticle.asyncGetArticle(targetId)
+        if (_.isEmpty(singleArticle)) {
+          this.log(`文章${targetId}获取失败, 自动跳过`)
+          return
+        }
         let pageList: Types.Type_Page_Item[] = []
 
         let page: Types.Type_Page_Article_Item = {
@@ -753,6 +784,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_问题: {
         this.log(`获取问题${targetId}下的回答列表`)
         let answerListInQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([targetId])
+        if (_.isEmpty(answerListInQuestion)) {
+          this.log(`问题${targetId}获取失败, 自动跳过`)
+          return
+        }
         let pageList: Types.Type_Page_Item[] = []
         let questionInfo = answerListInQuestion[0]?.question
         let page: Types.Type_Page_Question_Item = {
@@ -774,6 +809,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_回答: {
         this.log(`获取回答${targetId}`)
         let singleAnswer = await MAnswer.asyncGetAnswer(targetId)
+        if (_.isEmpty(singleAnswer)) {
+          this.log(`回答${targetId}获取失败, 自动跳过`)
+          return
+        }
         let pageList: Types.Type_Page_Item[] = []
         let questionInfo = singleAnswer?.question
         let page: Types.Type_Page_Question_Item = {
@@ -795,6 +834,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_想法: {
         this.log(`获取想法${targetId}`)
         let singlePin = await MPin.asyncGetPin(targetId)
+        if (_.isEmpty(singlePin)) {
+          this.log(`想法${targetId}获取失败, 自动跳过`)
+          return
+        }
         let pageList: Types.Type_Page_Item[] = []
         let page: Types.Type_Page_Pin_Item = {
           recordList: [singlePin],
