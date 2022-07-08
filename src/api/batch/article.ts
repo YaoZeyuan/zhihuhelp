@@ -1,6 +1,6 @@
 import ArticleApi from '~/src/api/single/article'
 import MArticle from '~/src/model/article'
-import _ from 'lodash'
+import lodash from 'lodash'
 import Base from '~/src/api/batch/base'
 
 class BatchFetchArticle extends Base {
@@ -11,7 +11,7 @@ class BatchFetchArticle extends Base {
   async fetch(id: string) {
     this.log(`准备抓取文章${id}`)
     let article = await ArticleApi.asyncGetArticle(id as unknown as number)
-    if (_.isEmpty(article)) {
+    if (lodash.isEmpty(article)) {
       this.log(`文章${id}抓取失败`)
       return
     }

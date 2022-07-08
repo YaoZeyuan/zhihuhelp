@@ -1,5 +1,5 @@
 import { BaseCommand, args, flags } from '@adonisjs/ace'
-import _ from 'lodash'
+import lodash from 'lodash'
 import logger from '~/src/library/logger'
 
 class Base extends BaseCommand {
@@ -35,7 +35,7 @@ class Base extends BaseCommand {
   async log(...argumentList: string[] | any): Promise<any> {
     let message = ''
     for (const rawMessage of argumentList) {
-      if (_.isString(rawMessage) === false) {
+      if (lodash.isString(rawMessage) === false) {
         message = message + JSON.stringify(rawMessage)
       } else {
         message = message + rawMessage
@@ -51,7 +51,7 @@ class Base extends BaseCommand {
   async warn() {
     let message = ''
     for (const rawMessage of arguments) {
-      if (_.isString(rawMessage) === false) {
+      if (lodash.isString(rawMessage) === false) {
         message = message + JSON.stringify(rawMessage)
       } else {
         message = message + rawMessage

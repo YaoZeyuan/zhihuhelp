@@ -1,7 +1,5 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import TypeAnswer from '~/src/type/zhihu/answer'
-import AuthorApi from '~/src/api/single/author'
 
 class Answer extends Base {
   /**

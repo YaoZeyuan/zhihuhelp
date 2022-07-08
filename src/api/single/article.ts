@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Base from '~/src/api/single/base'
 import TypeArticle from '~/src/type/zhihu/article'
 

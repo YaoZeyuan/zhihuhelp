@@ -11,7 +11,7 @@ import BatchFetchQuestion from '~/src/api/batch/question'
 import BatchFetchColumn from '~/src/api/batch/column'
 import BatchFetchArticle from './article'
 import CommonConfig from '~/src/config/common'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 class BatchFetchAuthorActivity extends Base {
   async fetch(urlToken: string) {
@@ -123,7 +123,7 @@ class BatchFetchAuthorActivity extends Base {
         for (let activityRecord of activityList) {
           // 更新时间(id是毫秒值)
           fetchAt = Number.parseInt(`${activityRecord.id / 1000}`)
-          if (_.isNumber(fetchAt) === false) {
+          if (lodash.isNumber(fetchAt) === false) {
             fetchAt = 0
           }
           await MActivity.asyncReplaceActivity(activityRecord)

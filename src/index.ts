@@ -9,7 +9,7 @@ import DispatchTaskCommand from '~/src/command/dispatch_task'
 import * as FrontTools from '~/src/library/util/front_tools'
 import fs from 'fs'
 import path from 'path'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
@@ -119,7 +119,7 @@ async function asyncUpdateCookie() {
   }
   // 将cookie更新到本地配置中
   let config = InitConfig.getConfig()
-  _.set(config, ['request', 'cookie'], cookieContent)
+  lodash.set(config, ['request', 'cookie'], cookieContent)
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
   ConfigHelperUtil.reloadConfig()

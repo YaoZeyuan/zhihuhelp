@@ -1,6 +1,6 @@
 import AnswerApi from '~/src/api/single/answer'
 import MAnswer from '~/src/model/answer'
-import _ from 'lodash'
+import lodash from 'lodash'
 import Base from '~/src/api/batch/base'
 
 class BatchFetchAnswer extends Base {
@@ -11,7 +11,7 @@ class BatchFetchAnswer extends Base {
   async fetch(answerId: string) {
     this.log(`准备抓取回答${answerId}`)
     let answer = await AnswerApi.asyncGetAnswer(answerId)
-    if (_.isEmpty(answer)) {
+    if (lodash.isEmpty(answer)) {
       this.log(`回答${answerId}抓取失败`)
       return
     }

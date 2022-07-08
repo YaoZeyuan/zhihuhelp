@@ -1,8 +1,5 @@
-import TypePin from '~/src/type/namespace/pin'
+import * as TypePin from '~/src/type/zhihu/pin'
 import Base from '~/src/public/template/react/base'
-import _ from 'lodash'
-import moment from 'moment'
-import DATE_FORMAT from '~/src/constant/date_format'
 
 class Pin extends Base {
   static render(record: TypePin.Record) {

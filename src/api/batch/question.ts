@@ -1,5 +1,5 @@
 import QuestionApi from '~/src/api/single/question'
-import _ from 'lodash'
+import lodash from 'lodash'
 import BatchFetchAnswer from '~/src/api/batch/answer'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
@@ -12,7 +12,7 @@ class BatchFetchQuestion extends Base {
   async fetch(questionId: string) {
     this.log(`准备抓取问题${questionId}`)
     let question = await QuestionApi.asyncGetQuestionInfo(questionId)
-    if (_.isEmpty(question)) {
+    if (lodash.isEmpty(question)) {
       this.log(`问题${questionId}抓取失败`)
       return
     }

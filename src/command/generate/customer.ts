@@ -16,7 +16,7 @@ import MTopic from '~/src/model/topic'
 import MCollection from '~/src/model/collection'
 import MColumn from '~/src/model/column'
 import MPin from '~/src/model/pin'
-import _ from 'lodash'
+import lodash from 'lodash'
 import json5 from 'json5'
 
 import AnswerView from '~/src/public/template/react/answer'
@@ -128,7 +128,7 @@ class GenerateCustomer extends Base {
     this.log(`想法 => ${pinList.length}条`)
     this.log(`按配置排序`)
     // 需要倒过来排, 这样排出来的结果才和预期一致
-    let reverseOrderByList = _.cloneDeep(orderByList)
+    let reverseOrderByList = lodash.cloneDeep(orderByList)
     reverseOrderByList.reverse()
     for (let orderByConfig of reverseOrderByList) {
       // 需要额外对questionList中的answerList进行排序
@@ -439,7 +439,7 @@ class GenerateCustomer extends Base {
         // 提取公共代码
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (_.isEmpty(authorInfo)) {
+        if (lodash.isEmpty(authorInfo)) {
           this.log(`用户${targetId}信息获取失败, 自动跳过`)
           return
         }
@@ -606,7 +606,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_话题: {
         this.log(`获取话题${targetId}信息`)
         let topicInfo = await MTopic.asyncGetTopicInfo(targetId)
-        if (_.isEmpty(topicInfo)) {
+        if (lodash.isEmpty(topicInfo)) {
           this.log(`话题${targetId}信息获取失败, 自动跳过`)
           return
         }
@@ -618,7 +618,7 @@ class GenerateCustomer extends Base {
         let pageList: Types.Type_Page_Item[] = []
         for (let answerId of answerIdListInTopic) {
           let answerRecord = await MAnswer.asyncGetAnswer(answerId)
-          if (_.isEmpty(answerRecord)) {
+          if (lodash.isEmpty(answerRecord)) {
             continue
           }
           let page: Types.Type_Page_Question_Item = {
@@ -642,7 +642,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_收藏夹: {
         this.log(`获取收藏夹${targetId}信息`)
         let columnInfo = await MCollection.asyncGetCollectionInfo(targetId)
-        if (_.isEmpty(columnInfo)) {
+        if (lodash.isEmpty(columnInfo)) {
           this.log(`收藏夹${targetId}信息获取失败, 自动跳过`)
           return
         }
@@ -658,7 +658,7 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_回答:
               {
                 let answer = await MAnswer.asyncGetAnswer(record.record_id)
-                if (_.isEmpty(answer)) {
+                if (lodash.isEmpty(answer)) {
                   continue
                 }
                 // 先不考虑合并问题
@@ -685,7 +685,7 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_想法:
               {
                 let pin = await MPin.asyncGetPin(record.record_id)
-                if (_.isEmpty(pin)) {
+                if (lodash.isEmpty(pin)) {
                   continue
                 }
                 let page: Types.Type_Page_Pin_Item = {
@@ -700,7 +700,7 @@ class GenerateCustomer extends Base {
             case MCollection.Const_Record_Type_文章:
               {
                 let article = await MArticle.asyncGetArticle(record.record_id)
-                if (_.isEmpty(article)) {
+                if (lodash.isEmpty(article)) {
                   continue
                 }
                 let page: Types.Type_Page_Article_Item = {
@@ -728,7 +728,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_专栏: {
         this.log(`获取专栏${targetId}信息`)
         let columnInfo = await MColumn.asyncGetColumnInfo(targetId)
-        if (_.isEmpty(columnInfo)) {
+        if (lodash.isEmpty(columnInfo)) {
           this.log(`专栏${targetId}信息获取失败, 自动跳过`)
           return
         }
@@ -737,7 +737,7 @@ class GenerateCustomer extends Base {
         let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
         let pageList: Types.Type_Page_Item[] = []
         for (let item of articleListInColumn) {
-          if (_.isEmpty(item)) {
+          if (lodash.isEmpty(item)) {
             continue
           }
           let page: Types.Type_Page_Article_Item = {
@@ -760,7 +760,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_文章: {
         this.log(`获取文章${targetId}`)
         let singleArticle = await MArticle.asyncGetArticle(targetId)
-        if (_.isEmpty(singleArticle)) {
+        if (lodash.isEmpty(singleArticle)) {
           this.log(`文章${targetId}获取失败, 自动跳过`)
           return
         }
@@ -784,7 +784,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_问题: {
         this.log(`获取问题${targetId}下的回答列表`)
         let answerListInQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([targetId])
-        if (_.isEmpty(answerListInQuestion)) {
+        if (lodash.isEmpty(answerListInQuestion)) {
           this.log(`问题${targetId}获取失败, 自动跳过`)
           return
         }
@@ -809,7 +809,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_回答: {
         this.log(`获取回答${targetId}`)
         let singleAnswer = await MAnswer.asyncGetAnswer(targetId)
-        if (_.isEmpty(singleAnswer)) {
+        if (lodash.isEmpty(singleAnswer)) {
           this.log(`回答${targetId}获取失败, 自动跳过`)
           return
         }
@@ -834,7 +834,7 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_想法: {
         this.log(`获取想法${targetId}`)
         let singlePin = await MPin.asyncGetPin(targetId)
-        if (_.isEmpty(singlePin)) {
+        if (lodash.isEmpty(singlePin)) {
           this.log(`想法${targetId}获取失败, 自动跳过`)
           return
         }

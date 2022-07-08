@@ -2,7 +2,7 @@ import Base from '~/src/command/base'
 import http from '~/src/library/http'
 import md5 from 'md5'
 import url from 'url'
-import _ from 'lodash'
+import lodash from 'lodash'
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
@@ -191,17 +191,17 @@ class FetchBase extends Base {
     let that = this
     // 删除noscript标签内的元素
     function removeNoScript(rawHtml: string) {
-      rawHtml = _.replace(rawHtml, /<\/br>/g, '')
-      rawHtml = _.replace(rawHtml, /<br +?>/g, '<br />')
-      rawHtml = _.replace(rawHtml, /<br>/g, '<br />')
-      rawHtml = _.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
-      rawHtml = _.replace(rawHtml, /<noscript>.*?<\/noscript>/g, '')
+      rawHtml = lodash.replace(rawHtml, /<\/br>/g, '')
+      rawHtml = lodash.replace(rawHtml, /<br +?>/g, '<br />')
+      rawHtml = lodash.replace(rawHtml, /<br>/g, '<br />')
+      rawHtml = lodash.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
+      rawHtml = lodash.replace(rawHtml, /<noscript>.*?<\/noscript>/g, '')
       return rawHtml
     }
 
     // 替换图片地址(假定所有图片都在img文件夹下)
     function replaceImgSrc(rawHtml: string, isRaw = false) {
-      rawHtml = _.replace(rawHtml, / src="data:image.+?"/g, '  ')
+      rawHtml = lodash.replace(rawHtml, / src="data:image.+?"/g, '  ')
       // 处理图片
       const imgContentList = rawHtml.match(/<img.+?>/g)
       let processedImgContentList = []
@@ -244,10 +244,10 @@ class FetchBase extends Base {
         }
         let backupImgSrc = imgSrc
         // 去掉最后的_r/_b后缀
-        let imgSrc_raw = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
-        let imgSrc_hd = _.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
+        let imgSrc_raw = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
+        let imgSrc_hd = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
         // 彻底去除imgContent中的src属性
-        imgContent = _.replace(imgContent, / src=".+?"/g, '  ')
+        imgContent = lodash.replace(imgContent, / src=".+?"/g, '  ')
         if (isLatexImg) {
           // 如果是LatexImg, 不需要被处理
           imgSrc = backupImgSrc
@@ -255,7 +255,7 @@ class FetchBase extends Base {
 
         if (that.imageQuilty === 'raw') {
           // 原始图片
-          processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
+          processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
         } else if (that.imageQuilty === 'none') {
           // 无图
           processedImgContent = ''
@@ -266,10 +266,10 @@ class FetchBase extends Base {
           // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
           let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
           if (isDisplayAsRawImg) {
-            processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
+            processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
           } else {
             // 高清图
-            processedImgContent = _.replace(imgContent, /<img /g, `<img src="${imgSrc_hd}"`)
+            processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_hd}"`)
             // if (imgContent.includes('data-actualsrc')) {
             //   // 先替换掉原先的src地址
             //   processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
@@ -298,7 +298,7 @@ class FetchBase extends Base {
         if (rawImgSrc.length > 0) {
           that.imgUriPool.set(rawImgSrc, imgItem)
         }
-        processedImgContent = _.replace(processedImgContent, imgItem.rawImgSrc, imgItem.htmlImguri)
+        processedImgContent = lodash.replace(processedImgContent, imgItem.rawImgSrc, imgItem.htmlImguri)
 
         processedImgContentList.push(processedImgContent)
       }

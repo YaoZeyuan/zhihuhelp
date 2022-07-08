@@ -1,14 +1,14 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import TypeAnswer from '~/src/type/namespace/answer'
-import TypeAuthor from '~/src/type/namespace/author'
-import TypeActivity from '~/src/type/namespace/activity'
-import TypeArticle from '~/src/type/namespace/article'
-import TypeColumn from '~/src/type/namespace/column'
-import TypePin from '~/src/type/namespace/pin'
+import TypeAnswer from '~/src/type/zhihu/answer'
+import TypeAuthor from '~/src/type/zhihu/author'
+import TypeActivity from '~/src/type/zhihu/activity'
+import TypeArticle from '~/src/type/zhihu/article'
+import TypeColumn from '~/src/type/zhihu/column'
+import * as TypePin from '~/src/type/zhihu/pin'
 import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
-import _ from 'lodash'
+import lodash from 'lodash'
 import DATE_FORMAT from '~/src/constant/date_format'
 import Logger from '~/src/library/logger'
 
@@ -47,7 +47,7 @@ class Base {
     let title = ''
     // 想法
     // 根据是否存在repin字段, 可以分为转发/非转发两种类型
-    if (_.isEmpty(record.repin)) {
+    if (lodash.isEmpty(record.repin)) {
       let pinRecord: TypePin.DefaultRecord = record
       title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.DISPLAY_BY_DAY)}:${pinRecord.excerpt_title}`
     } else {
@@ -68,13 +68,13 @@ class Base {
       let id = 0
       let title = ''
       // 判断数据类别
-      if (_.has(record, ['target'])) {
+      if (lodash.has(record, ['target'])) {
         // activity类
-        if (_.has(record, ['target', 'question'])) {
+        if (lodash.has(record, ['target', 'question'])) {
           let answerActivityRecord: TypeActivity.AnswerVoteUpActivityRecord = record
           id = answerActivityRecord.target.question.id
           title = answerActivityRecord.target.question.title
-        } else if (_.has(record, ['target', 'column'])) {
+        } else if (lodash.has(record, ['target', 'column'])) {
           let articleActivityRecord: TypeActivity.ArticleVoteUpActivityRecord = record
           id = articleActivityRecord.id
           title = articleActivityRecord.target.title
@@ -83,12 +83,12 @@ class Base {
           Logger.warn(`请在知乎上联系@姚泽源 进行反馈`)
         }
       } else {
-        if (_.has(record, ['question'])) {
+        if (lodash.has(record, ['question'])) {
           // 问题
           let answerRecord: TypeAnswer.Record = record
           id = answerRecord.question.id
           title = answerRecord.question.title
-        } else if (_.has(record, ['column'])) {
+        } else if (lodash.has(record, ['column'])) {
           let articleRecord: TypeArticle.Record = record
           id = articleRecord.id
           title = articleRecord.title
@@ -135,7 +135,7 @@ class Base {
    * @param answerRecord
    */
   static generateSingleAnswerElement(answerRecord: TypeAnswer.Record) {
-    if (_.isEmpty(answerRecord)) {
+    if (lodash.isEmpty(answerRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
     const answer = (
@@ -188,7 +188,7 @@ class Base {
     questionRecord: TypeAnswer.Question,
     answerElementList: React.ReactElement<any>[] = [],
   ) {
-    if (_.isEmpty(questionRecord)) {
+    if (lodash.isEmpty(questionRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
     const question = (
@@ -218,7 +218,7 @@ class Base {
    * @param articleRecord
    */
   static generateSingleArticleElement(articleRecord: TypeArticle.Record) {
-    if (_.isEmpty(articleRecord)) {
+    if (lodash.isEmpty(articleRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
     const content = (
@@ -288,13 +288,13 @@ class Base {
    * @param rawPinRecord
    */
   static generateSinglePinElement(rawPinRecord: TypePin.Record) {
-    if (_.isEmpty(rawPinRecord)) {
+    if (lodash.isEmpty(rawPinRecord)) {
       return <div key={CommonUtil.getUuid()} />
     }
     // 想法
     let title = Base.getPinTitle(rawPinRecord)
     let contentHtmlElement = <div />
-    if (_.isEmpty(rawPinRecord.repin)) {
+    if (lodash.isEmpty(rawPinRecord.repin)) {
       let defaultPinRecord: TypePin.DefaultRecord = rawPinRecord
       contentHtmlElement = (
         <div className="pin">

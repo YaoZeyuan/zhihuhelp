@@ -1,6 +1,6 @@
 import Logger from '~/src/library/logger'
 import CommonUtil from '~/src/library/util/common'
-import _ from 'lodash'
+import lodash from 'lodash'
 
 class BaseBatchFetch {
   /**
@@ -54,7 +54,7 @@ class BaseBatchFetch {
   async log(...argumentList: string[] | any): Promise<any> {
     let message = ''
     for (const rawMessage of argumentList) {
-      if (_.isString(rawMessage) === false) {
+      if (lodash.isString(rawMessage) === false) {
         message = message + JSON.stringify(rawMessage)
       } else {
         message = message + rawMessage
