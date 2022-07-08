@@ -467,6 +467,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_销号用户的所有回答: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}所有回答过的答案`)
         let pageList: Types.Type_Page_Item[] = []
@@ -493,6 +497,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_用户发布的所有想法: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}所有发表过的想法`)
         let pageList: Types.Type_Page_Item[] = []
@@ -518,6 +526,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_用户发布的所有文章: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}发表过的所有文章`)
 
@@ -544,6 +556,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}赞同过的所有文章id`)
         let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
@@ -576,6 +592,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}赞同过的所有回答id`)
         let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
@@ -609,6 +629,10 @@ class GenerateCustomer extends Base {
       case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题: {
         this.log(`获取用户${targetId}信息`)
         let authorInfo = await MAuthor.asyncGetAuthor(targetId)
+        if (_.isEmpty(authorInfo)) {
+          this.log(`用户${targetId}信息获取失败, 自动跳过`)
+          return
+        }
         let userName = `${authorInfo.name}(${targetId})`
         this.log(`获取用户${userName}关注过的所有问题id`)
         let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
