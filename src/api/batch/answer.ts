@@ -1,5 +1,5 @@
 import AnswerApi from '~/src/api/single/answer'
-import MTotalAnswer from '~/src/model/total_answer'
+import MAnswer from '~/src/model/answer'
 import _ from 'lodash'
 import Base from '~/src/api/batch/base'
 
@@ -17,7 +17,7 @@ class BatchFetchAnswer extends Base {
     }
     let questionId = `${answer.question.id}`
     this.log(`问题${questionId}下的回答${answerId}抓取成功, 存入数据库`)
-    await MTotalAnswer.asyncReplaceAnswer(answer)
+    await MAnswer.asyncReplaceAnswer(answer)
     this.log(`问题${questionId}下的回答${answerId}成功存入数据库`)
   }
 }

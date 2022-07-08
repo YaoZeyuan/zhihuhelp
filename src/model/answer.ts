@@ -2,7 +2,7 @@ import Base from '~/src/model/base'
 import TypeAnswer from '~/src/type/zhihu/answer'
 import _ from 'lodash'
 
-class TotalAnswer extends Base {
+class Answer extends Base {
   static TABLE_NAME = `Answer`
   static TABLE_COLUMN = [`answer_id`, `question_id`, `author_url_token`, `author_id`, `raw_json`]
 
@@ -137,4 +137,4 @@ class TotalAnswer extends Base {
   }
 }
 
-export default TotalAnswer
+export default Answer
