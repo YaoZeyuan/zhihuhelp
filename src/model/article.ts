@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
-  static TABLE_COLUMN = [`article_id`, `author_url_token`, `column_id`, `raw_json`]
+  static TABLE_COLUMN = [`article_id`, `author_url_token`, `author_id`, `column_id`, `raw_json`]
 
   /**
    * 从数据库中获取文章详情
@@ -120,11 +120,13 @@ class Article extends Base {
   static async asyncReplaceArticle(articleRecord: TypeArticle.Record): Promise<void> {
     let id = articleRecord.id
     // 文章可能不隶属于任何专栏, 也就可能没有column.id
-    let columnId = _.get(articleRecord, ['column', 'id'], 'ColumnNotExists')
-    let authorUrlToken = _.get(articleRecord, ['author', 'url_token'], 'AuthorNotExists')
+    let columnId = articleRecord?.column?.id ?? 'ColumnNotExists'
+    let authorUrlToken = articleRecord?.author?.url_token ?? 'AuthorNotExists'
+    let authorId = articleRecord?.author?.id ?? 'AuthorIdNotExists'
     let raw_json = JSON.stringify(articleRecord)
     await this.replaceInto({
       article_id: id,
+      author_id: authorId,
       author_url_token: authorUrlToken,
       column_id: columnId,
       raw_json,

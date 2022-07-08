@@ -17,7 +17,7 @@ class Base {
   /**
    * 获取sqlite客户端
    */
-  static get rawClient(): TypeKnex.QueryBuilder {
+  static get rawClient() {
     return Knex
   }
 

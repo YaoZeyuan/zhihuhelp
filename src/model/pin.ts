@@ -51,7 +51,7 @@ class Pin extends Base {
     try {
       pinRecord = JSON.parse(pinRecordJson)
     } catch {
-      pinRecord = {}
+      pinRecord = {} as any
     }
 
     return pinRecord
