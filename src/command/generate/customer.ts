@@ -442,48 +442,47 @@ class GenerateCustomer extends Base {
 
     // 最终电子书数据列表
     let unitPackageList: Types.Type_Unit_Item[] = []
+    let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
+      type: Const_TaskConfig.Const_Task_Type_混合类型,
+      pageList: [],
+    }
     for (let fetchTask of fetchTaskList) {
       let unitPackage = await this.asyncGetUintPackageByFetchTask(fetchTask)
       if (unitPackage === undefined) {
         // 未查找到元素则直接跳过
         continue
       }
-      unitPackageList.push(unitPackage)
+
+      // 混合类型需要单独处理
+      if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
+        // 所有混合类型合并为一本电子书
+        mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
+      } else {
+        unitPackageList.push(unitPackage)
+      }
     }
+    // 如果有混合类型任务, 合并后作为最后一项加在最后
+    if (mixUnitPackage.pageList.length > 0) {
+      unitPackageList.push(mixUnitPackage)
+    }
+    // 对数据进行排序
+
+    // @todo
+
     // 得到单元列表
     // 按照设置进行分卷
     let epubRecordList: Types.Type_Ebook_Column_Item[] = []
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
-        {
-          // 用于搜集所有混合类型的记录
-          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
-            type: Const_TaskConfig.Const_Task_Type_混合类型,
-            pageList: [],
-          }
-          for (let unitPackage of unitPackageList) {
-            if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
-              // 所有混合类型合并为一本电子书
-              mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
-              continue
-            } else {
-              // 每个单元输出为一本电子书
-              let subEpubRecordList = this.autoSplitUnitPackage({
-                unitItemList: [unitPackage],
-                booktitle: this.generateColumnTitle(unitPackage),
-                generateConfig,
-              })
-              epubRecordList = [...epubRecordList, ...subEpubRecordList]
-            }
-          }
-          // 如果有合并单元, 也输出为一本电子书
-          if (mixUnitPackage.pageList.length > 0) {
-            let subEpubRecordList = this.autoSplitUnitPackage({
-              unitItemList: [mixUnitPackage],
-              booktitle: this.generateColumnTitle(mixUnitPackage),
-              generateConfig,
-            })
-            epubRecordList = [...epubRecordList, ...subEpubRecordList]
+        for (let unitPackage of unitPackageList) {
+          // 每个单元输出为一本电子书
+          let subEpubRecordList = this.autoSplitUnitPackage({
+            unitItemList: [unitPackage],
+            booktitle: this.generateColumnTitle(unitPackage),
+            generateConfig,
+          })
+          for (let item of subEpubRecordList) {
+            epubRecordList.push(item)
           }
         }
         break
@@ -495,38 +494,24 @@ class GenerateCustomer extends Base {
             pageList: [],
           }
           for (let unitPackage of unitPackageList) {
-            mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
-            let subEpubRecordList = this.autoSplitUnitPackage({
-              unitItemList: [mixUnitPackage],
-              booktitle: bookname,
-              generateConfig,
-            })
-            epubRecordList = [...epubRecordList, ...subEpubRecordList]
+            for (let page of unitPackage.pageList) {
+              mixUnitPackage.pageList.push(page)
+            }
           }
+          // 然后再生成图书
+          let subEpubRecordList = this.autoSplitUnitPackage({
+            unitItemList: [mixUnitPackage],
+            booktitle: bookname,
+            generateConfig,
+          })
+          epubRecordList = [...epubRecordList, ...subEpubRecordList]
         }
         break
       case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
         {
-          let processUnitList: Types.Type_Unit_Item[] = []
-          // 用于搜集所有混合类型的记录
-          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
-            type: Const_TaskConfig.Const_Task_Type_混合类型,
-            pageList: [],
-          }
-          for (let unitPackage of unitPackageList) {
-            if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
-              // 所有混合类型合并为一本电子书
-              mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
-              continue
-            } else {
-              processUnitList.push(unitPackage)
-            }
-          }
-
           // 所有单元合并输出为一本电子书
-          processUnitList.push(mixUnitPackage)
           let subEpubRecordList = this.autoSplitUnitPackage({
-            unitItemList: processUnitList,
+            unitItemList: unitPackageList,
             booktitle: bookname,
             generateConfig,
           })
