@@ -23,8 +23,8 @@ export const Const_Task_Type_混合类型 = 'mix' as const
 
 // 内容输出策略
 export const Const_Generate_Type_独立输出电子书 = 'single' as const
-export const Const_Generate_Type_合并输出电子书_内容混排 = 'merge_by_all' as const
-export const Const_Generate_Type_合并输出电子书_按内容分章节 = 'merge_by_task' as const
+export const Const_Generate_Type_合并输出电子书_内容打乱重排 = 'merge_by_all' as const
+export const Const_Generate_Type_合并输出电子书_按任务拆分章节 = 'merge_by_task' as const
 
 // 排序类目
 export const Const_Order_By_创建时间 = 'createAt' as const

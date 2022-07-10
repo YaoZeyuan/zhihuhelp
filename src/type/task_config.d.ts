@@ -48,14 +48,15 @@ export type Type_Order_By =
   | Type_Order_By_评论数
 
 export type Type_Generate_Type_独立输出电子书 = typeof Consts.Const_Generate_Type_独立输出电子书
-export type Type_Generate_Type_合并输出电子书_内容混排 = typeof Consts.Const_Generate_Type_合并输出电子书_内容混排
-export type Type_Generate_Type_合并输出电子书_按内容分章节 =
-  typeof Consts.Const_Generate_Type_合并输出电子书_按内容分章节
+export type Type_Generate_Type_合并输出电子书_内容打乱重排 =
+  typeof Consts.Const_Generate_Type_合并输出电子书_内容打乱重排
+export type Type_Generate_Type_合并输出电子书_按任务拆分章节 =
+  typeof Consts.Const_Generate_Type_合并输出电子书_按任务拆分章节
 
 export type Type_Generate_Type =
   | Type_Generate_Type_独立输出电子书
-  | Type_Generate_Type_合并输出电子书_内容混排
-  | Type_Generate_Type_合并输出电子书_按内容分章节
+  | Type_Generate_Type_合并输出电子书_内容打乱重排
+  | Type_Generate_Type_合并输出电子书_按任务拆分章节
 export type Type_Image_Quilty = Type_Image_Quilty_高清 | Type_Image_Quilty_原图 | Type_Image_Quilty_无图
 export type Type_Task_Type = Type_Author_Collection_Type | Type_Item_Collection_Type
 
