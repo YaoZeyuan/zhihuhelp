@@ -26,6 +26,8 @@ import BaseView from '~/src/public/template/react/base'
 import fs from 'fs'
 import path from 'path'
 import CommonUtil from '~/src/library/util/common'
+import * as Date_Format from '~/src/constant/date_format'
+import moment from 'moment'
 
 type EpubResourcePackage = {
   questionList: TypeAnswer.Record[][]
@@ -61,9 +63,9 @@ class GenerateCustomer extends Base {
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
         break
-      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容混排:
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
         break
-      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按内容分章节:
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
         break
     }
 
@@ -421,10 +423,126 @@ class GenerateCustomer extends Base {
   }
 
   /**
+   * 根据生成配置, 生成电子书资源包
+   * @param generateConfig
+   */
+  async asyncGetColumnPackage(
+    fetchTaskList: TypeTaskConfig.Type_Task_Config['fetchTaskList'],
+    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig'],
+  ) {
+    // 生成类型
+    let generateType = generateConfig.generateType
+    let bookname = generateConfig.bookTitle
+    let comment = generateConfig.comment
+    let imageQuilty = generateConfig.imageQuilty
+    let maxQuestionOrArticleInBook = generateConfig.maxQuestionOrArticleInBook
+    let orderByList = generateConfig.orderByList
+
+    // 根据生成类型, 制定最终结果数据集
+
+    // 最终电子书数据列表
+    let unitPackageList: Types.Type_Unit_Item[] = []
+    for (let fetchTask of fetchTaskList) {
+      let unitPackage = await this.asyncGetUintPackageByFetchTask(fetchTask)
+      if (unitPackage === undefined) {
+        // 未查找到元素则直接跳过
+        continue
+      }
+      unitPackageList.push(unitPackage)
+    }
+    // 得到单元列表
+    // 按照设置进行分卷
+    let epubRecordList: Types.Type_Ebook_Column_Item[] = []
+    switch (generateType) {
+      case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
+        {
+          // 用于搜集所有混合类型的记录
+          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
+            type: Const_TaskConfig.Const_Task_Type_混合类型,
+            pageList: [],
+          }
+          for (let unitPackage of unitPackageList) {
+            if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
+              // 所有混合类型合并为一本电子书
+              mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
+              continue
+            } else {
+              // 每个单元输出为一本电子书
+              let subEpubRecordList = this.autoSplitUnitPackage({
+                unitItemList: [unitPackage],
+                booktitle: this.generateColumnTitle(unitPackage),
+                generateConfig,
+              })
+              epubRecordList = [...epubRecordList, ...subEpubRecordList]
+            }
+          }
+          // 如果有合并单元, 也输出为一本电子书
+          if (mixUnitPackage.pageList.length > 0) {
+            let subEpubRecordList = this.autoSplitUnitPackage({
+              unitItemList: [mixUnitPackage],
+              booktitle: this.generateColumnTitle(mixUnitPackage),
+              generateConfig,
+            })
+            epubRecordList = [...epubRecordList, ...subEpubRecordList]
+          }
+        }
+        break
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
+        {
+          // 将所有数据混合起来
+          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
+            type: Const_TaskConfig.Const_Task_Type_混合类型,
+            pageList: [],
+          }
+          for (let unitPackage of unitPackageList) {
+            mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
+            let subEpubRecordList = this.autoSplitUnitPackage({
+              unitItemList: [mixUnitPackage],
+              booktitle: bookname,
+              generateConfig,
+            })
+            epubRecordList = [...epubRecordList, ...subEpubRecordList]
+          }
+        }
+        break
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
+        {
+          let processUnitList: Types.Type_Unit_Item[] = []
+          // 用于搜集所有混合类型的记录
+          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
+            type: Const_TaskConfig.Const_Task_Type_混合类型,
+            pageList: [],
+          }
+          for (let unitPackage of unitPackageList) {
+            if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
+              // 所有混合类型合并为一本电子书
+              mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
+              continue
+            } else {
+              processUnitList.push(unitPackage)
+            }
+          }
+
+          // 所有单元合并输出为一本电子书
+          processUnitList.push(mixUnitPackage)
+          let subEpubRecordList = this.autoSplitUnitPackage({
+            unitItemList: processUnitList,
+            booktitle: bookname,
+            generateConfig,
+          })
+          epubRecordList = [...epubRecordList, ...subEpubRecordList]
+        }
+        break
+    }
+  }
+
+  /**
    * 根据任务类型, 返回单元包
    * @param taskConfig
    */
-  async getRecord(taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item): Promise<Types.Type_Unit_Item | undefined> {
+  async asyncGetUintPackageByFetchTask(
+    taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item,
+  ): Promise<Types.Type_Unit_Item | undefined> {
     let unitPackage: Types.Type_Unit_Item
     let targetId = taskConfig.id
     switch (taskConfig.type) {
@@ -857,6 +975,155 @@ class GenerateCustomer extends Base {
       default:
         this.log(`不支持的任务类型:${taskConfig.type}, 自动跳过`)
     }
+  }
+
+  /**
+   * 根据任务类型, 生成默认电子书名
+   * @param unitItem
+   * @returns
+   */
+  generateColumnTitle(unitItem: Types.Type_Unit_Item) {
+    let bookTitle = ''
+    switch (unitItem.type) {
+      case Const_TaskConfig.Const_Task_Type_混合类型:
+        bookTitle = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
+        break
+      case Const_TaskConfig.Const_Task_Type_收藏夹:
+        bookTitle = `收藏夹_${unitItem.info['title']}(${unitItem.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_专栏:
+        bookTitle = `专栏_${unitItem.info['title']}(${unitItem.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_话题:
+        bookTitle = `话题_${unitItem.info['name']}(${unitItem.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
+      case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
+      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
+      case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
+        {
+          let userName = `用户_${unitItem.info['name']}(${unitItem.info['id']})`
+          switch (unitItem.type) {
+            case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
+              bookTitle = `${userName}_提问过的所有问题`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+            case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
+              bookTitle = `${userName}_的所有回答`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
+              bookTitle = `${userName}_发布的所有文章`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
+              bookTitle = `${userName}_发布的所有想法`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
+              bookTitle = `${userName}_赞同过的所有回答`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
+              bookTitle = `${userName}_赞同过的所有文章`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
+              bookTitle = `${userName}_关注过的所有问题`
+              break
+            default:
+              bookTitle = `${userName}`
+          }
+        }
+        break
+      default:
+        bookTitle = `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`
+    }
+    return bookTitle
+  }
+
+  /**
+   * 自动将单元列表拆分后返回epub卷列表
+   */
+  autoSplitUnitPackage({
+    unitItemList,
+    booktitle,
+    generateConfig,
+  }: {
+    unitItemList: Types.Type_Unit_Item[]
+    /**
+     * 基础标题名
+     */
+    booktitle: string
+    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
+  }): Types.Type_Ebook_Column_Item[] {
+    let totalPageCount = 0
+    for (let unitItem of unitItemList) {
+      totalPageCount = totalPageCount + unitItem.pageList.length
+    }
+
+    let totalColumnCount = Math.ceil(totalPageCount / generateConfig.maxQuestionOrArticleInBook)
+    if (totalColumnCount <= 1) {
+      // 不需要分卷
+      return [
+        {
+          bookname: booktitle,
+          unitList: [...unitItemList],
+        },
+      ]
+    }
+
+    // 解除引用
+    let processUnitList = [...unitItemList]
+    let epubItemList: Types.Type_Ebook_Column_Item[] = []
+    for (let currentBookColumnIndex = 1; processUnitList.length > 0; currentBookColumnIndex++) {
+      // 总卷数确定, 从前往后加即可
+      let bookname = `${booktitle}_${currentBookColumnIndex}/${totalColumnCount}卷`
+
+      let currentUnitList: Types.Type_Unit_Item[] = []
+      let currentPageCount = 0
+      // 取出第一个unit
+      let nextUnit = processUnitList.shift() as Types.Type_Unit_Item
+      if (nextUnit === undefined) {
+        continue
+      }
+
+      while (currentPageCount + nextUnit.pageList.length < generateConfig.maxQuestionOrArticleInBook) {
+        currentUnitList.push(nextUnit)
+        nextUnit = processUnitList.shift() as Types.Type_Unit_Item
+        if (nextUnit === undefined) {
+          break
+        }
+      }
+      // 判断nextUnit的情况
+      // 若nextUnit为undefined, 说明所有数据均已取出, 可以正常构建epub代码
+      // 若不为undefined, 说明currentPageCount + nextUnit的值超过了阈值, 需要对nextUnit进行拆分
+      if (nextUnit === undefined) {
+        let epubItem: Types.Type_Ebook_Column_Item = {
+          bookname: bookname,
+          unitList: currentUnitList,
+        }
+        epubItemList.push(epubItem)
+      } else {
+        // 对unit进行拆分
+
+        let legalUnit: Types.Type_Unit_Item = {
+          ...nextUnit,
+          pageList: [...nextUnit.pageList.slice(0, generateConfig.maxQuestionOrArticleInBook - currentPageCount)],
+        }
+        currentUnitList.push(legalUnit)
+        let epubItem: Types.Type_Ebook_Column_Item = {
+          bookname: bookname,
+          unitList: currentUnitList,
+        }
+        epubItemList.push(epubItem)
+
+        // 溢出部分重新放回待处理列表
+        nextUnit.pageList = [...nextUnit.pageList.slice(generateConfig.maxQuestionOrArticleInBook - currentPageCount)]
+        processUnitList.unshift(nextUnit)
+      }
+    }
+
+    return epubItemList
   }
 
   async generateEpub(

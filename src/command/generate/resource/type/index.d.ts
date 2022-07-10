@@ -69,7 +69,7 @@ type Type_Page_Pin_Item = {
 export type Type_Page_Item = Type_Page_Question_Item | Type_Page_Article_Item | Type_Page_Pin_Item
 
 export type Type_Unit_Item_收藏夹 = {
-  type: Type_Task_Type_收藏夹
+  type: Types.Type_Task_Type_收藏夹
   info: Type_Collection.Info
   pageList: Type_Page_Item[]
 }
@@ -88,7 +88,7 @@ export type Type_Unit_Item_专栏 = {
 
 export type Type_Unit_Item_用户 = {
   type: Types.Type_Author_Collection_Type
-  info: Type_Author.Info
+  info: Type_Author.Record
   pageList: Type_Page_Item[]
 }
 
