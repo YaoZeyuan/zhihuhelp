@@ -16,11 +16,14 @@ export type Type_Task_Type_问题 = typeof Consts.Const_Task_Type_问题
 export type Type_Task_Type_回答 = typeof Consts.Const_Task_Type_回答
 export type Type_Task_Type_想法 = typeof Consts.Const_Task_Type_想法
 export type Type_Task_Type_混合类型 = typeof Consts.Const_Task_Type_混合类型
-export type Type_Order = typeof Consts.Const_Order_Asc | typeof Consts.Const_Order_Desc
-export type Type_Order_By_创建时间 = typeof Consts.Const_Order_By_创建时间
-export type Type_Order_By_更新时间 = typeof Consts.Const_Order_By_更新时间
-export type Type_Order_By_赞同数 = typeof Consts.Const_Order_By_赞同数
-export type Type_Order_By_评论数 = typeof Consts.Const_Order_By_评论数
+export type Type_Order_By = typeof Consts.Const_Order_By_Asc | typeof Consts.Const_Order_By_Desc
+export type Type_Order_With_不排序 = typeof Consts.Const_Order_With_不排序
+export type Type_Order_With_记录加入时间_首次值 = typeof Consts.Const_Order_With_记录加入时间_首次值
+export type Type_Order_With_记录加入时间_末次值 = typeof Consts.Const_Order_With_记录加入时间_末次值
+export type Type_Order_With_创建时间 = typeof Consts.Const_Order_With_创建时间
+export type Type_Order_With_更新时间 = typeof Consts.Const_Order_With_更新时间
+export type Type_Order_With_赞同数 = typeof Consts.Const_Order_With_赞同数
+export type Type_Order_With_评论数 = typeof Consts.Const_Order_With_评论数
 export type Type_Image_Quilty_高清 = typeof Consts.Const_Image_Quilty_高清
 export type Type_Image_Quilty_原图 = typeof Consts.Const_Image_Quilty_原图
 export type Type_Image_Quilty_无图 = typeof Consts.Const_Image_Quilty_无图
@@ -41,11 +44,14 @@ export type Type_Item_Collection_Type =
   | Type_Task_Type_问题
   | Type_Task_Type_回答
   | Type_Task_Type_想法
-export type Type_Order_By =
-  | Type_Order_By_创建时间
-  | Type_Order_By_更新时间
-  | Type_Order_By_赞同数
-  | Type_Order_By_评论数
+export type Type_Order_With =
+  | Type_Order_With_记录加入时间_首次值
+  | Type_Order_With_记录加入时间_末次值
+  | Type_Order_With_不排序
+  | Type_Order_With_创建时间
+  | Type_Order_With_更新时间
+  | Type_Order_With_赞同数
+  | Type_Order_With_评论数
 
 export type Type_Generate_Type_独立输出电子书 = typeof Consts.Const_Generate_Type_独立输出电子书
 export type Type_Generate_Type_合并输出电子书_内容打乱重排 =
@@ -61,8 +67,8 @@ export type Type_Image_Quilty = Type_Image_Quilty_高清 | Type_Image_Quilty_原
 export type Type_Task_Type = Type_Author_Collection_Type | Type_Item_Collection_Type
 
 export type Type_Order_By_Config = {
-  orderBy: Type_Order
-  order: Order
+  orderBy: Type_Order_By
+  order: Type_Order_With
 }
 export type Type_Order_By_Config_List = Type_Order_By_Config[]
 

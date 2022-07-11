@@ -27,14 +27,23 @@ export const Const_Generate_Type_合并输出电子书_内容打乱重排 = 'mer
 export const Const_Generate_Type_合并输出电子书_按任务拆分章节 = 'merge_by_task' as const
 
 // 排序类目
-export const Const_Order_By_创建时间 = 'createAt' as const
-export const Const_Order_By_更新时间 = 'updateAt' as const
-export const Const_Order_By_赞同数 = 'voteUpCount' as const
-export const Const_Order_By_评论数 = 'commentCount' as const
+export const Const_Order_With_不排序 = 'none' as const
+export const Const_Order_With_记录加入时间_首次值 = 'firstRecordAt' as const
+export const Const_Order_With_记录加入时间_末次值 = 'lastRecordAt' as const
+export const Const_Order_With_创建时间 = 'createAt' as const
+export const Const_Order_With_更新时间 = 'updateAt' as const
+export const Const_Order_With_赞同数 = 'voteUpCount' as const
+export const Const_Order_With_评论数 = 'commentCount' as const
 
 // 排序顺序
-export const Const_Order_Desc = 'desc' as const
-export const Const_Order_Asc = 'asc' as const
+/**
+ * 降序
+ */
+export const Const_Order_By_Desc = 'desc' as const
+/**
+ * 升序
+ */
+export const Const_Order_By_Asc = 'asc' as const
 
 // 图片类别
 export const Const_Image_Quilty_高清 = 'raw' as const

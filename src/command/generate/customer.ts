@@ -436,7 +436,8 @@ class GenerateCustomer extends Base {
     let comment = generateConfig.comment
     let imageQuilty = generateConfig.imageQuilty
     let maxQuestionOrArticleInBook = generateConfig.maxQuestionOrArticleInBook
-    let orderByList = generateConfig.orderByList
+    // 需要逆序后, 排序出来才是实际要求的结果
+    let reversedOrderByList = [...generateConfig.orderByList].reverse()
 
     // 根据生成类型, 制定最终结果数据集
 
@@ -465,12 +466,254 @@ class GenerateCustomer extends Base {
     if (mixUnitPackage.pageList.length > 0) {
       unitPackageList.push(mixUnitPackage)
     }
+
+    // 工具函数, 用于获取元素的排序属性
+    function getPageItemProperty({
+      pageItem,
+      orderWith,
+    }: {
+      pageItem: Types.Type_Page_Item
+      orderWith: TypeTaskConfig.Type_Order_With
+    }) {
+      switch (pageItem.type) {
+        case Consts.Const_Type_Article:
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
+              return pageItem?.first_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
+              return pageItem?.last_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return pageItem?.recordList?.[0]?.created ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return pageItem?.recordList?.[0]?.updated ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return pageItem?.recordList?.[0]?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return pageItem?.recordList?.[0]?.voteup_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        case Consts.Const_Type_Pin:
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
+              return pageItem?.first_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
+              return pageItem?.last_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return pageItem?.recordList?.[0]?.created ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return pageItem?.recordList?.[0]?.updated ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return pageItem?.recordList?.[0]?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return pageItem?.recordList?.[0]?.like_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        case Consts.Const_Type_Question:
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
+              return pageItem?.first_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
+              return pageItem?.last_action_at ?? 0
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return pageItem?.recordList?.[0]?.created_time ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return pageItem?.recordList?.[0]?.updated_time ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return pageItem?.recordList?.[0]?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return pageItem?.recordList?.[0]?.voteup_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        default:
+          return 0
+      }
+    }
+
+    // 工具函数, 用于获取元素的排序属性
+    function getRecordItemProperty({
+      recordItem,
+      itemType,
+      orderWith,
+    }: {
+      recordItem: Types.Type_Record_Item
+      itemType: Types.Type_Item_Type
+      orderWith: TypeTaskConfig.Type_Order_With
+    }) {
+      switch (itemType) {
+        case Consts.Const_Type_Article: {
+          let item = recordItem as Types.Type_Article_Record
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return item.created ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return item?.updated ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return item?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return item?.voteup_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        }
+        case Consts.Const_Type_Pin: {
+          let item = recordItem as Types.Type_Pin_Record
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return item?.created ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return item?.updated ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return item?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return item?.like_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        }
+        case Consts.Const_Type_Question: {
+          let item = recordItem as Types.Type_Answer_Record
+          switch (orderWith) {
+            case Const_TaskConfig.Const_Order_With_创建时间:
+              return item?.created_time ?? 0
+            case Const_TaskConfig.Const_Order_With_更新时间:
+              return item?.updated_time ?? 0
+            case Const_TaskConfig.Const_Order_With_评论数:
+              return item?.comment_count ?? 0
+            case Const_TaskConfig.Const_Order_With_赞同数:
+              return item?.voteup_count ?? 0
+            case Const_TaskConfig.Const_Order_With_不排序:
+              return 0
+            default:
+              return 0
+          }
+        }
+      }
+    }
+
+    function pageListSorter<T extends Types.Type_Page_Item>({
+      itemA,
+      itemB,
+      orderWith,
+      orderBy,
+    }: {
+      itemA: T
+      itemB: T
+      orderWith: TypeTaskConfig.Type_Order_With
+      orderBy: TypeTaskConfig.Type_Order_By
+    }) {
+      let aProperty = getPageItemProperty({
+        pageItem: itemA,
+        orderWith,
+      })
+      let bProperty = getPageItemProperty({
+        pageItem: itemB,
+        orderWith,
+      })
+      if (orderBy === Const_TaskConfig.Const_Order_By_Asc) {
+        return aProperty - bProperty
+      } else {
+        return bProperty - aProperty
+      }
+    }
+
+    // 对page内本身元素进行排序
+    function pageItemSorter<T extends Types.Type_Record_Item>({
+      itemA,
+      itemB,
+      itemType,
+      orderWith,
+      orderBy,
+    }: {
+      itemA: T
+      itemB: T
+      itemType: Types.Type_Item_Type
+      orderWith: TypeTaskConfig.Type_Order_With
+      orderBy: TypeTaskConfig.Type_Order_By
+    }) {
+      let aProperty = getRecordItemProperty({
+        recordItem: itemA,
+        itemType,
+        orderWith,
+      })
+      let bProperty = getRecordItemProperty({
+        recordItem: itemB,
+        itemType,
+        orderWith,
+      })
+      if (orderBy === Const_TaskConfig.Const_Order_By_Asc) {
+        return aProperty - bProperty
+      } else {
+        return bProperty - aProperty
+      }
+    }
+
     // 对数据进行排序
+    // 首先对数据进行预处理
+    switch (generateType) {
+      case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
+        // 单独输出/按任务合并章节不需要额外处理
+        break
+      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
+        {
+          // 打乱重排的话需要先将数据进行合并
 
-    // @todo
+          // 先将所有数据混合起来
+          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
+            type: Const_TaskConfig.Const_Task_Type_混合类型,
+            pageList: [],
+          }
+          for (let unitPackage of unitPackageList) {
+            for (let page of unitPackage.pageList) {
+              mixUnitPackage.pageList.push(page)
+            }
+          }
+          unitPackageList = [mixUnitPackage]
+        }
+        break
+    }
+    // 然后排序
+    for (let unitPackage of unitPackageList) {
+      for (let orderConfig of reversedOrderByList) {
+        // 首先对page中的每一个元素进行排列
+        unitPackage.pageList.forEach((item) => {
+          item.recordList.sort((a, b) => {
+            return pageItemSorter({
+              itemA: a,
+              itemB: b,
+              itemType: item.type,
+              orderBy: orderConfig.orderBy,
+              orderWith: orderConfig.order,
+            })
+          })
+        })
 
-    // 得到单元列表
-    // 按照设置进行分卷
+        // 然后再对page进行排列
+        unitPackage.pageList.sort((itemA, itemB) =>
+          pageListSorter({
+            itemA,
+            itemB,
+            orderBy: orderConfig.orderBy,
+            orderWith: orderConfig.order,
+          }),
+        )
+      }
+    }
+
+    // 对数据进行分卷
     let epubRecordList: Types.Type_Ebook_Column_Item[] = []
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
@@ -487,26 +730,6 @@ class GenerateCustomer extends Base {
         }
         break
       case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
-        {
-          // 将所有数据混合起来
-          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
-            type: Const_TaskConfig.Const_Task_Type_混合类型,
-            pageList: [],
-          }
-          for (let unitPackage of unitPackageList) {
-            for (let page of unitPackage.pageList) {
-              mixUnitPackage.pageList.push(page)
-            }
-          }
-          // 然后再生成图书
-          let subEpubRecordList = this.autoSplitUnitPackage({
-            unitItemList: [mixUnitPackage],
-            booktitle: bookname,
-            generateConfig,
-          })
-          epubRecordList = [...epubRecordList, ...subEpubRecordList]
-        }
-        break
       case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
         {
           // 所有单元合并输出为一本电子书

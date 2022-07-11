@@ -21,6 +21,10 @@ type Type_Item_Article = typeof Consts.Const_Type_Article
 type Type_Item_Pin = typeof Consts.Const_Type_Pin
 
 type Type_Item_Type = Type_Item_Question | Type_Item_Article | Type_Item_Pin
+export type Type_Answer_Record = Type_Answer.Record
+export type Type_Article_Record = Type_Article.Record
+export type Type_Pin_Record = Type_Pin.Record
+type Type_Record_Item = Type_Answer.Record | Type_Article.Record | Type_Pin.Record
 
 type Type_Page_Question_Item = {
   type: Type_Item_Question
