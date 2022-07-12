@@ -32,93 +32,211 @@ type Type_Item_Pin = typeof Consts.Const_Type_Pin
 
 type Type_Item_Type = Type_Item_Question | Type_Item_Article | Type_Item_Pin
 
-export type Type_Answer_Record = Type_Answer.Record
-export type Type_Article_Record = Type_Article.Record
-export type Type_Pin_Record = Type_Pin.Record
-type Type_Record_Item = Type_Answer.Record | Type_Article.Record | Type_Pin.Record
+type Type_Record_Item_Answer = {
+  record: Type_Answer.Record
+  recordType: Type_Record_Answer
+  actionAt: number
+}
+type Type_Record_Item_Pin = {
+  record: Type_Pin.Record
+  recordType: Type_Record_Pin
+  actionAt: number
+}
+
+type Type_Record_Item_Article = {
+  record: Type_Article.Record
+  recordType: Type_Record_Article
+  actionAt: number
+}
+
+type Type_Record_Item = Type_Record_Item_Answer | Type_Record_Item_Pin | Type_Record_Item_Article
 
 interface Interface_Base_Page_Item {
   type: Type_Item_Type
-  recordList: {
-    /**
-     * 记录值
-     */
-    record: Type_Record_Item
-    /**
-     * 记录类型
-     */
-    recordType: Type_Record_Type
-    /**
-     * 记录添加时间
-     */
-    actionAt: number
-  }[]
+  recordList: Type_Record_Item[]
+
+  /**
+   * 添加元素
+   * @param record
+   */
+  add(record: Type_Record_Item): void
+
+  /**
+   * 对元素进行排序
+   * @param record
+   */
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
+  }): void
+
+  /**
+   * 获取用于排序的属性
+   * @param param0
+   */
+  getOrderProperty({
+    item,
+    orderWith,
+  }: {
+    item: Type_Record_Item
+    orderWith: Types_Task_Config.Type_Order_With
+  }): number
 }
 
 export class Page_Question implements Interface_Base_Page_Item {
   readonly type: Type_Item_Question = Consts.Const_Type_Question
   baseInfo: Type_Answer.Question
-  recordList: {
-    record: Type_Answer.Record
-    recordType: Type_Record_Answer
-    actionAt: number
-  }[] = []
+  recordList: Type_Record_Item_Answer[] = []
 
-  constructor({
-    baseInfo,
-    recordList,
-  }: {
-    baseInfo: Type_Answer.Question
-    recordList: {
-      record: Type_Answer.Record
-      recordType: Type_Record_Answer
-      actionAt: number
-    }[]
-  }) {
+  constructor({ baseInfo }: { baseInfo: Type_Answer.Question }) {
     this.baseInfo = baseInfo
-    this.recordList = recordList
+  }
+
+  add(record: Type_Record_Item_Answer) {
+    this.recordList.push(record)
+  }
+
+  getOrderProperty({
+    item,
+    orderWith,
+  }: {
+    item: Type_Record_Item_Answer
+    orderWith: Types_Task_Config.Type_Order_With
+  }): number {
+    switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_创建时间:
+        return item?.record?.created_time ?? 0
+      case Consts_Task_Config.Const_Order_With_更新时间:
+        return item?.record?.updated_time ?? 0
+      case Consts_Task_Config.Const_Order_With_评论数:
+        return item?.record?.comment_count ?? 0
+      case Consts_Task_Config.Const_Order_With_赞同数:
+        return item?.record?.voteup_count ?? 0
+      case Consts_Task_Config.Const_Order_With_不排序:
+        return 0
+      default:
+        return 0
+    }
+  }
+
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
+  }) {
+    this.recordList.sort((a, b) => {
+      let aProperty = this.getOrderProperty({ item: a, orderWith })
+      let bProperty = this.getOrderProperty({ item: b, orderWith })
+      if (orderBy === Consts_Task_Config.Const_Order_By_Asc) {
+        return aProperty - bProperty
+      } else {
+        return -(aProperty - bProperty)
+      }
+    })
   }
 }
 
 export class Page_Article implements Interface_Base_Page_Item {
   readonly type: Type_Item_Article = Consts.Const_Type_Article
-  recordList: {
-    record: Type_Article.Record
-    recordType: Type_Record_Article
-    actionAt: number
-  }[] = []
+  recordList: Type_Record_Item_Article[] = []
+  add(record: Type_Record_Item_Article) {
+    this.recordList.push(record)
+  }
 
-  constructor({
-    recordList,
+  getOrderProperty({
+    item,
+    orderWith,
   }: {
-    recordList: {
-      record: Type_Article.Record
-      recordType: Type_Record_Article
-      actionAt: number
-    }[]
+    item: Type_Record_Item_Article
+    orderWith: Types_Task_Config.Type_Order_With
+  }): number {
+    switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_创建时间:
+        return item?.record?.created ?? 0
+      case Consts_Task_Config.Const_Order_With_更新时间:
+        return item?.record?.updated ?? 0
+      case Consts_Task_Config.Const_Order_With_评论数:
+        return item?.record?.comment_count ?? 0
+      case Consts_Task_Config.Const_Order_With_赞同数:
+        return item?.record?.voteup_count ?? 0
+      case Consts_Task_Config.Const_Order_With_不排序:
+        return 0
+      default:
+        return 0
+    }
+  }
+
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
   }) {
-    this.recordList = recordList
+    this.recordList.sort((a, b) => {
+      let aProperty = this.getOrderProperty({ item: a, orderWith })
+      let bProperty = this.getOrderProperty({ item: b, orderWith })
+      if (orderBy === Consts_Task_Config.Const_Order_By_Asc) {
+        return aProperty - bProperty
+      } else {
+        return -(aProperty - bProperty)
+      }
+    })
   }
 }
 
 export class Page_Pin implements Interface_Base_Page_Item {
   readonly type: Type_Item_Pin = Consts.Const_Type_Pin
-  recordList: {
-    record: Type_Article.Record
-    recordType: Type_Record_Article
-    actionAt: number
-  }[] = []
+  recordList: Type_Record_Item_Pin[] = []
 
-  constructor({
-    recordList,
+  add(record: Type_Record_Item_Pin) {
+    this.recordList.push(record)
+  }
+
+  getOrderProperty({
+    item,
+    orderWith,
   }: {
-    recordList: {
-      record: Type_Article.Record
-      recordType: Type_Record_Article
-      actionAt: number
-    }[]
+    item: Type_Record_Item_Pin
+    orderWith: Types_Task_Config.Type_Order_With
+  }): number {
+    switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_创建时间:
+        return item?.record?.created ?? 0
+      case Consts_Task_Config.Const_Order_With_更新时间:
+        return item?.record?.updated ?? 0
+      case Consts_Task_Config.Const_Order_With_评论数:
+        return item?.record?.comment_count ?? 0
+      case Consts_Task_Config.Const_Order_With_赞同数:
+        return item?.record?.like_count ?? 0
+      case Consts_Task_Config.Const_Order_With_不排序:
+        return 0
+      default:
+        return 0
+    }
+  }
+
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
   }) {
-    this.recordList = recordList
+    this.recordList.sort((a, b) => {
+      let aProperty = this.getOrderProperty({ item: a, orderWith })
+      let bProperty = this.getOrderProperty({ item: b, orderWith })
+      if (orderBy === Consts_Task_Config.Const_Order_By_Asc) {
+        return aProperty - bProperty
+      } else {
+        return -(aProperty - bProperty)
+      }
+    })
   }
 }
 
