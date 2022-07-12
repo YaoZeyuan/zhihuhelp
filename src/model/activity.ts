@@ -70,6 +70,43 @@ class Activity extends Base {
   }
 
   /**
+   * 从数据库中获取指定用户指定类别的目标id => 触发时间映射表
+   * @param id
+   */
+  static async asyncGetAllActionRecordMap(
+    urlToken: string,
+    verbType = Activity.VERB_ANSWER_VOTE_UP,
+  ): Promise<{
+    [targetId: string]: number
+  }> {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .where('url_token', '=', urlToken)
+      .where('verb', '=', verbType)
+      .catch(() => {
+        return []
+      })
+
+    let actionRecord: {
+      [targetId: string]: number
+    } = {}
+    for (let record of recordList) {
+      let activityRecordJson = record?.raw_json
+      let activityRecord: TypeActivity.Record
+      try {
+        activityRecord = JSON.parse(activityRecordJson)
+      } catch {
+        continue
+      }
+      let targetId = `${activityRecord.target.id}`
+      let actionAt = activityRecord?.created_time ?? 0
+      actionRecord[targetId] = actionAt
+    }
+    return actionRecord
+  }
+
+  /**
    * 存储用户行为
    * @param activityRecord
    */

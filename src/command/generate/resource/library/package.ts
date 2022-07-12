@@ -14,6 +14,7 @@ import * as Type_Column from '~/src/type/zhihu/column'
 import * as Type_Pin from '~/src/type/zhihu/pin'
 import * as Type_Question from '~/src/type/zhihu/question'
 import * as Type_Topic from '~/src/type/zhihu/topic'
+import { Type_Page_Question_Item } from '../type'
 
 // 基本设计思路
 // 页的上一级是单元, 每个单元的顺序为: 单元信息页 + 后续问题/文章/想法页
@@ -59,7 +60,7 @@ interface Interface_Base_Page_Item {
    * 添加元素
    * @param record
    */
-  add(record: Type_Record_Item): void
+  add(record: { record: Type_Answer.Record | Type_Pin.Record | Type_Article.Record; actionAt: number }): void
 
   /**
    * 对元素进行排序
@@ -90,13 +91,29 @@ export class Page_Question implements Interface_Base_Page_Item {
   readonly type: Type_Item_Question = Consts.Const_Type_Question
   baseInfo: Type_Answer.Question
   recordList: Type_Record_Item_Answer[] = []
+  // 维护一个带有所有id的结构, 避免重复添加
+  existRecordIdMap: Set<string> = new Set()
 
   constructor({ baseInfo }: { baseInfo: Type_Answer.Question }) {
     this.baseInfo = baseInfo
   }
 
-  add(record: Type_Record_Item_Answer) {
-    this.recordList.push(record)
+  /**
+   * 针对answer重复添加问题, 已在该方法中内置去重逻辑, 避免重复添加record
+   * @param record
+   * @returns
+   */
+  add(record: { record: Type_Answer.Record; actionAt: number }) {
+    // 避免重复添加
+    if (this.existRecordIdMap.has(record.record.id) === false) {
+      this.recordList.push({
+        ...record,
+        recordType: Consts.Const_Record_Type_Answer,
+      })
+      this.existRecordIdMap.add(record.record.id)
+    } else {
+      return
+    }
   }
 
   getOrderProperty({
@@ -147,8 +164,11 @@ export class Page_Question implements Interface_Base_Page_Item {
 export class Page_Article implements Interface_Base_Page_Item {
   readonly type: Type_Item_Article = Consts.Const_Type_Article
   recordList: Type_Record_Item_Article[] = []
-  add(record: Type_Record_Item_Article) {
-    this.recordList.push(record)
+  add(record: { record: Type_Record_Item_Article['record']; actionAt: Type_Record_Item_Article['actionAt'] }) {
+    this.recordList.push({
+      ...record,
+      recordType: Consts.Const_Record_Type_Article,
+    })
   }
 
   getOrderProperty({
@@ -200,8 +220,11 @@ export class Page_Pin implements Interface_Base_Page_Item {
   readonly type: Type_Item_Pin = Consts.Const_Type_Pin
   recordList: Type_Record_Item_Pin[] = []
 
-  add(record: Type_Record_Item_Pin) {
-    this.recordList.push(record)
+  add(record: { record: Type_Record_Item_Pin['record']; actionAt: Type_Record_Item_Pin['actionAt'] }) {
+    this.recordList.push({
+      ...record,
+      recordType: Consts.Const_Record_Type_Pin,
+    })
   }
 
   getOrderProperty({
@@ -267,29 +290,74 @@ interface Interface_Unit_Base {
    * 对元素进行排序
    * @param record
    */
-  sortRecordList({
+  sortPageList({
     orderWith,
     orderBy,
   }: {
     orderWith: Types_Task_Config.Type_Order_With
     orderBy: Types_Task_Config.Type_Order_By
   }): void
-
-  /**
-   * 获取用于排序的属性
-   * @param param0
-   */
-  getOrderProperty({ item, orderWith }: { item: Type_Page_Item; orderWith: Types_Task_Config.Type_Order_With }): number
 }
 
 class Unit_Base {
   pageList: Type_Page_Item[] = []
+  // 用于验证重复值
+  protected pageIdMap: Map<string, Type_Page_Item> = new Map()
 
+  /**
+   * 将page添加到列表中, 添加时自动去重
+   * @param page
+   * @returns
+   */
   add(page: Type_Page_Item) {
+    switch (page.type) {
+      case Consts.Const_Type_Article:
+        {
+          let id = `${page.type}_${page.recordList[0].record.id}`
+          if (this.pageIdMap.has(id)) {
+            return
+          } else {
+            this.pageList.push(page)
+            this.pageIdMap.set(id, page)
+          }
+        }
+        break
+      case Consts.Const_Type_Pin:
+        {
+          let id = `${page.type}_${page.recordList[0].record.id}`
+          if (this.pageIdMap.has(id)) {
+            return
+          } else {
+            this.pageList.push(page)
+            this.pageIdMap.set(id, page)
+          }
+        }
+        break
+      case Consts.Const_Type_Question:
+        {
+          let id = `${page.type}_${page.recordList[0].record.id}`
+          if (this.pageIdMap.has(id)) {
+            // 如果已存在question项, 仍需要将旧回答合并进来
+            let rawPage = this.pageIdMap.get(id) as Page_Question
+            for (let record of page.recordList) {
+              rawPage.add({
+                record: record.record,
+                actionAt: record.actionAt,
+              })
+            }
+            return
+          } else {
+            this.pageList.push(page)
+            this.pageIdMap.set(id, page)
+          }
+        }
+        break
+    }
+
     this.pageList.push(page)
   }
 
-  getOrderProperty({
+  protected getOrderProperty({
     item,
     orderWith,
   }: {
@@ -361,19 +429,28 @@ class Unit_Base {
     }
   }
 
-  sortRecordList({
+  sortPageList({
     orderWith,
     orderBy,
   }: {
     orderWith: Types_Task_Config.Type_Order_With
     orderBy: Types_Task_Config.Type_Order_By
   }) {
+    // page排序之前, 先将page中的元素按要求进行排序
+    this.pageList.forEach((item) => {
+      item.sortRecordList({
+        orderWith,
+        orderBy,
+      })
+    })
+
     let typeMap = {
       [Consts.Const_Type_Question]: 3,
       [Consts.Const_Type_Pin]: 2,
       [Consts.Const_Type_Article]: 1,
     }
 
+    // 然后再对sort本身进行排序
     this.pageList.sort((a, b) => {
       let aProperty = 0
       let bProperty = 0
@@ -476,12 +553,7 @@ export class Unit_混合类型 extends Unit_Base implements Interface_Unit_Base 
 /**
  * 单元类型
  */
-export type Type_Unit_Item =
-  | typeof Unit_收藏夹
-  | typeof Unit_话题
-  | typeof Unit_专栏
-  | typeof Unit_用户
-  | typeof Unit_混合类型
+export type Type_Unit_Item = Unit_收藏夹 | Unit_话题 | Unit_专栏 | Unit_用户 | Unit_混合类型
 
 /**
  * 电子书分卷信息
@@ -490,11 +562,11 @@ export class Ebook_Column {
   /**
    * 电子书名
    */
-  private bookname: string
+  private bookname: string = ''
   /**
    * 分卷信息
    */
-  private unitList: Type_Unit_Item[]
+  private unitList: Type_Unit_Item[] = []
   constructor({ bookname, unitList }: { bookname: string; unitList: Type_Unit_Item[] }) {
     this.bookname = bookname
     this.unitList = unitList

@@ -68,7 +68,7 @@ export type Type_Task_Type = Type_Author_Collection_Type | Type_Item_Collection_
 
 export type Type_Order_By_Config = {
   orderBy: Type_Order_By
-  order: Type_Order_With
+  orderWith: Type_Order_With
 }
 export type Type_Order_By_Config_List = Type_Order_By_Config[]
 

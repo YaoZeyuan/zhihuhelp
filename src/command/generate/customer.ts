@@ -27,6 +27,9 @@ import fs from 'fs'
 import path from 'path'
 import CommonUtil from '~/src/library/util/common'
 import * as Date_Format from '~/src/constant/date_format'
+
+import * as Package from './resource/library/package'
+
 import moment from 'moment'
 
 type EpubResourcePackage = {
@@ -59,7 +62,7 @@ class GenerateCustomer extends Base {
     // 根据生成类型, 制定最终结果数据集
 
     // 最终电子书数据列表
-    let epubRecordList: Types.Type_Ebook_Column_Item[] = []
+    let epubRecordList: Package.Ebook_Column[] = []
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
         break
@@ -139,7 +142,7 @@ class GenerateCustomer extends Base {
         case 'voteUpCount':
           for (let answerList of questionList) {
             answerList.sort((item1, item2) => {
-              if (orderByConfig.order === 'asc') {
+              if (orderByConfig.orderWith === 'asc') {
                 return item1.voteup_count - item2.voteup_count
               } else {
                 return item2.voteup_count - item1.voteup_count
@@ -158,7 +161,7 @@ class GenerateCustomer extends Base {
             for (let answerInItem2 of item2) {
               item2VoteUpCount += answerInItem2.voteup_count
             }
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1VoteUpCount - item2VoteUpCount
             } else {
               return item2VoteUpCount - item1VoteUpCount
@@ -167,7 +170,7 @@ class GenerateCustomer extends Base {
           articleList.sort((item1, item2) => {
             let item1VoteUpCount = item1.voteup_count
             let item2VoteUpCount = item2.voteup_count
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1VoteUpCount - item2VoteUpCount
             } else {
               return item2VoteUpCount - item1VoteUpCount
@@ -176,7 +179,7 @@ class GenerateCustomer extends Base {
           pinList.sort((item1, item2) => {
             let item1VoteUpCount = item1.like_count
             let item2VoteUpCount = item2.like_count
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1VoteUpCount - item2VoteUpCount
             } else {
               return item2VoteUpCount - item1VoteUpCount
@@ -186,7 +189,7 @@ class GenerateCustomer extends Base {
         case 'commentCount':
           for (let answerList of questionList) {
             answerList.sort((item1, item2) => {
-              if (orderByConfig.order === 'asc') {
+              if (orderByConfig.orderWith === 'asc') {
                 return item1.comment_count - item2.comment_count
               } else {
                 return item2.comment_count - item1.comment_count
@@ -205,7 +208,7 @@ class GenerateCustomer extends Base {
             for (let answerInItem2 of item2) {
               item2CommentCount += answerInItem2.comment_count
             }
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1CommentCount - item2CommentCount
             } else {
               return item2CommentCount - item1CommentCount
@@ -214,7 +217,7 @@ class GenerateCustomer extends Base {
           articleList.sort((item1, item2) => {
             let item1CommentCount = item1.comment_count
             let item2CommentCount = item2.comment_count
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1CommentCount - item2CommentCount
             } else {
               return item2CommentCount - item1CommentCount
@@ -223,7 +226,7 @@ class GenerateCustomer extends Base {
           pinList.sort((item1, item2) => {
             let item1CommentCount = item1.comment_count
             let item2CommentCount = item2.comment_count
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1CommentCount - item2CommentCount
             } else {
               return item2CommentCount - item1CommentCount
@@ -233,7 +236,7 @@ class GenerateCustomer extends Base {
         case 'createAt':
           for (let answerList of questionList) {
             answerList.sort((item1, item2) => {
-              if (orderByConfig.order === 'asc') {
+              if (orderByConfig.orderWith === 'asc') {
                 return item1.created_time - item2.created_time
               } else {
                 return item2.created_time - item1.created_time
@@ -264,21 +267,21 @@ class GenerateCustomer extends Base {
                 item2MinCreateAt = answerInItem2.created_time
               }
             }
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1MinCreateAt - item2MinCreateAt
             } else {
               return item1MaxCreateAt - item2MaxCreateAt
             }
           })
           articleList.sort((item1, item2) => {
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1.created - item2.created
             } else {
               return item2.created - item1.created
             }
           })
           pinList.sort((item1, item2) => {
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1.created - item2.created
             } else {
               return item2.created - item1.created
@@ -288,7 +291,7 @@ class GenerateCustomer extends Base {
         case 'updateAt':
           for (let answerList of questionList) {
             answerList.sort((item1, item2) => {
-              if (orderByConfig.order === 'asc') {
+              if (orderByConfig.orderWith === 'asc') {
                 return item1.updated_time - item2.updated_time
               } else {
                 return item2.updated_time - item1.updated_time
@@ -319,21 +322,21 @@ class GenerateCustomer extends Base {
                 item2MinUpdateAt = answerInItem2.updated_time
               }
             }
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1MinUpdateAt - item2MinUpdateAt
             } else {
               return item1MaxUpdateAt - item2MaxUpdateAt
             }
           })
           articleList.sort((item1, item2) => {
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1.updated - item2.updated
             } else {
               return item2.updated - item1.updated
             }
           })
           pinList.sort((item1, item2) => {
-            if (orderByConfig.order === 'asc') {
+            if (orderByConfig.orderWith === 'asc') {
               return item1.updated - item2.updated
             } else {
               return item2.updated - item1.updated
@@ -442,11 +445,10 @@ class GenerateCustomer extends Base {
     // 根据生成类型, 制定最终结果数据集
 
     // 最终电子书数据列表
-    let unitPackageList: Types.Type_Unit_Item[] = []
-    let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
-      type: Const_TaskConfig.Const_Task_Type_混合类型,
+    let unitPackageList: Package.Type_Unit_Item[] = []
+    let mixUnitPackage = new Package.Unit_混合类型({
       pageList: [],
-    }
+    })
     for (let fetchTask of fetchTaskList) {
       let unitPackage = await this.asyncGetUintPackageByFetchTask(fetchTask)
       if (unitPackage === undefined) {
@@ -457,7 +459,9 @@ class GenerateCustomer extends Base {
       // 混合类型需要单独处理
       if (unitPackage.type === Const_TaskConfig.Const_Task_Type_混合类型) {
         // 所有混合类型合并为一本电子书
-        mixUnitPackage.pageList = [...mixUnitPackage.pageList, ...unitPackage.pageList]
+        for (let page of unitPackage.pageList) {
+          mixUnitPackage.add(page)
+        }
       } else {
         unitPackageList.push(unitPackage)
       }
@@ -465,199 +469,6 @@ class GenerateCustomer extends Base {
     // 如果有混合类型任务, 合并后作为最后一项加在最后
     if (mixUnitPackage.pageList.length > 0) {
       unitPackageList.push(mixUnitPackage)
-    }
-
-    // 工具函数, 用于获取元素的排序属性
-    function getPageItemProperty({
-      pageItem,
-      orderWith,
-    }: {
-      pageItem: Types.Type_Page_Item
-      orderWith: TypeTaskConfig.Type_Order_With
-    }) {
-      switch (pageItem.type) {
-        case Consts.Const_Type_Article:
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
-              return pageItem?.first_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
-              return pageItem?.last_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return pageItem?.recordList?.[0]?.created ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return pageItem?.recordList?.[0]?.updated ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return pageItem?.recordList?.[0]?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return pageItem?.recordList?.[0]?.voteup_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        case Consts.Const_Type_Pin:
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
-              return pageItem?.first_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
-              return pageItem?.last_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return pageItem?.recordList?.[0]?.created ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return pageItem?.recordList?.[0]?.updated ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return pageItem?.recordList?.[0]?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return pageItem?.recordList?.[0]?.like_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        case Consts.Const_Type_Question:
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_记录加入时间_首次值:
-              return pageItem?.first_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_记录加入时间_末次值:
-              return pageItem?.last_action_at ?? 0
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return pageItem?.recordList?.[0]?.created_time ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return pageItem?.recordList?.[0]?.updated_time ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return pageItem?.recordList?.[0]?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return pageItem?.recordList?.[0]?.voteup_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        default:
-          return 0
-      }
-    }
-
-    // 工具函数, 用于获取元素的排序属性
-    function getRecordItemProperty({
-      recordItem,
-      itemType,
-      orderWith,
-    }: {
-      recordItem: Types.Type_Record_Item
-      itemType: Types.Type_Item_Type
-      orderWith: TypeTaskConfig.Type_Order_With
-    }) {
-      switch (itemType) {
-        case Consts.Const_Type_Article: {
-          let item = recordItem as Types.Type_Article_Record
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return item.created ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return item?.updated ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return item?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return item?.voteup_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        }
-        case Consts.Const_Type_Pin: {
-          let item = recordItem as Types.Type_Pin_Record
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return item?.created ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return item?.updated ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return item?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return item?.like_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        }
-        case Consts.Const_Type_Question: {
-          let item = recordItem as Types.Type_Answer_Record
-          switch (orderWith) {
-            case Const_TaskConfig.Const_Order_With_创建时间:
-              return item?.created_time ?? 0
-            case Const_TaskConfig.Const_Order_With_更新时间:
-              return item?.updated_time ?? 0
-            case Const_TaskConfig.Const_Order_With_评论数:
-              return item?.comment_count ?? 0
-            case Const_TaskConfig.Const_Order_With_赞同数:
-              return item?.voteup_count ?? 0
-            case Const_TaskConfig.Const_Order_With_不排序:
-              return 0
-            default:
-              return 0
-          }
-        }
-      }
-    }
-
-    function pageListSorter<T extends Types.Type_Page_Item>({
-      itemA,
-      itemB,
-      orderWith,
-      orderBy,
-    }: {
-      itemA: T
-      itemB: T
-      orderWith: TypeTaskConfig.Type_Order_With
-      orderBy: TypeTaskConfig.Type_Order_By
-    }) {
-      let aProperty = getPageItemProperty({
-        pageItem: itemA,
-        orderWith,
-      })
-      let bProperty = getPageItemProperty({
-        pageItem: itemB,
-        orderWith,
-      })
-      if (orderBy === Const_TaskConfig.Const_Order_By_Asc) {
-        return aProperty - bProperty
-      } else {
-        return bProperty - aProperty
-      }
-    }
-
-    // 对page内本身元素进行排序
-    function pageItemSorter<T extends Types.Type_Record_Item>({
-      itemA,
-      itemB,
-      itemType,
-      orderWith,
-      orderBy,
-    }: {
-      itemA: T
-      itemB: T
-      itemType: Types.Type_Item_Type
-      orderWith: TypeTaskConfig.Type_Order_With
-      orderBy: TypeTaskConfig.Type_Order_By
-    }) {
-      let aProperty = getRecordItemProperty({
-        recordItem: itemA,
-        itemType,
-        orderWith,
-      })
-      let bProperty = getRecordItemProperty({
-        recordItem: itemB,
-        itemType,
-        orderWith,
-      })
-      if (orderBy === Const_TaskConfig.Const_Order_By_Asc) {
-        return aProperty - bProperty
-      } else {
-        return bProperty - aProperty
-      }
     }
 
     // 对数据进行排序
@@ -672,13 +483,12 @@ class GenerateCustomer extends Base {
           // 打乱重排的话需要先将数据进行合并
 
           // 先将所有数据混合起来
-          let mixUnitPackage: Types.Type_Unit_Item_混合类型 = {
-            type: Const_TaskConfig.Const_Task_Type_混合类型,
+          let mixUnitPackage = new Package.Unit_混合类型({
             pageList: [],
-          }
+          })
           for (let unitPackage of unitPackageList) {
             for (let page of unitPackage.pageList) {
-              mixUnitPackage.pageList.push(page)
+              mixUnitPackage.add(page)
             }
           }
           unitPackageList = [mixUnitPackage]
@@ -688,33 +498,16 @@ class GenerateCustomer extends Base {
     // 然后排序
     for (let unitPackage of unitPackageList) {
       for (let orderConfig of reversedOrderByList) {
-        // 首先对page中的每一个元素进行排列
-        unitPackage.pageList.forEach((item) => {
-          item.recordList.sort((a, b) => {
-            return pageItemSorter({
-              itemA: a,
-              itemB: b,
-              itemType: item.type,
-              orderBy: orderConfig.orderBy,
-              orderWith: orderConfig.order,
-            })
-          })
+        // 直接调用每个单元中的sort方法即可
+        unitPackage.sortPageList({
+          orderBy: orderConfig.orderBy,
+          orderWith: orderConfig.orderWith,
         })
-
-        // 然后再对page进行排列
-        unitPackage.pageList.sort((itemA, itemB) =>
-          pageListSorter({
-            itemA,
-            itemB,
-            orderBy: orderConfig.orderBy,
-            orderWith: orderConfig.order,
-          }),
-        )
       }
     }
 
     // 对数据进行分卷
-    let epubRecordList: Types.Type_Ebook_Column_Item[] = []
+    let epubRecordList: Package.Ebook_Column[] = []
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
         for (let unitPackage of unitPackageList) {
@@ -742,6 +535,7 @@ class GenerateCustomer extends Base {
         }
         break
     }
+    return epubRecordList
   }
 
   /**
@@ -750,8 +544,8 @@ class GenerateCustomer extends Base {
    */
   async asyncGetUintPackageByFetchTask(
     taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item,
-  ): Promise<Types.Type_Unit_Item | undefined> {
-    let unitPackage: Types.Type_Unit_Item
+  ): Promise<Package.Type_Unit_Item | undefined> {
+    let unitPackage: Package.Type_Unit_Item
     let targetId = taskConfig.id
     switch (taskConfig.type) {
       case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
@@ -770,7 +564,7 @@ class GenerateCustomer extends Base {
           return
         }
         let userName = `${authorInfo.name}(${targetId})`
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         // 根据任务类别, 收集具体数据
         switch (taskConfig.type) {
           case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
@@ -787,12 +581,14 @@ class GenerateCustomer extends Base {
                   continue
                 }
                 let questionInfo = answerListInAuthorAskQuestion[0]?.question
-                let page: Types.Type_Page_Question_Item = {
+                let page = new Package.Page_Question({
                   baseInfo: questionInfo,
-                  recordList: answerListInAuthorAskQuestion,
-                  type: Consts.Const_Type_Question,
-                  first_action_at: 0,
-                  last_action_at: 0,
+                })
+                for (let record of answerListInAuthorAskQuestion) {
+                  page.add({
+                    actionAt: 0,
+                    record,
+                  })
                 }
                 pageList.push(page)
               }
@@ -805,13 +601,13 @@ class GenerateCustomer extends Base {
               this.log(`获取用户${userName}所有回答过的答案`)
               let answerListInAuthorHasAnswer = await MAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
               for (let item of answerListInAuthorHasAnswer) {
-                let page: Types.Type_Page_Question_Item = {
+                let page = new Package.Page_Question({
                   baseInfo: item.question,
-                  recordList: [item],
-                  type: Consts.Const_Type_Question,
-                  first_action_at: 0,
-                  last_action_at: 0,
-                }
+                })
+                page.add({
+                  actionAt: 0,
+                  record: item,
+                })
                 pageList.push(page)
               }
             }
@@ -821,12 +617,11 @@ class GenerateCustomer extends Base {
               this.log(`获取用户${userName}所有发表过的想法`)
               let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
               for (let item of pinListByAuthorPost) {
-                let page: Types.Type_Page_Pin_Item = {
-                  recordList: [item],
-                  type: Consts.Const_Type_Pin,
-                  first_action_at: 0,
-                  last_action_at: 0,
-                }
+                let page = new Package.Page_Pin()
+                page.add({
+                  actionAt: 0,
+                  record: item,
+                })
                 pageList.push(page)
               }
             }
@@ -836,12 +631,11 @@ class GenerateCustomer extends Base {
               this.log(`获取用户${userName}发表过的所有文章`)
               let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
               for (let item of articleListByAuthor) {
-                let page: Types.Type_Page_Article_Item = {
-                  recordList: [item],
-                  type: Consts.Const_Type_Article,
-                  first_action_at: 0,
-                  last_action_at: 0,
-                }
+                let page = new Package.Page_Article()
+                page.add({
+                  actionAt: 0,
+                  record: item,
+                })
                 pageList.push(page)
               }
             }
@@ -859,12 +653,11 @@ class GenerateCustomer extends Base {
                 articleIdListInAuthorAgreeArticle,
               )
               for (let item of articleListInAuthorAgreeArticle) {
-                let page: Types.Type_Page_Article_Item = {
-                  recordList: [item],
-                  type: Consts.Const_Type_Article,
-                  first_action_at: 0,
-                  last_action_at: 0,
-                }
+                let page = new Package.Page_Article()
+                page.add({
+                  actionAt: 0,
+                  record: item,
+                })
                 pageList.push(page)
               }
             }
@@ -872,21 +665,19 @@ class GenerateCustomer extends Base {
           case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
             {
               this.log(`获取用户${userName}赞同过的所有回答id`)
-              let answerIdListInAuthorAgreeAnswer = await MActivity.asyncGetAllActivityTargetIdList(
-                targetId,
-                MActivity.VERB_ANSWER_VOTE_UP,
-              )
+              let actionRecordMap = await MActivity.asyncGetAllActionRecordMap(targetId, MActivity.VERB_ANSWER_VOTE_UP)
               this.log(`用户${userName}赞同过的所有回答id获取完毕`)
               this.log(`获取用户${userName}赞同过的所有回答`)
-              let answerListInAuthorAgreeAnswer = await MAnswer.asyncGetAnswerList(answerIdListInAuthorAgreeAnswer)
+              let answerListInAuthorAgreeAnswer = await MAnswer.asyncGetAnswerList(Object.keys(actionRecordMap))
               for (let item of answerListInAuthorAgreeAnswer) {
-                let page: Types.Type_Page_Question_Item = {
-                  recordList: [item],
+                let page = new Package.Page_Question({
                   baseInfo: item.question,
-                  type: Consts.Const_Type_Question,
-                  first_action_at: 0,
-                  last_action_at: 0,
-                }
+                })
+                let actionAt = actionRecordMap?.[item.id] ?? 0
+                page.add({
+                  actionAt: actionAt,
+                  record: item,
+                })
                 pageList.push(page)
               }
             }
@@ -894,12 +685,10 @@ class GenerateCustomer extends Base {
           case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
             {
               this.log(`获取用户${userName}关注过的所有问题id`)
-              let questionIdListInAuthorWatchQuestion = await MActivity.asyncGetAllActivityTargetIdList(
-                targetId,
-                MActivity.VERB_QUESTION_FOLLOW,
-              )
+              let actionRecordMap = await MActivity.asyncGetAllActionRecordMap(targetId, MActivity.VERB_QUESTION_FOLLOW)
               this.log(`用户${userName}关注过的所有问题id获取完毕`)
               this.log(`开始获取用户${userName}关注过的所有问题下的回答列表`)
+              let questionIdListInAuthorWatchQuestion = Object.keys(actionRecordMap)
               for (let questionId of questionIdListInAuthorWatchQuestion) {
                 let answerListInAuthorAskQuestion = await MAnswer.asyncGetAnswerListByQuestionIdList([questionId])
                 // 问题下没有回答, 则略过问题展示(这样可以将回答相关数据源都收拢到 Answer 表中, 不需要来回更新数据)
@@ -908,12 +697,16 @@ class GenerateCustomer extends Base {
                   continue
                 }
                 let questionInfo = answerListInAuthorAskQuestion[0]?.question
-                let page: Types.Type_Page_Question_Item = {
+
+                let page = new Package.Page_Question({
                   baseInfo: questionInfo,
-                  recordList: answerListInAuthorAskQuestion,
-                  type: Consts.Const_Type_Question,
-                  first_action_at: 0,
-                  last_action_at: 0,
+                })
+                let actionAt = actionRecordMap?.[questionId] ?? 0
+                for (let answer of answerListInAuthorAskQuestion) {
+                  page.add({
+                    actionAt: actionAt,
+                    record: answer,
+                  })
                 }
                 pageList.push(page)
               }
@@ -922,11 +715,11 @@ class GenerateCustomer extends Base {
         }
         this.log(`用户${userName}数据获取完毕`)
         // 填充单元对象
-        unitPackage = {
+        unitPackage = new Package.Unit_用户({
           info: authorInfo,
           type: taskConfig.type,
           pageList: pageList,
-        }
+        })
         return unitPackage
       }
       case Const_TaskConfig.Const_Task_Type_话题: {
@@ -941,27 +734,26 @@ class GenerateCustomer extends Base {
         let answerIdListInTopic = await MTopic.asyncGetAnswerIdList(targetId)
         this.log(`话题${topicName}下精华回答id列表获取完毕`)
         this.log(`获取话题${topicName}下精华回答列表`)
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         for (let answerId of answerIdListInTopic) {
           let answerRecord = await MAnswer.asyncGetAnswer(answerId)
           if (lodash.isEmpty(answerRecord)) {
             continue
           }
-          let page: Types.Type_Page_Question_Item = {
+          let page = new Package.Page_Question({
             baseInfo: answerRecord.question,
-            recordList: [answerRecord],
-            type: Consts.Const_Type_Question,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
+          })
+          page.add({
+            actionAt: 0,
+            record: answerRecord,
+          })
           pageList.push(page)
         }
         // 填充单元对象
-        unitPackage = {
+        unitPackage = new Package.Unit_话题({
           info: topicInfo,
-          type: taskConfig.type,
           pageList: pageList,
-        }
+        })
         this.log(`话题${topicName}下精华回答列表获取完毕`)
         return unitPackage
       }
@@ -975,10 +767,9 @@ class GenerateCustomer extends Base {
         let columnName = `${columnInfo.title}(${targetId})`
         this.log(`获取收藏夹${columnName}下所有收藏`)
         let recordList = await MCollection.asyncGetCollectionRecordList(targetId)
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         // 如果收藏夹中有重复元素, 则合并之
-        let questionPageMap: Map<TypeAnswer.Question['id'], Types.Type_Page_Question_Item> = new Map()
-        // @todo 这里可以考虑对收藏元素进行排序
+        let questionPageMap: Map<TypeAnswer.Question['id'], Package.Page_Question> = new Map()
         for (let record of recordList) {
           switch (record.record_type) {
             case MCollection.Const_Record_Type_回答:
@@ -987,24 +778,24 @@ class GenerateCustomer extends Base {
                 if (lodash.isEmpty(answer)) {
                   continue
                 }
-                // 先不考虑合并问题
-                let page: Types.Type_Page_Question_Item = {
+                let page = new Package.Page_Question({
                   baseInfo: answer.question,
-                  recordList: [answer],
-                  type: Consts.Const_Type_Question,
-                  first_action_at: record.record_at,
-                  last_action_at: record.record_at,
-                }
+                })
+                page.add({
+                  actionAt: record.record_at,
+                  record: answer,
+                })
                 if (questionPageMap.has(answer.question.id) === false) {
                   // 将page元素保留在map列表中, 方便合并收藏夹中的元素
                   questionPageMap.set(answer.question.id, page)
                   pageList.push(page)
                 } else {
                   // 之前已经有过page元素, 则不需要新建元素, 直接复用即可
-                  page = questionPageMap.get(answer.question.id) as Types.Type_Page_Question_Item
-                  page.recordList.push(answer)
-                  page.first_action_at = Math.min(page.first_action_at, record.record_at)
-                  page.last_action_at = Math.max(page.last_action_at, record.record_at)
+                  page = questionPageMap.get(answer.question.id) as Package.Page_Question
+                  page.add({
+                    actionAt: record.record_at,
+                    record: answer,
+                  })
                 }
               }
               break
@@ -1014,12 +805,11 @@ class GenerateCustomer extends Base {
                 if (lodash.isEmpty(pin)) {
                   continue
                 }
-                let page: Types.Type_Page_Pin_Item = {
-                  recordList: [pin],
-                  type: Consts.Const_Type_Pin,
-                  first_action_at: record.record_at,
-                  last_action_at: record.record_at,
-                }
+                let page = new Package.Page_Pin()
+                page.add({
+                  actionAt: record.record_at,
+                  record: pin,
+                })
                 pageList.push(page)
               }
               break
@@ -1029,12 +819,11 @@ class GenerateCustomer extends Base {
                 if (lodash.isEmpty(article)) {
                   continue
                 }
-                let page: Types.Type_Page_Article_Item = {
-                  recordList: [article],
-                  type: Consts.Const_Type_Article,
-                  first_action_at: record.record_at,
-                  last_action_at: record.record_at,
-                }
+                let page = new Package.Page_Article()
+                page.add({
+                  actionAt: record.record_at,
+                  record: article,
+                })
                 pageList.push(page)
               }
               break
@@ -1043,11 +832,10 @@ class GenerateCustomer extends Base {
           }
         }
         // 填充单元对象
-        unitPackage = {
+        unitPackage = new Package.Unit_收藏夹({
           info: columnInfo,
-          type: taskConfig.type,
           pageList: pageList,
-        }
+        })
         this.log(`收藏夹${columnName}下收藏元素列表获取完毕`)
         return unitPackage
       }
@@ -1061,25 +849,23 @@ class GenerateCustomer extends Base {
         let columnName = `${columnInfo.title}(${targetId})`
         this.log(`获取专栏${columnName}下所有文章`)
         let articleListInColumn = await MArticle.asyncGetArticleListByColumnId(targetId)
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         for (let item of articleListInColumn) {
           if (lodash.isEmpty(item)) {
             continue
           }
-          let page: Types.Type_Page_Article_Item = {
-            recordList: [item],
-            type: Consts.Const_Type_Article,
-            first_action_at: 0,
-            last_action_at: 0,
-          }
+          let page = new Package.Page_Article()
+          page.add({
+            record: item,
+            actionAt: 0,
+          })
           pageList.push(page)
         }
         // 填充单元对象
-        unitPackage = {
+        unitPackage = new Package.Unit_专栏({
           info: columnInfo,
-          type: taskConfig.type,
           pageList: pageList,
-        }
+        })
         this.log(`专栏${columnName}下文章获取完毕`)
         return unitPackage
       }
@@ -1090,20 +876,18 @@ class GenerateCustomer extends Base {
           this.log(`文章${targetId}获取失败, 自动跳过`)
           return
         }
-        let pageList: Types.Type_Page_Item[] = []
-
-        let page: Types.Type_Page_Article_Item = {
-          recordList: [singleArticle],
-          type: Consts.Const_Type_Article,
-          first_action_at: 0,
-          last_action_at: 0,
-        }
+        let pageList: Package.Type_Page_Item[] = []
+        let page = new Package.Page_Article()
+        page.add({
+          record: singleArticle,
+          actionAt: 0,
+        })
         pageList.push(page)
+
         // 填充单元对象
-        unitPackage = {
-          type: Const_TaskConfig.Const_Task_Type_混合类型,
-          pageList: pageList,
-        }
+        unitPackage = new Package.Unit_混合类型({
+          pageList,
+        })
         this.log(`文章${targetId}获取完毕`)
         return unitPackage
       }
@@ -1114,21 +898,22 @@ class GenerateCustomer extends Base {
           this.log(`问题${targetId}获取失败, 自动跳过`)
           return
         }
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         let questionInfo = answerListInQuestion[0]?.question
-        let page: Types.Type_Page_Question_Item = {
+        let page = new Package.Page_Question({
           baseInfo: questionInfo,
-          recordList: answerListInQuestion,
-          type: Consts.Const_Type_Question,
-          first_action_at: 0,
-          last_action_at: 0,
+        })
+        for (let answer of answerListInQuestion) {
+          page.add({
+            record: answer,
+            actionAt: 0,
+          })
         }
         pageList.push(page)
         // 填充单元对象
-        unitPackage = {
-          type: Const_TaskConfig.Const_Task_Type_混合类型,
-          pageList: pageList,
-        }
+        unitPackage = new Package.Unit_混合类型({
+          pageList,
+        })
         this.log(`问题${targetId}下的回答列表获取完毕`)
         return unitPackage
       }
@@ -1139,21 +924,20 @@ class GenerateCustomer extends Base {
           this.log(`回答${targetId}获取失败, 自动跳过`)
           return
         }
-        let pageList: Types.Type_Page_Item[] = []
+        let pageList: Package.Type_Page_Item[] = []
         let questionInfo = singleAnswer?.question
-        let page: Types.Type_Page_Question_Item = {
+        let page = new Package.Page_Question({
           baseInfo: questionInfo,
-          recordList: [singleAnswer],
-          type: Consts.Const_Type_Question,
-          first_action_at: 0,
-          last_action_at: 0,
-        }
+        })
+        page.add({
+          record: singleAnswer,
+          actionAt: 0,
+        })
         pageList.push(page)
         // 填充单元对象
-        unitPackage = {
-          type: Const_TaskConfig.Const_Task_Type_混合类型,
-          pageList: pageList,
-        }
+        unitPackage = new Package.Unit_混合类型({
+          pageList,
+        })
         this.log(`回答${targetId}获取完毕`)
         return unitPackage
       }
@@ -1164,19 +948,18 @@ class GenerateCustomer extends Base {
           this.log(`想法${targetId}获取失败, 自动跳过`)
           return
         }
-        let pageList: Types.Type_Page_Item[] = []
-        let page: Types.Type_Page_Pin_Item = {
-          recordList: [singlePin],
-          type: Consts.Const_Type_Pin,
-          first_action_at: 0,
-          last_action_at: 0,
-        }
+        let pageList: Package.Type_Page_Item[] = []
+
+        let page = new Package.Page_Pin()
+        page.add({
+          record: singlePin,
+          actionAt: 0,
+        })
         pageList.push(page)
         // 填充单元对象
-        unitPackage = {
-          type: Const_TaskConfig.Const_Task_Type_混合类型,
-          pageList: pageList,
-        }
+        unitPackage = new Package.Unit_混合类型({
+          pageList,
+        })
         this.log(`想法${targetId}获取完毕`)
         return unitPackage
       }
@@ -1190,7 +973,7 @@ class GenerateCustomer extends Base {
    * @param unitItem
    * @returns
    */
-  generateColumnTitle(unitItem: Types.Type_Unit_Item) {
+  generateColumnTitle(unitItem: Package.Type_Unit_Item) {
     let bookTitle = ''
     switch (unitItem.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
@@ -1257,13 +1040,13 @@ class GenerateCustomer extends Base {
     booktitle,
     generateConfig,
   }: {
-    unitItemList: Types.Type_Unit_Item[]
+    unitItemList: Package.Type_Unit_Item[]
     /**
      * 基础标题名
      */
     booktitle: string
     generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
-  }): Types.Type_Ebook_Column_Item[] {
+  }): Package.Ebook_Column[] {
     let totalPageCount = 0
     for (let unitItem of unitItemList) {
       totalPageCount = totalPageCount + unitItem.pageList.length
@@ -1273,31 +1056,31 @@ class GenerateCustomer extends Base {
     if (totalColumnCount <= 1) {
       // 不需要分卷
       return [
-        {
+        new Package.Ebook_Column({
           bookname: booktitle,
           unitList: [...unitItemList],
-        },
+        }),
       ]
     }
 
     // 解除引用
     let processUnitList = [...unitItemList]
-    let epubItemList: Types.Type_Ebook_Column_Item[] = []
+    let epubItemList: Package.Ebook_Column[] = []
     for (let currentBookColumnIndex = 1; processUnitList.length > 0; currentBookColumnIndex++) {
       // 总卷数确定, 从前往后加即可
       let bookname = `${booktitle}_${currentBookColumnIndex}/${totalColumnCount}卷`
 
-      let currentUnitList: Types.Type_Unit_Item[] = []
+      let currentUnitList: Package.Type_Unit_Item[] = []
       let currentPageCount = 0
       // 取出第一个unit
-      let nextUnit = processUnitList.shift() as Types.Type_Unit_Item
+      let nextUnit = processUnitList.shift() as Package.Type_Unit_Item
       if (nextUnit === undefined) {
         continue
       }
 
       while (currentPageCount + nextUnit.pageList.length < generateConfig.maxQuestionOrArticleInBook) {
         currentUnitList.push(nextUnit)
-        nextUnit = processUnitList.shift() as Types.Type_Unit_Item
+        nextUnit = processUnitList.shift() as Package.Type_Unit_Item
         if (nextUnit === undefined) {
           break
         }
@@ -1306,28 +1089,86 @@ class GenerateCustomer extends Base {
       // 若nextUnit为undefined, 说明所有数据均已取出, 可以正常构建epub代码
       // 若不为undefined, 说明currentPageCount + nextUnit的值超过了阈值, 需要对nextUnit进行拆分
       if (nextUnit === undefined) {
-        let epubItem: Types.Type_Ebook_Column_Item = {
+        let epubItem = new Package.Ebook_Column({
           bookname: bookname,
           unitList: currentUnitList,
-        }
+        })
         epubItemList.push(epubItem)
       } else {
         // 对unit进行拆分
-
-        let legalUnit: Types.Type_Unit_Item = {
-          ...nextUnit,
-          pageList: [...nextUnit.pageList.slice(0, generateConfig.maxQuestionOrArticleInBook - currentPageCount)],
+        let legalUnit: Package.Type_Unit_Item = lodash.cloneDeep(nextUnit)
+        let remainUnit: Package.Type_Unit_Item = lodash.cloneDeep(nextUnit)
+        switch (nextUnit.type) {
+          case Const_TaskConfig.Const_Task_Type_专栏:
+            legalUnit = new Package.Unit_专栏({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            remainUnit = new Package.Unit_专栏({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            break
+          case Const_TaskConfig.Const_Task_Type_收藏夹:
+            legalUnit = new Package.Unit_收藏夹({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            remainUnit = new Package.Unit_收藏夹({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            break
+          case Const_TaskConfig.Const_Task_Type_话题:
+            legalUnit = new Package.Unit_话题({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            remainUnit = new Package.Unit_话题({
+              info: nextUnit.info,
+              pageList: [],
+            })
+            break
+          case Const_TaskConfig.Const_Task_Type_混合类型:
+            legalUnit = new Package.Unit_混合类型({
+              pageList: [],
+            })
+            remainUnit = new Package.Unit_混合类型({
+              pageList: [],
+            })
+            break
+          default: {
+            legalUnit = new Package.Unit_用户({
+              info: nextUnit.info,
+              pageList: [],
+              type: nextUnit.type,
+            })
+            remainUnit = new Package.Unit_用户({
+              info: nextUnit.info,
+              pageList: [],
+              type: nextUnit.type,
+            })
+          }
+        }
+        let legalPageList = [
+          ...nextUnit.pageList.slice(0, generateConfig.maxQuestionOrArticleInBook - currentPageCount),
+        ]
+        for (let page of legalPageList) {
+          legalUnit.add(page)
         }
         currentUnitList.push(legalUnit)
-        let epubItem: Types.Type_Ebook_Column_Item = {
+        let epubItem = new Package.Ebook_Column({
           bookname: bookname,
           unitList: currentUnitList,
-        }
+        })
         epubItemList.push(epubItem)
 
+        let remainPageList = [...nextUnit.pageList.slice(generateConfig.maxQuestionOrArticleInBook - currentPageCount)]
         // 溢出部分重新放回待处理列表
-        nextUnit.pageList = [...nextUnit.pageList.slice(generateConfig.maxQuestionOrArticleInBook - currentPageCount)]
-        processUnitList.unshift(nextUnit)
+        for (let page of remainPageList) {
+          remainUnit.add(page)
+        }
+        processUnitList.unshift(remainUnit)
       }
     }
 
