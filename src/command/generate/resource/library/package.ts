@@ -107,6 +107,9 @@ export class Page_Question implements Interface_Base_Page_Item {
     orderWith: Types_Task_Config.Type_Order_With
   }): number {
     switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+      case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+        return item?.actionAt ?? 0
       case Consts_Task_Config.Const_Order_With_创建时间:
         return item?.record?.created_time ?? 0
       case Consts_Task_Config.Const_Order_With_更新时间:
@@ -156,6 +159,9 @@ export class Page_Article implements Interface_Base_Page_Item {
     orderWith: Types_Task_Config.Type_Order_With
   }): number {
     switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+      case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+        return item?.actionAt ?? 0
       case Consts_Task_Config.Const_Order_With_创建时间:
         return item?.record?.created ?? 0
       case Consts_Task_Config.Const_Order_With_更新时间:
@@ -206,6 +212,9 @@ export class Page_Pin implements Interface_Base_Page_Item {
     orderWith: Types_Task_Config.Type_Order_With
   }): number {
     switch (orderWith) {
+      case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+      case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+        return item?.actionAt ?? 0
       case Consts_Task_Config.Const_Order_With_创建时间:
         return item?.record?.created ?? 0
       case Consts_Task_Config.Const_Order_With_更新时间:
@@ -241,46 +250,200 @@ export class Page_Pin implements Interface_Base_Page_Item {
 }
 
 // 实际的item元素-对应每一页的内容
-export type Type_Page_Item = typeof Page_Question | typeof Page_Pin | typeof Page_Article
+export type Type_Page_Item = Page_Question | Page_Pin | Page_Article
 type Type_Unit_Info = Type_Collection.Info | Type_Topic.Info | Type_Column.Record | Type_Author.Record | undefined
 
 interface Interface_Unit_Base {
   pageList: Type_Page_Item[]
   info: Type_Unit_Info
+
+  /**
+   * 添加页面
+   * @param page
+   */
+  add(page: Type_Page_Item): void
+
+  /**
+   * 对元素进行排序
+   * @param record
+   */
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
+  }): void
+
+  /**
+   * 获取用于排序的属性
+   * @param param0
+   */
+  getOrderProperty({ item, orderWith }: { item: Type_Page_Item; orderWith: Types_Task_Config.Type_Order_With }): number
 }
 
-class Unit_Base {}
+class Unit_Base {
+  pageList: Type_Page_Item[] = []
 
-export class Unit_收藏夹 implements Interface_Unit_Base {
+  add(page: Type_Page_Item) {
+    this.pageList.push(page)
+  }
+
+  getOrderProperty({
+    item,
+    orderWith,
+  }: {
+    item: Type_Page_Item
+    orderWith: Types_Task_Config.Type_Order_With
+  }): number {
+    let pageItem = item
+    switch (pageItem.type) {
+      case Consts.Const_Type_Article:
+        switch (orderWith) {
+          case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+            return pageItem?.recordList?.[0]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+            return pageItem?.recordList?.[pageItem?.recordList.length - 1]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_创建时间:
+            return pageItem?.recordList?.[0]?.record?.created ?? 0
+          case Consts_Task_Config.Const_Order_With_更新时间:
+            return pageItem?.recordList?.[0]?.record?.updated ?? 0
+          case Consts_Task_Config.Const_Order_With_评论数:
+            return pageItem?.recordList?.[0]?.record?.comment_count ?? 0
+          case Consts_Task_Config.Const_Order_With_赞同数:
+            return pageItem?.recordList?.[0]?.record?.voteup_count ?? 0
+          case Consts_Task_Config.Const_Order_With_不排序:
+            // ES2019起可以保证排序的稳定性
+            return 0
+          default:
+            return 0
+        }
+      case Consts.Const_Type_Pin:
+        switch (orderWith) {
+          case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+            return pageItem?.recordList?.[0]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+            return pageItem?.recordList?.[pageItem?.recordList.length - 1]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_创建时间:
+            return pageItem?.recordList?.[0]?.record?.created ?? 0
+          case Consts_Task_Config.Const_Order_With_更新时间:
+            return pageItem?.recordList?.[0]?.record?.updated ?? 0
+          case Consts_Task_Config.Const_Order_With_评论数:
+            return pageItem?.recordList?.[0]?.record?.comment_count ?? 0
+          case Consts_Task_Config.Const_Order_With_赞同数:
+            return pageItem?.recordList?.[0]?.record?.like_count ?? 0
+          case Consts_Task_Config.Const_Order_With_不排序:
+            return 0
+          default:
+            return 0
+        }
+      case Consts.Const_Type_Question:
+        switch (orderWith) {
+          case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+            return pageItem?.recordList?.[0]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_记录加入时间_末次值:
+            return pageItem?.recordList?.[pageItem?.recordList.length - 1]?.actionAt ?? 0
+          case Consts_Task_Config.Const_Order_With_创建时间:
+            return pageItem?.recordList?.[0]?.record?.created_time ?? 0
+          case Consts_Task_Config.Const_Order_With_更新时间:
+            return pageItem?.recordList?.[0]?.record?.updated_time ?? 0
+          case Consts_Task_Config.Const_Order_With_评论数:
+            return pageItem?.recordList?.[0]?.record?.comment_count ?? 0
+          case Consts_Task_Config.Const_Order_With_赞同数:
+            return pageItem?.recordList?.[0]?.record?.voteup_count ?? 0
+          case Consts_Task_Config.Const_Order_With_不排序:
+            return 0
+          default:
+            return 0
+        }
+      default:
+        return 0
+    }
+  }
+
+  sortRecordList({
+    orderWith,
+    orderBy,
+  }: {
+    orderWith: Types_Task_Config.Type_Order_With
+    orderBy: Types_Task_Config.Type_Order_By
+  }) {
+    let typeMap = {
+      [Consts.Const_Type_Question]: 3,
+      [Consts.Const_Type_Pin]: 2,
+      [Consts.Const_Type_Article]: 1,
+    }
+
+    this.pageList.sort((a, b) => {
+      let aProperty = 0
+      let bProperty = 0
+      if (a.type !== b.type) {
+        // 非类型页面, 无法比较
+        aProperty = typeMap[a.type]
+        bProperty = typeMap[b.type]
+        // 跨页面比较时, 除了三种特殊情况外, 总是按照问题/想法/文章的顺序进行展示
+        switch (orderWith) {
+          case Consts_Task_Config.Const_Order_With_不排序:
+            return 0
+          case Consts_Task_Config.Const_Order_With_记录加入时间_首次值:
+          case Consts_Task_Config.Const_Order_With_记录加入时间_末次值: {
+            let aProperty = this.getOrderProperty({ item: a, orderWith })
+            let bProperty = this.getOrderProperty({ item: b, orderWith })
+            if (orderBy === Consts_Task_Config.Const_Order_By_Asc) {
+              return aProperty - bProperty
+            } else {
+              return -(aProperty - bProperty)
+            }
+          }
+          default:
+            return aProperty - bProperty
+        }
+      } else {
+        aProperty = this.getOrderProperty({ item: a, orderWith })
+        bProperty = this.getOrderProperty({ item: b, orderWith })
+        if (orderBy === Consts_Task_Config.Const_Order_By_Asc) {
+          return aProperty - bProperty
+        } else {
+          return -(aProperty - bProperty)
+        }
+      }
+    })
+  }
+}
+
+export class Unit_收藏夹 extends Unit_Base implements Interface_Unit_Base {
   readonly type: Types_Task_Config.Type_Task_Type_收藏夹 = Consts_Task_Config.Const_Task_Type_收藏夹
   info: Type_Collection.Info
   pageList: Type_Page_Item[] = []
   constructor({ info, pageList }: { info: Type_Collection.Info; pageList: Type_Page_Item[] }) {
+    super()
     this.info = info
     this.pageList = pageList
   }
 }
 
-export class Unit_话题 implements Interface_Unit_Base {
+export class Unit_话题 extends Unit_Base implements Interface_Unit_Base {
   readonly type: Types_Task_Config.Type_Task_Type_话题 = Consts_Task_Config.Const_Task_Type_话题
   info: Type_Topic.Info
   pageList: Type_Page_Item[] = []
   constructor({ info, pageList }: { info: Type_Topic.Info; pageList: Type_Page_Item[] }) {
+    super()
     this.info = info
     this.pageList = pageList
   }
 }
 
-export class Unit_专栏 implements Interface_Unit_Base {
+export class Unit_专栏 extends Unit_Base implements Interface_Unit_Base {
   readonly type: Types_Task_Config.Type_Task_Type_专栏 = Consts_Task_Config.Const_Task_Type_专栏
   info: Type_Column.Record
   pageList: Type_Page_Item[] = []
   constructor({ info, pageList }: { info: Type_Column.Record; pageList: Type_Page_Item[] }) {
+    super()
     this.info = info
     this.pageList = pageList
   }
 }
-export class Unit_用户 implements Interface_Unit_Base {
+export class Unit_用户 extends Unit_Base implements Interface_Unit_Base {
   readonly type: Types_Task_Config.Type_Author_Collection_Type
   info: Type_Author.Record
   pageList: Type_Page_Item[] = []
@@ -293,17 +456,19 @@ export class Unit_用户 implements Interface_Unit_Base {
     info: Type_Author.Record
     pageList: Type_Page_Item[]
   }) {
+    super()
     this.type = type
     this.info = info
     this.pageList = pageList
   }
 }
 
-export class Unit_混合类型 implements Interface_Unit_Base {
+export class Unit_混合类型 extends Unit_Base implements Interface_Unit_Base {
   readonly type: Types_Task_Config.Type_Task_Type_混合类型 = Consts_Task_Config.Const_Task_Type_混合类型
   info = undefined
   pageList: Type_Page_Item[] = []
   constructor({ pageList }: { pageList: Type_Page_Item[] }) {
+    super()
     this.pageList = pageList
   }
 }
