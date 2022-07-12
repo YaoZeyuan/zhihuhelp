@@ -72,37 +72,36 @@ type Type_Page_Pin_Item = {
 // 实际的item元素-对应每一页的内容
 export type Type_Page_Item = Type_Page_Question_Item | Type_Page_Article_Item | Type_Page_Pin_Item
 
+type Type_Unit_Item_Base = {
+  pageList: Type_Page_Item[]
+}
+
 export type Type_Unit_Item_收藏夹 = {
   type: Types.Type_Task_Type_收藏夹
   info: Type_Collection.Info
-  pageList: Type_Page_Item[]
-}
+} & Type_Unit_Item_Base
 
 export type Type_Unit_Item_话题 = {
   type: Types.Type_Task_Type_话题
   info: Type_Topic.Info
-  pageList: Type_Page_Item[]
-}
+} & Type_Unit_Item_Base
 
 export type Type_Unit_Item_专栏 = {
   type: Types.Type_Task_Type_专栏
   info: Type_Column.Info
-  pageList: Type_Page_Item[]
-}
+} & Type_Unit_Item_Base
 
 export type Type_Unit_Item_用户 = {
   type: Types.Type_Author_Collection_Type
   info: Type_Author.Record
-  pageList: Type_Page_Item[]
-}
+} & Type_Unit_Item_Base
 
 /**
  * 混合类型, 用于收容非上述四种基本类型的数据(独立的回答/问题/想法/文章). 仅结集, 不提供单独的信息页
  */
 export type Type_Unit_Item_混合类型 = {
   type: Types.Type_Task_Type_混合类型
-  pageList: Type_Page_Item[]
-}
+} & Type_Unit_Item_Base
 
 /**
  * 单元类型
