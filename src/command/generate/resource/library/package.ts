@@ -2,7 +2,8 @@
 // 因此使用类实现效果更好
 
 import * as Consts from '../const/index'
-import * as Types from '~/src/type/task_config'
+import * as Types_Task_Config from '~/src/type/task_config'
+import * as Consts_Task_Config from '~/src/constant/task_config'
 
 import * as Type_Activity from '~/src/type/zhihu/activity'
 import * as Type_Answer from '~/src/type/zhihu/answer'
@@ -118,5 +119,101 @@ export class Page_Pin implements Interface_Base_Page_Item {
     }[]
   }) {
     this.recordList = recordList
+  }
+}
+
+// 实际的item元素-对应每一页的内容
+export type Type_Page_Item = typeof Page_Question | typeof Page_Pin | typeof Page_Article
+type Type_Unit_Info = Type_Collection.Info | Type_Topic.Info | Type_Column.Record | Type_Author.Record | undefined
+
+interface Interface_Unit_Base {
+  pageList: Type_Page_Item[]
+  info: Type_Unit_Info
+}
+
+class Unit_Base {}
+
+export class Unit_收藏夹 implements Interface_Unit_Base {
+  readonly type: Types_Task_Config.Type_Task_Type_收藏夹 = Consts_Task_Config.Const_Task_Type_收藏夹
+  info: Type_Collection.Info
+  pageList: Type_Page_Item[] = []
+  constructor({ info, pageList }: { info: Type_Collection.Info; pageList: Type_Page_Item[] }) {
+    this.info = info
+    this.pageList = pageList
+  }
+}
+
+export class Unit_话题 implements Interface_Unit_Base {
+  readonly type: Types_Task_Config.Type_Task_Type_话题 = Consts_Task_Config.Const_Task_Type_话题
+  info: Type_Topic.Info
+  pageList: Type_Page_Item[] = []
+  constructor({ info, pageList }: { info: Type_Topic.Info; pageList: Type_Page_Item[] }) {
+    this.info = info
+    this.pageList = pageList
+  }
+}
+
+export class Unit_专栏 implements Interface_Unit_Base {
+  readonly type: Types_Task_Config.Type_Task_Type_专栏 = Consts_Task_Config.Const_Task_Type_专栏
+  info: Type_Column.Record
+  pageList: Type_Page_Item[] = []
+  constructor({ info, pageList }: { info: Type_Column.Record; pageList: Type_Page_Item[] }) {
+    this.info = info
+    this.pageList = pageList
+  }
+}
+export class Unit_用户 implements Interface_Unit_Base {
+  readonly type: Types_Task_Config.Type_Author_Collection_Type
+  info: Type_Author.Record
+  pageList: Type_Page_Item[] = []
+  constructor({
+    info,
+    pageList,
+    type,
+  }: {
+    type: Types_Task_Config.Type_Author_Collection_Type
+    info: Type_Author.Record
+    pageList: Type_Page_Item[]
+  }) {
+    this.type = type
+    this.info = info
+    this.pageList = pageList
+  }
+}
+
+export class Unit_混合类型 implements Interface_Unit_Base {
+  readonly type: Types_Task_Config.Type_Task_Type_混合类型 = Consts_Task_Config.Const_Task_Type_混合类型
+  info = undefined
+  pageList: Type_Page_Item[] = []
+  constructor({ pageList }: { pageList: Type_Page_Item[] }) {
+    this.pageList = pageList
+  }
+}
+
+/**
+ * 单元类型
+ */
+export type Type_Unit_Item =
+  | typeof Unit_收藏夹
+  | typeof Unit_话题
+  | typeof Unit_专栏
+  | typeof Unit_用户
+  | typeof Unit_混合类型
+
+/**
+ * 电子书分卷信息
+ */
+export class Ebook_Column {
+  /**
+   * 电子书名
+   */
+  private bookname: string
+  /**
+   * 分卷信息
+   */
+  private unitList: Type_Unit_Item[]
+  constructor({ bookname, unitList }: { bookname: string; unitList: Type_Unit_Item[] }) {
+    this.bookname = bookname
+    this.unitList = unitList
   }
 }
