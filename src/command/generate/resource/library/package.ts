@@ -562,11 +562,11 @@ export class Ebook_Column {
   /**
    * 电子书名
    */
-  private bookname: string = ''
+  bookname: string = ''
   /**
    * 分卷信息
    */
-  private unitList: Type_Unit_Item[] = []
+  unitList: Type_Unit_Item[] = []
   constructor({ bookname, unitList }: { bookname: string; unitList: Type_Unit_Item[] }) {
     this.bookname = bookname
     this.unitList = unitList

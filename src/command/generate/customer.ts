@@ -2,7 +2,7 @@ import Base from '~/src/command/generate/base'
 import * as Types from './resource/type/index'
 import * as Consts from './resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
-import TypeTaskConfig from '~/src/type/task_config'
+import TypeTaskConfig, { Type_Task_Config } from '~/src/type/task_config'
 import TypeAnswer from '~/src/type/zhihu/answer'
 import * as TypePin from '~/src/type/zhihu/pin'
 import TypeArticle from '~/src/type/zhihu/article'
@@ -52,29 +52,17 @@ class GenerateCustomer extends Base {
     let fetchTaskList = customerTaskConfig.fetchTaskList
 
     // 生成类型
-    let generateType = generateConfig.generateType
-    let bookname = generateConfig.bookTitle
-    let comment = generateConfig.comment
     let imageQuilty = generateConfig.imageQuilty
-    let maxQuestionOrArticleInBook = generateConfig.maxQuestionOrArticleInBook
-    let orderByList = generateConfig.orderByList
 
     // 根据生成类型, 制定最终结果数据集
 
     // 最终电子书数据列表
-    let epubRecordList: Package.Ebook_Column[] = []
-    switch (generateType) {
-      case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
-        break
-      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
-        break
-      case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
-        break
-    }
 
     // 生成最终结果集
 
     // 按配置拆分电子书
+
+    let epubColumnList = await this.asyncGetColumnPackage({ fetchTaskList, generateConfig })
 
     // 针对每一个结果, 生成epub
 
@@ -82,363 +70,33 @@ class GenerateCustomer extends Base {
     // 下载图片
     // 输出内容
 
-    // 全部完成后打开文件夹
-
-    this.log(`开始输出自定义电子书, 共有${fetchTaskList.length}个任务`)
-    // 将任务中的数据按照问题/文章/想法进行汇总
-    let answerList: TypeAnswer.Record[] = []
-    let questionList: TypeAnswer.Record[][] = []
-    let articleList: TypeArticle.Record[] = []
-    let pinList: TypePin.Record[] = []
-
-    this.log(`将任务中的数据按照问题/文章/想法进行汇总`)
-    let taskIndex = 0
-    for (let taskConfig of fetchTaskList) {
-      taskIndex = taskIndex + 1
-      this.log(
-        `处理第${taskIndex}/${fetchTaskList.length}个任务, 任务类型:${taskConfig.type}, 任务备注:${taskConfig.comment}`,
-      )
-      let taskType = taskConfig.type
-      let targetId = `${taskConfig.id}`
-    }
-    // 将回答按照问题合并在一起
-    let uniqQuestionMap: {
-      [questionId: string]: {
-        [answerId: string]: TypeAnswer.Record
-      }
-    } = {}
-    for (let answer of answerList) {
-      if (uniqQuestionMap[answer.question.id]) {
-        uniqQuestionMap[answer.question.id][answer.id] = answer
-      } else {
-        uniqQuestionMap[answer.question.id] = {
-          [answer.id]: answer,
-        }
-      }
-    }
-
-    for (let questionId of Object.keys(uniqQuestionMap)) {
-      let answerMap = uniqQuestionMap[questionId]
-      let answerList = []
-      for (let answerId of Object.keys(answerMap)) {
-        let answer = answerMap[answerId]
-        answerList.push(answer)
-      }
-      questionList.push(answerList)
-    }
-
-    this.log(`所有数据获取完毕, 最终结果为=>`)
-    this.log(`问题 => ${questionList.length}个`)
-    this.log(`文章 => ${articleList.length}篇`)
-    this.log(`想法 => ${pinList.length}条`)
-    this.log(`按配置排序`)
-    // 需要倒过来排, 这样排出来的结果才和预期一致
-    let reverseOrderByList = lodash.cloneDeep(orderByList)
-    reverseOrderByList.reverse()
-    for (let orderByConfig of reverseOrderByList) {
-      // 需要额外对questionList中的answerList进行排序
-      let bufQuestionList = []
-      switch (orderByConfig.orderBy) {
-        case 'voteUpCount':
-          for (let answerList of questionList) {
-            answerList.sort((item1, item2) => {
-              if (orderByConfig.orderWith === 'asc') {
-                return item1.voteup_count - item2.voteup_count
-              } else {
-                return item2.voteup_count - item1.voteup_count
-              }
-            })
-            bufQuestionList.push(answerList)
-          }
-          questionList = bufQuestionList
-
-          questionList.sort((item1, item2) => {
-            let item1VoteUpCount = 0
-            let item2VoteUpCount = 0
-            for (let answerInItem1 of item1) {
-              item1VoteUpCount += answerInItem1.voteup_count
-            }
-            for (let answerInItem2 of item2) {
-              item2VoteUpCount += answerInItem2.voteup_count
-            }
-            if (orderByConfig.orderWith === 'asc') {
-              return item1VoteUpCount - item2VoteUpCount
-            } else {
-              return item2VoteUpCount - item1VoteUpCount
-            }
-          })
-          articleList.sort((item1, item2) => {
-            let item1VoteUpCount = item1.voteup_count
-            let item2VoteUpCount = item2.voteup_count
-            if (orderByConfig.orderWith === 'asc') {
-              return item1VoteUpCount - item2VoteUpCount
-            } else {
-              return item2VoteUpCount - item1VoteUpCount
-            }
-          })
-          pinList.sort((item1, item2) => {
-            let item1VoteUpCount = item1.like_count
-            let item2VoteUpCount = item2.like_count
-            if (orderByConfig.orderWith === 'asc') {
-              return item1VoteUpCount - item2VoteUpCount
-            } else {
-              return item2VoteUpCount - item1VoteUpCount
-            }
-          })
-          break
-        case 'commentCount':
-          for (let answerList of questionList) {
-            answerList.sort((item1, item2) => {
-              if (orderByConfig.orderWith === 'asc') {
-                return item1.comment_count - item2.comment_count
-              } else {
-                return item2.comment_count - item1.comment_count
-              }
-            })
-            bufQuestionList.push(answerList)
-          }
-          questionList = bufQuestionList
-
-          questionList.sort((item1, item2) => {
-            let item1CommentCount = 0
-            let item2CommentCount = 0
-            for (let answerInItem1 of item1) {
-              item1CommentCount += answerInItem1.comment_count
-            }
-            for (let answerInItem2 of item2) {
-              item2CommentCount += answerInItem2.comment_count
-            }
-            if (orderByConfig.orderWith === 'asc') {
-              return item1CommentCount - item2CommentCount
-            } else {
-              return item2CommentCount - item1CommentCount
-            }
-          })
-          articleList.sort((item1, item2) => {
-            let item1CommentCount = item1.comment_count
-            let item2CommentCount = item2.comment_count
-            if (orderByConfig.orderWith === 'asc') {
-              return item1CommentCount - item2CommentCount
-            } else {
-              return item2CommentCount - item1CommentCount
-            }
-          })
-          pinList.sort((item1, item2) => {
-            let item1CommentCount = item1.comment_count
-            let item2CommentCount = item2.comment_count
-            if (orderByConfig.orderWith === 'asc') {
-              return item1CommentCount - item2CommentCount
-            } else {
-              return item2CommentCount - item1CommentCount
-            }
-          })
-          break
-        case 'createAt':
-          for (let answerList of questionList) {
-            answerList.sort((item1, item2) => {
-              if (orderByConfig.orderWith === 'asc') {
-                return item1.created_time - item2.created_time
-              } else {
-                return item2.created_time - item1.created_time
-              }
-            })
-            bufQuestionList.push(answerList)
-          }
-          questionList = bufQuestionList
-
-          questionList.sort((item1, item2) => {
-            let item1MinCreateAt = 99999999999999999999999
-            let item1MaxCreateAt = 0
-            let item2MinCreateAt = 99999999999999999999999
-            let item2MaxCreateAt = 0
-            for (let answerInItem1 of item1) {
-              if (answerInItem1.created_time > item1MaxCreateAt) {
-                item1MaxCreateAt = answerInItem1.created_time
-              }
-              if (answerInItem1.created_time < item1MinCreateAt) {
-                item1MinCreateAt = answerInItem1.created_time
-              }
-            }
-            for (let answerInItem2 of item2) {
-              if (answerInItem2.created_time > item2MaxCreateAt) {
-                item2MaxCreateAt = answerInItem2.created_time
-              }
-              if (answerInItem2.created_time < item2MinCreateAt) {
-                item2MinCreateAt = answerInItem2.created_time
-              }
-            }
-            if (orderByConfig.orderWith === 'asc') {
-              return item1MinCreateAt - item2MinCreateAt
-            } else {
-              return item1MaxCreateAt - item2MaxCreateAt
-            }
-          })
-          articleList.sort((item1, item2) => {
-            if (orderByConfig.orderWith === 'asc') {
-              return item1.created - item2.created
-            } else {
-              return item2.created - item1.created
-            }
-          })
-          pinList.sort((item1, item2) => {
-            if (orderByConfig.orderWith === 'asc') {
-              return item1.created - item2.created
-            } else {
-              return item2.created - item1.created
-            }
-          })
-          break
-        case 'updateAt':
-          for (let answerList of questionList) {
-            answerList.sort((item1, item2) => {
-              if (orderByConfig.orderWith === 'asc') {
-                return item1.updated_time - item2.updated_time
-              } else {
-                return item2.updated_time - item1.updated_time
-              }
-            })
-            bufQuestionList.push(answerList)
-          }
-          questionList = bufQuestionList
-
-          questionList.sort((item1, item2) => {
-            let item1MinUpdateAt = 99999999999999999999999
-            let item1MaxUpdateAt = 0
-            let item2MinUpdateAt = 99999999999999999999999
-            let item2MaxUpdateAt = 0
-            for (let answerInItem1 of item1) {
-              if (answerInItem1.updated_time > item1MaxUpdateAt) {
-                item1MaxUpdateAt = answerInItem1.updated_time
-              }
-              if (answerInItem1.updated_time < item1MinUpdateAt) {
-                item1MinUpdateAt = answerInItem1.updated_time
-              }
-            }
-            for (let answerInItem2 of item2) {
-              if (answerInItem2.updated_time > item2MaxUpdateAt) {
-                item2MaxUpdateAt = answerInItem2.updated_time
-              }
-              if (answerInItem2.updated_time < item2MinUpdateAt) {
-                item2MinUpdateAt = answerInItem2.updated_time
-              }
-            }
-            if (orderByConfig.orderWith === 'asc') {
-              return item1MinUpdateAt - item2MinUpdateAt
-            } else {
-              return item1MaxUpdateAt - item2MaxUpdateAt
-            }
-          })
-          articleList.sort((item1, item2) => {
-            if (orderByConfig.orderWith === 'asc') {
-              return item1.updated - item2.updated
-            } else {
-              return item2.updated - item1.updated
-            }
-          })
-          pinList.sort((item1, item2) => {
-            if (orderByConfig.orderWith === 'asc') {
-              return item1.updated - item2.updated
-            } else {
-              return item2.updated - item1.updated
-            }
-          })
-          break
-      }
-    }
-
-    // 按最大允许值切分列表
-    let epubResourceList: EpubResourcePackage[] = []
-    let fileCounter = 0
-
-    let splitQuestionList: TypeAnswer.Record[][] = []
-    let splitArticleList: TypeArticle.Record[] = []
-    let splitPinList: TypePin.Record[] = []
-
-    for (let answerList of questionList) {
-      splitQuestionList.push(answerList)
-      fileCounter++
-      if (fileCounter >= maxQuestionOrArticleInBook) {
-        epubResourceList.push({
-          questionList: splitQuestionList,
-          articleList: splitArticleList,
-          pinList: splitPinList,
-        })
-        splitQuestionList = []
-        splitArticleList = []
-        splitPinList = []
-        fileCounter = 0
-      }
-    }
-
-    for (let article of articleList) {
-      splitArticleList.push(article)
-      fileCounter++
-      if (fileCounter >= maxQuestionOrArticleInBook) {
-        epubResourceList.push({
-          questionList: splitQuestionList,
-          articleList: splitArticleList,
-          pinList: splitPinList,
-        })
-        splitQuestionList = []
-        splitArticleList = []
-        splitPinList = []
-        fileCounter = 0
-      }
-    }
-
-    for (let pin of pinList) {
-      splitPinList.push(pin)
-      fileCounter++
-      if (fileCounter >= maxQuestionOrArticleInBook) {
-        epubResourceList.push({
-          questionList: splitQuestionList,
-          articleList: splitArticleList,
-          pinList: splitPinList,
-        })
-        splitQuestionList = []
-        splitArticleList = []
-        splitPinList = []
-        fileCounter = 0
-      }
-    }
-    // 将剩余未被收集的资源, 一起打成一个包
-    if (splitQuestionList.length || splitArticleList.length || splitPinList.length) {
-      epubResourceList.push({
-        questionList: splitQuestionList,
-        articleList: splitArticleList,
-        pinList: splitPinList,
+    for (let epubColumn of epubColumnList) {
+      let bookname = epubColumn.bookname
+      this.log(`输出电子书:${bookname}`)
+      await this.generateEpub({
+        epubColumn,
+        imageQuilty,
       })
+      this.log(`电子书:${bookname}输出完毕`)
     }
-
-    let bookCounter = 0
-    for (let resourcePackage of epubResourceList) {
-      bookCounter++
-      let booktitle = ''
-      if (epubResourceList.length <= 1) {
-        booktitle = bookname
-      } else {
-        booktitle = `${bookname}-第${bookCounter}卷`
-      }
-      this.log(`输出电子书:${booktitle}`)
-      await this.generateEpub(booktitle, imageQuilty, resourcePackage)
-      this.log(`电子书:${booktitle}输出完毕`)
-    }
+    // 全部完成后打开文件夹
   }
 
   /**
    * 根据生成配置, 生成电子书资源包
    * @param generateConfig
    */
-  async asyncGetColumnPackage(
-    fetchTaskList: TypeTaskConfig.Type_Task_Config['fetchTaskList'],
-    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig'],
-  ) {
+  async asyncGetColumnPackage({
+    fetchTaskList,
+    generateConfig,
+  }: {
+    fetchTaskList: TypeTaskConfig.Type_Task_Config['fetchTaskList']
+    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
+  }) {
     // 生成类型
     let generateType = generateConfig.generateType
     let bookname = generateConfig.bookTitle
-    let comment = generateConfig.comment
-    let imageQuilty = generateConfig.imageQuilty
-    let maxQuestionOrArticleInBook = generateConfig.maxQuestionOrArticleInBook
+
     // 需要逆序后, 排序出来才是实际要求的结果
     let reversedOrderByList = [...generateConfig.orderByList].reverse()
 
@@ -1096,8 +754,9 @@ class GenerateCustomer extends Base {
         epubItemList.push(epubItem)
       } else {
         // 对unit进行拆分
-        let legalUnit: Package.Type_Unit_Item = lodash.cloneDeep(nextUnit)
-        let remainUnit: Package.Type_Unit_Item = lodash.cloneDeep(nextUnit)
+        let legalUnit: Package.Type_Unit_Item
+        let remainUnit: Package.Type_Unit_Item
+
         switch (nextUnit.type) {
           case Const_TaskConfig.Const_Task_Type_专栏:
             legalUnit = new Package.Unit_专栏({
@@ -1150,9 +809,12 @@ class GenerateCustomer extends Base {
             })
           }
         }
-        let legalPageList = [
-          ...nextUnit.pageList.slice(0, generateConfig.maxQuestionOrArticleInBook - currentPageCount),
-        ]
+
+        // 生成当前单元和剩余单元对应的页码
+        let legalPageCount = generateConfig.maxQuestionOrArticleInBook - currentPageCount
+        let legalPageList = [...nextUnit.pageList.slice(0, legalPageCount)]
+        let remainPageList = [...nextUnit.pageList.slice(legalPageCount)]
+
         for (let page of legalPageList) {
           legalUnit.add(page)
         }
@@ -1163,7 +825,6 @@ class GenerateCustomer extends Base {
         })
         epubItemList.push(epubItem)
 
-        let remainPageList = [...nextUnit.pageList.slice(generateConfig.maxQuestionOrArticleInBook - currentPageCount)]
         // 溢出部分重新放回待处理列表
         for (let page of remainPageList) {
           remainUnit.add(page)
@@ -1175,15 +836,17 @@ class GenerateCustomer extends Base {
     return epubItemList
   }
 
-  async generateEpub(
-    bookname: string,
-    imageQuilty: TypeTaskConfig.imageQuilty,
-    epubResourcePackage: EpubResourcePackage,
-  ) {
+  async generateEpub({
+    imageQuilty,
+    epubColumn,
+  }: {
+    imageQuilty: TypeTaskConfig.Type_Image_Quilty
+    epubColumn: Package.Ebook_Column
+  }) {
     // 初始化资源, 重置所有静态类变量
-    this.bookname = CommonUtil.encodeFilename(`${bookname}`)
+    this.bookname = CommonUtil.encodeFilename(`${epubColumn.bookname}`)
     this.imageQuilty = imageQuilty
-    let { questionList, articleList, pinList } = epubResourcePackage
+    let { questionList, articleList, pinList } = epubColumn
     this.imgUriPool = new Map()
 
     // 初始化文件夹
