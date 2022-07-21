@@ -130,7 +130,7 @@ class Epub {
         console.log(archive.pointer() + ' total bytes')
         console.log('epub制作完成')
         // console.log('archiver has been finalized and the output file descriptor has closed.')
-        resolve()
+        resolve(true)
       })
 
       // This event is fired when the data source is drained no matter what was the data source.
@@ -139,7 +139,7 @@ class Epub {
       epubWriteStream.on('end', function () {
         console.log('epub制作完成')
         console.log('Data has been drained')
-        resolve()
+        resolve(true)
       })
 
       // good practice to catch warnings (ie stat failures and other non-blocking errors)
