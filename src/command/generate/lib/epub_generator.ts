@@ -192,133 +192,134 @@ class EpubGenerator {
 
     this.epub = new Epub(this.bookname, this.epubCachePath)
   }
-  processContent(content: string) {
-    let that = this
-    // 删除noscript标签内的元素
-    function removeNoScript(rawHtml: string) {
-      rawHtml = lodash.replace(rawHtml, /<\/br>/g, '')
-      rawHtml = lodash.replace(rawHtml, /<br +?>/g, '<br />')
-      rawHtml = lodash.replace(rawHtml, /<br>/g, '<br />')
-      rawHtml = lodash.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
-      rawHtml = lodash.replace(rawHtml, /<noscript>.*?<\/noscript>/g, '')
+
+  // 删除noscript标签内的元素
+  private util_removeNoScript(rawHtml: string) {
+    rawHtml = lodash.replace(rawHtml, /<\/br>/g, '')
+    rawHtml = lodash.replace(rawHtml, /<br +?>/g, '<br />')
+    rawHtml = lodash.replace(rawHtml, /<br>/g, '<br />')
+    rawHtml = lodash.replace(rawHtml, /href="\/\/link.zhihu.com'/g, 'href="https://link.zhihu.com') // 修复跳转链接
+    rawHtml = lodash.replace(rawHtml, /<noscript>.*?<\/noscript>/g, '')
+    return rawHtml
+  }
+
+  // 替换图片地址(假定所有图片都在img文件夹下)
+  private util_replaceImgSrc(rawHtml: string, isRaw = false) {
+    rawHtml = lodash.replace(rawHtml, / src="data:image.+?"/g, '  ')
+    // 处理图片
+    const imgContentList = rawHtml.match(/<img.+?>/g)
+    let processedImgContentList = []
+    if (imgContentList === null) {
+      // html中没有图片
       return rawHtml
     }
+    // 单条rawHtml直接replace替换性能开销太大, 所以应该先拆分, 然后再整体合成一个字符串
+    let rawHtmlWithoutImgContentList = rawHtml.split(/<img.+?>/g)
+    let index = 0
+    for (let imgContent of imgContentList) {
+      index++
+      // imgContent 可能值 =>
+      // <img   data-caption="" data-size="normal" data-rawwidth="794" data-rawheight="588" data-default-watermark-src="https://pic4.zhimg.com/50/v2-df6f9458bad1873bc717ddf92a58f802_720w.jpg?source=c8b7c179" class="origin_image zh-lightbox-thumb lazy" width="794" data-original="https://pic1.zhimg.com/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179" data-actualsrc="https://pica.zhimg.com/50/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179">
 
-    // 替换图片地址(假定所有图片都在img文件夹下)
-    function replaceImgSrc(rawHtml: string, isRaw = false) {
-      rawHtml = lodash.replace(rawHtml, / src="data:image.+?"/g, '  ')
-      // 处理图片
-      const imgContentList = rawHtml.match(/<img.+?>/g)
-      let processedImgContentList = []
-      if (imgContentList === null) {
-        // html中没有图片
-        return rawHtml
+      // this.log(`处理第${index}/${imgContentList.length}个img标签`)
+      let processedImgContent = imgContent
+      let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
+      let imgRawHeight = parseInt(matchImgRawHeight?.[0] || '0')
+      let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
+      let imgRawWidth = parseInt(matchImgRawWidth?.[0] || '0')
+      // 有可能只有data-actualsrc属性, 没有data-original属性
+
+      let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
+      let hasHdImg = imgContent.indexOf(`data-actualsrc="`) !== -1
+      let isLatexImg = imgContent.indexOf(`eeimg`) !== -1
+      let imgSrc = ''
+      if (hasHdImg) {
+        let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
+        imgSrc = matchImgSrc?.[0] || ''
       }
-      // 单条rawHtml直接replace替换性能开销太大, 所以应该先拆分, 然后再整体合成一个字符串
-      let rawHtmlWithoutImgContentList = rawHtml.split(/<img.+?>/g)
-      let index = 0
-      for (let imgContent of imgContentList) {
-        index++
-        // imgContent 可能值 =>
-        // <img   data-caption="" data-size="normal" data-rawwidth="794" data-rawheight="588" data-default-watermark-src="https://pic4.zhimg.com/50/v2-df6f9458bad1873bc717ddf92a58f802_720w.jpg?source=c8b7c179" class="origin_image zh-lightbox-thumb lazy" width="794" data-original="https://pic1.zhimg.com/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179" data-actualsrc="https://pica.zhimg.com/50/v2-6abb2bbfdb4ccbf7e8481b313591dc99_720w.jpg?source=c8b7c179">
+      if (imgSrc === '' && hasRawImg) {
+        let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
+        imgSrc = matchImgSrc?.[0] || ''
+      }
+      if (hasRawImg === false && hasHdImg === false) {
+        // 只有src属性
+        let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
+        imgSrc = matchImgSrc?.[0] || ''
+      }
+      let backupImgSrc = imgSrc
+      // 去掉最后的_r/_b后缀
+      let imgSrc_raw = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
+      let imgSrc_hd = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
+      // 彻底去除imgContent中的src属性
+      imgContent = lodash.replace(imgContent, / src=".+?"/g, '  ')
+      if (isLatexImg) {
+        // 如果是LatexImg, 不需要被处理
+        imgSrc = backupImgSrc
+      }
 
-        // this.log(`处理第${index}/${imgContentList.length}个img标签`)
-        let processedImgContent = imgContent
-        let matchImgRawHeight = imgContent.match(/(?<=data-rawheight=")\d+/)
-        let imgRawHeight = parseInt(matchImgRawHeight?.[0] || '0')
-        let matchImgRawWidth = imgContent.match(/(?<=data-rawwidth=")\d+/)
-        let imgRawWidth = parseInt(matchImgRawWidth?.[0] || '0')
-        // 有可能只有data-actualsrc属性, 没有data-original属性
-
-        let hasRawImg = imgContent.indexOf(`data-original="`) !== -1
-        let hasHdImg = imgContent.indexOf(`data-actualsrc="`) !== -1
-        let isLatexImg = imgContent.indexOf(`eeimg`) !== -1
-        let imgSrc = ''
-        if (hasHdImg) {
-          let matchImgSrc = imgContent.match(/(?<=data-actualsrc=")[^"]+/)
-          imgSrc = matchImgSrc?.[0] || ''
-        }
-        if (imgSrc === '' && hasRawImg) {
-          let matchImgSrc = imgContent.match(/(?<=data-original=")[^"]+/)
-          imgSrc = matchImgSrc?.[0] || ''
-        }
-        if (hasRawImg === false && hasHdImg === false) {
-          // 只有src属性
-          let matchImgSrc = imgContent.match(/(?<=src=")[^"]+/)
-          imgSrc = matchImgSrc?.[0] || ''
-        }
-        let backupImgSrc = imgSrc
-        // 去掉最后的_r/_b后缀
-        let imgSrc_raw = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_r')
-        let imgSrc_hd = lodash.replace(imgSrc, /(?=\w+)_\w+(?!=\.)/g, '_b')
-        // 彻底去除imgContent中的src属性
-        imgContent = lodash.replace(imgContent, / src=".+?"/g, '  ')
-        if (isLatexImg) {
-          // 如果是LatexImg, 不需要被处理
-          imgSrc = backupImgSrc
-        }
-
-        if (that.imageQuilty === 'raw') {
-          // 原始图片
+      if (this.imageQuilty === 'raw') {
+        // 原始图片
+        processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
+      } else if (this.imageQuilty === 'none') {
+        // 无图
+        processedImgContent = ''
+      } else {
+        // if (that.imageQuilty === 'hd' || that.imageQuilty === 'default') {
+        // 高度大于宽度4倍的图, 一般属于条图, 默认作为原图进行展示
+        let needDisplayRawImg = imgRawWidth !== 0 && imgRawHeight > imgRawWidth * 4
+        // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
+        let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
+        if (isDisplayAsRawImg) {
           processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
-        } else if (that.imageQuilty === 'none') {
-          // 无图
-          processedImgContent = ''
         } else {
-          // if (that.imageQuilty === 'hd' || that.imageQuilty === 'default') {
-          // 高度大于宽度4倍的图, 一般属于条图, 默认作为原图进行展示
-          let needDisplayRawImg = imgRawWidth !== 0 && imgRawHeight > imgRawWidth * 4
-          // 是否需要展示为原图(判断逻辑: 有原图属性 && (需要展示为原图 或 通过配置强制指定为原图)
-          let isDisplayAsRawImg = hasRawImg && (needDisplayRawImg || isRaw)
-          if (isDisplayAsRawImg) {
-            processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_raw}"`)
-          } else {
-            // 高清图
-            processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_hd}"`)
-            // if (imgContent.includes('data-actualsrc')) {
-            //   // 先替换掉原先的src地址
-            //   processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
-            //   // 再改成标清图地址
-            //   processedImgContent = _.replace(processedImgContent, /data-actualsrc="https:/g, 'src="https:')
-            // }
-          }
+          // 高清图
+          processedImgContent = lodash.replace(imgContent, /<img /g, `<img src="${imgSrc_hd}"`)
+          // if (imgContent.includes('data-actualsrc')) {
+          //   // 先替换掉原先的src地址
+          //   processedImgContent = _.replace(imgContent, / src="https:.+?"/g, '')
+          //   // 再改成标清图地址
+          //   processedImgContent = _.replace(processedImgContent, /data-actualsrc="https:/g, 'src="https:')
+          // }
         }
+      }
 
-        if (isLatexImg === false) {
-          // 支持多看内读图
-          processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
-        }
+      if (isLatexImg === false) {
+        // 支持多看内读图
+        processedImgContent = `<div class="duokan-image-single">${processedImgContent}</div>`
+      }
 
-        if (that.imageQuilty === 'none' && isLatexImg === false) {
-          // 没有图片, 也就不需要处理了, 直接跳过即可
-          processedImgContentList.push(processedImgContent)
-          continue
-        }
-
-        // 将图片地址提取到图片池中
-        // 将html内图片地址替换为html内的地址
-        let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
-        let rawImgSrc = matchImgSrc?.[0] || ''
-        let imgItem = new ImgItem(rawImgSrc, isLatexImg)
-        if (rawImgSrc.length > 0) {
-          that.imgUriPool.set(rawImgSrc, imgItem)
-        }
-        processedImgContent = lodash.replace(processedImgContent, imgItem.rawImgSrc, imgItem.htmlImguri)
-
+      if (this.imageQuilty === 'none' && isLatexImg === false) {
+        // 没有图片, 也就不需要处理了, 直接跳过即可
         processedImgContentList.push(processedImgContent)
+        continue
       }
-      // 拼接 rawHtmlWithoutImgContentList 和 processImgContentList 成 rawHtml
-      let strMergeList = []
-      for (let index = 0; index < rawHtmlWithoutImgContentList.length; index++) {
-        strMergeList.push(rawHtmlWithoutImgContentList[index])
-        strMergeList.push(processedImgContentList?.[index] || '')
+
+      // 将图片地址提取到图片池中
+      // 将html内图片地址替换为html内的地址
+      let matchImgSrc = processedImgContent.match(/(?<= src=")[^"]+/)
+      let rawImgSrc = matchImgSrc?.[0] || ''
+      let imgItem = new ImgItem(rawImgSrc, isLatexImg)
+      if (rawImgSrc.length > 0) {
+        this.imgUriPool.set(rawImgSrc, imgItem)
       }
-      let processedHtml = strMergeList.join('')
-      return processedHtml
+      processedImgContent = lodash.replace(processedImgContent, imgItem.rawImgSrc, imgItem.htmlImguri)
+
+      processedImgContentList.push(processedImgContent)
     }
-    content = removeNoScript(content)
+    // 拼接 rawHtmlWithoutImgContentList 和 processImgContentList 成 rawHtml
+    let strMergeList = []
+    for (let index = 0; index < rawHtmlWithoutImgContentList.length; index++) {
+      strMergeList.push(rawHtmlWithoutImgContentList[index])
+      strMergeList.push(processedImgContentList?.[index] || '')
+    }
+    let processedHtml = strMergeList.join('')
+    return processedHtml
+  }
+
+  processContent(content: string) {
+    content = this.util_removeNoScript(content)
     let tinyContentList = content.split(`<div data-key='single-page'`).map((value) => {
-      return replaceImgSrc(value)
+      return this.util_replaceImgSrc(value)
     })
     content = tinyContentList.join(`<div data-key='single-page'`)
     return content
