@@ -9,7 +9,7 @@ import * as TypePin from '~/src/type/zhihu/pin'
 import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
 import lodash from 'lodash'
-import DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format'
 import Logger from '~/src/library/logger'
 
 class CommentCompontent extends React.Component<

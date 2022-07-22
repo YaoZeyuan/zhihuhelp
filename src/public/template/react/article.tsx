@@ -1,12 +1,11 @@
 import React from 'react'
 import ReactDomServer from 'react-dom/server'
-import TypeArticle from '~/src/type/namespace/article'
-import TypeColumn from '~/src/type/namespace/column'
+import TypeArticle from '~/src/type/zhihu/article'
+import TypeColumn from '~/src/type/zhihu/column'
 import moment from 'moment'
-import DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format'
 import logger from '~/src/library/logger'
 import Base from '~/src/public/template/react/base'
-
 
 class Column extends Base {
   static render(articleRecord: TypeArticle.Record) {
