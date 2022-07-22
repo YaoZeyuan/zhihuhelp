@@ -120,57 +120,21 @@ class Epub {
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
     let epubWriteStream = fs.createWriteStream(path.resolve(this.epubCachePath, this.bookname + '.epub'))
     console.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
-    await new Promise((resolve, reject) => {
-      let archive = archiver('zip', {
-        zlib: { level: 0 }, // Sets the compression level.
-      })
-      // listen for all archive data to be written
-      // 'close' event is fired only when a file descriptor is involved
-      epubWriteStream.on('close', function () {
-        console.log(archive.pointer() + ' total bytes')
-        console.log('epub制作完成')
-        // console.log('archiver has been finalized and the output file descriptor has closed.')
-        resolve(true)
-      })
 
-      // This event is fired when the data source is drained no matter what was the data source.
-      // It is not part of this library but rather from the NodeJS Stream API.
-      // @see: https://nodejs.org/api/stream.html#stream_event_end
-      epubWriteStream.on('end', function () {
-        console.log('epub制作完成')
-        console.log('Data has been drained')
-        resolve(true)
-      })
-
-      // good practice to catch warnings (ie stat failures and other non-blocking errors)
-      archive.on('warning', function (err) {
-        console.log('epub制作失败')
-        reject(err)
-        if (err.code === 'ENOENT') {
-          // log warning
-        } else {
-          // throw error
-          throw err
-        }
-      })
-
-      // good practice to catch this error explicitly
-      archive.on('error', function (err) {
-        reject(err)
-      })
-
-      // pipe archive data to the file
-      archive.pipe(epubWriteStream)
-
-      // append files from a sub-directory, putting its contents at the root of archive
-      archive.append(fs.createReadStream(path.resolve(this.epubCachePath, 'mimetype')), { name: 'mimetype' })
-      archive.directory(`${path.resolve(this.epubCachePath, 'META-INF/')}`, 'META-INF')
-      archive.directory(`${path.resolve(this.epubCachePath, 'OEBPS/')}`, 'OEBPS')
-
-      // finalize the archive (ie we are done appending files but streams have to finish yet)
-      // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
-      archive.finalize()
+    let archive = archiver('zip', {
+      zlib: { level: 0 }, // Sets the compression level.
     })
+
+    // pipe archive data to the file
+    archive.pipe(epubWriteStream)
+
+    // append files from a sub-directory, putting its contents at the root of archive
+    archive.append(fs.createReadStream(path.resolve(this.epubCachePath, 'mimetype')), { name: 'mimetype' })
+    archive.directory(`${path.resolve(this.epubCachePath, 'META-INF/')}`, 'META-INF')
+    archive.directory(`${path.resolve(this.epubCachePath, 'OEBPS/')}`, 'OEBPS')
+
+    await archive.finalize()
+    console.log('epub制作完成')
   }
 
   private CopyFileSyncSafe(fromUri: string, toUri: string) {
