@@ -61,7 +61,7 @@
   "dependencies": {
     "@adonisjs/ace": "^11.3.1",
     "@adonisjs/core": "^5.8.4",
-    "archiver": "^3.0.0",
+    "archiver": "^5.3.1",
     "atob": "^2.1.2",
     "axios": "^0.27.2",
     "jsdom": "^17.0.0",
@@ -84,7 +84,7 @@
     "@babel/preset-env": "^7.18.6",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
-    "@types/archiver": "^2.1.2",
+    "@types/archiver": "^5.3.1",
     "@types/json5": "0.0.30",
     "@types/knex": "^0.15.1",
     "@types/lodash": "^4.14.91",
