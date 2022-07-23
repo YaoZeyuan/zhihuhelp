@@ -1,5 +1,5 @@
 import React from 'react'
-import { Type_Index_Record } from '../../customer'
+import { Type_Index_Record } from '../../../customer'
 import CommonUtil from '~/src/library/util/common'
 
 export default (props: { bookname: string; recordList: Type_Index_Record[] }) => {

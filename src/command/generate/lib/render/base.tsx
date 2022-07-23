@@ -12,24 +12,7 @@ import * as DATE_FORMAT from '~/src/constant/date_format'
 import lodash from 'lodash'
 import Logger from '~/src/library/logger'
 
-
 class Base {
-  static getPinTitle(record: TypePin.Record) {
-    let title = ''
-    // 想法
-    // 根据是否存在repin字段, 可以分为转发/非转发两种类型
-    if (lodash.isEmpty(record.repin)) {
-      let pinRecord: TypePin.DefaultRecord = record
-      title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${pinRecord.excerpt_title}`
-    } else {
-      let repinRecord: TypePin.RepinRecord = record
-      title = `${moment.unix(repinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${
-        repinRecord.excerpt_title
-      }:${repinRecord.repin.excerpt_title}`
-    }
-    return title
-  }
-
   static renderIndex(
     bookname: string,
     recordList: (TypeAnswer.Record | TypeArticle.Record | TypeActivity.Record | TypePin.Record)[],
