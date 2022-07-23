@@ -27,14 +27,14 @@ class CommentCompontent extends React.Component<
         <div className="info-flex-line">
           <span className="float-left">赞同:{this.props.agreeCount}</span>
           <span className="float-right">
-            创建时间:{moment.unix(this.props.createAt).format(DATE_FORMAT.DATABASE_BY_DAY)}
+            创建时间:{moment.unix(this.props.createAt).format(DATE_FORMAT.Const_Display_By_Day)}
           </span>
         </div>
         <div className="clear-float" />
         <div className="info-flex-line">
           <span className="float-left">评论:{this.props.commentCount}</span>
           <span className="float-right">
-            最后更新:{moment.unix(this.props.updateAt).format(DATE_FORMAT.DATABASE_BY_DAY)}
+            最后更新:{moment.unix(this.props.updateAt).format(DATE_FORMAT.Const_Display_By_Day)}
           </span>
         </div>
       </div>
@@ -49,12 +49,12 @@ class Base {
     // 根据是否存在repin字段, 可以分为转发/非转发两种类型
     if (lodash.isEmpty(record.repin)) {
       let pinRecord: TypePin.DefaultRecord = record
-      title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.DISPLAY_BY_DAY)}:${pinRecord.excerpt_title}`
+      title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${pinRecord.excerpt_title}`
     } else {
       let repinRecord: TypePin.RepinRecord = record
-      title = `${moment.unix(repinRecord.created).format(DATE_FORMAT.DISPLAY_BY_DAY)}:${repinRecord.excerpt_title}:${
-        repinRecord.repin.excerpt_title
-      }`
+      title = `${moment.unix(repinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${
+        repinRecord.excerpt_title
+      }:${repinRecord.repin.excerpt_title}`
     }
     return title
   }
@@ -382,6 +382,7 @@ class Base {
 
   static generatePageElement(title: string, contentElementList: React.ReactElement<any>[]) {
     return (
+      // @ts-ignore
       <html xmlns="http://www.w3.org/1999/xhtml">
         <head>
           <meta charSet="utf-8" />
