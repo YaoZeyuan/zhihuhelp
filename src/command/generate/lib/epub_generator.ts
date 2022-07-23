@@ -161,8 +161,9 @@ class EpubGenerator {
     logger.log(`[${this.constructor.name}] ` + message)
   }
 
-  constructor({ bookname }: { bookname: string }) {
+  constructor({ bookname, imageQuilty }: { bookname: string; imageQuilty: Type_TaskConfig.Type_Image_Quilty }) {
     this.bookname = bookname
+    this.imageQuilty = imageQuilty
     this.epub = new Epub(bookname, this.epubCachePath)
 
     this.initStaticRecource()
@@ -322,14 +323,31 @@ class EpubGenerator {
 
   addHtml({ title, html }: { title: string; html: string }) {
     let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
-    fs.writeFileSync(htmlUri, html)
+    // 对html进行处理, 替换掉图片地址
+    let processContent = this.processContent(html)
+    fs.writeFileSync(htmlUri, processContent)
     this.epub.addHtml(title, htmlUri)
     return htmlUri
   }
 
+  /**
+   * 针对单页html专门提供的方法, 用于添加单页html
+   * 该方法只在知乎助手中进行使用, 不能作为公共方法
+   * @param param0
+   * @returns
+   */
+  generateSinglePageHtml({ html }: { html: string }) {
+    // 对html进行处理, 替换掉图片地址
+    let processContent = this.processContent(html)
+    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), processContent)
+    return processContent
+  }
+
   addIndexHtml({ title, html }: { title: string; html: string }) {
     let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
-    fs.writeFileSync(htmlUri, html)
+    // 对html进行处理, 替换掉图片地址
+    let processContent = this.processContent(html)
+    fs.writeFileSync(htmlUri, processContent)
     this.epub.addIndexHtml(title, htmlUri)
     return htmlUri
   }
@@ -474,7 +492,7 @@ class EpubGenerator {
     this.epub.addCoverImage(coverCopyToUri)
   }
 
-  async asyncProcessStaticResource() {
+  async asyncGenerateEpub() {
     this.log(`内容列表预处理完毕, 准备下载图片`)
     // 下载图片
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)

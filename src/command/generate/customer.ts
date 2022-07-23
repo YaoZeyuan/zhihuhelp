@@ -1,4 +1,4 @@
-import Base from '~/src/command/generate/base'
+import Base from '~/src/command/base'
 import * as Types from './resource/type/index'
 import * as Consts from './resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
@@ -980,7 +980,7 @@ class GenerateCustomer extends Base {
   }) {
     // 初始化资源, 重置所有静态类变量
 
-    let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname })
+    let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname, imageQuilty })
 
     // 单独记录生成的元素, 以便输出成单页
     let html4SinglePageList: ReactElement[] = []
@@ -1022,14 +1022,14 @@ class GenerateCustomer extends Base {
     })
 
     this.log(`生成单一html文件`)
-    let pageElement = BaseView.generatePageElement(this.bookname, html4SinglePageList)
+    let pageElement = BaseView.generatePageElement(epubColumn.bookname, html4SinglePageList)
     let singlePageContent = BaseView.renderToString(pageElement)
-    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), singlePageContent)
+    epubGenerator.generateSinglePageHtml({ html: singlePageContent })
 
-    // 处理静态资源
-    await this.asyncProcessStaticResource()
+    // 生成电子书
+    await epubGenerator.asyncGenerateEpub()
 
-    this.log(`自定义电子书${this.bookname}生成完毕`)
+    this.log(`自定义电子书${epubColumn.bookname}生成完毕`)
   }
 }
 
