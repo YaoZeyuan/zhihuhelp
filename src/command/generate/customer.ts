@@ -32,6 +32,7 @@ import * as Package from './resource/library/package'
 
 import EpubGenerator from './lib/epub_generator'
 import moment from 'moment'
+import { ReactElement } from 'react'
 
 /**
  * 生成html
@@ -42,7 +43,7 @@ type Type_Generate_Html = {
   // 正常html
   html: string
   // 用于渲染单页的html
-  html4SinglePage: string
+  ele4SinglePage: ReactElement
 }
 
 /**
@@ -866,7 +867,7 @@ class GenerateCustomer extends Base {
    * 将unit转换成信息页
    * @param unit
    */
-  generateUnitHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
+  generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
     let pageTitle = this.generateColumnTitle(unit)
     let pageHtml = ''
     let singlePageHtml = ''
@@ -928,7 +929,7 @@ class GenerateCustomer extends Base {
     return {
       title: pageTitle,
       html: pageHtml,
-      html4SinglePage: singlePageHtml,
+      ele4SinglePage: singlePageHtml,
     }
   }
 
@@ -954,7 +955,7 @@ class GenerateCustomer extends Base {
     return {
       title: pageTitle,
       html: pageHtml,
-      html4SinglePage,
+      ele4SinglePage: html4SinglePage,
     }
   }
 
@@ -966,7 +967,7 @@ class GenerateCustomer extends Base {
     return {
       title: pageTitle,
       html: pageHtml,
-      html4SinglePage,
+      ele4SinglePage: html4SinglePage,
     }
   }
 
@@ -982,12 +983,12 @@ class GenerateCustomer extends Base {
     let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname })
 
     // 单独记录生成的元素, 以便输出成单页
-    let html4SinglePageList: string[] = []
+    let html4SinglePageList: ReactElement[] = []
     this.log(`生成问题html列表`)
     let indexRecordList: Type_Index_Record[] = []
     for (let unit of epubColumn.unitList) {
       // 生成信息页
-      let { title, html, html4SinglePage: unitHtml4SinglePage } = this.generateUnitHtml(unit)
+      let { title, html, ele4SinglePage: unitHtml4SinglePage } = this.generateUnitInfoHtml(unit)
       html4SinglePageList.push(unitHtml4SinglePage)
       let uri = epubGenerator.addHtml({
         title,
@@ -1000,7 +1001,7 @@ class GenerateCustomer extends Base {
       }
       // 生成内容页
       for (let page of unit.pageList) {
-        let { title, html, html4SinglePage: pageHtml4SinglePage } = this.generatePageHtml(page)
+        let { title, html, ele4SinglePage: pageHtml4SinglePage } = this.generatePageHtml(page)
         html4SinglePageList.push(pageHtml4SinglePage)
         let uri = epubGenerator.addHtml({
           title,
