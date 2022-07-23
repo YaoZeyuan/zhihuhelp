@@ -103,12 +103,11 @@ class ImgItem {
 }
 
 class EpubGenerator {
-  epub: Epub = new Epub('', '')
+  bookname = ''
+  epub: Epub
   imageQuilty: Type_TaskConfig.Type_Image_Quilty = 'hd'
 
   imgUriPool: Map<TypeSrc2Download, ImgItem> = new Map()
-
-  bookname = ''
 
   get epubCachePath() {
     return path.resolve(PathConfig.epubCachePath, this.bookname)
@@ -162,8 +161,15 @@ class EpubGenerator {
     logger.log(`[${this.constructor.name}] ` + message)
   }
 
+  constructor({ bookname }: { bookname: string }) {
+    this.bookname = bookname
+    this.epub = new Epub(bookname, this.epubCachePath)
+
+    this.initStaticRecource()
+  }
+
   // 初始化静态资源(电子书 & html目录)
-  initStaticRecource() {
+  private initStaticRecource() {
     this.log(`删除旧目录`)
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     shelljs.rm('-rf', this.epubCachePath)
@@ -189,12 +195,10 @@ class EpubGenerator {
     shelljs.mkdir('-p', this.htmlCacheImgPath)
     shelljs.mkdir('-p', this.htmlOutputPath)
     this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
-
-    this.epub = new Epub(this.bookname, this.epubCachePath)
   }
 
   // 删除noscript标签内的元素
-  private util_removeNoScript(rawHtml: string) {
+  private utilRemoveNoScript(rawHtml: string) {
     rawHtml = lodash.replace(rawHtml, /<\/br>/g, '')
     rawHtml = lodash.replace(rawHtml, /<br +?>/g, '<br />')
     rawHtml = lodash.replace(rawHtml, /<br>/g, '<br />')
@@ -204,7 +208,7 @@ class EpubGenerator {
   }
 
   // 替换图片地址(假定所有图片都在img文件夹下)
-  private util_replaceImgSrc(rawHtml: string, isRaw = false) {
+  private utilReplaceImgSrc(rawHtml: string, isRaw = false) {
     rawHtml = lodash.replace(rawHtml, / src="data:image.+?"/g, '  ')
     // 处理图片
     const imgContentList = rawHtml.match(/<img.+?>/g)
@@ -316,10 +320,24 @@ class EpubGenerator {
     return processedHtml
   }
 
+  addHtml({ title, html }: { title: string; html: string }) {
+    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
+    fs.writeFileSync(htmlUri, html)
+    this.epub.addHtml(title, htmlUri)
+    return htmlUri
+  }
+
+  addIndexHtml({ title, html }: { title: string; html: string }) {
+    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
+    fs.writeFileSync(htmlUri, html)
+    this.epub.addIndexHtml(title, htmlUri)
+    return htmlUri
+  }
+
   processContent(content: string) {
-    content = this.util_removeNoScript(content)
+    content = this.utilRemoveNoScript(content)
     let tinyContentList = content.split(`<div data-key='single-page'`).map((value) => {
-      return this.util_replaceImgSrc(value)
+      return this.utilReplaceImgSrc(value)
     })
     content = tinyContentList.join(`<div data-key='single-page'`)
     return content

@@ -30,7 +30,32 @@ import * as Date_Format from '~/src/constant/date_format'
 
 import * as Package from './resource/library/package'
 
+import EpubGenerator from './lib/epub_generator'
 import moment from 'moment'
+
+/**
+ * 生成html
+ */
+type Type_Generate_Html = {
+  // 页面标题
+  title: string
+  // 正常html
+  html: string
+  // 用于渲染单页的html
+  html4SinglePage: string
+}
+
+/**
+ * 生成目录
+ */
+type Type_Index_Record = {
+  title: string
+  uri: string
+  pageList: {
+    title: string
+    uri: string
+  }[]
+}
 
 type EpubResourcePackage = {
   questionList: TypeAnswer.Record[][]
@@ -79,6 +104,7 @@ class GenerateCustomer extends Base {
       })
       this.log(`电子书:${bookname}输出完毕`)
     }
+    this.log(`所有电子书输出完毕`)
     // 全部完成后打开文件夹
   }
 
@@ -836,6 +862,114 @@ class GenerateCustomer extends Base {
     return epubItemList
   }
 
+  /**
+   * 将unit转换成信息页
+   * @param unit
+   */
+  generateUnitHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
+    let pageTitle = this.generateColumnTitle(unit)
+    let pageHtml = ''
+    let singlePageHtml = ''
+    switch (unit.type) {
+      case Const_TaskConfig.Const_Task_Type_混合类型:
+        pageHtml = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
+        pageHtml = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
+        break
+      case Const_TaskConfig.Const_Task_Type_收藏夹:
+        pageHtml = `收藏夹_${unit.info['title']}(${unit.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_专栏:
+        pageHtml = `专栏_${unit.info['title']}(${unit.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_话题:
+        pageHtml = `话题_${unit.info['name']}(${unit.info['id']})`
+        break
+      case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
+      case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
+      case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
+      case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
+      case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
+        {
+          let userName = `用户_${unit.info['name']}(${unit.info['id']})`
+          switch (unit.type) {
+            case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
+              pageHtml = `${userName}_提问过的所有问题`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户的所有回答:
+            case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
+              pageHtml = `${userName}_的所有回答`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
+              pageHtml = `${userName}_发布的所有文章`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
+              pageHtml = `${userName}_发布的所有想法`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
+              pageHtml = `${userName}_赞同过的所有回答`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
+              pageHtml = `${userName}_赞同过的所有文章`
+              break
+            case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
+              pageHtml = `${userName}_关注过的所有问题`
+              break
+            default:
+              pageHtml = `${userName}`
+          }
+        }
+        break
+      default:
+        pageHtml = `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`
+    }
+    return {
+      title: pageTitle,
+      html: pageHtml,
+      html4SinglePage: singlePageHtml,
+    }
+  }
+
+  generatePageHtml(page: Package.Type_Page_Item): Type_Generate_Html {
+    let pageTitle = ''
+    let pageHtml = ''
+    let html4SinglePage = ''
+    switch (page.type) {
+      case Consts.Const_Type_Article:
+        pageTitle = (page as Package.Page_Article).recordList[0].record.title
+        pageHtml = ''
+        break
+      case Consts.Const_Type_Pin:
+        pageTitle = (page as Package.Page_Pin).recordList[0].record.excerpt_title
+        pageHtml = ''
+        break
+      case Consts.Const_Type_Question:
+        pageTitle = (page as Package.Page_Question).recordList[0].record.question.title
+        pageHtml = ''
+        break
+    }
+
+    return {
+      title: pageTitle,
+      html: pageHtml,
+      html4SinglePage,
+    }
+  }
+
+  generateIndexHtml(recordList: Type_Index_Record[]): Type_Generate_Html {
+    let pageTitle = ''
+    let pageHtml = ''
+    let html4SinglePage = ''
+
+    return {
+      title: pageTitle,
+      html: pageHtml,
+      html4SinglePage,
+    }
+  }
+
   async generateEpub({
     imageQuilty,
     epubColumn,
@@ -844,82 +978,52 @@ class GenerateCustomer extends Base {
     epubColumn: Package.Ebook_Column
   }) {
     // 初始化资源, 重置所有静态类变量
-    this.bookname = CommonUtil.encodeFilename(`${epubColumn.bookname}`)
-    this.imageQuilty = imageQuilty
-    let { questionList, articleList, pinList } = epubColumn
-    this.imgUriPool = new Map()
 
-    // 初始化文件夹
-    this.initStaticRecource()
+    let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname })
 
     // 单独记录生成的元素, 以便输出成单页
-    let totalElementListToGenerateSinglePage = []
+    let html4SinglePageList: string[] = []
     this.log(`生成问题html列表`)
-    for (let answerRecordList of questionList) {
-      let title = answerRecordList[0].question.id
-      let content = AnswerView.render(answerRecordList)
-      content = this.processContent(content)
-      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
-      this.epub.addHtml(answerRecordList[0].question.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
-
-      // 单独记录生成的元素, 以便输出成单页文件
-      let contentElementList = []
-      for (let answerRecord of answerRecordList) {
-        let contentElement = BaseView.generateSingleAnswerElement(answerRecord)
-        contentElementList.push(contentElement)
+    let indexRecordList: Type_Index_Record[] = []
+    for (let unit of epubColumn.unitList) {
+      // 生成信息页
+      let { title, html, html4SinglePage: unitHtml4SinglePage } = this.generateUnitHtml(unit)
+      html4SinglePageList.push(unitHtml4SinglePage)
+      let uri = epubGenerator.addHtml({
+        title,
+        html,
+      })
+      let unitRecord: Type_Index_Record = {
+        title: title,
+        uri,
+        pageList: [],
       }
-      let elememt = BaseView.generateQuestionElement(answerRecordList[0].question, contentElementList)
-      totalElementListToGenerateSinglePage.push(elememt)
+      // 生成内容页
+      for (let page of unit.pageList) {
+        let { title, html, html4SinglePage: pageHtml4SinglePage } = this.generatePageHtml(page)
+        html4SinglePageList.push(pageHtml4SinglePage)
+        let uri = epubGenerator.addHtml({
+          title,
+          html,
+        })
+        let pageRecord: Type_Index_Record['pageList'][number] = {
+          title: title,
+          uri,
+        }
+        unitRecord.pageList.push(pageRecord)
+      }
+      indexRecordList.push(unitRecord)
     }
-
-    this.log(`生成文章列表`)
-    for (let articleRecord of articleList) {
-      let title = articleRecord.id
-      let content = ArticleView.render(articleRecord)
-      content = this.processContent(content)
-      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
-      this.epub.addHtml(articleRecord.title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
-
-      // 单独记录生成的元素, 以便输出成单页文件
-      let elememt = BaseView.generateSingleArticleElement(articleRecord)
-      totalElementListToGenerateSinglePage.push(elememt)
-    }
-
-    this.log(`生成想法列表`)
-    for (let pinRecord of pinList) {
-      let title = pinRecord.id
-      let content = PinView.render(pinRecord)
-      content = this.processContent(content)
-      fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `${title}.html`), content)
-      this.epub.addHtml(pinRecord.excerpt_title, path.resolve(this.htmlCacheHtmlPath, `${title}.html`))
-
-      // 单独记录生成的元素, 以便输出成单页文件
-      let elememt = BaseView.generateSinglePinElement(pinRecord)
-      totalElementListToGenerateSinglePage.push(elememt)
-    }
+    let indexPage = this.generateIndexHtml(indexRecordList)
+    let indexUri = epubGenerator.addIndexHtml({
+      title: indexPage.title,
+      html: indexPage.html,
+    })
 
     this.log(`生成单一html文件`)
-    // 生成全部文件
-    let pageElement = BaseView.generatePageElement(this.bookname, totalElementListToGenerateSinglePage)
-    let content = BaseView.renderToString(pageElement)
-    this.log(`内容渲染完毕, 开始对内容进行输出前预处理`)
-    content = this.processContent(content)
-    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), content)
-
-    //  生成目录
-    this.log(`生成目录`)
-    let firstAnswerInQuestionToRenderIndexList = []
-    for (let answerRecordList of questionList) {
-      // 只取回答列表中的第一个元素, 以便生成目录
-      firstAnswerInQuestionToRenderIndexList.push(answerRecordList[0])
-    }
-    let indexContent = BaseView.renderIndex(this.bookname, [
-      ...firstAnswerInQuestionToRenderIndexList,
-      ...articleList,
-      ...pinList,
-    ])
-    fs.writeFileSync(path.resolve(this.htmlCacheHtmlPath, `index.html`), indexContent)
-    this.epub.addIndexHtml('目录', path.resolve(this.htmlCacheHtmlPath, `index.html`))
+    let pageElement = BaseView.generatePageElement(this.bookname, html4SinglePageList)
+    let singlePageContent = BaseView.renderToString(pageElement)
+    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), singlePageContent)
 
     // 处理静态资源
     await this.asyncProcessStaticResource()
