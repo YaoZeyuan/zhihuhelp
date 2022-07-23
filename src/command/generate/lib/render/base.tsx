@@ -8,39 +8,10 @@ import TypeColumn from '~/src/type/zhihu/column'
 import * as TypePin from '~/src/type/zhihu/pin'
 import CommonUtil from '~/src/library/util/common'
 import moment from 'moment'
-import lodash from 'lodash'
 import * as DATE_FORMAT from '~/src/constant/date_format'
+import lodash from 'lodash'
 import Logger from '~/src/library/logger'
 
-class CommentCompontent extends React.Component<
-  {
-    agreeCount: number
-    commentCount: number
-    createAt: number
-    updateAt: number
-  },
-  {}
-> {
-  render() {
-    return (
-      <div className="comment">
-        <div className="info-flex-line">
-          <span className="float-left">赞同:{this.props.agreeCount}</span>
-          <span className="float-right">
-            创建时间:{moment.unix(this.props.createAt).format(DATE_FORMAT.Const_Display_By_Day)}
-          </span>
-        </div>
-        <div className="clear-float" />
-        <div className="info-flex-line">
-          <span className="float-left">评论:{this.props.commentCount}</span>
-          <span className="float-right">
-            最后更新:{moment.unix(this.props.updateAt).format(DATE_FORMAT.Const_Display_By_Day)}
-          </span>
-        </div>
-      </div>
-    )
-  }
-}
 
 class Base {
   static getPinTitle(record: TypePin.Record) {
