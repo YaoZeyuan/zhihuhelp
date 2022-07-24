@@ -19,10 +19,7 @@ import MPin from '~/src/model/pin'
 import lodash from 'lodash'
 import json5 from 'json5'
 
-import AnswerView from '~/src/public/template/react/answer'
-import PinView from '~/src/public/template/react/pin'
-import ArticleView from '~/src/public/template/react/article'
-import BaseView from '~/src/public/template/react/base'
+import HtmlRender from './lib/html_render'
 import fs from 'fs'
 import path from 'path'
 import CommonUtil from '~/src/library/util/common'
@@ -32,7 +29,7 @@ import * as Package from './resource/library/package'
 
 import EpubGenerator from './lib/epub_generator'
 import moment from 'moment'
-import { ReactElement } from 'react'
+import React, { ReactElement } from 'react'
 
 /**
  * 生成html
@@ -49,7 +46,7 @@ type Type_Generate_Html = {
 /**
  * 生成目录
  */
-type Type_Index_Record = {
+export type Type_Index_Record = {
   title: string
   uri: string
   pageList: {
@@ -869,21 +866,29 @@ class GenerateCustomer extends Base {
    */
   generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
     let pageTitle = this.generateColumnTitle(unit)
-    let pageHtml = ''
-    let singlePageHtml = ''
+    // 渲染结果
+    let renderResult
     switch (unit.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
-        pageHtml = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
-        pageHtml = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
+        renderResult = HtmlRender.infoPage({
+          title: `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`,
+        })
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
-        pageHtml = `收藏夹_${unit.info['title']}(${unit.info['id']})`
+        renderResult = HtmlRender.infoPage({
+          title: `收藏夹_${unit.info['title']}(${unit.info['id']})`,
+        })
         break
       case Const_TaskConfig.Const_Task_Type_专栏:
-        pageHtml = `专栏_${unit.info['title']}(${unit.info['id']})`
+        renderResult = HtmlRender.infoPage({
+          title: `专栏_${unit.info['title']}(${unit.info['id']})`,
+        })
+
         break
       case Const_TaskConfig.Const_Task_Type_话题:
-        pageHtml = `话题_${unit.info['name']}(${unit.info['id']})`
+        renderResult = HtmlRender.infoPage({
+          title: `话题_${unit.info['name']}(${unit.info['id']})`,
+        })
         break
       case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
       case Const_TaskConfig.Const_Task_Type_用户的所有回答:
@@ -897,39 +902,58 @@ class GenerateCustomer extends Base {
           let userName = `用户_${unit.info['name']}(${unit.info['id']})`
           switch (unit.type) {
             case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
-              pageHtml = `${userName}_提问过的所有问题`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_提问过的所有问题`,
+              })
               break
             case Const_TaskConfig.Const_Task_Type_用户的所有回答:
             case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
-              pageHtml = `${userName}_的所有回答`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_的所有回答`,
+              })
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
-              pageHtml = `${userName}_发布的所有文章`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_发布的所有文章`,
+              })
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
-              pageHtml = `${userName}_发布的所有想法`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_发布的所有想法`,
+              })
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
-              pageHtml = `${userName}_赞同过的所有回答`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_赞同过的所有回答`,
+              })
+
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
-              pageHtml = `${userName}_赞同过的所有文章`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_赞同过的所有文章`,
+              })
               break
             case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
-              pageHtml = `${userName}_关注过的所有问题`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}_关注过的所有问题`,
+              })
               break
             default:
-              pageHtml = `${userName}`
+              renderResult = HtmlRender.infoPage({
+                title: `${userName}`,
+              })
           }
         }
         break
       default:
-        pageHtml = `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`
+        renderResult = HtmlRender.infoPage({
+          title: `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`,
+        })
     }
     return {
       title: pageTitle,
-      html: pageHtml,
-      ele4SinglePage: singlePageHtml,
+      html: HtmlRender.renderToString(renderResult.htmlEle),
+      ele4SinglePage: renderResult.singleEle,
     }
   }
 
@@ -996,7 +1020,7 @@ class GenerateCustomer extends Base {
       })
       let unitRecord: Type_Index_Record = {
         title: title,
-        uri,
+        uri: uri,
         pageList: [],
       }
       // 生成内容页
@@ -1009,7 +1033,7 @@ class GenerateCustomer extends Base {
         })
         let pageRecord: Type_Index_Record['pageList'][number] = {
           title: title,
-          uri,
+          uri: uri,
         }
         unitRecord.pageList.push(pageRecord)
       }
