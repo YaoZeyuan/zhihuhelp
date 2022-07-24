@@ -340,4 +340,6 @@ export type DefaultRecord = {
     | '<div>哈尔滨沙赞基本没人看……这可是假期啊</div><img src="https://pic2.zhimg.com/50/v2-e42ce349576557e5a739d2621d518679_b.jpg" data-rawwidth="4096" data-rawheight="3072" class="origin_image zh-lightbox-thumb" width="4096" data-original="https://pic2.zhimg.com/50/v2-e42ce349576557e5a739d2621d518679_r.jpg">'
     | string
   is_admin_close_repin: false | boolean
+  // 占位符
+  repin?: RepinRecord['repin']
 }
