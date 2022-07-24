@@ -2,18 +2,19 @@ import React from 'react'
 import TypeAnswer from '~/src/type/zhihu/answer'
 import lodash from 'lodash'
 import CommonUtil from '~/src/library/util/common'
-import CommentCompontent from './comment'
+import Answer from './answer'
 
-export default ({
-  questionRecord,
-  answerElementList = [],
-}: {
-  questionRecord: TypeAnswer.Question
-  answerElementList: React.ReactElement<any>[]
-}) => {
-  if (lodash.isEmpty(questionRecord)) {
+export default ({ answerRecordList = [] }: { answerRecordList: TypeAnswer.Record[] }) => {
+  if (lodash.isEmpty(answerRecordList)) {
     return <div key={CommonUtil.getUuid()} />
   }
+  let questionRecord = answerRecordList[0].question
+  let answerEleList = []
+  for (let record of answerRecordList) {
+    let ele = <Answer key={CommonUtil.getUuid()} answerRecord={record}></Answer>
+    answerEleList.push(ele)
+  }
+
   const question = (
     <div key={CommonUtil.getUuid()}>
       <div className="bg-zhihu-blue-light">
@@ -30,7 +31,7 @@ export default ({
         />
         <div className="clear-float" />
       </div>
-      <div className="answer">{answerElementList}</div>
+      <div className="answer">{answerEleList}</div>
     </div>
   )
   return question

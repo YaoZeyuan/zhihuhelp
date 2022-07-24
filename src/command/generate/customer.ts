@@ -870,23 +870,23 @@ class GenerateCustomer extends Base {
     let renderResult
     switch (unit.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
-        renderResult = HtmlRender.infoPage({
+        renderResult = HtmlRender.renderInfoPage({
           title: `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`,
         })
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
-        renderResult = HtmlRender.infoPage({
+        renderResult = HtmlRender.renderInfoPage({
           title: `收藏夹_${unit.info['title']}(${unit.info['id']})`,
         })
         break
       case Const_TaskConfig.Const_Task_Type_专栏:
-        renderResult = HtmlRender.infoPage({
+        renderResult = HtmlRender.renderInfoPage({
           title: `专栏_${unit.info['title']}(${unit.info['id']})`,
         })
 
         break
       case Const_TaskConfig.Const_Task_Type_话题:
-        renderResult = HtmlRender.infoPage({
+        renderResult = HtmlRender.renderInfoPage({
           title: `话题_${unit.info['name']}(${unit.info['id']})`,
         })
         break
@@ -902,51 +902,51 @@ class GenerateCustomer extends Base {
           let userName = `用户_${unit.info['name']}(${unit.info['id']})`
           switch (unit.type) {
             case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_提问过的所有问题`,
               })
               break
             case Const_TaskConfig.Const_Task_Type_用户的所有回答:
             case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_的所有回答`,
               })
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有文章`,
               })
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有想法`,
               })
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有回答`,
               })
 
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有文章`,
               })
               break
             case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_关注过的所有问题`,
               })
               break
             default:
-              renderResult = HtmlRender.infoPage({
+              renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}`,
               })
           }
         }
         break
       default:
-        renderResult = HtmlRender.infoPage({
+        renderResult = HtmlRender.renderInfoPage({
           title: `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`,
         })
     }
@@ -959,40 +959,58 @@ class GenerateCustomer extends Base {
 
   generatePageHtml(page: Package.Type_Page_Item): Type_Generate_Html {
     let pageTitle = ''
-    let pageHtml = ''
-    let html4SinglePage = ''
+    let renderResult
     switch (page.type) {
       case Consts.Const_Type_Article:
         pageTitle = (page as Package.Page_Article).recordList[0].record.title
-        pageHtml = ''
+        renderResult = HtmlRender.renderArticle({
+          title: pageTitle,
+          recordList: page.recordList.map((item) => item.record),
+        })
         break
       case Consts.Const_Type_Pin:
         pageTitle = (page as Package.Page_Pin).recordList[0].record.excerpt_title
-        pageHtml = ''
+        renderResult = HtmlRender.renderPin({
+          title: pageTitle,
+          recordList: page.recordList.map((item) => item.record),
+        })
         break
       case Consts.Const_Type_Question:
         pageTitle = (page as Package.Page_Question).recordList[0].record.question.title
-        pageHtml = ''
+        renderResult = HtmlRender.renderQuestion({
+          title: pageTitle,
+          recordList: page.recordList.map((item) => item.record),
+        })
         break
     }
 
     return {
       title: pageTitle,
-      html: pageHtml,
-      ele4SinglePage: html4SinglePage,
+      html: HtmlRender.renderToString(renderResult.htmlEle),
+      ele4SinglePage: renderResult.singleEle,
     }
   }
 
   generateIndexHtml(recordList: Type_Index_Record[]): Type_Generate_Html {
-    let pageTitle = ''
-    let pageHtml = ''
-    let html4SinglePage = ''
+    let renderResult = HtmlRender.renderIndex({
+      title: '目录',
+      recordList: recordList,
+    })
 
     return {
-      title: pageTitle,
-      html: pageHtml,
-      ele4SinglePage: html4SinglePage,
+      title: '目录',
+      html: HtmlRender.renderToString(renderResult.htmlEle),
+      ele4SinglePage: renderResult.singleEle,
     }
+  }
+
+  generateSinglePageHtml(eleList: Type_Generate_Html['ele4SinglePage'][]): string {
+    let htmlResult = HtmlRender.generateSinglePageHtml({
+      title: '',
+      eleList,
+    })
+
+    return htmlResult
   }
 
   async generateEpub({
@@ -1007,13 +1025,13 @@ class GenerateCustomer extends Base {
     let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname, imageQuilty })
 
     // 单独记录生成的元素, 以便输出成单页
-    let html4SinglePageList: ReactElement[] = []
+    let ele4SinglePageList: ReactElement[] = []
     this.log(`生成问题html列表`)
     let indexRecordList: Type_Index_Record[] = []
     for (let unit of epubColumn.unitList) {
       // 生成信息页
-      let { title, html, ele4SinglePage: unitHtml4SinglePage } = this.generateUnitInfoHtml(unit)
-      html4SinglePageList.push(unitHtml4SinglePage)
+      let { title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
+      ele4SinglePageList.push(unitEle4SinglePage)
       let uri = epubGenerator.addHtml({
         title,
         html,
@@ -1025,8 +1043,8 @@ class GenerateCustomer extends Base {
       }
       // 生成内容页
       for (let page of unit.pageList) {
-        let { title, html, ele4SinglePage: pageHtml4SinglePage } = this.generatePageHtml(page)
-        html4SinglePageList.push(pageHtml4SinglePage)
+        let { title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
+        ele4SinglePageList.push(pageEle4SinglePage)
         let uri = epubGenerator.addHtml({
           title,
           html,
@@ -1046,8 +1064,7 @@ class GenerateCustomer extends Base {
     })
 
     this.log(`生成单一html文件`)
-    let pageElement = BaseView.generatePageElement(epubColumn.bookname, html4SinglePageList)
-    let singlePageContent = BaseView.renderToString(pageElement)
+    let singlePageContent = this.generateSinglePageHtml(ele4SinglePageList)
     epubGenerator.generateSinglePageHtml({ html: singlePageContent })
 
     // 生成电子书
