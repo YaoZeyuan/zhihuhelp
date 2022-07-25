@@ -1,16 +1,16 @@
 // Modules to control application life and create native browser window
 import Electron, { Menu } from 'electron'
-import CommonUtil from '~/src/library/util/common'
-import ConfigHelperUtil from '~/src/library/util/config_helper'
+import RequestConfig from '~/src/config/request'
 import PathConfig from '~/src/config/path'
-import InitConfig from '~/src/config/init_config'
+import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
-import DispatchTaskCommand from '~/src/command/dispatch_task'
+import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
 import fs from 'fs'
 import path from 'path'
-import lodash from 'lodash'
 
+const Const_Current_Path = path.resolve(__dirname)
+let ace = new Ignitor(Const_Current_Path).ace()
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
 let { app, BrowserWindow, ipcMain, session, shell } = Electron
@@ -118,11 +118,11 @@ async function asyncUpdateCookie() {
     cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
   }
   // 将cookie更新到本地配置中
-  let config = InitConfig.getConfig()
-  lodash.set(config, ['request', 'cookie'], cookieContent)
+  let config = CommonUtil.getConfig()
+  config.requestConfig.cookie = cookieContent
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
-  ConfigHelperUtil.reloadConfig()
+  RequestConfig.reloadTaskConfig()
 }
 
 // This method will be called when Electron has finished
@@ -178,8 +178,10 @@ ipcMain.on('startCustomerTask', async (event) => {
 
   Logger.log(`开始执行任务`)
   event.returnValue = 'success'
-  let dispatchTaskCommand = new DispatchTaskCommand()
-  await dispatchTaskCommand.handle({}, {})
+  Logger.log(`开始抓取数据`)
+  await ace.handle(['Fetch:Customer'])
+  Logger.log(`开始生成电子书`)
+  await ace.handle(['Generate:Customer'])
   Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
   // 输出打开文件夹
   shell.showItemInFolder(PathConfig.outputPath)
