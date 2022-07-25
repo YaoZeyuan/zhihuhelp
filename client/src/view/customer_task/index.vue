@@ -499,7 +499,7 @@ export default defineComponent({
             now: new Date().toISOString(),
           },
         })
-        .catch(e => {
+        .catch((e) => {
           return {}
         })
 

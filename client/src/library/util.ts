@@ -1,6 +1,6 @@
 import fs from 'fs'
 class Util {
-  static getFileContent (uri: string) {
+  static getFileContent(uri: string) {
     if (fs.existsSync(uri)) {
       let contentBuffer = fs.readFileSync(uri)
       return contentBuffer.toString()
