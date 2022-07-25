@@ -1,5 +1,4 @@
 import Base from '~/src/command/base'
-import * as Types from './resource/type/index'
 import * as Consts from './resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import TypeTaskConfig, { Type_Task_Config } from '~/src/type/task_config'
@@ -21,15 +20,13 @@ import json5 from 'json5'
 
 import HtmlRender from './library/html_render'
 import fs from 'fs'
-import path from 'path'
-import CommonUtil from '~/src/library/util/common'
 import * as Date_Format from '~/src/constant/date_format'
 
 import * as Package from './resource/library/package'
 
 import EpubGenerator from './library/epub_generator'
 import moment from 'moment'
-import React, { ReactElement } from 'react'
+import { ReactElement } from 'react'
 
 /**
  * 生成html
