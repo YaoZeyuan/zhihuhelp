@@ -19,7 +19,7 @@ import MPin from '~/src/model/pin'
 import lodash from 'lodash'
 import json5 from 'json5'
 
-import HtmlRender from './lib/html_render'
+import HtmlRender from './library/html_render'
 import fs from 'fs'
 import path from 'path'
 import CommonUtil from '~/src/library/util/common'
@@ -27,7 +27,7 @@ import * as Date_Format from '~/src/constant/date_format'
 
 import * as Package from './resource/library/package'
 
-import EpubGenerator from './lib/epub_generator'
+import EpubGenerator from './library/epub_generator'
 import moment from 'moment'
 import React, { ReactElement } from 'react'
 
