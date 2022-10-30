@@ -74,11 +74,14 @@
     "semver": "^7.3.7",
     "sharp": "^0.30.7",
     "shelljs": "^0.8.1",
-    "sqlite3": "^5.0.8"
+    "sqlite3": "^5.1.2"
   },
   "devDependencies": {
+    "@adonisjs/application": "^5.2.5",
     "@babel/cli": "^7.18.6",
     "@babel/core": "^7.18.6",
+    "@babel/plugin-syntax-flow": "^7.18.6",
+    "@babel/plugin-transform-react-jsx": "^7.19.0",
     "@babel/preset-env": "^7.18.6",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
@@ -94,7 +97,7 @@
     "@types/sharp": "^0.25.0",
     "@types/shelljs": "^0.7.8",
     "babel-plugin-root-import": "^6.6.0",
-    "electron": "14.0.0",
+    "electron": "21.2.0",
     "electron-builder": "21.2.0",
     "electron-rebuild": "^3.2.7",
     "eslint": "^8.13.0",
