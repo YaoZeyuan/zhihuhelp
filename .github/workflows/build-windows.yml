@@ -20,7 +20,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
-        uses: polyseam/get-version-from-package-json@v1.0.0
+        uses: polyseam/get-version-from-package-json@1.0.0
         id: get-version-from-package-json
       - name: Show version number
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.version }}"
