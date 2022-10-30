@@ -28,6 +28,14 @@ function fixedEncodeURIComponent(str: string) {
 
 export default class httpClient {
   /**
+   * 原始request请求
+   * @param params
+   * @returns
+   */
+  static async rawRequest(...params: Parameters<typeof httpInstance.request>) {
+    return httpInstance.request(...params)
+  }
+  /**
    * 封装get方法
    * @param rawUrl
    * @param config

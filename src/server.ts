@@ -1,6 +1,7 @@
 // src/index.ts
 import express from 'express'
 import bodyParser from 'body-parser'
+import ApiRedirectService from '~/src/service/api_redirect'
 import baseRouter from '~/src/router'
 // 配置 ~/src 通用导入前缀, 方便编写后续文件
 require('module-alias').addAlias('~/src', __dirname + '/')
@@ -29,6 +30,8 @@ export function startServer({ port }: { port: number }) {
       },
     }),
   )
+  // 注册中间件服务, 进行接口转发
+  app.use(ApiRedirectService)
   // 注册正常的路由列表
   app.use('/', baseRouter)
 
