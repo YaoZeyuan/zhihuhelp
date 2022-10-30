@@ -32,7 +32,7 @@ export default () => {
 
   return (
     <div className="login">
-      <div className="config-panel"></div>
+      <webview id="zhihu-login" src="https://www.zhihu.com/"></webview>
     </div>
   )
 }
