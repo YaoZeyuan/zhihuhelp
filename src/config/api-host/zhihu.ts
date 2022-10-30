@@ -1,7 +1,7 @@
 import * as Platform_Consts from '~/src/resource/const/platform'
 
 // 环境下对应的host地址
-export const Const_Host = 'https://api.zhihu.com'
+export const Const_Host = 'https://www.zhihu.com'
 // 需要转发到a1.ke.com的前端请求特征前缀
 export const Const_Prefix = '/api/zhihu/' as const
 // 需要转发到a1.ke.com的前端请求特征正则匹配表达式

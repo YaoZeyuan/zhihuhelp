@@ -186,8 +186,8 @@ function r(e) {
         e.r[3] = e.r[this.s](t[0], t[1])
         break
       case 1:
-        for (var r = e.f.pop(), o = [], i = 0; i < this.i; i++) o.unshift(e.f.pop())
-        e.r[3] = e.r[this.s][r](o[0], o[1])
+        for (var r = e.f.pop(), i = [], o = 0; o < this.i; o++) i.unshift(e.f.pop())
+        e.r[3] = e.r[this.s][r](i[0], i[1])
         break
       case 2:
         for (var a = [], c = 0; c < this.i; c++) a.unshift(e.f.pop())
@@ -196,8 +196,8 @@ function r(e) {
   })
 var k = function (e) {
   for (var t = 66, n = [], r = 0; r < e.length; r++) {
-    var o = 24 ^ e.charCodeAt(r) ^ t
-    n.push(String.fromCharCode(o)), (t = o)
+    var i = 24 ^ e.charCodeAt(r) ^ t
+    n.push(String.fromCharCode(i)), (t = i)
   }
   return n.join('')
 }
@@ -304,8 +304,8 @@ function G() {
       n.push(e)
     })
     var r = function (r) {
-      var o = new G()
-      return (o.k = n), (o.k[0] = r), o.v(e.G, t.h, e.b, e.F), o.r[3]
+      var i = new G()
+      return (i.k = n), (i.k[0] = r), i.v(e.G, t.h, e.b, e.F), i.r[3]
     }
     ;(r.toString = function () {
       return '() { [native code] }'
@@ -322,20 +322,20 @@ function G() {
         e.r[this.s] = t
         break
       case 1:
-        for (var o = [], i = 0; i < this.i; i++) o.unshift(e.f.pop())
-        e.r[this.s] = o
+        for (var i = [], o = 0; o < this.i; o++) i.unshift(e.f.pop())
+        e.r[this.s] = i
     }
   }),
   (G.prototype.D = function (e) {
-    for (var t = atob(e), n = (t.charCodeAt(0) << 8) | t.charCodeAt(1), r = [], o = 2; o < n + 2; o += 2)
-      r.push((t.charCodeAt(o) << 8) | t.charCodeAt(o + 1))
+    for (var t = window.atob(e), n = (t.charCodeAt(0) << 8) | t.charCodeAt(1), r = [], i = 2; i < n + 2; i += 2)
+      r.push((t.charCodeAt(i) << 8) | t.charCodeAt(i + 1))
     this.G = r
-    for (var i = [], a = n + 2; a < t.length; ) {
+    for (var o = [], a = n + 2; a < t.length; ) {
       var c = (t.charCodeAt(a) << 8) | t.charCodeAt(a + 1),
         u = t.slice(a + 2, a + 2 + c)
-      i.push(u), (a += c + 2)
+      o.push(u), (a += c + 2)
     }
-    this.b = i
+    this.b = o
   }),
   (G.prototype.v = function (e, t, n) {
     for (
@@ -350,9 +350,9 @@ function G() {
     ) {
       var r = this.G[this.C++]
       if ('number' != typeof r) break
-      var o = Date.now()
-      if (500 < o - this.R) return
-      this.R = o
+      var i = Date.now()
+      if (500 < i - this.R) return
+      this.R = i
       try {
         this.e(r)
       } catch (e) {

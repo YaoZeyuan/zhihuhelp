@@ -7,7 +7,7 @@ import querystring from 'querystring'
 import _ from 'lodash'
 import URL from 'url'
 
-const Const_Headers_x_zse_93 = '101_3_2.0'
+const Const_Headers_x_zse_93 = '101_3_3.0'
 
 // 创建axios实例
 const httpInstance = axios.create({
@@ -19,11 +19,54 @@ const httpInstance = axios.create({
   },
 })
 
-function fixedEncodeURIComponent(str: string) {
+export function fixedEncodeURIComponent(str: string) {
   // 不需要对*进行转码
   return encodeURIComponent(str).replace(/[!'()]/g, function (c) {
     return '%' + c.charCodeAt(0).toString(16)
   })
+}
+
+export function generateZhihuExtendsHeader({
+  rawUrl,
+  params,
+  cookie = RequestConfig.cookie,
+  ua = RequestConfig.ua,
+}: {
+  rawUrl: string
+  params: {
+    [key: string]: string
+  }
+  cookie: string
+  ua: string
+}) {
+  let cookie_item_list = cookie
+    .split(';')
+    .map((item: string) => item.trim())
+    .filter((item: string) => item.startsWith('d_c0'))
+  let raw_d_c0 = cookie_item_list?.[0] || ''
+  let cookie_d_c0 = raw_d_c0.split('d_c0=')?.[1] || ''
+
+  let url = rawUrl
+  if (params) {
+    // 将config中的参数合并到url中, 以进行统一的签名运算
+    url = `${url}?${querystring.stringify(params, undefined, undefined, {
+      encodeURIComponent: fixedEncodeURIComponent,
+    })}`
+  }
+
+  let url_obj = new URL.URL(url)
+
+  let encrypt_url = `${url_obj.pathname}${url_obj.search}`
+  let x_zst_96 = getZhihuEncrypt({
+    cookie_d_c0: cookie_d_c0,
+    url: encrypt_url,
+  })
+  return {
+    'User-Agent': ua,
+    cookie: cookie,
+    'x-zse-93': Const_Headers_x_zse_93,
+    'x-zse-96': x_zst_96,
+  }
 }
 
 export default class httpClient {
@@ -43,36 +86,18 @@ export default class httpClient {
   static async get(rawUrl: string, config: AxiosRequestConfig = {}) {
     // 发送知乎请求时, 需要额外附带校验header, 否则报错
 
-    let cookie_item_list = RequestConfig.cookie
-      .split(';')
-      .map((item: string) => item.trim())
-      .filter((item: string) => item.startsWith('d_c0'))
-    let raw_d_c0 = cookie_item_list?.[0] || ''
-    let cookie_d_c0 = raw_d_c0.split('d_c0=')?.[1] || ''
-
     let url = rawUrl
-    if (config.params) {
-      // 将config中的参数合并到url中, 以进行统一的签名运算
-      url = `${url}?${querystring.stringify(config.params, undefined, undefined, {
-        encodeURIComponent: fixedEncodeURIComponent,
-      })}`
-      delete config.params
-    }
-
-    let url_obj = new URL.URL(url)
-
-    let encrypt_url = `${url_obj.pathname}${url_obj.search}`
-    let x_zst_96 = getZhihuEncrypt({
-      cookie_d_c0: cookie_d_c0,
-      url: encrypt_url,
+    let extendHeader = generateZhihuExtendsHeader({
+      rawUrl,
+      params: config.params,
+      cookie: RequestConfig.cookie,
+      ua: RequestConfig.ua,
     })
+    delete config.params
+
     config.headers = {
       ...config.headers,
-      // 加上ua
-      'User-Agent': RequestConfig.ua,
-      cookie: RequestConfig.cookie,
-      'x-zse-93': Const_Headers_x_zse_93,
-      'x-zse-96': x_zst_96,
+      ...extendHeader,
     }
 
     const response = await httpInstance.get(url, config).catch((e) => {

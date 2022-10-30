@@ -1,12 +1,10 @@
 // src/service/api_redirect.ts
 import * as Zhihu_ApiHost from '~/src/config/api-host/zhihu'
-// 用于解析cookie, 方便根据服务端要求配置请求的header头
-import http from '~/src/library/http'
+import http, { generateZhihuExtendsHeader } from '~/src/library/http'
 import querystring from 'query-string'
-import UtilCommon from '~/src/library/util/common'
 import express from 'express'
-import md5 from 'md5'
 import Logger from '../library/logger'
+import RequestConfig from '../config/request'
 
 let apiHostList = [Zhihu_ApiHost]
 
@@ -57,6 +55,39 @@ let getAsyncRedirectResponse = (prefix: Type_Prefix) => {
 
     // 根据api类别添加额外处理逻辑
     if (prefix === Zhihu_ApiHost.Const_Prefix) {
+      let rawUrl = request.url
+      console.log('rawUrl => ', rawUrl)
+      let parseUrlResult = querystring.parseUrl(rawUrl)
+      let splitList = parseUrlResult.url.split(Zhihu_ApiHost.Const_Prefix)
+      // 移除Zhihu_ApiHost.Const_Prefix前缀
+      let url = 'https://www.zhihu.com/' + splitList.join('')
+      let queryResult = parseUrlResult.query
+      let params: { [key: string]: string } = {}
+      for (let key of Object.keys(queryResult)) {
+        let item = queryResult[key]
+        if (item === null) {
+        } else if (Array.isArray(item)) {
+          params[key] = item.join(',')
+        } else {
+          params[key] = item
+        }
+      }
+      console.log('input => ', {
+        rawUrl: url,
+        params,
+      })
+      let extendHeader = generateZhihuExtendsHeader({
+        rawUrl: url,
+        params,
+        cookie: RequestConfig.cookie,
+        ua: RequestConfig.ua,
+      })
+
+      headers = {
+        ...headers,
+        // 加上ua
+        ...extendHeader,
+      }
     }
 
     // 对以下key对应的header, 转成value后发送.
