@@ -28,6 +28,8 @@ jobs:
       # - run: brew install vips
       - run: cd ./client && yarn && cd ..
       - run: yarn
+      # 只安装intel版的sharp库即可, m1上可以运行intel的代码
+      - run: npm install --platform=darwin --arch=x64 sharp
       - run: yarn dist
         env:
           CI: true
