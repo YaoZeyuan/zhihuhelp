@@ -25,8 +25,8 @@
     "productName": "知乎助手",
     "appId": "zhihuhelp",
     "copyright": "@姚泽源",
-    "npmRebuild": true,
-    "buildDependenciesFromSource": true,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
     "asar": false,
     "directories": {
       "output": "release"
