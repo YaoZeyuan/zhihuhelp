@@ -20,10 +20,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
-        uses: tyankatsu0105/read-package-version-actions@v1
-        id: package-version
+        uses: dutscher/read-package-json-endpoint-actions@v1.33.7
+        id: package-json-content
       - name: Show version number
-        run: echo "current version is ${{ steps.package-version.outputs.version }}"
+        run: echo "current version is ${{ steps.package-json-content.version }}"
       - run: cd ./client ; yarn ; cd ..
       - run: yarn
       - run: yarn dist
@@ -36,8 +36,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: win-${{ steps.package-version.outputs.version  }}
-          release_name: ${{ steps.package-version.outputs.version  }}
+          tag_name: win-${{ steps.package-json-content.version  }}
+          release_name: ${{ steps.package-json-content.version  }}
           draft: true
           prerelease: true
       - name: Upload Release normal windows
@@ -46,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./release/知乎助手 Setup ${{ steps.package-version.outputs.version }}.exe
-          asset_name: zhihuhelp-win64-${{ steps.package-version.outputs.version }}.exe
+          asset_path: ./release/知乎助手 Setup ${{ steps.package-json-content.version }}.exe
+          asset_name: zhihuhelp-win64-${{ steps.package-json-content.version }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
