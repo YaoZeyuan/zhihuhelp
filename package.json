@@ -73,6 +73,7 @@
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "request-promise": "^4.2.6",
+    "request": "^2.88.2",
     "sharp": "^0.30.7",
     "shelljs": "^0.8.1",
     "sqlite3": "^5.0.10",
