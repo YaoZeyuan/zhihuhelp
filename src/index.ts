@@ -6,8 +6,16 @@ import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
 import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
+import { startServer } from '~/src/server'
+import portfinder from 'portfinder'
+
 import fs from 'fs'
 import path from 'path'
+
+const Const_User_Agent =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+const Const_Default_Server_Port = 6370
+let serverPort = Const_Default_Server_Port
 
 const Const_Current_Path = path.resolve(__dirname)
 let ace = new Ignitor(Const_Current_Path).ace()
@@ -20,7 +28,7 @@ let mainWindow: Electron.BrowserWindow
 
 let isRunning = false
 
-function createWindow() {
+async function asyncCreateWindow() {
   if (process.platform === 'darwin') {
     const template = [
       {
@@ -79,6 +87,18 @@ function createWindow() {
     },
   })
 
+  // 自动查找一个可用端口
+  let finalPort = await portfinder
+    .getPortPromise({
+      host: '0.0.0.0',
+      port: Const_Default_Server_Port,
+    })
+    .catch((e) => {
+      Logger.log('没有可用的端口号,自动退出')
+      process.exit(1)
+    })
+  serverPort = finalPort
+
   // and load the index.html of the app.
   // and load the index.html of the app.
   if (isDebug) {
@@ -86,12 +106,17 @@ function createWindow() {
     // mainWindow.loadFile('./client/index.html')
     mainWindow.loadURL('http://127.0.0.1:8080')
     mainWindow.webContents.openDevTools()
+
+    // @todo 本地临时测试使用
+    // 仅线上需要启动server, dev环境执行npm命令单独启动服务
+    // startServer({ port: serverPort })
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
     let targetPath = path.resolve(__dirname, 'client', 'index.html')
     mainWindow.loadFile(targetPath)
     // mainWindow.webContents.openDevTools()
+    startServer({ port: serverPort })
   }
 
   // Emitted when the window is closed.
@@ -128,7 +153,7 @@ async function asyncUpdateCookie() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', asyncCreateWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -143,7 +168,7 @@ app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    asyncCreateWindow()
   }
 })
 
