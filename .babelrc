@@ -4,8 +4,10 @@
       "@babel/env",
       {
         "targets": {
-          "node": "6.10"
-        }
+          "node": "16.0"
+        },
+        "useBuiltIns": "entry",
+        "corejs": "3.22"
       }
     ],
     ["@babel/preset-react"],
