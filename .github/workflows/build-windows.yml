@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: win-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
-          release_name: ${{ steps.get-version-from-package-json.outputs.packageVersion  }}
+          release_name: windows-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
           draft: true
           prerelease: true
       - name: Upload Release normal windows
@@ -47,5 +47,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./release/知乎助手 Setup ${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
-          asset_name: zhihuhelp-win64-${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
+          asset_name: windows-zhihuhelp-win64-${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
