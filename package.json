@@ -124,7 +124,7 @@
     "http-proxy-middleware": "^0.19.1",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
-    "node-gyp": "^6.1.0",
+    "node-gyp": "9.1.0",
     "nodemon": "^1.13.0",
     "opn": "^5.4.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",

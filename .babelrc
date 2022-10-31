@@ -8,9 +8,7 @@
         }
       }
     ],
-    [
-      "@babel/preset-react",
-    ],
+    ["@babel/preset-react"],
     "@babel/typescript"
   ],
   "plugins": [
@@ -19,8 +17,8 @@
     [
       "babel-plugin-root-import",
       {
-        "rootPathSuffix": "./",
-        "rootPathPrefix": "~"
+        "rootPathSuffix": "./src",
+        "rootPathPrefix": "~/src"
       }
     ]
   ]
