@@ -89,7 +89,7 @@ function createWindow() {
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
-    let targetPath = path.resolve(__dirname, "client", "index.html")
+    let targetPath = path.resolve(__dirname, 'client', 'index.html')
     mainWindow.loadFile(targetPath)
     // mainWindow.webContents.openDevTools()
   }
@@ -147,12 +147,14 @@ app.on('activate', function () {
   }
 })
 
-ipcMain.on('openOutputDir', event => {
+ipcMain.on('openOutputDir', (event) => {
   // 打开输出文件夹
   shell.showItemInFolder(PathConfig.outputPath)
+  event.returnValue = ''
+  return
 })
 
-ipcMain.on('getPathConfig', event => {
+ipcMain.on('getPathConfig', (event) => {
   // 获取pathConfig
 
   let obj: any = {}
@@ -166,7 +168,7 @@ ipcMain.on('getPathConfig', event => {
   return
 })
 
-ipcMain.on('startCustomerTask', async event => {
+ipcMain.on('startCustomerTask', async (event) => {
   if (isRunning) {
     event.returnValue = '目前尚有任务执行, 请稍后'
     return
@@ -186,8 +188,7 @@ ipcMain.on('startCustomerTask', async event => {
   isRunning = false
 })
 
-
-ipcMain.on("get-task-default-title", async (event, taskType, taskId: string) => {
+ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => {
   await asyncUpdateCookie()
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
