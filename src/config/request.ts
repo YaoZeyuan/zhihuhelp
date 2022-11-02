@@ -8,7 +8,7 @@ export default class RequestConfig {
   static reloadTaskConfig() {
     // 更新配置信息
     let config = CommonUtil.getConfig()
-    this.ua = config.requestConfig.ua
-    this.cookie = config.requestConfig.cookie
+    this.ua = config.request.ua
+    this.cookie = config.request.cookie
   }
 }
