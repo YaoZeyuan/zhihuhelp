@@ -34,7 +34,6 @@ export default () => {
     <div className="login">
       <div className="item">
         <Button
-          ghost
           onClick={() => {
             let webviewEle = document.querySelector('webview#zhihu-login')
             console.log('webviewEle => ', webviewEle)
