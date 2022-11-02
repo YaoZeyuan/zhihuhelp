@@ -144,7 +144,7 @@ async function asyncUpdateCookie() {
   }
   // 将cookie更新到本地配置中
   let config = CommonUtil.getConfig()
-  config.requestConfig.cookie = cookieContent
+  config.request.cookie = cookieContent
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
   RequestConfig.reloadTaskConfig()
