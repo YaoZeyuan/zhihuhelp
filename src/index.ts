@@ -7,6 +7,7 @@ import InitConfig from '~/src/config/init_config'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
 import * as FrontTools from '~/src/library/util/front_tools'
+import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
 import _ from 'lodash'
@@ -193,6 +194,26 @@ ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => 
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
   event.returnValue = title
+  return
+})
+
+ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string; params: { [key: string]: any } }) => {
+  // 调用知乎的get请求
+  console.log('rawUrl => ', rawUrl)
+  let res = await http
+    .get(rawUrl, {
+      params: params,
+    })
+    .catch((e) => {
+      return {}
+    })
+  event.returnValue = res
+  return res
+})
+ipcMain.on('open-devtools', async (event) => {
+  // 打开调试面板
+  mainWindow.webContents.openDevTools()
+  event.returnValue = true
   return
 })
 

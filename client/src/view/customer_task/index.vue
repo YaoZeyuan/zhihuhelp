@@ -1,13 +1,15 @@
 <template>
   <div>
     <el-row type="flex" align="middle" justify="end">
-      <el-col :span="16">
+      <el-col :span="14">
         <h1>自定义任务</h1>
       </el-col>
-      <el-col :span="8">
-        <el-button type="primary" @click="asyncHandleStartTask">开始执行</el-button>
-        <el-button type="success" @click="openOutputDir">打开输出目录</el-button>
-        <el-button type="primary" @click="asyncCheckUpdate" round>检查更新</el-button>
+      <el-col :span="10">
+        <el-button type="primary" @click="asyncHandleStartTask" size="small">开始执行</el-button>
+        <el-button type="primary" @click="asyncCheckIsLogin" size="small">检查登录</el-button>
+        <el-button type="primary" @click="asyncCheckUpdate" size="small">检查更新</el-button>
+        <el-button type="primary" @click="openDevtools" size="small">打开调试</el-button>
+        <el-button type="success" @click="openOutputDir" size="small">打开输出目录</el-button>
       </el-col>
     </el-row>
     <el-card>
@@ -480,13 +482,22 @@ export default defineComponent({
     async asyncCheckIsLogin() {
       // 已登陆则返回用户信息 =>
       // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
-      let record = await http.asyncGet('https://www.zhihu.com/api/v4/me')
+      let record = ipcRenderer.sendSync('zhihu-http-get', {
+        rawUrl: 'https://www.zhihu.com/api/v4/me',
+        params: {},
+      })
+      console.log('check login result => ', record)
       this.status.isLogin = _.has(record, ['id'])
       if (this.status.isLogin === false) {
         ElMessageBox.alert(`检测尚未登陆知乎, 请登陆后再开始执行任务`, {})
         this.$emit('switchTab', 'login')
       }
       console.log('checkIsLogin: record =>', record)
+    },
+    async openDevtools() {
+      ipcRenderer.sendSync('open-devtools')
+      console.log('open-devtools-complete')
+      return
     },
     async asyncCheckUpdate() {
       let checkUpgradeUri = 'http://api.bookflaneur.cn/zhihuhelp/version'
@@ -496,7 +507,7 @@ export default defineComponent({
             now: new Date().toISOString(),
           },
         })
-        .catch(e => {
+        .catch((e: any) => {
           return {}
         })
 
