@@ -30,7 +30,7 @@ specifiers:
   babel-plugin-root-import: ^6.6.0
   body-parser: ^1.20.1
   core-js: '3'
-  electron: 21.2.0
+  electron: 21.0.1
   electron-builder: 21.2.0
   electron-rebuild: ^3.2.7
   eslint: ^8.13.0
@@ -106,7 +106,7 @@ devDependencies:
   '@types/sharp': 0.25.1
   '@types/shelljs': 0.7.9
   babel-plugin-root-import: 6.6.0
-  electron: 21.2.0
+  electron: 21.0.1
   electron-builder: 21.2.0
   electron-rebuild: 3.2.9
   eslint: 8.26.0
@@ -3778,8 +3778,8 @@ packages:
     resolution: {integrity: sha512-M8WEXFuKXMYMVr45fo8mq0wUrrJHheiKZf6BArTKk9ZBYCKJEOU5H8cdWgDT+qCVZf7Na4lVUaZsA+h6uA9+PA==}
     dev: true
 
-  /electron/21.2.0:
-    resolution: {integrity: sha512-oKV4fo8l6jlOZ1cYZ4RpZz02ZxLuBo3SO7DH+FrJ8uDyCirP+eVJ/qlzu23odtNe0P7S/mYAZbC6abZHWoqtLg==}
+  /electron/21.0.1:
+    resolution: {integrity: sha512-jLVSLakd0fO2GPnW4xXQrI93R464jeFb2ISngqRP3wpwH96XqeANkuAYLAr9TVhfQMCIWnuPROBZ+NU7nuk0WA==}
     engines: {node: '>= 10.17.0'}
     hasBin: true
     requiresBuild: true

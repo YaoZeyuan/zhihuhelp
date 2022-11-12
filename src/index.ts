@@ -25,6 +25,8 @@ let { app, BrowserWindow, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow
+// 用于执行远程通信
+let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
 
@@ -84,6 +86,33 @@ async function asyncCreateWindow() {
       contextIsolation: false,
       // 启用webview标签
       webviewTag: true,
+      // // 启用preload.js, 以进行rpc通信
+      // preload: path.join(__dirname, 'preload.js'),
+    },
+  })
+  jsRpcWindow = new BrowserWindow({
+    width,
+    height,
+    // 自动隐藏菜单栏
+    autoHideMenuBar: true,
+    // 窗口的默认标题
+    title: '稳部落',
+    // 在屏幕中间展示窗口
+    center: true,
+    // 展示原生窗口栏
+    frame: true,
+    // 禁用web安全功能 --> 个人软件, 要啥自行车
+    webPreferences: {
+      // 开启 DevTools.
+      devTools: true,
+      // 禁用同源策略, 允许加载任何来源的js
+      webSecurity: false,
+      // js-rpc需要
+      contextIsolation: true,
+      // 启用webview标签
+      webviewTag: true,
+      // 启用preload.js, 以进行rpc通信
+      preload: path.join(__dirname, 'js-rpc', 'preload.js'),
     },
   })
 
@@ -104,8 +133,12 @@ async function asyncCreateWindow() {
   if (isDebug) {
     // 本地调试 & 打开控制台
     // mainWindow.loadFile('./client/index.html')
-    mainWindow.loadURL('http://127.0.0.1:8080')
+    mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
+
+    let jsRpcUri = path.resolve(__dirname, 'js-rpc', 'index.html')
+    jsRpcWindow.loadURL(jsRpcUri)
+    jsRpcWindow.webContents.openDevTools()
 
     // @todo 本地临时测试使用
     // 仅线上需要启动server, dev环境执行npm命令单独启动服务
@@ -113,9 +146,14 @@ async function asyncCreateWindow() {
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
-    let targetPath = path.resolve(__dirname, 'client', 'index.html')
-    mainWindow.loadFile(targetPath)
+    let webviewUri = path.resolve(__dirname, 'client', 'index.html')
+    mainWindow.loadFile(webviewUri)
     // mainWindow.webContents.openDevTools()
+
+    let jsRpcUri = path.resolve(__dirname, 'js-rpc', 'index.html')
+    jsRpcWindow.loadURL(jsRpcUri)
+    // jsRpcWindow.webContents.openDevTools()
+
     startServer({ port: serverPort })
   }
 
