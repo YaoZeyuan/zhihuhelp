@@ -194,7 +194,8 @@ ${request.method === 'POST' && request?.body ? data_raw_str : ''}\\
       response.status(remoteServerResponse?.status ?? 200)
       response.send({
         success: false,
-        errorData: remoteServerResponse?.data?.toString() ?? '',
+        errorData: JSON.parse(remoteServerResponse?.data?.toString()) ?? '',
+        headers,
       })
     }
     return

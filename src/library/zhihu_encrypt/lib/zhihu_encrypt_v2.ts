@@ -4,14 +4,118 @@
 import atob from 'atob'
 import jsdom from 'jsdom'
 
-// 知乎的加密过程中用到了window. 不是标准window对象加密结果会不一样(加密"1", web输出aR_0, node输出mXUX). 不研究了就. 直接使用jsdom模拟
+// 解密过程 =>
+// 关键词: jsvmp, 虚拟机, 随机数hook
+// 1. https://www.52pojie.cn/forum.php?mod=viewthread&tid=1686683
+// 2. https://mrxiuxing.com/posts/d7c81aca.html
+// JSVMP 全称 Virtual Machine based code Protection for JavaScript，即 JS 代码虚拟化保护方案。
+// JSVMP 的概念最早应该是由西北大学2015级硕士研究生匡开圆，在其2018年的学位论文中提出的，论文标题为：《基于 WebAssembly 的 JavaScript 代码虚拟化保护方法研究与实现》，同年还申请了国家专利，专利名称：《一种基于前端字节码技术的 JavaScript 虚拟化保护方法》，网上可以直接搜到，也可在公众号【K哥爬虫】后台回复 JSVMP，免费获取原版高清无水印的论文和专利。本文就简单介绍一下 JSVMP，想要详细了解，当然还是建议去读一下这篇论文。
+
+// 准备直接使用js-rpc方式进行解密
+// 参考 => https://www.electronjs.org/zh/docs/latest/tutorial/ipc#%E6%A8%A1%E5%BC%8F-3%E4%B8%BB%E8%BF%9B%E7%A8%8B%E5%88%B0%E6%B8%B2%E6%9F%93%E5%99%A8%E8%BF%9B%E7%A8%8B
+
 const { JSDOM } = jsdom
 const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`)
 let window: any = dom.window
+window = dom.window
 let document = window.document
-let XMLHttpRequest = window.XMLHttpRequest
+let navigator = window.navigator
+let location = window.location
+let history = window.history
+let screen = window.screen
+let alert = window.alert
+window._resourceLoader = undefined
+window._sessionHistory = undefined
 
-let exports = {}
+Math.random = function () {
+  return 0.5
+}
+
+window = new Proxy(window, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set window', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get window', property, typeof target[property])
+    return target[property]
+  },
+})
+document = new Proxy(document, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set document', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get document', property, typeof target[property])
+    return target[property]
+  },
+})
+navigator = new Proxy(navigator, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set navigator', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get navigator', property, typeof target[property])
+    return target[property]
+  },
+})
+location = new Proxy(location, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set location', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get location', property, typeof target[property])
+    return target[property]
+  },
+})
+history = new Proxy(history, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set history', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get history', property, typeof target[property])
+    return target[property]
+  },
+})
+screen = new Proxy(screen, {
+  set(target, property, value, receiver) {
+    console.log('设置属性set screen', property, typeof value)
+    return Reflect.set(...arguments)
+  },
+  get(target, property, receiver) {
+    console.log('获取属性get screen', property, typeof target[property])
+    return target[property]
+  },
+})
+
+var Object_toString = Object.prototype.toString
+Object.prototype.toString = function () {
+  let _temp = Object_toString.call(this, arguments)
+  console.log(this)
+  console.log('Object.prototype.toString: ' + _temp)
+  if (this?.constructor?.name === 'Document') {
+    return '[object HTMLDocument]'
+  } else if (this?.constructor?.name === 'CanvasRenderingContext2D') {
+    return '[object CanvasRenderingContext2D]'
+  }
+  return _temp
+}
+
+var Function_toString = Function.prototype.toString
+Function.prototype.toString = function () {
+  let _temp = Function_toString.call(this, arguments)
+  console.log(this)
+  console.log('Function.prototype.toString: ' + _temp)
+  if (this.name === 'Window') {
+    return 'function Window() { [native code] }'
+  }
+  return _temp
+}
+
 function o(e) {
   return (o =
     'function' == typeof Symbol && 'symbol' == typeof Symbol.A
@@ -93,11 +197,11 @@ function l() {
     (this.D = []),
     (this.w = 1024),
     (this.g = null),
-    (this.a = Date.now()),
+    (this.a = 1), //Date.now(),
     (this.e = +[]),
     (this.T = 255),
     (this.V = null),
-    (this.U = Date.now),
+    (this.U = () => 1), //Date.now,
     (this.M = new Array(32))
 }
 ;(l.prototype.O = function (A, C, s) {

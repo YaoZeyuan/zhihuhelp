@@ -1,8 +1,9 @@
 import md5 from 'md5'
 import zhihuEncrypt from './lib/zhihu_encrypt'
+import zhihuEncryptV2 from './lib/zhihu_encrypt_v2'
 
 // 常量
-const Const_Version = '101_3_2.0'
+const Const_Version = '101_3_3.0'
 const Const_Result_Prefix = '2.0'
 
 /**
@@ -27,11 +28,12 @@ function get_x_zse_86(param: {
     Const_Version, // 对应于 x-zse-93, 为常量值
     url,
     cookie_d_c0,
+    // xZst81,
   ].join('+')
   var step1 = md5(info)
-  var signature = zhihuEncrypt(step1)
-  var x_zse_86 = `${Const_Result_Prefix}_${signature}`
-  return x_zse_86
+  var signature = zhihuEncryptV2(step1)
+  var x_zse_96 = `${Const_Result_Prefix}_${signature}`
+  return x_zse_96
 }
 
 export default get_x_zse_86
