@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" /> -->
+    <title>rpc-专用页</title>
+  </head>
+  <body>
+    <button id="open-devtools">打开webview调试工具</button>
+    <script src="./renderer.js"></script>
+    <!-- 配置一个404 页面, 避免执行多余js逻辑 -->
+    <webview
+      disablewebsecurity
+      id="zhihuhelp-rpc"
+      src="https://www.zhihu.com/404-page"
+      useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+    ></webview>
+  </body>
+</html>
