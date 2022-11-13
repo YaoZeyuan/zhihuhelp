@@ -8,6 +8,14 @@
   </head>
   <body>
     Current value: <strong id="counter">0</strong>
+
+    <button id="open-js-rpc-devtools">打开rpc-调试工具</button>
     <script src="./renderer.js"></script>
+    <webview
+      disablewebsecurity
+      id="zhihuhelp-rpc"
+      src="./zhihuhelp_rpc/rpc.html"
+      useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+    ></webview>
   </body>
 </html>
