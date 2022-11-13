@@ -7,6 +7,7 @@ import InitConfig from '~/src/config/init_config'
 import Logger from '~/src/library/logger'
 import DispatchTaskCommand from '~/src/command/dispatch_task'
 import * as FrontTools from '~/src/library/util/front_tools'
+import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
@@ -255,8 +256,7 @@ let taskMap = new Map<
 >()
 let totalTaskCounter = 0
 
-// 触发js-rpc请求
-ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+async function asyncJsRpcTriggerFunc({ method, paramList }: { method: string; paramList: any[] }) {
   totalTaskCounter++
   let id = `task-${totalTaskCounter}-${Math.random()}`
   let task = new Promise((reslove) => {
@@ -286,13 +286,21 @@ ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
   if (isDebug) {
     Logger.log(`id:${id}的js-rpc请求完成`)
   }
+  return result
+}
+// 使用js-rpc获取签名
+setBridgeFunc(asyncJsRpcTriggerFunc)
+
+// 触发js-rpc请求
+ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+  let result = await asyncJsRpcTriggerFunc({ method, paramList })
   event.returnValue = JSON.stringify(result)
   return
 })
 
 // 回收js-rpc调用响应值
 ipcMain.on('js-rpc-response', async (event, { id, value }) => {
-  console.log('receive js-rpc-response => ', { id, value })
+  // console.log('receive js-rpc-response => ', { id, value })
   if (taskMap.has(id)) {
     taskMap.get(id)?.reslove(value)
     taskMap.delete(id)

@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import RequestConfig from '~/src/config/request'
 import logger from '~/src/library/logger'
-import getZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
+import asyncGetZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import request from 'request-promise'
 import querystring from 'querystring'
 import _ from 'lodash'
@@ -52,7 +52,7 @@ class Http {
     let url_obj = new URL.URL(url)
 
     let encrypt_url = `${url_obj.pathname}${url_obj.search}`;
-    let x_zst_96 = getZhihuEncrypt({
+    let x_zst_96 = await asyncGetZhihuEncrypt({
       cookie_d_c0: cookie_d_c0,
       "url": encrypt_url,
     })
