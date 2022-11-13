@@ -91,17 +91,13 @@ async function asyncCreateWindow() {
       // preload: path.join(__dirname, 'preload.js'),
     },
   })
+  // 专门启动一个窗口, 用于通过jsRpc计算签名
   jsRpcWindow = new BrowserWindow({
-    width,
-    height,
-    // 自动隐藏菜单栏
-    autoHideMenuBar: true,
-    // 窗口的默认标题
-    title: '稳部落',
-    // 在屏幕中间展示窗口
-    center: true,
-    // 展示原生窗口栏
-    frame: true,
+    enableLargerThanScreen: true,
+    width: 760,
+    height: 10,
+    // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
+    show: false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.
@@ -165,6 +161,10 @@ async function asyncCreateWindow() {
     // when you should delete the corresponding element.
     // @ts-ignore
     mainWindow = null
+    // 主窗口关闭时, 子窗口也要跟着关闭, 避免程序退不掉
+    jsRpcWindow.close()
+    // @ts-ignore
+    jsRpcWindow = null
   })
 
   // 设置ua
@@ -270,11 +270,17 @@ ipcMain.on('devtools-clear-all-session-storage', async (event) => {
   return
 })
 
-let taskMap = new Map<string, {
-  method:string,
-  paramList: any[],
-  reslove:(value: any) => void,
-}>
+/**
+ * jsRpc任务管理器
+ */
+let taskMap = new Map<
+  string,
+  {
+    method: string
+    paramList: any[]
+    reslove: (value: any) => void
+  }
+>()
 let totalTaskCounter = 0
 
 // 触发js-rpc请求
@@ -284,32 +290,41 @@ ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
   let task = new Promise((reslove) => {
     jsRpcWindow.webContents.send(method, paramList, id)
     taskMap.set(id, {
-      method, 
+      method,
       paramList,
       reslove: (value: any) => {
         reslove(value)
       },
     })
   })
-  Logger.log(`派发js-rpc请求, 任务id: ${id}, ${
-    JSON.stringify({
-    method,
-    paramList,
-    id
-  }, null, 2)}`)
+  if (isDebug) {
+    Logger.log(
+      `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
+        {
+          method,
+          paramList,
+          id,
+        },
+        null,
+        2,
+      )}`,
+    )
+  }
   let result = await task
-  Logger.log(`id:${id}的js-rpc请求完成`)
+  if (isDebug) {
+    Logger.log(`id:${id}的js-rpc请求完成`)
+  }
   event.returnValue = JSON.stringify(result)
-  return 
+  return
 })
 
 // 回收js-rpc调用响应值
 ipcMain.on('js-rpc-response', async (event, { id, value }) => {
-  console.log("receive js-rpc-response => ", {id, value})
-  if(taskMap.has(id)){
+  console.log('receive js-rpc-response => ', { id, value })
+  if (taskMap.has(id)) {
     taskMap.get(id)?.reslove(value)
     taskMap.delete(id)
-  }else{
+  } else {
     Logger.log(`未找到${id}对应的任务`)
   }
 
