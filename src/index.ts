@@ -87,8 +87,6 @@ async function asyncCreateWindow() {
       contextIsolation: false,
       // 启用webview标签
       webviewTag: true,
-      // // 启用preload.js, 以进行rpc通信
-      // preload: path.join(__dirname, 'preload.js'),
     },
   })
   // 专门启动一个窗口, 用于通过jsRpc计算签名
@@ -214,6 +212,8 @@ app.on('activate', function () {
 ipcMain.on('openOutputDir', (event) => {
   // 打开输出文件夹
   shell.showItemInFolder(PathConfig.outputPath)
+  event.returnValue = ''
+  return
 })
 
 ipcMain.on('getPathConfig', (event) => {
