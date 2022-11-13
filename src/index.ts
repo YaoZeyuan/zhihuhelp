@@ -315,6 +315,7 @@ ipcMain.on('js-rpc-response', async (event, { id, value }) => {
 ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string; params: { [key: string]: any } }) => {
   // 调用知乎的get请求
   console.log('rawUrl => ', rawUrl)
+  await asyncUpdateCookie()
   let res = await http
     .get(rawUrl, {
       params: params,
