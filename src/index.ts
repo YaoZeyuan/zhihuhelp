@@ -18,6 +18,8 @@ let { app, BrowserWindow, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow
+// 用于执行远程通信
+let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
 
@@ -79,20 +81,49 @@ function createWindow() {
       webviewTag: true,
     },
   })
+  // 专门启动一个窗口, 用于通过jsRpc计算签名
+  jsRpcWindow = new BrowserWindow({
+    enableLargerThanScreen: true,
+    width: 760,
+    height: 10,
+    // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
+    show: false,
+    // 禁用web安全功能 --> 个人软件, 要啥自行车
+    webPreferences: {
+      // 开启 DevTools.
+      devTools: true,
+      // 禁用同源策略, 允许加载任何来源的js
+      webSecurity: false,
+      // js-rpc需要
+      contextIsolation: true,
+      // 启用webview标签
+      webviewTag: true,
+      // 启用preload.js, 以进行rpc通信
+      preload: path.join(__dirname, 'public', 'js-rpc', 'preload.js'),
+    },
+  })
 
   // and load the index.html of the app.
   // and load the index.html of the app.
   if (isDebug) {
     // 本地调试 & 打开控制台
     // mainWindow.loadFile('./client/index.html')
-    mainWindow.loadURL('http://127.0.0.1:8080')
+    mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
+
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    jsRpcWindow.loadURL(jsRpcUri)
+    jsRpcWindow.webContents.openDevTools()
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
-    let targetPath = path.resolve(__dirname, 'client', 'index.html')
-    mainWindow.loadFile(targetPath)
+    let webviewUri = path.resolve(__dirname, 'client', 'index.html')
+    mainWindow.loadFile(webviewUri)
     // mainWindow.webContents.openDevTools()
+
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    jsRpcWindow.loadURL(jsRpcUri)
+    // jsRpcWindow.webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
@@ -102,6 +133,10 @@ function createWindow() {
     // when you should delete the corresponding element.
     // @ts-ignore
     mainWindow = null
+    // 主窗口关闭时, 子窗口也要跟着关闭, 避免程序退不掉
+    jsRpcWindow.close()
+    // @ts-ignore
+    jsRpcWindow = null
   })
 
   // 设置ua
@@ -194,6 +229,78 @@ ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => 
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
   event.returnValue = title
+  return
+})
+
+// 清空所有登录信息
+ipcMain.on('devtools-clear-all-session-storage', async (event) => {
+  await session.defaultSession.clearCache()
+  await session.defaultSession.clearStorageData()
+  await session.defaultSession.clearHostResolverCache()
+
+  event.returnValue = true
+  return
+})
+
+/**
+ * jsRpc任务管理器
+ */
+let taskMap = new Map<
+  string,
+  {
+    method: string
+    paramList: any[]
+    reslove: (value: any) => void
+  }
+>()
+let totalTaskCounter = 0
+
+// 触发js-rpc请求
+ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+  totalTaskCounter++
+  let id = `task-${totalTaskCounter}-${Math.random()}`
+  let task = new Promise((reslove) => {
+    jsRpcWindow.webContents.send(method, paramList, id)
+    taskMap.set(id, {
+      method,
+      paramList,
+      reslove: (value: any) => {
+        reslove(value)
+      },
+    })
+  })
+  if (isDebug) {
+    Logger.log(
+      `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
+        {
+          method,
+          paramList,
+          id,
+        },
+        null,
+        2,
+      )}`,
+    )
+  }
+  let result = await task
+  if (isDebug) {
+    Logger.log(`id:${id}的js-rpc请求完成`)
+  }
+  event.returnValue = JSON.stringify(result)
+  return
+})
+
+// 回收js-rpc调用响应值
+ipcMain.on('js-rpc-response', async (event, { id, value }) => {
+  console.log('receive js-rpc-response => ', { id, value })
+  if (taskMap.has(id)) {
+    taskMap.get(id)?.reslove(value)
+    taskMap.delete(id)
+  } else {
+    Logger.log(`未找到${id}对应的任务`)
+  }
+
+  event.returnValue = true
   return
 })
 
