@@ -1,12 +1,13 @@
 <template>
   <div>
     <el-row type="flex" align="middle" justify="end">
-      <el-col :span="14">
+      <el-col :span="10">
         <h1>自定义任务</h1>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="14">
         <el-button type="primary" @click="asyncHandleStartTask" size="small">开始执行</el-button>
         <el-button type="primary" @click="asyncCheckIsLogin" size="small">检查登录</el-button>
+        <el-button type="primary" @click="asyncLogout" size="small">注销登录</el-button>
         <el-button type="primary" @click="asyncCheckUpdate" size="small">检查更新</el-button>
         <el-button type="primary" @click="openDevtools" size="small">打开调试</el-button>
         <el-button type="success" @click="openOutputDir" size="small">打开输出目录</el-button>
@@ -493,6 +494,15 @@ export default defineComponent({
         this.$emit('switchTab', 'login')
       }
       console.log('checkIsLogin: record =>', record)
+    },
+    /**
+     * 清空cookie, 注销登录
+     */
+    async asyncLogout() {
+      // 已登陆则返回用户信息 =>
+      // {"id":"57842aac37ccd0de3965f9b6e17cb555","url_token":"404-Page-Not-found","name":"姚泽源"}
+      ipcRenderer.sendSync('devtools-clear-all-session-storage')
+      location.reload()
     },
     async openDevtools() {
       ipcRenderer.sendSync('open-devtools')
