@@ -281,7 +281,7 @@ let totalTaskCounter = 0
 ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
   totalTaskCounter++
   let id = `task-${totalTaskCounter}-${Math.random()}`
-  let task = new Promise((reslove, reject) => {
+  let task = new Promise((reslove) => {
     jsRpcWindow.webContents.send(method, paramList, id)
     taskMap.set(id, {
       method, 

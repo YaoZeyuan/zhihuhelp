@@ -54,11 +54,10 @@ export default () => {
         <Button
           onClick={async () => {
             let res = ipcRenderer.sendSync('js-rpc-trigger', {
-              method: 'update-counter',
+              method: 'encrypt-string',
               paramList: [
                 {
-                  p: 1,
-                  d: 2,
+                  inputString: '123',
                 },
               ],
             })
