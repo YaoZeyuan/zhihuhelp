@@ -51,6 +51,24 @@ export default () => {
         >
           调试
         </Button>
+        <Button
+          onClick={async () => {
+            let res = ipcRenderer.sendSync('js-rpc-trigger', {
+              method: 'update-counter',
+              paramList: [
+                {
+                  p: 1,
+                  d: 2,
+                },
+              ],
+            })
+
+            console.log('res => ', res)
+            return
+          }}
+        >
+          调试-触发请求
+        </Button>
       </div>
     </div>
   )

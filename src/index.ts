@@ -11,6 +11,7 @@ import portfinder from 'portfinder'
 
 import fs from 'fs'
 import path from 'path'
+import { resolve } from 'url'
 
 const Const_User_Agent =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
@@ -112,7 +113,7 @@ async function asyncCreateWindow() {
       // 启用webview标签
       webviewTag: true,
       // 启用preload.js, 以进行rpc通信
-      preload: path.join(__dirname, 'js-rpc', 'preload.js'),
+      preload: path.join(__dirname, 'public', 'js-rpc', 'preload.js'),
     },
   })
 
@@ -136,7 +137,7 @@ async function asyncCreateWindow() {
     mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     jsRpcWindow.webContents.openDevTools()
 
@@ -150,7 +151,7 @@ async function asyncCreateWindow() {
     mainWindow.loadFile(webviewUri)
     // mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     // jsRpcWindow.webContents.openDevTools()
 
@@ -264,6 +265,53 @@ ipcMain.on('devtools-clear-all-session-storage', async (event) => {
   await session.defaultSession.clearCache()
   await session.defaultSession.clearStorageData()
   await session.defaultSession.clearHostResolverCache()
+
+  event.returnValue = true
+  return
+})
+
+let taskMap = new Map<string, {
+  method:string,
+  paramList: any[],
+  reslove:(value: any) => void,
+}>
+let totalTaskCounter = 0
+
+// 触发js-rpc请求
+ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+  totalTaskCounter++
+  let id = `task-${totalTaskCounter}-${Math.random()}`
+  let task = new Promise((reslove, reject) => {
+    jsRpcWindow.webContents.send(method, paramList, id)
+    taskMap.set(id, {
+      method, 
+      paramList,
+      reslove: (value: any) => {
+        reslove(value)
+      },
+    })
+  })
+  Logger.log(`派发js-rpc请求, 任务id: ${id}, ${
+    JSON.stringify({
+    method,
+    paramList,
+    id
+  }, null, 2)}`)
+  let result = await task
+  Logger.log(`id:${id}的js-rpc请求完成`)
+  event.returnValue = JSON.stringify(result)
+  return 
+})
+
+// 回收js-rpc调用响应值
+ipcMain.on('js-rpc-response', async (event, { id, value }) => {
+  console.log("receive js-rpc-response => ", {id, value})
+  if(taskMap.has(id)){
+    taskMap.get(id)?.reslove(value)
+    taskMap.delete(id)
+  }else{
+    Logger.log(`未找到${id}对应的任务`)
+  }
 
   event.returnValue = true
   return
