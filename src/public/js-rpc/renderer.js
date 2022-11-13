@@ -1,10 +1,6 @@
-async function asyncSleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true)
-    }, ms)
-  })
-}
+/**
+ * 在webview中初始化加密函数
+ */
 async function asyncInitZhihuEncrypt() {
   // @ts-ignore
   //  webviewEle.openDevTools()
@@ -444,56 +440,77 @@ async function asyncInitZhihuEncrypt() {
     ;(exports.ENCRYPT_VERSION = A), (exports.default = D)
   }
   
-  let exportsV2 = {}
-  rawZhihuEncryptFunc({}, exportsV2, {})
-  var zhihuEncryptFunc = exportsV2.default
-  var testFunc = (num)=>{
-    return num + 1
-  }
-  
+  let exportsV2_6d0f4ed = {}
+  rawZhihuEncryptFunc({}, exportsV2_6d0f4ed, {})
+  // 随便起个名字, 方便后续调用
+  var zhihuEncryptFunc_4c9c58 = exportsV2_6d0f4ed.default
   `,
   )
 }
 
 let webviewEle
 
+/**
+ * 启动后无法直接找到webview, 需要等待一段时间后才能加载完成. 因此需要异步配置
+ *
+ * 这个时间比较短, 只要点击启动任务的速度别太快, 就不会有问题
+ *
+ * 实在需要判断的话, 可以通过加密结果是否为空字符串进行判断
+ */
 async function asyncInit() {
+  async function asyncSleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true)
+      }, ms)
+    })
+  }
   while (!!webviewEle === false) {
     await asyncSleep(1000)
     webviewEle = document.querySelector('webview#zhihuhelp-rpc')
   }
   // 初始化加密函数
   await asyncInitZhihuEncrypt()
-  console.log('知乎加密函数初始化完毕')
+  console.log('加密函数初始化完毕')
 }
 
+/**
+ * 打开webview的开发者工具, 调试用
+ */
 function openDevTools() {
   webviewEle?.openDevTools()
 }
-
-// 只能通过这种方式执行js文件中的函数
+// 只能通过该方法用html触发js文件中的函数
 // 参考: https://stackoverflow.com/questions/36324333/refused-to-execute-inline-event-handler-because-it-violates-csp-sandbox
 document.getElementById('open-devtools').addEventListener('click', openDevTools)
 
+/**
+ * 实际加密函数, 加密失败返回空字符串
+ * @param {*} inputStr
+ * @returns
+ */
 async function asyncEncrypt(inputStr) {
   if (!!webviewEle === false) {
-    return 'rpc-webview尚未完成初始化'
+    // rpc-webview尚未完成初始化
+    return ''
   }
-  let result = await webviewEle.executeJavaScript(`zhihuEncryptFunc(\`${inputStr}\`)`)
-  console.log('asyncEncrypt  result => ', result)
+  let result = await webviewEle.executeJavaScript(`zhihuEncryptFunc_4c9c58(\`${inputStr}\`)`)
+  // console.log('asyncEncrypt  result => ', result)
   return result
 }
 asyncInit()
 
+/**
+ * 接收主进程请求, onEncryptString 注册在preload.js文件中
+ */
 window.electronAPI.onEncryptString(async (event, paramList, id) => {
   let param = paramList[0]
   let { inputString = '' } = param
-  const resultEle = document.querySelector('#encrypt-result')
-  console.log('run onEncryptString => ', { paramList, id })
+  // console.log('run onEncryptString => ', { paramList, id })
   let result = await asyncEncrypt(inputString).catch((e) => {
-    return '加密执行失败'
+    // 加密执行失败也返回空字符串
+    return ''
   })
-  resultEle.innerText = result
   event.sender.send('js-rpc-response', {
     id,
     value: result,

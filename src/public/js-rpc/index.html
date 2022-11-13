@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" /> -->
     <title>rpc-专用页</title>
   </head>
   <body>
-    Encrypt Result: <strong id="encrypt-result">0</strong>
-
     <button id="open-devtools">打开webview调试工具</button>
     <script src="./renderer.js"></script>
     <!-- 配置一个404 页面, 避免执行多余js逻辑 -->

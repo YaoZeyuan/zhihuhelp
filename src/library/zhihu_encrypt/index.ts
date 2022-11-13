@@ -1,5 +1,4 @@
 import md5 from 'md5'
-import zhihuEncrypt from './lib/zhihu_encrypt'
 import zhihuEncryptV2 from './lib/zhihu_encrypt_v2'
 
 // 常量
