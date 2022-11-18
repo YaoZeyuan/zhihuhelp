@@ -1,5 +1,11 @@
 import md5 from 'md5'
-import zhihuEncryptV2 from './lib/zhihu_encrypt_v2'
+
+// 需要从index.ts中获得js-rpc函数
+let bridgeFunc: ({ method, paramList }: { method: string; paramList: any[] }) => any
+
+export function setBridgeFunc(bridge: any) {
+  bridgeFunc = bridge
+}
 
 // 常量
 const Const_Version = '101_3_3.0'
@@ -10,7 +16,7 @@ const Const_Result_Prefix = '2.0'
  * @param param
  * @returns
  */
-function get_x_zse_86(param: {
+async function asyncGet_X_Zse_86(param: {
   /**
    * 所请求的路径(不含域名)
    */
@@ -27,12 +33,21 @@ function get_x_zse_86(param: {
     Const_Version, // 对应于 x-zse-93, 为常量值
     url,
     cookie_d_c0,
-    // xZst81,
   ].join('+')
   var step1 = md5(info)
-  var signature = zhihuEncryptV2(step1)
-  var x_zse_96 = `${Const_Result_Prefix}_${signature}`
-  return x_zse_96
+  console.log('ipcRenderer step1 => ', step1, JSON.stringify({ url, cookie_d_c0 }))
+  let signature = await bridgeFunc({
+    method: 'encrypt-string',
+    paramList: [
+      {
+        inputString: step1,
+      },
+    ],
+  })
+  console.log('signature => ', signature)
+  //   var signature = result //zhihuEncrypt(step1)
+  var x_zse_86 = `${Const_Result_Prefix}_${signature}`
+  return x_zse_86
 }
 
-export default get_x_zse_86
+export default asyncGet_X_Zse_86

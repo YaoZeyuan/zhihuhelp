@@ -6,17 +6,10 @@ import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
 import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
-import { startServer } from '~/src/server'
-import portfinder from 'portfinder'
-
+import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
+import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
-import { resolve } from 'url'
-
-const Const_User_Agent =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-const Const_Default_Server_Port = 6370
-let serverPort = Const_Default_Server_Port
 
 const Const_Current_Path = path.resolve(__dirname)
 let ace = new Ignitor(Const_Current_Path).ace()
@@ -95,7 +88,7 @@ async function asyncCreateWindow() {
     width: 760,
     height: 10,
     // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
-    show: false,
+    show: isDebug ? true : false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.
@@ -111,18 +104,6 @@ async function asyncCreateWindow() {
     },
   })
 
-  // 自动查找一个可用端口
-  let finalPort = await portfinder
-    .getPortPromise({
-      host: '0.0.0.0',
-      port: Const_Default_Server_Port,
-    })
-    .catch((e) => {
-      Logger.log('没有可用的端口号,自动退出')
-      process.exit(1)
-    })
-  serverPort = finalPort
-
   // and load the index.html of the app.
   // and load the index.html of the app.
   if (isDebug) {
@@ -134,10 +115,6 @@ async function asyncCreateWindow() {
     let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     jsRpcWindow.webContents.openDevTools()
-
-    // @todo 本地临时测试使用
-    // 仅线上需要启动server, dev环境执行npm命令单独启动服务
-    // startServer({ port: serverPort })
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
@@ -148,8 +125,6 @@ async function asyncCreateWindow() {
     let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     // jsRpcWindow.webContents.openDevTools()
-
-    startServer({ port: serverPort })
   }
 
   // Emitted when the window is closed.
@@ -283,8 +258,7 @@ let taskMap = new Map<
 >()
 let totalTaskCounter = 0
 
-// 触发js-rpc请求
-ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+async function asyncJsRpcTriggerFunc({ method, paramList }: { method: string; paramList: any[] }) {
   totalTaskCounter++
   let id = `task-${totalTaskCounter}-${Math.random()}`
   let task = new Promise((reslove) => {
@@ -314,13 +288,21 @@ ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
   if (isDebug) {
     Logger.log(`id:${id}的js-rpc请求完成`)
   }
+  return result
+}
+// 使用js-rpc获取签名
+setBridgeFunc(asyncJsRpcTriggerFunc)
+
+// 触发js-rpc请求
+ipcMain.on('js-rpc-trigger', async (event, { method, paramList }) => {
+  let result = await asyncJsRpcTriggerFunc({ method, paramList })
   event.returnValue = JSON.stringify(result)
   return
 })
 
 // 回收js-rpc调用响应值
 ipcMain.on('js-rpc-response', async (event, { id, value }) => {
-  console.log('receive js-rpc-response => ', { id, value })
+  // console.log('receive js-rpc-response => ', { id, value })
   if (taskMap.has(id)) {
     taskMap.get(id)?.reslove(value)
     taskMap.delete(id)
@@ -328,6 +310,27 @@ ipcMain.on('js-rpc-response', async (event, { id, value }) => {
     Logger.log(`未找到${id}对应的任务`)
   }
 
+  event.returnValue = true
+  return
+})
+
+ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string; params: { [key: string]: any } }) => {
+  // 调用知乎的get请求
+  console.log('rawUrl => ', rawUrl)
+  await asyncUpdateCookie()
+  let res = await http
+    .get(rawUrl, {
+      params: params,
+    })
+    .catch((e) => {
+      return {}
+    })
+  event.returnValue = res
+  return res
+})
+ipcMain.on('open-devtools', async (event) => {
+  // 打开调试面板
+  mainWindow.webContents.openDevTools()
   event.returnValue = true
   return
 })

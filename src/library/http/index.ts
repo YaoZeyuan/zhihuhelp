@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import CommonConfig from '~/src/config/common'
 import RequestConfig from '~/src/config/request'
 import logger from '~/src/library/logger'
-import getZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
+import asyncGetZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
 import _ from 'lodash'
 import URL from 'url'
@@ -26,7 +26,7 @@ export function fixedEncodeURIComponent(str: string) {
   })
 }
 
-export function generateZhihuExtendsHeader({
+export async function asyncGenerateZhihuExtendsHeader({
   rawUrl,
   params,
   cookie = RequestConfig.cookie,
@@ -57,7 +57,7 @@ export function generateZhihuExtendsHeader({
   let url_obj = new URL.URL(url)
 
   let encrypt_url = `${url_obj.pathname}${url_obj.search}`
-  let x_zst_96 = getZhihuEncrypt({
+  let x_zst_96 = await asyncGetZhihuEncrypt({
     cookie_d_c0: cookie_d_c0,
     url: encrypt_url,
   })
@@ -87,7 +87,7 @@ export default class httpClient {
     // 发送知乎请求时, 需要额外附带校验header, 否则报错
 
     let url = rawUrl
-    let extendHeader = generateZhihuExtendsHeader({
+    let extendHeader = await asyncGenerateZhihuExtendsHeader({
       rawUrl,
       params: config.params,
       cookie: RequestConfig.cookie,
