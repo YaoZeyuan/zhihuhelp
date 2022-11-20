@@ -86,7 +86,7 @@ async function asyncCreateWindow() {
   jsRpcWindow = new BrowserWindow({
     enableLargerThanScreen: true,
     width: 760,
-    height: 10,
+    height: 500,
     // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
     show: isDebug ? true : false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
@@ -150,7 +150,7 @@ async function asyncCreateWindow() {
 
 async function asyncUpdateCookie() {
   let cookieContent = ''
-  let cookieList = await session.defaultSession.cookies.get({})
+  let cookieList = await mainWindow.webContents.session.cookies.get({})
   for (let cookie of cookieList) {
     cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
   }
@@ -314,12 +314,12 @@ ipcMain.on('js-rpc-response', async (event, { id, value }) => {
   return
 })
 
-ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string; params: { [key: string]: any } }) => {
+ipcMain.on('zhihu-http-get', async (event, { url, params }: { url: string; params: { [key: string]: any } }) => {
   // 调用知乎的get请求
-  console.log('rawUrl => ', rawUrl)
+  // console.log('rawUrl => ', url)
   await asyncUpdateCookie()
   let res = await http
-    .get(rawUrl, {
+    .get(url, {
       params: params,
     })
     .catch((e) => {
