@@ -27,18 +27,31 @@ export function fixedEncodeURIComponent(str: string) {
 }
 
 export async function asyncGenerateZhihuExtendsHeader({
-  rawUrl,
+  url,
   params,
   cookie = RequestConfig.cookie,
   ua = RequestConfig.ua,
 }: {
-  rawUrl: string
+  /**
+   * 任意url, 带不带query参数均可, 函数中会进行统一处理
+   */
+  url: string
+  /**
+   * query参数
+   */
   params: {
     [key: string]: string
   }
+  /**
+   * 原始cookie内容, 会自动从中提取d_c0
+   */
   cookie: string
+  /**
+   * 默认ua
+   */
   ua: string
 }) {
+  // 从cookie中提取d_c0
   let cookie_item_list = cookie
     .split(';')
     .map((item: string) => item.trim())
@@ -46,21 +59,38 @@ export async function asyncGenerateZhihuExtendsHeader({
   let raw_d_c0 = cookie_item_list?.[0] || ''
   let cookie_d_c0 = raw_d_c0.split('d_c0=')?.[1] || ''
 
-  let url = rawUrl
+  // 解析出url中的pathname和query参数
+  let rawUrlObj = new URL.URL(url)
+  let rawUrlPathname = rawUrlObj.pathname
+  let rawUrlQuery: { [key: string]: any } = {}
+  for (let key of rawUrlObj.searchParams.keys()) {
+    rawUrlQuery[key] = rawUrlObj.searchParams.get(key)
+  }
+
+  // 合并params中带的query参数
   if (params) {
+    rawUrlQuery = {
+      ...rawUrlQuery,
+      ...params
+    }
+  }
+
+  // 生成最终的加密url
+  let encrypt_url = rawUrlPathname
+  // 补充query参数
+  if ([...Object.keys(rawUrlQuery)].length > 0) {
     // 将config中的参数合并到url中, 以进行统一的签名运算
-    url = `${url}?${querystring.stringify(params, undefined, undefined, {
+    encrypt_url = `${encrypt_url}?${querystring.stringify(rawUrlQuery, undefined, undefined, {
       encodeURIComponent: fixedEncodeURIComponent,
     })}`
   }
 
-  let url_obj = new URL.URL(url)
-
-  let encrypt_url = `${url_obj.pathname}${url_obj.search}`
+  // 执行加密
   let x_zst_96 = await asyncGetZhihuEncrypt({
     cookie_d_c0: cookie_d_c0,
     url: encrypt_url,
   })
+  // 返回最终的header
   return {
     'User-Agent': ua,
     cookie: cookie,
@@ -80,20 +110,27 @@ export default class httpClient {
   }
   /**
    * 封装get方法
-   * @param rawUrl
+   * @param url
    * @param config
    */
-  static async get(rawUrl: string, config: AxiosRequestConfig = {}) {
-    // 发送知乎请求时, 需要额外附带校验header, 否则报错
+  static async get(url: string, config: AxiosRequestConfig = {}) {
+    // 知乎有自己的query-encode方法, 因此不能使用axios自带的params合并方法
+    // 否则会导致加密失败
+    if (config.params) {
+      url = `${url}?${querystring.stringify(config.params, undefined, undefined, {
+        encodeURIComponent: fixedEncodeURIComponent
+      })}`
+      delete config.params
+    }
 
-    let url = rawUrl
+    // 发送知乎请求时, 需要额外附带校验header, 否则报错
     let extendHeader = await asyncGenerateZhihuExtendsHeader({
-      rawUrl,
-      params: config.params,
+      url: url,
+      // 此时config.params的值已经被合入url, 所以此处不再需要传入param对象
+      params: {},
       cookie: RequestConfig.cookie,
       ua: RequestConfig.ua,
     })
-    delete config.params
 
     config.headers = {
       ...config.headers,
