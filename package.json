@@ -114,7 +114,7 @@
     "connect-history-api-fallback": "^1.6.0",
     "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^2.1.0",
-    "electron": "19.0.10",
+    "electron": "19.0.11",
     "electron-builder": "^23.1.0",
     "electron-rebuild": "^3.2.8",
     "express": "^4.16.4",
