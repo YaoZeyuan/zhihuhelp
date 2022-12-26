@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 import path from 'path'
 import commonjsExternals from 'vite-plugin-commonjs-externals'
 // node内置模块列表
@@ -15,7 +14,6 @@ export default defineConfig(({ command, mode }) => {
     // 使用相对路径指定index.html中入口js地址. 本身属于hack, 对个人项目而言可以接受
     base: './',
     plugins: [
-      react(),
       // 解决vite不允许导入fs/path等非client包的问题
       commonjsExternals({
         externals: commonjsPackages,

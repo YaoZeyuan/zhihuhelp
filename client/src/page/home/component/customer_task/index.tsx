@@ -37,7 +37,7 @@ export default () => {
 
   return (
     <div className="customer_task">
-      <div className="config-panel">
+      <div className="debug-panel">
         <Button
           onClick={async () => {
             let res = ipcRenderer.sendSync('zhihu-http-get', {
@@ -84,6 +84,7 @@ export default () => {
           调试-清除session
         </Button>
       </div>
+      <div className="config-panel"></div>
     </div>
   )
 }
