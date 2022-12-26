@@ -1,6 +1,5 @@
 import { Tabs } from 'antd'
 import React, { useState, useContext } from 'react'
-import { RecoilRoot } from 'recoil'
 
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Types_Page from '~/src/resource/type/page'
@@ -49,7 +48,7 @@ export default () => {
   let [currentTab, setCurrentTab] = useState<Types_Page.Type_Page_Url>(Consts_Page.Const_Page_任务管理)
 
   return (
-    <RecoilRoot>
+    <div>
       <Context.CurrentTab.Provider
         value={{
           currentTab,
@@ -58,6 +57,6 @@ export default () => {
       >
         <Item />
       </Context.CurrentTab.Provider>
-    </RecoilRoot>
+    </div>
   )
 }

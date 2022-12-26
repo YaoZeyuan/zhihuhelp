@@ -1,12 +1,13 @@
 import electron from 'electron'
 import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio } from 'antd'
-import { atom, useRecoilState } from 'recoil'
+import { proxy, useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Types_Task_Config from '~/src/resource/type/task_config'
 import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
+import { store } from './state'
 import http from '~/src/library/http'
 
 import moment from 'moment'
@@ -18,18 +19,8 @@ const { ipcRenderer } = electron
 export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100
 
-const publicState = atom({
-  key: 'customer_task',
-  default: {
-    isModalShow: false,
-    isRecordListLoading: false,
-    // 一次只能创建一个任务
-    taskList: [] as Types_Task_Config.Type_Task_Config[],
-  },
-})
-
 export default () => {
-  let state = useRecoilState(publicState)
+  let snap = useSnapshot(store)
 
   let [forceUpdate, setForceUpdate] = useState<number>(0)
 
