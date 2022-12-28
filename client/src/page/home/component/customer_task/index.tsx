@@ -9,6 +9,7 @@ import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
 import { store } from './state'
 import http from '~/src/library/http'
+import TaskItem from './component/task_item/index'
 
 import './index.less'
 
@@ -116,6 +117,9 @@ export default () => {
                 </Form.Item>
               ) : null
             }
+          </Form.Item>
+          <Form.Item noStyle>
+            <TaskItem></TaskItem>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
