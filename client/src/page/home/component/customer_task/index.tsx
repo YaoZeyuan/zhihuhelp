@@ -1,5 +1,5 @@
 import electron from 'electron'
-import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Select, Row, Col } from 'antd'
+import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Select, Row, Col, InputNumber } from 'antd'
 import { proxy, useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
@@ -13,6 +13,7 @@ import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 
 import './index.less'
+import e from 'express'
 
 const { ipcRenderer } = electron
 const { Option } = Select
@@ -43,7 +44,11 @@ export default () => {
   }
 
   const onReset = () => {
-    form.resetFields()
+    // 重置任务列表
+    store.fetchTaskList = [...Consts_Task_Config.Const_Default_Config.fetchTaskList]
+    store.generateConfig = {
+      ...Consts_Task_Config.Const_Default_Config.generateConfig,
+    }
   }
 
   return (
@@ -99,22 +104,29 @@ export default () => {
       <div className="config-panel">
         {/* 任务配置 */}
         <Button>添加任务</Button>
-        <Form form={form} name="control-hooks" onFinish={onFinish}>
-          <Form.Item name="note" label="Note" rules={[{ required: true }]}>
-            <Input />
+        <Button>批量添加任务</Button>
+        <Form form={form} name="control-hooks" onFinish={onFinish} colon={false}>
+          <Form.Item name="note" label="电子书名" rules={[{ required: true }]}>
+            <Input
+              value={snap.generateConfig.bookTitle}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                store.generateConfig.bookTitle = e.target.value
+              }}
+            />
           </Form.Item>
+          <Form.Item label="抓取任务"></Form.Item>
           <Form.Item noStyle>
             <Row>
               <Col span={Consts.CONST_Task_Item_Width.任务类型}>任务类型</Col>
               <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url</Col>
               <Col span={Consts.CONST_Task_Item_Width.任务id}>任务id</Col>
-              <Col span={Consts.CONST_Task_Item_Width.跳过抓取}>跳过抓取</Col>
               <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
           <Form.Item noStyle>
             <TaskItem></TaskItem>
           </Form.Item>
+          <Form.Item label="排序规则"></Form.Item>
           <Form.Item noStyle>
             <Row>
               <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
@@ -125,20 +137,44 @@ export default () => {
           <Form.Item noStyle>
             <OrderItem />
           </Form.Item>
-          <Form.Item noStyle>
-            <Form.Item name="img" label="图片质量" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
+          <Form.Item label="图片质量">
+            <Radio.Group
+              value={snap.generateConfig.imageQuilty}
+              onChange={(e) => {
+                store.generateConfig.imageQuilty = e.target.value
+              }}
+              buttonStyle="solid"
+            >
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item label="自动分卷">
+            每
+            <InputNumber
+              value={snap.generateConfig.maxQuestionOrArticleInBook}
+              onChange={(e: number) => {
+                console.log(e)
+                store.generateConfig.maxQuestionOrArticleInBook = e
+              }}
+            ></InputNumber>
+            个问题/想法/文章为一本电子书
+          </Form.Item>
+          <Form.Item label="备注">
+            <Input
+              value={snap.generateConfig.comment}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                store.generateConfig.comment = e.target.value
+              }}
+            />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Submit
+              开始
             </Button>
             <Button htmlType="button" onClick={onReset}>
-              Reset
-            </Button>
-            <Button type="link" htmlType="button">
-              Fill form
+              重置
             </Button>
           </Form.Item>
         </Form>

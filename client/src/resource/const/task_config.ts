@@ -46,8 +46,8 @@ export const Const_Order_By_Desc = 'desc' as const
 export const Const_Order_By_Asc = 'asc' as const
 
 // 图片类别
-export const Const_Image_Quilty_高清 = 'raw' as const
-export const Const_Image_Quilty_原图 = 'hd' as const
+export const Const_Image_Quilty_高清 = 'hd' as const
+export const Const_Image_Quilty_原图 = 'raw' as const
 export const Const_Image_Quilty_无图 = 'none' as const
 
 // 默认ua
@@ -56,16 +56,19 @@ export const Const_Default_Ua =
 // 默认cookie
 export const Const_Default_Cookie = '' as const
 
+// 单本电子书中最大问题/文章数量
+export const Const_Max_Question_Or_Article_In_Book = 10000 as const
+
 /**
  * 默认任务配置
  */
 export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
   fetchTaskList: [],
   generateConfig: {
-    imageQuilty: 'hd', // 图片质量
+    imageQuilty: Const_Image_Quilty_高清, // 图片质量
     bookTitle: '', // 书名
     comment: '', // 备注
-    maxQuestionOrArticleInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
+    maxQuestionOrArticleInBook: Const_Max_Question_Or_Article_In_Book, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
   },
