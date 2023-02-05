@@ -1,5 +1,5 @@
 import electron from 'electron'
-import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Select } from 'antd'
+import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Select, Row, Col } from 'antd'
 import { proxy, useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
@@ -10,6 +10,7 @@ import * as Types from './resource/type/index'
 import { store } from './state'
 import http from '~/src/library/http'
 import TaskItem from './component/task_item/index'
+import OrderItem from './component/order_item/index'
 
 import './index.less'
 
@@ -102,24 +103,32 @@ export default () => {
           <Form.Item name="note" label="Note" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="gender" label="Gender" rules={[{ required: true }]}>
-            <Select placeholder="Select a option and change input text above" allowClear>
-              <Option value="male">male</Option>
-              <Option value="female">female</Option>
-              <Option value="other">other</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.gender !== currentValues.gender}>
-            {({ getFieldValue }) =>
-              getFieldValue('gender') === 'other' ? (
-                <Form.Item name="customizeGender" label="Customize Gender" rules={[{ required: true }]}>
-                  <Input />
-                </Form.Item>
-              ) : null
-            }
+          <Form.Item noStyle>
+            <Row>
+              <Col span={Consts.CONST_Task_Item_Width.任务类型}>任务类型</Col>
+              <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url</Col>
+              <Col span={Consts.CONST_Task_Item_Width.任务id}>任务id</Col>
+              <Col span={Consts.CONST_Task_Item_Width.跳过抓取}>跳过抓取</Col>
+              <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
+            </Row>
           </Form.Item>
           <Form.Item noStyle>
             <TaskItem></TaskItem>
+          </Form.Item>
+          <Form.Item noStyle>
+            <Row>
+              <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
+              <Col span={Consts.CONST_Order_Item_Width.规则}>规则</Col>
+              <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
+            </Row>
+          </Form.Item>
+          <Form.Item noStyle>
+            <OrderItem />
+          </Form.Item>
+          <Form.Item noStyle>
+            <Form.Item name="img" label="图片质量" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
