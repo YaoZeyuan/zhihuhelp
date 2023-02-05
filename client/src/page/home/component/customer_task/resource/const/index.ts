@@ -6,13 +6,13 @@ const Translate_Task_Type = {
     [ConstTaskConfig.Const_Task_Type_用户提问过的所有问题]: '用户提问过的所有问题',
     [ConstTaskConfig.Const_Task_Type_用户的所有回答]: '用户的所有回答',
     [ConstTaskConfig.Const_Task_Type_用户发布的所有文章]: '用户发布的所有文章',
-    [ConstTaskConfig.Const_Task_Type_问题]: '问题',
-    [ConstTaskConfig.Const_Task_Type_回答]: '回答',
-    [ConstTaskConfig.Const_Task_Type_想法]: '想法',
     [ConstTaskConfig.Const_Task_Type_用户发布的所有想法]: '用户发布的所有想法',
     [ConstTaskConfig.Const_Task_Type_用户赞同过的所有回答]: '用户赞同过的所有回答',
     [ConstTaskConfig.Const_Task_Type_用户赞同过的所有文章]: '用户赞同过的所有文章',
     [ConstTaskConfig.Const_Task_Type_用户关注过的所有问题]: '用户关注过的所有问题',
+    [ConstTaskConfig.Const_Task_Type_问题]: '问题',
+    [ConstTaskConfig.Const_Task_Type_回答]: '回答',
+    [ConstTaskConfig.Const_Task_Type_想法]: '想法',
     [ConstTaskConfig.Const_Task_Type_话题]: '话题',
     [ConstTaskConfig.Const_Task_Type_收藏夹]: '收藏夹',
     [ConstTaskConfig.Const_Task_Type_专栏]: '专栏',
@@ -35,6 +35,7 @@ for (let key of (Object.keys(Translate_Task_Type) as (keyof typeof Translate_Tas
 }
 
 export const Const_Task_Type_Option_List = taskTypeList
+export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
 
 // 作为常量
 export const CONST_Task_Type_用户提问过的所有问题 = 'author-ask-question' as const
@@ -61,3 +62,18 @@ export const CONST_Order_Asc = 'asc' as const
 export const CONST_Image_Quilty_高清 = 'raw' as const
 export const CONST_Image_Quilty_原图 = 'hd' as const
 export const CONST_Image_Quilty_无图 = 'none' as const
+
+
+export const CONST_Task_Item_Width = {
+    '任务类型': 6,
+    '待抓取url': 6,
+    '任务id': 5,
+    '跳过抓取': 5,
+    '操作': 5,
+}
+
+export const CONST_Order_Item_Width = {
+    '排序指标': 6,
+    '规则': 6,
+    '操作': 5,
+}
