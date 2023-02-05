@@ -9,15 +9,7 @@ type Type_Status = {
      */
     type: TypeTaskConfig.Type_Task_Type,
     /**
-     * 排序字段
-     */
-    orderWith: TypeTaskConfig.Type_Order_With,
-    /**
-     * 排序顺序
-     */
-    orderBy: TypeTaskConfig.Type_Order_By,
-    /**
-     * 匹配到的id
+     * 计算属性-匹配到的id
      */
     id: string,
     /**
@@ -28,8 +20,6 @@ type Type_Status = {
 
 export const store = proxy<Type_Status>({
     type: ConstTaskConfig.Const_Task_Type_用户的所有回答,
-    orderWith: ConstTaskConfig.Const_Order_With_创建时间,
-    orderBy: ConstTaskConfig.Const_Order_By_Asc,
     get id() {
         // 根据type和rawInputText自动计算id
 
