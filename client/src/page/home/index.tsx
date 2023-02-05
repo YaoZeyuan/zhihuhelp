@@ -1,4 +1,4 @@
-import { Tabs } from 'antd'
+import { Tabs, TabsProps } from 'antd'
 import React, { useState, useContext } from 'react'
 
 import * as Consts_Page from '~/src/resource/const/page'
@@ -12,7 +12,7 @@ import Login from './component/login'
 import './index.less'
 
 let Item = () => {
-  let tabEleList: JSX.Element[] = []
+  let tabItemList: TabsProps[] = []
 
   let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
 
@@ -23,23 +23,23 @@ let Item = () => {
   }
 
   for (let key of [Consts_Page.Const_Page_任务管理, Consts_Page.Const_Page_数据浏览, Consts_Page.Const_Page_登录]) {
-    tabEleList.push(
-      <Tabs.TabPane tab={Consts_Page.Const_Page_Title[key]} key={key}>
-        {tabMap[key]()}
-      </Tabs.TabPane>,
-    )
+    tabItemList.push({
+      label: Consts_Page.Const_Page_Title[key],
+      key: key,
+      children: tabMap[key](),
+    })
   }
 
   return (
     <div className="src_page_home_index_tsx">
       <Tabs
+        centered
+        items={tabItemList}
         activeKey={currentTab}
-        onChange={(e) => {
-          setCurrentTab(e as Types_Page.Type_Page_Url)
+        onChange={(e: Types_Page.Type_Page_Url) => {
+          setCurrentTab(e)
         }}
-      >
-        {tabEleList}
-      </Tabs>
+      ></Tabs>
     </div>
   )
 }
