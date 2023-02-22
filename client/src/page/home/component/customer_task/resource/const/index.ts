@@ -38,14 +38,14 @@ export const Const_Task_Type_Option_List = taskTypeList
 export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
 
 const placeholderDemo = {
-    用户相关: 'https://www.zhihu.com/people/mai-xiao-dou-dou-43',
-    问题: "https://www.zhihu.com/question/584124868",
-    回答: "https://www.zhihu.com/question/584124868/answer/2903748169",
-    想法: "https://www.zhihu.com/pin/1545015868832333824",
-    话题: "https://www.zhihu.com/topic/19550874",
-    收藏夹: "https://www.zhihu.com/collection/294901110",
-    专栏: "https://www.zhihu.com/column/c_1318131368866705408",
-    文章: "https://zhuanlan.zhihu.com/p/597709030"
+    用户相关: 'https://www.zhihu.com/people/jilugulu-39-66',
+    问题: "https://www.zhihu.com/question/23933304",
+    回答: "https://www.zhihu.com/question/23933304/answer/2889800041",
+    想法: "https://www.zhihu.com/pin/1610559069437259776",
+    话题: "https://www.zhihu.com/topic/19553176",
+    收藏夹: "https://www.zhihu.com/collection/233649233",
+    专栏: "https://www.zhihu.com/column/c_1509142397108228096",
+    文章: "https://zhuanlan.zhihu.com/p/559569255"
 }
 
 export const Placeholder_By_Task_Type: { [key: string]: string } = {
