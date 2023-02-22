@@ -38,7 +38,13 @@ export const Const_Task_Type_Option_List = taskTypeList
 export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
 
 const placeholderDemo = {
-    用户相关: 'https://www.zhihu.com/people/jilugulu-39-66',
+    用户提问过的所有问题: 'https://www.zhihu.com/people/jilugulu-39-66/asks',
+    用户的所有回答: 'https://www.zhihu.com/people/jilugulu-39-66/answers',
+    用户发布的所有文章: 'https://www.zhihu.com/people/jilugulu-39-66/posts',
+    用户发布的所有想法: 'https://www.zhihu.com/people/jilugulu-39-66/pins',
+    用户赞同过的所有回答: 'https://www.zhihu.com/people/jilugulu-39-66/agree/answers',
+    用户赞同过的所有文章: 'https://www.zhihu.com/people/jilugulu-39-66/agree/posts',
+    用户关注过的所有问题: 'https://www.zhihu.com/people/jilugulu-39-66/following/questions',
     问题: "https://www.zhihu.com/question/23933304",
     回答: "https://www.zhihu.com/question/23933304/answer/2889800041",
     想法: "https://www.zhihu.com/pin/1610559069437259776",
@@ -49,13 +55,13 @@ const placeholderDemo = {
 }
 
 export const Placeholder_By_Task_Type: { [key: string]: string } = {
-    [ConstTaskConfig.Const_Task_Type_用户提问过的所有问题]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户的所有回答]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户发布的所有文章]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户发布的所有想法]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有回答]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有文章]: placeholderDemo.用户相关,
-    [ConstTaskConfig.Const_Task_Type_用户关注过的所有问题]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户提问过的所有问题]: placeholderDemo.用户提问过的所有问题,
+    [ConstTaskConfig.Const_Task_Type_用户的所有回答]: placeholderDemo.用户的所有回答,
+    [ConstTaskConfig.Const_Task_Type_用户发布的所有文章]: placeholderDemo.用户发布的所有文章,
+    [ConstTaskConfig.Const_Task_Type_用户发布的所有想法]: placeholderDemo.用户发布的所有想法,
+    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有回答]: placeholderDemo.用户赞同过的所有回答,
+    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有文章]: placeholderDemo.用户赞同过的所有文章,
+    [ConstTaskConfig.Const_Task_Type_用户关注过的所有问题]: placeholderDemo.用户关注过的所有问题,
     [ConstTaskConfig.Const_Task_Type_问题]: placeholderDemo.问题,
     [ConstTaskConfig.Const_Task_Type_回答]: placeholderDemo.回答,
     [ConstTaskConfig.Const_Task_Type_想法]: placeholderDemo.想法,
