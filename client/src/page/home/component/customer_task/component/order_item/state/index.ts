@@ -15,25 +15,22 @@ type Type_Status = {
      * 排序顺序
      */
     orderBy: TypeTaskConfig.Type_Order_By,
-    /**
-     * 匹配到的id
-     */
-    id: string,
-    /**
-     * 原始输入
-    */
-    rawInputText: string,
-    /**
-     * 备注
-     */
-    comment: string,
 }
 
-export const store = proxy<Type_Status>({
+export const Const_Default_Order_Item: Type_Status = {
     type: ConstTaskConfig.Const_Task_Type_用户的所有回答,
     orderWith: ConstTaskConfig.Const_Order_With_创建时间,
     orderBy: ConstTaskConfig.Const_Order_By_Asc,
-    id: '',
-    rawInputText: '',
-    comment: '',
-})
+}
+
+export function createStore(value = {
+    ...Const_Default_Order_Item
+}) {
+    const store = proxy<Type_Status>({
+        type: value.type,
+        orderWith: value.orderWith,
+        orderBy: value.orderBy,
+    })
+    return store
+}
+

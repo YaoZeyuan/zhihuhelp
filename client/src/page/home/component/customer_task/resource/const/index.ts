@@ -37,6 +37,34 @@ for (let key of (Object.keys(Translate_Task_Type) as (keyof typeof Translate_Tas
 export const Const_Task_Type_Option_List = taskTypeList
 export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
 
+const placeholderDemo = {
+    用户相关: 'https://www.zhihu.com/people/mai-xiao-dou-dou-43',
+    问题: "https://www.zhihu.com/question/584124868",
+    回答: "https://www.zhihu.com/question/584124868/answer/2903748169",
+    想法: "https://www.zhihu.com/pin/1545015868832333824",
+    话题: "https://www.zhihu.com/topic/19550874",
+    收藏夹: "https://www.zhihu.com/collection/294901110",
+    专栏: "https://www.zhihu.com/column/c_1318131368866705408",
+    文章: "https://zhuanlan.zhihu.com/p/597709030"
+}
+
+export const Placeholder_By_Task_Type: { [key: string]: string } = {
+    [ConstTaskConfig.Const_Task_Type_用户提问过的所有问题]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户的所有回答]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户发布的所有文章]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户发布的所有想法]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有回答]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户赞同过的所有文章]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_用户关注过的所有问题]: placeholderDemo.用户相关,
+    [ConstTaskConfig.Const_Task_Type_问题]: placeholderDemo.问题,
+    [ConstTaskConfig.Const_Task_Type_回答]: placeholderDemo.回答,
+    [ConstTaskConfig.Const_Task_Type_想法]: placeholderDemo.想法,
+    [ConstTaskConfig.Const_Task_Type_话题]: placeholderDemo.话题,
+    [ConstTaskConfig.Const_Task_Type_收藏夹]: placeholderDemo.收藏夹,
+    [ConstTaskConfig.Const_Task_Type_专栏]: placeholderDemo.专栏,
+    [ConstTaskConfig.Const_Task_Type_文章]: placeholderDemo.文章,
+}
+
 // 作为常量
 export const CONST_Task_Type_用户提问过的所有问题 = 'author-ask-question' as const
 export const CONST_Task_Type_用户的所有回答 = 'author-answer' as const

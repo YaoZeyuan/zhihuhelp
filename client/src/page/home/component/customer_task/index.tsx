@@ -13,7 +13,6 @@ import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 
 import './index.less'
-import e from 'express'
 
 const { ipcRenderer } = electron
 const { Option } = Select
@@ -123,9 +122,23 @@ export default () => {
               <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
-          <Form.Item noStyle>
-            <TaskItem></TaskItem>
-          </Form.Item>
+          <Form.List name="task-item-list" initialValue={[undefined]}>
+            {(fields, operation) => {
+              return fields.map((field) => {
+                return (
+                  <Form.Item {...field} noStyle>
+                    <TaskItem
+                      fieldKey={field.key}
+                      action={{
+                        remove: operation.remove,
+                        add: operation.add,
+                      }}
+                    ></TaskItem>
+                  </Form.Item>
+                )
+              })
+            }}
+          </Form.List>
           <Form.Item label="排序规则"></Form.Item>
           <Form.Item noStyle>
             <Row>
@@ -134,7 +147,7 @@ export default () => {
               <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
-          <Form.Item noStyle>
+          <Form.Item name="order-item-list" noStyle>
             <OrderItem />
           </Form.Item>
           <Form.Item label="图片质量">
