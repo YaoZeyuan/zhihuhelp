@@ -109,7 +109,7 @@ export default () => {
         <Button>添加任务</Button>
         <Button>批量添加任务</Button>
         <Form form={form} name="control-hooks" onFinish={onFinish} colon={false}>
-          <Form.Item name="note" label="电子书名" rules={[{ required: true }]}>
+          <Form.Item name="book-title" label="电子书名" rules={[{ required: true }]}>
             <Input
               value={snap.generateConfig.bookTitle}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,7 +168,7 @@ export default () => {
               })
             }}
           </Form.List>
-          <Form.Item label="图片质量">
+          <Form.Item name="image-quilty" label="图片质量">
             <Radio.Group
               value={snap.generateConfig.imageQuilty}
               onChange={(e) => {
@@ -181,7 +181,7 @@ export default () => {
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="自动分卷">
+          <Form.Item name="maxQuestionOrArticleInBook" label="自动分卷">
             每
             <InputNumber
               value={snap.generateConfig.maxQuestionOrArticleInBook}
@@ -192,7 +192,7 @@ export default () => {
             ></InputNumber>
             个问题/想法/文章为一本电子书
           </Form.Item>
-          <Form.Item label="备注">
+          <Form.Item name="comment" label="备注">
             <Input
               value={snap.generateConfig.comment}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
