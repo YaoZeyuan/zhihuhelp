@@ -4,7 +4,6 @@ import { Input, Select, Col, Row, Button, Divider } from 'antd'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import * as Consts from '../../resource/const/index'
 import { useEffect, useRef } from 'react'
-import * as ahooks from 'ahooks'
 
 export default ({
   value = {

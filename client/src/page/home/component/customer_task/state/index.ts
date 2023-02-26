@@ -26,14 +26,17 @@ type Type_Status = {
 }
 
 /**
- * 一次只创建一个任务
+ * 创建store
  */
-export const store = proxy<Type_Status>({
-    status: {
-        forceUpdate: 0,
-    },
-    fetchTaskList: [...Consts_Task_Config.Const_Default_Config.fetchTaskList],
-    generateConfig: {
-        ...Consts_Task_Config.Const_Default_Config.generateConfig
-    }
-})
+export function createStore() {
+    const store = proxy<Type_Status>({
+        status: {
+            forceUpdate: 0,
+        },
+        fetchTaskList: [...Consts_Task_Config.Const_Default_Config.fetchTaskList],
+        generateConfig: {
+            ...Consts_Task_Config.Const_Default_Config.generateConfig
+        }
+    })
+    return store
+}

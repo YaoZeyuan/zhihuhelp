@@ -7,10 +7,11 @@ import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Types_Task_Config from '~/src/resource/type/task_config'
 import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
-import { store } from './state'
+import { createStore } from './state'
 import http from '~/src/library/http'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
+import { useRef } from 'react'
 
 import './index.less'
 
@@ -21,6 +22,9 @@ export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100
 
 export default () => {
+  // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
+  let refStore = useRef(createStore())
+  const store = refStore.current
   let snap = useSnapshot(store)
 
   const [form] = Form.useForm()
