@@ -45,7 +45,7 @@ export default ({
   return (
     <div className="order-item-4c685622b7c0">
       <Row>
-        <Col span={Consts.CONST_Task_Item_Width.任务类型}>
+        <Col span={Consts.CONST_Order_Item_Width.排序指标}>
           <Select
             dropdownMatchSelectWidth={false}
             options={Consts.Const_Order_With_Option_List}
@@ -57,7 +57,7 @@ export default ({
             }}
           ></Select>
         </Col>
-        <Col span={Consts.CONST_Task_Item_Width.待抓取url}>
+        <Col span={Consts.CONST_Order_Item_Width.规则}>
           <Radio.Group
             value={snap.orderBy}
             onChange={(e) => {
@@ -73,7 +73,7 @@ export default ({
             </Radio.Button>
           </Radio.Group>
         </Col>
-        <Col span={Consts.CONST_Task_Item_Width.操作}>
+        <Col span={Consts.CONST_Order_Item_Width.操作}>
           <Button
             type="primary"
             size="small"

@@ -152,12 +152,11 @@ export const CONST_Task_Item_Width = {
     '任务类型': 6,
     '待抓取url': 6,
     '任务id': 5,
-    '跳过抓取': 5,
     '操作': 5,
 }
 
 export const CONST_Order_Item_Width = {
     '排序指标': 6,
-    '规则': 6,
+    '规则': 11,
     '操作': 5,
 }
