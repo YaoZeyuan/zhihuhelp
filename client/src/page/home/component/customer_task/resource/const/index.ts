@@ -19,6 +19,43 @@ const Translate_Task_Type = {
     [ConstTaskConfig.Const_Task_Type_文章]: '文章',
 }
 
+
+const Translate_Order_With = {
+    [ConstTaskConfig.Const_Order_With_创建时间]: '创建时间',
+    [ConstTaskConfig.Const_Order_With_更新时间]: '更新时间',
+    [ConstTaskConfig.Const_Order_With_记录加入时间_末次值]: '记录加入时间_末次值',
+    [ConstTaskConfig.Const_Order_With_记录加入时间_首次值]: '记录加入时间_首次值',
+    [ConstTaskConfig.Const_Order_With_评论数]: '评论数',
+    [ConstTaskConfig.Const_Order_With_赞同数]: '赞同数',
+}
+
+export const Translate_Order_By_Type = {
+    [ConstTaskConfig.Const_Order_With_创建时间]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '最早的记录在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '最晚的记录在最前',
+    },
+    [ConstTaskConfig.Const_Order_With_更新时间]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '最早的记录在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '最晚的记录在最前',
+    },
+    [ConstTaskConfig.Const_Order_With_记录加入时间_末次值]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '最早的记录在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '最晚的记录在最前',
+    },
+    [ConstTaskConfig.Const_Order_With_记录加入时间_首次值]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '最早的记录在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '最晚的记录在最前',
+    },
+    [ConstTaskConfig.Const_Order_With_评论数]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '评论最少的在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '评论最多的在最前',
+    },
+    [ConstTaskConfig.Const_Order_With_赞同数]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '赞同最少的在最前',
+        [ConstTaskConfig.Const_Order_By_Desc]: '赞同最多的在最前',
+    },
+}
+
 const Translate_Image_Quilty = {
     [ConstTaskConfig.Const_Image_Quilty_高清]: '高清',
     [ConstTaskConfig.Const_Image_Quilty_原图]: '原图',
@@ -34,8 +71,21 @@ for (let key of (Object.keys(Translate_Task_Type) as (keyof typeof Translate_Tas
     taskTypeList.push(option)
 }
 
+let orderWithList = []
+for (let key of (Object.keys(Translate_Order_With) as (keyof typeof Translate_Order_With)[])) {
+    let option = {
+        label: Translate_Order_With[key],
+        value: key,
+    }
+    orderWithList.push(option)
+}
+
 export const Const_Task_Type_Option_List = taskTypeList
 export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
+
+export const Const_Order_With_Option_List = orderWithList
+export const Const_Default_Order_With = ConstTaskConfig.Const_Order_With_创建时间
+
 
 const placeholderDemo = {
     用户提问过的所有问题: 'https://www.zhihu.com/people/jilugulu-39-66/asks',

@@ -17,7 +17,6 @@ export type Type_Task_Type_回答 = typeof Consts.Const_Task_Type_回答
 export type Type_Task_Type_想法 = typeof Consts.Const_Task_Type_想法
 export type Type_Task_Type_混合类型 = typeof Consts.Const_Task_Type_混合类型
 export type Type_Order_By = typeof Consts.Const_Order_By_Asc | typeof Consts.Const_Order_By_Desc
-export type Type_Order_With_不排序 = typeof Consts.Const_Order_With_不排序
 export type Type_Order_With_记录加入时间_首次值 = typeof Consts.Const_Order_With_记录加入时间_首次值
 export type Type_Order_With_记录加入时间_末次值 = typeof Consts.Const_Order_With_记录加入时间_末次值
 export type Type_Order_With_创建时间 = typeof Consts.Const_Order_With_创建时间
@@ -47,7 +46,6 @@ export type Type_Item_Collection_Type =
 export type Type_Order_With =
   | Type_Order_With_记录加入时间_首次值
   | Type_Order_With_记录加入时间_末次值
-  | Type_Order_With_不排序
   | Type_Order_With_创建时间
   | Type_Order_With_更新时间
   | Type_Order_With_赞同数
@@ -94,8 +92,8 @@ export type Type_Task_Config = {
   }
   requestConfig: {
     ua:
-      | 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-      | string
+    | 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+    | string
     cookie: '' | string
   }
 }

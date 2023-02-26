@@ -151,9 +151,23 @@ export default () => {
               <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
-          <Form.Item name="order-item-list" noStyle>
-            <OrderItem />
-          </Form.Item>
+          <Form.List name="order-item-list" initialValue={[undefined]}>
+            {(fields, operation) => {
+              return fields.map((field) => {
+                return (
+                  <Form.Item {...field} noStyle>
+                    <OrderItem
+                      fieldKey={field.key}
+                      action={{
+                        remove: operation.remove,
+                        add: operation.add,
+                      }}
+                    ></OrderItem>
+                  </Form.Item>
+                )
+              })
+            }}
+          </Form.List>
           <Form.Item label="图片质量">
             <Radio.Group
               value={snap.generateConfig.imageQuilty}
