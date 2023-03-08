@@ -11,6 +11,7 @@ import {
   Card,
   Radio,
   Select,
+  Space,
   Row,
   Col,
   InputNumber,
@@ -135,6 +136,10 @@ export default () => {
             'max-item-in-book': snap.generateConfig.maxItemInBook,
             comment: snap.generateConfig.comment,
           }}
+          labelCol={{
+            span: 4,
+          }}
+          labelAlign="left"
         >
           <Form.Item noStyle>
             <Row justify="space-between" align="top" gutter={1}>
@@ -205,7 +210,13 @@ export default () => {
               })
             }}
           </Form.List>
-          <Form.Item name="image-quilty" label="图片质量">
+          <Form.Item
+            name="image-quilty"
+            label="图片质量"
+            labelCol={{
+              span: 3,
+            }}
+          >
             <Radio.Group
               onChange={(e) => {
                 console.log('imageQuilty => ', e.target.value)
@@ -218,20 +229,35 @@ export default () => {
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="自动分卷">
-            单本电子书中最多
-            <Form.Item name="max-item-in-book" noStyle>
-              <InputNumber></InputNumber>
-            </Form.Item>
-            条答案/想法/文章
+          <Form.Item
+            label="自动分卷"
+            labelCol={{
+              span: 3,
+            }}
+          >
+            <Space>
+              单本电子书中最多
+              <Form.Item name="max-item-in-book" noStyle>
+                <InputNumber step={1000}></InputNumber>
+              </Form.Item>
+              条答案/想法/文章
+            </Space>
           </Form.Item>
-          <Form.Item name="comment" label="备注">
+          <Form.Item
+            name="comment"
+            label="备注"
+            labelCol={{
+              span: 3,
+            }}
+            wrapperCol={{ span: 18 }}
+          >
             <TextArea allowClear />
           </Form.Item>
-          <Form.Item>
+          <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
             <Button type="primary" htmlType="submit">
               开始
             </Button>
+            <Divider type="vertical"></Divider>
             <Button htmlType="button" onClick={onReset}>
               重置
             </Button>

@@ -1,6 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { Const_Default_Order_Item, createStore } from './state'
-import { Input, Select, Col, Row, Radio, Button, Divider } from 'antd'
+import { Input, Select, Col, Row, Radio, Button, Divider, Space } from 'antd'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import * as Consts from '../../resource/const/index'
 import { useRef, useEffect } from 'react'
@@ -74,26 +74,28 @@ export default ({
           </Radio.Group>
         </Col>
         <Col span={Consts.CONST_Order_Item_Width.操作}>
-          <Button
-            type="primary"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              action.add({
-                ...Const_Default_Order_Item,
-              })
-            }}
-          ></Button>
-          <Divider type="vertical" />
-          <Button
-            type="primary"
-            danger
-            size="small"
-            icon={<MinusOutlined />}
-            onClick={() => {
-              action.remove(fieldKey)
-            }}
-          ></Button>
+          <Space size="small">
+            <Button
+              type="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                action.add({
+                  ...Const_Default_Order_Item,
+                })
+              }}
+            ></Button>
+            <Divider type="vertical" />
+            <Button
+              type="primary"
+              danger
+              size="small"
+              icon={<MinusOutlined />}
+              onClick={() => {
+                action.remove(fieldKey)
+              }}
+            ></Button>
+          </Space>
         </Col>
       </Row>
       <Divider style={{ margin: '12px' }} />

@@ -153,14 +153,14 @@ export const CONST_Image_Quilty_无图 = 'none' as const
 
 
 export const CONST_Task_Item_Width = {
-    '任务类型': 6,
-    '待抓取url': 9,
+    '任务类型': 3,
+    '待抓取url': 12,
     '任务id': 4,
     '操作': 2,
 }
 
 export const CONST_Order_Item_Width = {
-    '排序指标': 6,
-    '规则': 14,
+    '排序指标': 3,
+    '规则': 17,
     '操作': 2,
 }
