@@ -46,7 +46,7 @@ export default ({
 
   return (
     <div className="task-item-4c685622b7c0">
-      <Row justify="space-between" align="middle" gutter={1}>
+      <Row justify="start" align="middle" gutter={1}>
         <Col span={Consts.CONST_Task_Item_Width.任务类型}>
           <Select
             dropdownMatchSelectWidth={false}
@@ -67,7 +67,7 @@ export default ({
             placeholder={'示例url:' + Consts.Placeholder_By_Task_Type[snap.type]}
           ></Input>
         </Col>
-        <Col span={Consts.CONST_Task_Item_Width.任务id}>
+        <Col span={Consts.CONST_Task_Item_Width.任务id} offset={1}>
           <div>{snap.id === '' ? '未解析到任务id' : snap.id}</div>
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.操作}>

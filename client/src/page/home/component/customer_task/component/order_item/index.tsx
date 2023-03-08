@@ -44,7 +44,7 @@ export default ({
 
   return (
     <div className="order-item-4c685622b7c0">
-      <Row>
+      <Row justify="start" align="middle" gutter={1}>
         <Col span={Consts.CONST_Order_Item_Width.排序指标}>
           <Select
             dropdownMatchSelectWidth={false}
@@ -96,6 +96,7 @@ export default ({
           ></Button>
         </Col>
       </Row>
+      <Divider style={{ margin: '12px' }} />
     </div>
   )
 }

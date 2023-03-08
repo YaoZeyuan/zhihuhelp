@@ -32,6 +32,7 @@ import './index.less'
 
 const { ipcRenderer } = electron
 const { Option } = Select
+const { TextArea } = Input
 
 export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100
@@ -121,7 +122,6 @@ export default () => {
       <div className="action-panel">{/* 操作栏 */}</div>
       <div className="config-panel">
         {/* 任务配置 */}
-        <Button>批量添加任务</Button>
         <Form
           form={form}
           name="control-hooks"
@@ -136,19 +136,29 @@ export default () => {
             comment: snap.generateConfig.comment,
           }}
         >
-          <Form.Item name="book-title" label="电子书名">
-            <Input
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                store.generateConfig.bookTitle = e.target.value
-              }}
-            />
-          </Form.Item>
-          <Form.Item label="抓取任务"></Form.Item>
           <Form.Item noStyle>
-            <Row justify="space-between" align="middle" gutter={1}>
+            <Row justify="space-between" align="top" gutter={1}>
+              <Col span={18}>
+                <Form.Item name="book-title" label="电子书名">
+                  <Input
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      store.generateConfig.bookTitle = e.target.value
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Button>批量添加任务</Button>
+              </Col>
+            </Row>
+          </Form.Item>
+          <Form.Item noStyle>
+            <Row align="middle" gutter={1}>
               <Col span={Consts.CONST_Task_Item_Width.任务类型}>任务类型</Col>
               <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url</Col>
-              <Col span={Consts.CONST_Task_Item_Width.任务id}>任务id</Col>
+              <Col span={Consts.CONST_Task_Item_Width.任务id} offset={1}>
+                任务id
+              </Col>
               <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
             </Row>
             <Divider style={{ margin: '12px' }} />
@@ -170,13 +180,13 @@ export default () => {
               })
             }}
           </Form.List>
-          <Form.Item label="排序规则"></Form.Item>
           <Form.Item noStyle>
-            <Row>
+            <Row align="middle" gutter={1}>
               <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
               <Col span={Consts.CONST_Order_Item_Width.规则}>规则</Col>
               <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
             </Row>
+            <Divider style={{ margin: '12px' }} />
           </Form.Item>
           <Form.List name="order-item-list">
             {(fields, operation) => {
@@ -216,11 +226,7 @@ export default () => {
             条答案/想法/文章
           </Form.Item>
           <Form.Item name="comment" label="备注">
-            <Input
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                store.generateConfig.comment = e.target.value
-              }}
-            />
+            <TextArea allowClear />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
