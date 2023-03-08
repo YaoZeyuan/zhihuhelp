@@ -154,9 +154,9 @@ export const CONST_Image_Quilty_无图 = 'none' as const
 
 export const CONST_Task_Item_Width = {
     '任务类型': 4,
-    '待抓取url': 8,
-    '任务id': 5,
-    '操作': 5,
+    '待抓取url': 10,
+    '任务id': 4,
+    '操作': 2,
 }
 
 export const CONST_Order_Item_Width = {

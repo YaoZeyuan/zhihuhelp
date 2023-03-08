@@ -1,5 +1,20 @@
 import electron from 'electron'
-import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Select, Row, Col, InputNumber } from 'antd'
+import {
+  Button,
+  message,
+  Input,
+  Form,
+  Table,
+  Divider,
+  Modal,
+  Tag,
+  Card,
+  Radio,
+  Select,
+  Row,
+  Col,
+  InputNumber,
+} from 'antd'
 import { proxy, useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
@@ -130,12 +145,13 @@ export default () => {
           </Form.Item>
           <Form.Item label="抓取任务"></Form.Item>
           <Form.Item noStyle>
-            <Row>
+            <Row justify="space-between" align="middle" gutter={1}>
               <Col span={Consts.CONST_Task_Item_Width.任务类型}>任务类型</Col>
               <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url</Col>
               <Col span={Consts.CONST_Task_Item_Width.任务id}>任务id</Col>
               <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
             </Row>
+            <Divider style={{ margin: '12px' }} />
           </Form.Item>
           <Form.List name="task-item-list">
             {(fields, operation) => {

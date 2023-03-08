@@ -1,6 +1,6 @@
 import { useSnapshot, subscribe } from 'valtio'
 import { createStore, Const_Default_Task_Item } from './state'
-import { Input, Select, Col, Row, Button, Divider } from 'antd'
+import { Input, Select, Col, Row, Button, Divider, Space } from 'antd'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import * as Consts from '../../resource/const/index'
 import { useEffect, useRef } from 'react'
@@ -46,7 +46,7 @@ export default ({
 
   return (
     <div className="task-item-4c685622b7c0">
-      <Row>
+      <Row justify="space-between" align="middle" gutter={1}>
         <Col span={Consts.CONST_Task_Item_Width.任务类型}>
           <Select
             dropdownMatchSelectWidth={false}
@@ -71,28 +71,31 @@ export default ({
           <div>{snap.id === '' ? '未解析到任务id' : snap.id}</div>
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.操作}>
-          <Button
-            type="primary"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              action.add({
-                ...Const_Default_Task_Item,
-              })
-            }}
-          ></Button>
-          <Divider type="vertical" />
-          <Button
-            type="primary"
-            danger
-            size="small"
-            icon={<MinusOutlined />}
-            onClick={() => {
-              action.remove(fieldKey)
-            }}
-          ></Button>
+          <Space size="small">
+            <Button
+              type="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                action.add({
+                  ...Const_Default_Task_Item,
+                })
+              }}
+            ></Button>
+            <Divider type="vertical" />
+            <Button
+              type="primary"
+              danger
+              size="small"
+              icon={<MinusOutlined />}
+              onClick={() => {
+                action.remove(fieldKey)
+              }}
+            ></Button>
+          </Space>
         </Col>
       </Row>
+      <Divider style={{ margin: '12px' }} />
     </div>
   )
 }
