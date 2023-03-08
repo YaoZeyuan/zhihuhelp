@@ -88,7 +88,8 @@ async function asyncCreateWindow() {
     width: 760,
     height: 500,
     // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
-    show: isDebug ? true : false,
+    // 临时关闭子窗口
+    show: false,// isDebug ? true : false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
       // 开启 DevTools.

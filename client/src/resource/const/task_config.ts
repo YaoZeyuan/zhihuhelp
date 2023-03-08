@@ -1,5 +1,6 @@
 // 任务相关配置
 import * as Type_TaskConfig from '../type/task_config'
+import * as Const_TaskConfig from '../const/task_config'
 
 // 常量类别并不多, 因此可以集中编写, 不用额外拆分
 
@@ -66,9 +67,9 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
   fetchTaskList: [],
   generateConfig: {
     imageQuilty: Const_Image_Quilty_高清, // 图片质量
-    bookTitle: '', // 书名
+    bookTitle: '知乎助手生成的电子书', // 书名
     comment: '', // 备注
-    maxQuestionOrArticleInBook: Const_Max_Question_Or_Article_In_Book, // 自动分卷: 单本电子书中最大问题/文章数量
+    maxItemInBook: Const_Max_Question_Or_Article_In_Book, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
   },

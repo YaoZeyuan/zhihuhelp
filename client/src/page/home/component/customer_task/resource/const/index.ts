@@ -56,12 +56,6 @@ export const Translate_Order_By_Type = {
     },
 }
 
-const Translate_Image_Quilty = {
-    [ConstTaskConfig.Const_Image_Quilty_高清]: '高清',
-    [ConstTaskConfig.Const_Image_Quilty_原图]: '原图',
-    [ConstTaskConfig.Const_Image_Quilty_无图]: '无图',
-}
-
 let taskTypeList = []
 for (let key of (Object.keys(Translate_Task_Type) as (keyof typeof Translate_Task_Type)[])) {
     let option = {
@@ -82,19 +76,29 @@ for (let key of (Object.keys(Translate_Order_With) as (keyof typeof Translate_Or
 
 export const Const_Task_Type_Option_List = taskTypeList
 export const Const_Default_Task_Type = ConstTaskConfig.Const_Task_Type_用户的所有回答
+export const Const_Default_Fetch_Task_Item: TypeTaskConfig.Type_Fetch_Task_Config_Item = {
+    type: Const_Default_Task_Type,
+    "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers",
+    "id": "xie-lu-tian-e",
+    "comment": "",
+    "skipFetch": false,
+}
 
 export const Const_Order_With_Option_List = orderWithList
 export const Const_Default_Order_With = ConstTaskConfig.Const_Order_With_创建时间
-
+export const Const_Default_Order_Item: TypeTaskConfig.Type_Order_By_Config = {
+    orderWith: Const_Default_Order_With,
+    orderBy: ConstTaskConfig.Const_Order_By_Asc,
+}
 
 const placeholderDemo = {
-    用户提问过的所有问题: 'https://www.zhihu.com/people/jilugulu-39-66/asks',
-    用户的所有回答: 'https://www.zhihu.com/people/jilugulu-39-66/answers',
-    用户发布的所有文章: 'https://www.zhihu.com/people/jilugulu-39-66/posts',
-    用户发布的所有想法: 'https://www.zhihu.com/people/jilugulu-39-66/pins',
-    用户赞同过的所有回答: 'https://www.zhihu.com/people/jilugulu-39-66/agree/answers',
-    用户赞同过的所有文章: 'https://www.zhihu.com/people/jilugulu-39-66/agree/posts',
-    用户关注过的所有问题: 'https://www.zhihu.com/people/jilugulu-39-66/following/questions',
+    用户提问过的所有问题: 'https://www.zhihu.com/people/xie-lu-tian-e/asks',
+    用户的所有回答: 'https://www.zhihu.com/people/xie-lu-tian-e/answers',
+    用户发布的所有文章: 'https://www.zhihu.com/people/xie-lu-tian-e/posts',
+    用户发布的所有想法: 'https://www.zhihu.com/people/xie-lu-tian-e/pins',
+    用户赞同过的所有回答: 'https://www.zhihu.com/people/xie-lu-tian-e/agree/answers',
+    用户赞同过的所有文章: 'https://www.zhihu.com/people/xie-lu-tian-e/agree/posts',
+    用户关注过的所有问题: 'https://www.zhihu.com/people/xie-lu-tian-e/following/questions',
     问题: "https://www.zhihu.com/question/23933304",
     回答: "https://www.zhihu.com/question/23933304/answer/2889800041",
     想法: "https://www.zhihu.com/pin/1610559069437259776",

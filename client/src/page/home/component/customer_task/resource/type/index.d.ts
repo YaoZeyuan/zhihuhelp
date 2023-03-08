@@ -42,7 +42,7 @@ export type ItemCollectionType =
 export type OrderBy = Order_By_创建时间 | Order_By_更新时间 | Order_By_赞同数 | Order_By_评论数
 export type ImageQuilty = Image_Quilty_高清 | Image_Quilty_原图 | Image_Quilty_无图
 export type TaskType = AuthorCollectionType | ItemCollectionType
-export type maxQuestionOrArticleInBook = number // 自动分卷: 单本电子书中最大问题/文章数量
+export type maxItemInBook = number // 自动分卷: 单本电子书中最大回答/想法/文章数量
 
 export type ConfigItem = {
     type: ItemCollectionType | AuthorCollectionType
@@ -63,7 +63,7 @@ export type Record = {
     configList: Array<ConfigItem>
     bookTitle: string
     imageQuilty: ImageQuilty // 图片质量
-    maxQuestionOrArticleInBook: maxQuestionOrArticleInBook // 自动分卷: 单本电子书中最大问题/文章数量
+    maxItemInBook: maxItemInBook // 自动分卷: 单本电子书中最大回答/想法/文章数量
     orderByList: orderByList
     comment: string // 备注
     /**

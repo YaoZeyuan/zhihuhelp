@@ -43,7 +43,7 @@ export default () => {
   }, [forceUpdate])
 
   const onFinish = (values: any) => {
-    console.log(values)
+    console.log('final config => ', JSON.stringify(values, null, 2))
   }
 
   const onReset = () => {
@@ -108,10 +108,22 @@ export default () => {
         {/* 任务配置 */}
         <Button>添加任务</Button>
         <Button>批量添加任务</Button>
-        <Form form={form} name="control-hooks" onFinish={onFinish} colon={false}>
-          <Form.Item name="book-title" label="电子书名" rules={[{ required: true }]}>
+        <Form
+          form={form}
+          name="control-hooks"
+          onFinish={onFinish}
+          colon={false}
+          initialValues={{
+            'book-title': snap.generateConfig.bookTitle,
+            'task-item-list': [...snap.fetchTaskList],
+            'order-item-list': [...snap.generateConfig.orderByList],
+            'image-quilty': snap.generateConfig.imageQuilty,
+            'max-item-in-book': snap.generateConfig.maxItemInBook,
+            comment: snap.generateConfig.comment,
+          }}
+        >
+          <Form.Item name="book-title" label="电子书名">
             <Input
-              value={snap.generateConfig.bookTitle}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 store.generateConfig.bookTitle = e.target.value
               }}
@@ -126,7 +138,7 @@ export default () => {
               <Col span={Consts.CONST_Task_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
-          <Form.List name="task-item-list" initialValue={[undefined]}>
+          <Form.List name="task-item-list">
             {(fields, operation) => {
               return fields.map((field) => {
                 return (
@@ -151,7 +163,7 @@ export default () => {
               <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
             </Row>
           </Form.Item>
-          <Form.List name="order-item-list" initialValue={[undefined]}>
+          <Form.List name="order-item-list">
             {(fields, operation) => {
               return fields.map((field) => {
                 return (
@@ -170,8 +182,8 @@ export default () => {
           </Form.List>
           <Form.Item name="image-quilty" label="图片质量">
             <Radio.Group
-              value={snap.generateConfig.imageQuilty}
               onChange={(e) => {
+                console.log('imageQuilty => ', e.target.value)
                 store.generateConfig.imageQuilty = e.target.value
               }}
               buttonStyle="solid"
@@ -181,20 +193,15 @@ export default () => {
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item name="maxQuestionOrArticleInBook" label="自动分卷">
-            每
-            <InputNumber
-              value={snap.generateConfig.maxQuestionOrArticleInBook}
-              onChange={(e: number) => {
-                console.log(e)
-                store.generateConfig.maxQuestionOrArticleInBook = e
-              }}
-            ></InputNumber>
-            个问题/想法/文章为一本电子书
+          <Form.Item label="自动分卷">
+            单本电子书中最多
+            <Form.Item name="max-item-in-book" noStyle>
+              <InputNumber></InputNumber>
+            </Form.Item>
+            条答案/想法/文章
           </Form.Item>
           <Form.Item name="comment" label="备注">
             <Input
-              value={snap.generateConfig.comment}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 store.generateConfig.comment = e.target.value
               }}
