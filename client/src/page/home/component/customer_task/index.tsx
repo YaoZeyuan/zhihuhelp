@@ -106,7 +106,6 @@ export default () => {
       <div className="action-panel">{/* 操作栏 */}</div>
       <div className="config-panel">
         {/* 任务配置 */}
-        <Button>添加任务</Button>
         <Button>批量添加任务</Button>
         <Form
           form={form}
