@@ -60,8 +60,8 @@ export default ({
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.待抓取url}>
           <Input
-            value={snap.rawInputText}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            defaultValue={snap.rawInputText}
+            onBlur={(e: React.ChangeEvent<HTMLInputElement>) => {
               store.rawInputText = e.target.value
             }}
             placeholder={'示例url:' + Consts.Placeholder_By_Task_Type[snap.type]}
