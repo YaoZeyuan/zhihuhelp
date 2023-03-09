@@ -92,10 +92,10 @@ export type Type_Task_Config = {
     orderByList: Type_Order_By_Config_List
     generateType: Type_Generate_Type
   }
-  request: {
+  requestConfig: {
     ua:
-      | 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-      | string
+    | 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+    | string
     cookie: '' | string
   }
 }

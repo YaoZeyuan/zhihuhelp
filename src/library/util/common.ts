@@ -6,7 +6,7 @@ import * as Const_TaskConfig from '~/src/constant/task_config'
 import CommonConfig from '~/src/config/common'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
-const Const_Default_Task_Runner: Type_Asnyc_Task_Runner = async () => {}
+const Const_Default_Task_Runner: Type_Asnyc_Task_Runner = async () => { }
 const Const_Default_Task_Label = Symbol('default_label')
 
 // 每计数x次后, 重置任务
@@ -161,8 +161,7 @@ class TaskManager {
   async suspendAllTask(sleep_ms: number) {
     this.isSuspend = true
     logger.log(
-      `[任务暂停]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠${
-        sleep_ms / 1000
+      `[任务暂停]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠${sleep_ms / 1000
       }秒, 当前剩余${this.taskList.length}个任务待执行`,
     )
     while (this.runingRunner > 0) {
@@ -327,6 +326,11 @@ export default class CommonUtil {
       }
     }
     return config
+  }
+
+  static saveConfig(config: Type_TaskConfig.Type_Task_Config) {
+    fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 2))
+    return
   }
 
   /**

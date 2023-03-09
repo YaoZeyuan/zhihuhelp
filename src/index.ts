@@ -7,6 +7,7 @@ import Logger from '~/src/library/logger'
 import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
+import * as Type_TaskConfig from '~/src/type/task_config'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
@@ -156,10 +157,11 @@ async function asyncUpdateCookie() {
   }
   // 将cookie更新到本地配置中
   let config = CommonUtil.getConfig()
-  config.request.cookie = cookieContent
+  config.requestConfig.cookie = cookieContent
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
   RequestConfig.reloadTaskConfig()
+  return config
 }
 
 // This method will be called when Electron has finished
@@ -184,28 +186,22 @@ app.on('activate', function () {
   }
 })
 
-ipcMain.on('openOutputDir', (event) => {
+ipcMain.on('open-output-dir', (event) => {
   // 打开输出文件夹
   shell.showItemInFolder(PathConfig.outputPath)
   event.returnValue = ''
   return
 })
 
-ipcMain.on('getPathConfig', (event) => {
-  // 获取pathConfig
-
-  let obj: any = {}
-  for (let key in PathConfig) {
-    // @ts-ignore
-    obj[key] = PathConfig[key]
-  }
-  let jsonStr = JSON.stringify(obj, null, 2)
-
-  event.returnValue = jsonStr
+// 获取任务配置
+ipcMain.on('get-common-config', (event) => {
+  let config = CommonUtil.getConfig()
+  event.returnValue = JSON.stringify(config)
   return
 })
 
-ipcMain.on('startCustomerTask', async (event) => {
+// 启动任务
+ipcMain.on('start-customer-task', async (event, { config }: { config: Type_TaskConfig.Type_Task_Config }) => {
   if (isRunning) {
     event.returnValue = '目前尚有任务执行, 请稍后'
     return
@@ -213,18 +209,30 @@ ipcMain.on('startCustomerTask', async (event) => {
   isRunning = true
   Logger.log('开始工作')
 
+  // 将配置写入本地
   await asyncUpdateCookie()
+  let oldConfig = CommonUtil.getConfig()
+  console.log("oldConfig => ", oldConfig)
+  config.requestConfig.cookie = oldConfig.requestConfig.cookie
+  console.log("config => ", config)
+  config.requestConfig.ua = oldConfig.requestConfig.ua
+  CommonUtil.saveConfig(config)
 
   Logger.log(`开始执行任务`)
   event.returnValue = 'success'
+
+  // 此后操作均为异步操作, 无需等待
+
   Logger.log(`开始抓取数据`)
-  await ace.handle(['Fetch:Customer'])
-  Logger.log(`开始生成电子书`)
-  await ace.handle(['Generate:Customer'])
-  Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
+  // await ace.handle(['Fetch:Customer'])
+  // Logger.log(`开始生成电子书`)
+  // await ace.handle(['Generate:Customer'])
+  // Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
   // 输出打开文件夹
   shell.showItemInFolder(PathConfig.outputPath)
   isRunning = false
+
+  return
 })
 
 ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => {

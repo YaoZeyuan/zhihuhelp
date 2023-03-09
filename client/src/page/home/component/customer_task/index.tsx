@@ -27,6 +27,7 @@ import { createStore } from './state'
 import http from '~/src/library/http'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
+import Util from './library/index'
 import { useRef } from 'react'
 
 import './index.less'
@@ -49,26 +50,22 @@ export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
-  let [isRecordListLoading, setIsRecordListLoading] = useState<boolean>(false)
 
   useEffect(() => {
     let asyncRunner = async () => {
-      setIsRecordListLoading(true)
-      setIsRecordListLoading(false)
+      let config = ipcRenderer.sendSync('get-common-config')
+      console.log('init config =>', config)
     }
     asyncRunner()
   }, [forceUpdate])
 
   const onFinish = (values: any) => {
+    // 提交数据, 生成配置文件
     console.log('final config => ', JSON.stringify(values, null, 2))
-  }
-
-  const onReset = () => {
-    // 重置任务列表
-    store.fetchTaskList = [...Consts_Task_Config.Const_Default_Config.fetchTaskList]
-    store.generateConfig = {
-      ...Consts_Task_Config.Const_Default_Config.generateConfig,
-    }
+    const config = Util.generateTaskConfig(values)
+    ipcRenderer.sendSync('start-customer-task', {
+      config: config,
+    })
   }
 
   return (
@@ -259,6 +256,10 @@ export default () => {
             </Button>
             <Divider type="vertical"></Divider>
             <Button htmlType="button">打开输出目录</Button>
+            <Divider type="vertical"></Divider>
+            <Button danger htmlType="button">
+              注销登录
+            </Button>
           </Form.Item>
         </Form>
       </div>

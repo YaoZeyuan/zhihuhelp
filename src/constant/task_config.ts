@@ -69,7 +69,7 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
   },
-  request: {
+  requestConfig: {
     cookie: Const_Default_Cookie,
     ua: Const_Default_Ua,
   },
