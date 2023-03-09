@@ -258,9 +258,7 @@ export default () => {
               开始
             </Button>
             <Divider type="vertical"></Divider>
-            <Button htmlType="button" onClick={onReset}>
-              重置
-            </Button>
+            <Button htmlType="button">打开输出目录</Button>
           </Form.Item>
         </Form>
       </div>
