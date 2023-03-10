@@ -1,7 +1,8 @@
 import * as TypeTaskConfig from "~/src/resource/type/task_config"
 import * as ConstTaskConfig from "~/src/resource/const/task_config"
+import { Type_Status } from '../state/index'
 
-type Type_Form_Config = {
+export type Type_Form_Config = {
     "book-title": "知乎助手生成的电子书",
     "task-item-list": [
         {
@@ -64,5 +65,54 @@ export default class Util {
         }
 
         return config
+    }
+
+    static generateStatus(config: TypeTaskConfig.Type_Task_Config): Type_Status {
+        let status: Type_Status = {
+            status: {
+                forceUpdate: 0,
+            },
+            "fetchTaskList": [],
+            "generateConfig": {
+                "bookTitle": "",
+                "comment": "",
+                "generateType": "single",
+                "imageQuilty": "hd",
+                "maxItemInBook": 10000,
+                "orderByList": []
+            }
+        }
+
+        // 抓取任务
+        status.fetchTaskList = []
+        for (let taskItem of config.fetchTaskList) {
+            let fetchTaskItem: Type_Status['fetchTaskList'][number] = {
+                "comment": "",
+                "id": taskItem.id,
+                "rawInputText": taskItem.rawInputText,
+                "skipFetch": false,
+                "type": taskItem.type
+            }
+            status.fetchTaskList.push(fetchTaskItem)
+        }
+        // 任务执行配置
+        status.generateConfig = {
+            "bookTitle": config.generateConfig.bookTitle,
+            imageQuilty: config.generateConfig.imageQuilty,
+            maxItemInBook: config.generateConfig.maxItemInBook,
+            "comment": config.generateConfig.comment,
+            "orderByList": [],
+            generateType: config.generateConfig.generateType
+        }
+        // 排序配置
+        for (let orderItem of config.generateConfig.orderByList) {
+            let orderByItem: Type_Status['generateConfig']['orderByList'][number] = {
+                orderBy: orderItem.orderBy,
+                orderWith: orderItem.orderWith
+            }
+            status.generateConfig.orderByList.push(orderByItem)
+        }
+
+        return status
     }
 }

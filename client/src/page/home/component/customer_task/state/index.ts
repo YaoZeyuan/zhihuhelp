@@ -6,7 +6,7 @@ import * as Consts from '../resource/const/index'
 import * as Types from '../resource/type/index'
 
 
-type Type_Status = {
+export type Type_Status = {
     /**
      * 页面状态信息
      */

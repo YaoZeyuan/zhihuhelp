@@ -196,7 +196,7 @@ ipcMain.on('open-output-dir', (event) => {
 // 获取任务配置
 ipcMain.on('get-common-config', (event) => {
   let config = CommonUtil.getConfig()
-  event.returnValue = JSON.stringify(config)
+  event.returnValue = config
   return
 })
 

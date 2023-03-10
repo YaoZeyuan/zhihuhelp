@@ -27,7 +27,7 @@ import { createStore } from './state'
 import http from '~/src/library/http'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
-import Util from './library/index'
+import Util, { Type_Form_Config } from './library/index'
 import { useRef } from 'react'
 
 import './index.less'
@@ -45,7 +45,7 @@ export default () => {
   const store = refStore.current
   let snap = useSnapshot(store)
 
-  const [form] = Form.useForm()
+  const [form] = Form.useForm<Type_Form_Config>()
 
   let [forceUpdate, setForceUpdate] = useState<number>(0)
 
@@ -55,6 +55,33 @@ export default () => {
     let asyncRunner = async () => {
       let config = ipcRenderer.sendSync('get-common-config')
       console.log('init config =>', config)
+      let initStoreValue = Util.generateStatus(config)
+      for (let key of Object.keys(initStoreValue)) {
+        // @ts-ignore
+        store[key] = initStoreValue[key]
+      }
+      //   "task-item-list": [
+      //     {
+      //         "type": "author-answer";
+      //         "id": "xie-lu-tian-e";
+      //         "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers";
+      //     }
+      // ];
+      // "order-item-list": [
+      //     {
+      //         "orderBy": "asc";
+      //         "orderWith": "createAt";
+      //     }
+      // ];
+      // "image-quilty": "hd";
+      // "max-item-in-book": 10000;
+      // comment: "";
+      form.setFieldValue('book-title', initStoreValue.generateConfig.bookTitle)
+      form.setFieldValue('task-item-list', initStoreValue.fetchTaskList)
+      form.setFieldValue('order-item-list', initStoreValue.generateConfig.orderByList)
+      form.setFieldValue('image-quilty', initStoreValue.generateConfig.imageQuilty)
+      form.setFieldValue('max-item-in-book', initStoreValue.generateConfig.maxItemInBook)
+      form.setFieldValue('comment', initStoreValue.generateConfig.comment)
     }
     asyncRunner()
   }, [forceUpdate])
