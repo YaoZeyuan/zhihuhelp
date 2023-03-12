@@ -30,62 +30,63 @@ class FetchCustomer extends Base {
     this.log(`开始进行自定义抓取, 共有${customerTaskConfig.fetchTaskList.length}个任务`)
     // 首先, 将任务进行汇总
     type TypeTaskPackage = {
-      [key: string]: string[]
+      [key: string]: Set<string>
     }
     let taskListPackage: TypeTaskPackage = {}
     this.log(`合并抓取任务`)
     for (let fetchTaskConfig of customerTaskConfig.fetchTaskList) {
       if (fetchTaskConfig.skipFetch) {
+        // 跳过不抓取的任务
         continue
       }
       let taskType = fetchTaskConfig.type
       let targetId = `${fetchTaskConfig.id}`
       if (fetchTaskConfig.type in taskListPackage === false) {
-        taskListPackage[taskType] = []
+        taskListPackage[taskType] = new Set()
       }
       switch (fetchTaskConfig.type) {
         case Const_Task_Config.Const_Task_Type_用户提问过的所有问题:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_用户的所有回答:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_用户发布的所有文章:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_销号用户的所有回答:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_用户发布的所有想法:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_话题:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_收藏夹:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_专栏:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_文章:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_问题:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_回答:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_想法:
-          taskListPackage[fetchTaskConfig.type].push(targetId)
+          taskListPackage[fetchTaskConfig.type].add(targetId)
           break
         case Const_Task_Config.Const_Task_Type_用户赞同过的所有文章:
         case Const_Task_Config.Const_Task_Type_用户赞同过的所有回答:
         case Const_Task_Config.Const_Task_Type_用户关注过的所有问题:
-          if (taskListPackage[fetchTaskConfig.type].includes(targetId) === false) {
+          if (taskListPackage[fetchTaskConfig.type].has(targetId) === false) {
             // 抓取用户活动记录工作量巨大, 因此在生成抓取任务时进行去重处理
-            taskListPackage[fetchTaskConfig.type].push(targetId)
+            taskListPackage[fetchTaskConfig.type].add(targetId)
           }
           break
         default:
@@ -98,7 +99,7 @@ class FetchCustomer extends Base {
     this.log(`开始派发自定义任务=>`)
 
     for (let taskType of Object.keys(taskListPackage)) {
-      let targetIdList = taskListPackage[taskType]
+      let targetIdList = [...taskListPackage[taskType].values()]
       switch (taskType) {
         case Const_Task_Config.Const_Task_Type_用户提问过的所有问题:
           let batchFetchAuthorAskQuestion = new BatchFetchAuthorAskQuestion()
