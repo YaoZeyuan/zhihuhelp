@@ -731,7 +731,7 @@ class GenerateCustomer extends Base {
       totalPageCount = totalPageCount + unitItem.pageList.length
     }
 
-    let totalColumnCount = Math.ceil(totalPageCount / generateConfig.maxQuestionOrArticleInBook)
+    let totalColumnCount = Math.ceil(totalPageCount / generateConfig.maxItemInBook)
     if (totalColumnCount <= 1) {
       // 不需要分卷
       return [
@@ -757,7 +757,7 @@ class GenerateCustomer extends Base {
         continue
       }
 
-      while (currentPageCount + nextUnit.pageList.length < generateConfig.maxQuestionOrArticleInBook) {
+      while (currentPageCount + nextUnit.pageList.length < generateConfig.maxItemInBook) {
         currentUnitList.push(nextUnit)
         nextUnit = processUnitList.shift() as Package.Type_Unit_Item
         if (nextUnit === undefined) {
@@ -832,7 +832,7 @@ class GenerateCustomer extends Base {
         }
 
         // 生成当前单元和剩余单元对应的页码
-        let legalPageCount = generateConfig.maxQuestionOrArticleInBook - currentPageCount
+        let legalPageCount = generateConfig.maxItemInBook - currentPageCount
         let legalPageList = [...nextUnit.pageList.slice(0, legalPageCount)]
         let remainPageList = [...nextUnit.pageList.slice(legalPageCount)]
 

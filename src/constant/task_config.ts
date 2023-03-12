@@ -65,7 +65,7 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
     imageQuilty: 'hd', // 图片质量
     bookTitle: '', // 书名
     comment: '', // 备注
-    maxQuestionOrArticleInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
+    maxItemInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
   },
