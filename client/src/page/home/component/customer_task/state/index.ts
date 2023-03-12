@@ -33,7 +33,7 @@ export function createStore() {
         status: {
             forceUpdate: 0,
         },
-        fetchTaskList: [Consts.Const_Default_Fetch_Task_Item],
+        fetchTaskList: [],
         generateConfig: {
             ...Consts_Task_Config.Const_Default_Config.generateConfig,
             orderByList: [Consts.Const_Default_Order_Item],

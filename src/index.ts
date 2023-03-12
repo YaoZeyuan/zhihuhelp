@@ -188,6 +188,7 @@ app.on('activate', function () {
 
 ipcMain.on('open-output-dir', (event) => {
   // 打开输出文件夹
+  console.log("PathConfig.outputPath => ", PathConfig.outputPath)
   shell.showItemInFolder(PathConfig.outputPath)
   event.returnValue = ''
   return
@@ -244,7 +245,7 @@ ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => 
 })
 
 // 清空所有登录信息
-ipcMain.on('devtools-clear-all-session-storage', async (event) => {
+ipcMain.on('clear-all-session-storage', async (event) => {
   await session.defaultSession.clearCache()
   await session.defaultSession.clearStorageData()
   await session.defaultSession.clearHostResolverCache()

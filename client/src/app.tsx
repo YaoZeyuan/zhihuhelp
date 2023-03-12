@@ -1,4 +1,4 @@
-import { Layout, ConfigProvider } from 'antd'
+import { Layout, ConfigProvider, App } from 'antd'
 import zhCN from 'antd/lib/locale/zh_CN'
 import './app.less'
 // vite需要主动导入dist下的moment语言包才能显示中文(dist下是esm格式, 而默认是umd格式, vite不支持)
@@ -11,11 +11,13 @@ import Home from './page/home'
 export default () => {
   return (
     <ConfigProvider locale={zhCN}>
-      <Layout>
-        <Layout.Content>
-          <Home></Home>
-        </Layout.Content>
-      </Layout>
+      <App>
+        <Layout>
+          <Layout.Content>
+            <Home></Home>
+          </Layout.Content>
+        </Layout>
+      </App>
     </ConfigProvider>
   )
 }

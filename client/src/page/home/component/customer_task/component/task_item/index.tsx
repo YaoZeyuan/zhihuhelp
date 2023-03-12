@@ -35,14 +35,14 @@ export default ({
   }, [value])
 
   useEffect(() => {
-    console.log('snap.id发生变更, 通知外部', snap)
+    console.log('snap发生变更, 通知外部', snap)
     // 当id和type发生变更时, 通知外部组件
     onChange({
       type: snap.type,
       id: snap.id,
       rawInputText: snap.rawInputText,
     })
-  }, [snap.id, snap.type])
+  }, [snap])
 
   return (
     <div className="task-item-4c685622b7c0">
@@ -60,10 +60,15 @@ export default ({
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.待抓取url}>
           <Input
+            // 通过defaultValue, 避免每次value变更后, input的输入光标都被重置
             defaultValue={snap.rawInputText}
-            onBlur={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               store.rawInputText = e.target.value
             }}
+            // onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+            //   // console.log('on input trigger', e.target.value)
+            //   store.rawInputText = e.target.value
+            // }}
             placeholder={'示例url:' + Consts.Placeholder_By_Task_Type[snap.type]}
           ></Input>
         </Col>

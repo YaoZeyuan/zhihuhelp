@@ -15,7 +15,10 @@ import {
   Row,
   Col,
   InputNumber,
+  Dropdown,
+  App,
 } from 'antd'
+import { DownOutlined } from '@ant-design/icons'
 import { proxy, useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
@@ -29,6 +32,8 @@ import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import Util, { Type_Form_Config } from './library/index'
 import { useRef } from 'react'
+import * as Context from '~/src/page/home/resource/context'
+import * as Consts_Page from '~/src/resource/const/page'
 
 import './index.less'
 
@@ -40,6 +45,9 @@ export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100
 
 export default () => {
+  const { modal: SimpleModal } = App.useApp()
+  let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
+
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
   let refStore = useRef(createStore())
   const store = refStore.current
@@ -54,7 +62,7 @@ export default () => {
   useEffect(() => {
     let asyncRunner = async () => {
       let config = ipcRenderer.sendSync('get-common-config')
-      console.log('init config =>', config)
+      // console.log('init config =>', config)
       let initStoreValue = Util.generateStatus(config)
       for (let key of Object.keys(initStoreValue)) {
         // @ts-ignore
@@ -86,36 +94,50 @@ export default () => {
     asyncRunner()
   }, [forceUpdate])
 
-  const onFinish = (values: any) => {
+  const asyncOnFinish = async (values: any) => {
     // 提交数据, 生成配置文件
     console.log('final config => ', JSON.stringify(values, null, 2))
     const config = Util.generateTaskConfig(values)
+    let isLogin = await asyncCheckLogin()
+    if (isLogin === false) {
+      SimpleModal.warning({
+        title: '登录状态异常',
+        content: '请先登录知乎账号后再启动任务',
+        okText: '去登陆',
+        onOk: () => {
+          setCurrentTab(Consts_Page.Const_Page_登录)
+        },
+      })
+      return
+    }
+
     ipcRenderer.sendSync('start-customer-task', {
       config: config,
     })
   }
 
+  const asyncCheckLogin = async () => {
+    let res = ipcRenderer.sendSync('zhihu-http-get', {
+      url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
+      params: {
+        include:
+          'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
+        offset: 0,
+        limit: 20,
+        sort_by: 'created',
+      },
+    })
+    console.log('res => ', res)
+    if (res.data !== undefined) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   return (
     <div className="customer_task">
       <div className="debug-panel">
-        <Button
-          onClick={async () => {
-            let res = ipcRenderer.sendSync('zhihu-http-get', {
-              url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
-              params: {
-                include:
-                  'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
-                offset: 0,
-                limit: 20,
-                sort_by: 'created',
-              },
-            })
-            console.log('res => ', res)
-            return
-          }}
-        >
-          调试
-        </Button>
         <Button
           onClick={async () => {
             let res = ipcRenderer.sendSync('js-rpc-trigger', {
@@ -150,7 +172,7 @@ export default () => {
         <Form
           form={form}
           name="control-hooks"
-          onFinish={onFinish}
+          onFinish={asyncOnFinish}
           colon={false}
           initialValues={{
             'book-title': snap.generateConfig.bookTitle,
@@ -282,11 +304,60 @@ export default () => {
               开始
             </Button>
             <Divider type="vertical"></Divider>
-            <Button htmlType="button">打开输出目录</Button>
-            <Divider type="vertical"></Divider>
-            <Button danger htmlType="button">
-              注销登录
+            <Button
+              htmlType="button"
+              onClick={() => {
+                ipcRenderer.sendSync('open-output-dir')
+              }}
+            >
+              打开输出目录
             </Button>
+            <Divider type="vertical"></Divider>
+            <Space wrap>
+              <Dropdown.Button
+                menu={{
+                  items: [
+                    {
+                      label: '检查登录状态',
+                      onClick: async () => {
+                        let isLogin = await asyncCheckLogin()
+                        if (isLogin) {
+                          message.success('当前状态: 已登录')
+                          return
+                        }
+                        message.error('当前状态: 未登录')
+                        return
+                      },
+                    },
+                    {
+                      label: '打开开发者工具',
+                      onClick: () => {
+                        ipcRenderer.sendSync('open-devtools')
+                      },
+                    },
+                    {
+                      label: '注销登录',
+                      danger: true,
+                      onClick: () => {
+                        ipcRenderer.sendSync('clear-all-session-storage')
+                        SimpleModal.warning({
+                          title: '注销成功',
+                          content: '请重新登录知乎账号',
+                          okText: '去登陆',
+                          onOk: () => {
+                            setCurrentTab(Consts_Page.Const_Page_登录)
+                          },
+                        })
+                      },
+                    },
+                  ],
+                  onClick: () => {},
+                }}
+                icon={<DownOutlined />}
+              >
+                调试菜单
+              </Dropdown.Button>
+            </Space>
           </Form.Item>
         </Form>
       </div>

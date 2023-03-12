@@ -37,12 +37,17 @@ export default class Util {
         // 抓取任务
         config.fetchTaskList = []
         for (let taskItem of param["task-item-list"]) {
+
             let fetchTaskItem: TypeTaskConfig.Type_Task_Config['fetchTaskList'][number] = {
                 "comment": "",
                 "id": taskItem.id,
                 "rawInputText": taskItem.rawInputText,
                 "skipFetch": false,
                 "type": taskItem.type
+            }
+            if (fetchTaskItem.id === "") {
+                // 略过id为空的任务
+                continue
             }
             config.fetchTaskList.push(fetchTaskItem)
         }
