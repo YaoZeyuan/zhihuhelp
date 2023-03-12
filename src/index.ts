@@ -12,6 +12,11 @@ import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
 
+// 项目初始化时, 自动生成 .adonisrc.json 文件
+const adonisrcRcUri = path.resolve(__dirname, '.adonisrc.json')
+const adonisrcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
+fs.writeFileSync(adonisrcRcUri, fs.readFileSync(adonisrcTemplateUri))
+
 const Const_Current_Path = path.resolve(__dirname)
 let ace = new Ignitor(Const_Current_Path).ace()
 let argv = process.argv
@@ -225,10 +230,10 @@ ipcMain.on('start-customer-task', async (event, { config }: { config: Type_TaskC
   // 此后操作均为异步操作, 无需等待
 
   Logger.log(`开始抓取数据`)
-  // await ace.handle(['Fetch:Customer'])
-  // Logger.log(`开始生成电子书`)
-  // await ace.handle(['Generate:Customer'])
-  // Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
+  await ace.handle(['Fetch:Customer'])
+  Logger.log(`开始生成电子书`)
+  await ace.handle(['Generate:Customer'])
+  Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
   // 输出打开文件夹
   shell.showItemInFolder(PathConfig.outputPath)
   isRunning = false
