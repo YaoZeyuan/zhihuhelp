@@ -1,10 +1,15 @@
 import { BaseCommand, args, flags } from '@adonisjs/ace'
+import { CommandSettings } from '@adonisjs/ace/build/src/Contracts'
 import lodash from 'lodash'
 import logger from '~/src/library/logger'
 
 class Base extends BaseCommand {
   public static commandName = 'Command:Base'
   public static description = '命令基类, 无实际功能'
+
+  static settings: CommandSettings = {
+    "stayAlive": true,
+  }
 
   /**
    * 在最外层进行一次封装, 方便获得报错信息
@@ -26,7 +31,7 @@ class Base extends BaseCommand {
    * @param args
    * @param options
    */
-  async execute(): Promise<any> {}
+  async execute(): Promise<any> { }
 
   /**
    * 简易logger

@@ -18,9 +18,8 @@ import JSON5 from 'json5'
 const adonisRcUri = path.resolve(__dirname, '.adonisrc.json')
 const adonisRcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
 const adonisRcContent = fs.readFileSync(adonisRcTemplateUri).toString()
-const adonisRcConfig = JSON.stringify(adonisRcContent)
-fs.writeFileSync(adonisRcUri, JSON5.stringify(adonisRcConfig, null, 2))
-
+const adonisRcConfig = JSON5.parse(adonisRcContent)
+fs.writeFileSync(adonisRcUri, JSON.stringify(adonisRcConfig, null, 2))
 
 const Const_Current_Path = path.resolve(__dirname)
 let ace = new Ignitor(Const_Current_Path).ace()
