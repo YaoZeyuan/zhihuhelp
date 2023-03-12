@@ -68,22 +68,6 @@ export default () => {
         // @ts-ignore
         store[key] = initStoreValue[key]
       }
-      //   "task-item-list": [
-      //     {
-      //         "type": "author-answer";
-      //         "id": "xie-lu-tian-e";
-      //         "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers";
-      //     }
-      // ];
-      // "order-item-list": [
-      //     {
-      //         "orderBy": "asc";
-      //         "orderWith": "createAt";
-      //     }
-      // ];
-      // "image-quilty": "hd";
-      // "max-item-in-book": 10000;
-      // comment: "";
       form.setFieldValue('book-title', initStoreValue.generateConfig.bookTitle)
       form.setFieldValue('task-item-list', initStoreValue.fetchTaskList)
       form.setFieldValue('order-item-list', initStoreValue.generateConfig.orderByList)

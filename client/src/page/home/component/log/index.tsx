@@ -1,7 +1,8 @@
-import { Button, List, Typography, Card, Row, Divider, Space, Col } from 'antd'
+import { Button, List, Typography, Card, Row, Divider, Space, Col, Checkbox, message } from 'antd'
 import Electron from 'electron'
 import { useState, useContext, useEffect } from 'react'
 import VirtualList from 'rc-virtual-list'
+import * as Ahooks from 'ahooks'
 
 import './index.less'
 
@@ -13,6 +14,7 @@ type Type_Log_Item = {
 }
 
 export default () => {
+  const [isAutoFresh, setIsAutoFresh] = useState<boolean>(false)
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const ContainerHeight = 768
   const fetchLogList = () => {
@@ -27,7 +29,21 @@ export default () => {
       })
     }
     setLogList(logList)
+    let containerEle = document.querySelector('.rc-virtual-list-holder')
+    if (containerEle?.scrollTop !== undefined) {
+      containerEle.scrollTop = containerEle.scrollHeight ?? 1000000000
+    }
   }
+  const clearLogList = () => {
+    ipcRenderer.sendSync('clear-log-content')
+    fetchLogList()
+  }
+  Ahooks.useInterval(() => {
+    if (isAutoFresh) {
+      // 若自动刷新, 则每秒刷新一次
+      fetchLogList()
+    }
+  }, 1 * 1000)
 
   useEffect(() => {
     fetchLogList()
@@ -48,9 +64,23 @@ export default () => {
       </Card>
       <div className="action-bar">
         <Row>
-          <Col offset={12}>
+          <Col>
+            <Checkbox
+              checked={isAutoFresh}
+              onChange={(e) => {
+                setIsAutoFresh(e.target.checked)
+              }}
+            >
+              自动刷新
+            </Checkbox>
+          </Col>
+          <Col offset={6}>
             <Button type="primary" onClick={fetchLogList}>
-              刷新
+              刷新日志
+            </Button>
+            <Divider type="vertical"></Divider>
+            <Button danger onClick={clearLogList}>
+              清空日志
             </Button>
           </Col>
         </Row>

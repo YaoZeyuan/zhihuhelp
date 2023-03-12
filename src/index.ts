@@ -354,8 +354,20 @@ ipcMain.on('zhihu-http-get', async (event, { url, params }: { url: string; param
 })
 ipcMain.on('get-log-content', async (event) => {
   // 获取日志内容
-  const content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
+  let content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
+  const logList = content?.split("\n") ?? []
+  if (logList.length > 5000) {
+    // 自动清理日志, 控制在2000条以下
+    content = logList.slice(logList.length - 2000).join("\n")
+    fs.writeFileSync(PathConfig.runtimeLogUri, content)
+  }
   event.returnValue = content
+  return
+})
+ipcMain.on('clear-log-content', async (event) => {
+  // 清理日志内容
+  fs.writeFileSync(PathConfig.runtimeLogUri, '')
+  event.returnValue = ""
   return
 })
 ipcMain.on('open-devtools', async (event) => {
