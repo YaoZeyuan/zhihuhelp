@@ -100,6 +100,7 @@ export async function asyncGenerateZhihuExtendsHeader({
 }
 
 export default class httpClient {
+  static rawInstance = httpInstance
   /**
    * 原始request请求
    * @param params

@@ -27,14 +27,19 @@ class InitEnv extends Base {
     let isRebase = this.rebase
     console.log('isRebase => ', isRebase)
     this.log(`检查更新`)
-    let remoteVersionConfig: Type_Res_Version = await http
+    let remoteVersionConfig: Type_Res_Version = await http.rawInstance
       .get(CommonConfig.checkUpgradeUri, {
         params: {
           now: new Date().toISOString(),
         },
       })
+      .then(res => {
+        return res.data
+      })
       .catch((e) => {
-        return {}
+        return {
+          version: '0.0.0',
+        } as any
       })
     // 已经通过Electron拿到了最新知乎cookie并写入了配置文件中, 因此不需要再填写配置文件了
     if (semver.gt(remoteVersionConfig.version, CommonConfig.version)) {
