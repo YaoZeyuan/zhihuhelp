@@ -337,6 +337,12 @@ ipcMain.on('zhihu-http-get', async (event, { url, params }: { url: string; param
   event.returnValue = res
   return res
 })
+ipcMain.on('get-log-content', async (event) => {
+  // 获取日志内容
+  const content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
+  event.returnValue = content
+  return
+})
 ipcMain.on('open-devtools', async (event) => {
   // 打开调试面板
   mainWindow.webContents.openDevTools()
