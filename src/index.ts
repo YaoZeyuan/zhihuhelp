@@ -11,11 +11,16 @@ import * as Type_TaskConfig from '~/src/type/task_config'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
+import JSON5 from 'json5'
+
 
 // 项目初始化时, 自动生成 .adonisrc.json 文件
-const adonisrcRcUri = path.resolve(__dirname, '.adonisrc.json')
-const adonisrcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
-fs.writeFileSync(adonisrcRcUri, fs.readFileSync(adonisrcTemplateUri))
+const adonisRcUri = path.resolve(__dirname, '.adonisrc.json')
+const adonisRcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
+const adonisRcContent = fs.readFileSync(adonisRcTemplateUri).toString()
+const adonisRcConfig = JSON.stringify(adonisRcContent)
+fs.writeFileSync(adonisRcUri, JSON5.stringify(adonisRcConfig, null, 2))
+
 
 const Const_Current_Path = path.resolve(__dirname)
 let ace = new Ignitor(Const_Current_Path).ace()
@@ -228,6 +233,11 @@ ipcMain.on('start-customer-task', async (event, { config }: { config: Type_TaskC
   event.returnValue = 'success'
 
   // 此后操作均为异步操作, 无需等待
+
+  Logger.log(`初始化ace命令集`)
+  await ace.handle(['generate:manifest'])
+  Logger.log(`初始化运行环境`)
+  await ace.handle(['Init:Env'])
 
   Logger.log(`开始抓取数据`)
   await ace.handle(['Fetch:Customer'])
