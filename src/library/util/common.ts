@@ -21,6 +21,9 @@ class TaskManager {
   // 任务完成数
   private taskCompleteCounter = 0
 
+  // 总任务计数器, 递增, 无实际意义
+  private taskCounter = 0
+
   // 任务超时时间, 走内部配置即可, 不需要全局配置
   private readonly Const_Task_Timeout_ms = 20 * 1000
   // 最大记录的任务派发数/执行数, 超过该数自动重置计数器
@@ -43,6 +46,7 @@ class TaskManager {
   private taskList: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
     label: any
+    taskNo: number
   }[] = []
 
   /**
@@ -116,9 +120,10 @@ class TaskManager {
     let taskConfig = this.taskList.pop() ?? {
       asyncTaskFunc: Const_Default_Task_Runner,
       label: Const_Default_Task_Label,
+      taskNo: 0,
     }
     let { asyncTaskFunc = Const_Default_Task_Runner, label = Const_Default_Task_Label } = taskConfig
-    logger.log(`[开始执行]开始执行第${this.taskCompleteCounter}个任务, 当前剩余${totalTaskCount}个任务待执行`)
+    logger.log(`[开始执行]开始执行第${taskConfig.taskNo}个任务, 当前剩余${this.taskList.length}个任务待执行`)
 
     await Promise.race([
       asyncTaskFunc(),
@@ -128,7 +133,7 @@ class TaskManager {
         }, this.Const_Task_Timeout_ms)
       }),
     ]).catch((e) => {
-      logger.log(`[执行异常]第${this.taskCompleteCounter}个任务执行失败, 报错信息为: ${e}`)
+      logger.log(`[执行异常]第${taskConfig.taskNo}个任务执行失败, 报错信息为: ${e}`)
     })
 
     // 正在执行任务数-1
@@ -142,7 +147,7 @@ class TaskManager {
     labelCounter.complete = labelCounter.complete + 1
     this.taskStateMapByLabel.set(label, labelCounter)
 
-    logger.log(`[执行完成]第${this.taskCompleteCounter}个任务执行完成, 当前剩余${totalTaskCount}个任务待执行`)
+    logger.log(`[执行完成]任务id:${taskConfig.taskNo}执行完成, 当前剩余${this.taskList.length}个任务待执行`)
 
     // 累加任务计数器(不考虑溢出的情况)
     this.taskCompleteCounter++
@@ -161,11 +166,11 @@ class TaskManager {
   async suspendAllTask(sleep_ms: number) {
     this.isSuspend = true
     logger.log(
-      `[任务暂停]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠${sleep_ms / 1000
+      `[任务暂停]已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕, 休眠${sleep_ms / 1000
       }秒, 当前剩余${this.taskList.length}个任务待执行`,
     )
     while (this.runingRunner > 0) {
-      logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 等待所有待执行任务运行完毕后进行休眠`)
+      logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕, 等待所有待执行任务运行完毕后进行休眠`)
       await CommonUtil.asyncSleep(1000)
     }
     logger.log(`[任务暂停]所有待执行任务均已执行完毕, 开始休眠计时, 休眠时长:${sleep_ms / 1000}s`)
@@ -191,9 +196,13 @@ class TaskManager {
     }
     labelCounter.total = labelCounter.total + 1
     this.taskStateMapByLabel.set(label, labelCounter)
+
+    this.taskCounter++
+
     this.taskList.push({
       asyncTaskFunc,
       label,
+      taskNo: this.taskCounter
     })
     this.taskDispatchCounter++
 
