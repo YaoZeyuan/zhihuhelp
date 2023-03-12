@@ -1,39 +1,19 @@
 import electron from 'electron'
-import {
-  Button,
-  message,
-  Input,
-  Form,
-  Table,
-  Divider,
-  Modal,
-  Tag,
-  Card,
-  Radio,
-  Select,
-  Space,
-  Row,
-  Col,
-  InputNumber,
-  Dropdown,
-  App,
-} from 'antd'
+import { Button, message, Input, Form, Divider, Radio, Select, Space, Row, Col, InputNumber, Dropdown, App } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
-import { proxy, useSnapshot } from 'valtio'
+import { useSnapshot } from 'valtio'
 
 import { useState, useContext, useEffect } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
-import * as Types_Task_Config from '~/src/resource/type/task_config'
 import * as Consts from './resource/const/index'
-import * as Types from './resource/type/index'
 import { createStore } from './state'
-import http from '~/src/library/http'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import Util, { Type_Form_Config } from './library/index'
 import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
+import * as Ahooks from 'ahooks'
 
 import './index.less'
 
@@ -56,14 +36,20 @@ export default () => {
   const [form] = Form.useForm<Type_Form_Config>()
 
   let [forceUpdate, setForceUpdate] = useState<number>(0)
+  let [initStoreValue, setInitStoreValue] = useState<ReturnType<typeof Util.generateStatus>>({} as any)
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
 
+  Ahooks.useMount(() => {
+    // 初始化时载入一次
+    let config = ipcRenderer.sendSync('get-common-config')
+    // console.log('init config =>', config)
+    let initStoreValue = Util.generateStatus(config)
+    setInitStoreValue(initStoreValue)
+  })
+
   useEffect(() => {
-    let asyncRunner = async () => {
-      let config = ipcRenderer.sendSync('get-common-config')
-      // console.log('init config =>', config)
-      let initStoreValue = Util.generateStatus(config)
+    if (initStoreValue?.generateConfig?.bookTitle !== undefined) {
       for (let key of Object.keys(initStoreValue)) {
         // @ts-ignore
         store[key] = initStoreValue[key]
@@ -75,8 +61,7 @@ export default () => {
       form.setFieldValue('max-item-in-book', initStoreValue.generateConfig.maxItemInBook)
       form.setFieldValue('comment', initStoreValue.generateConfig.comment)
     }
-    asyncRunner()
-  }, [forceUpdate])
+  }, [initStoreValue])
 
   const asyncOnFinish = async (values: any) => {
     // 提交数据, 生成配置文件
@@ -121,38 +106,7 @@ export default () => {
 
   return (
     <div className="customer_task">
-      <div className="debug-panel">
-        <Button
-          onClick={async () => {
-            let res = ipcRenderer.sendSync('js-rpc-trigger', {
-              method: 'encrypt-string',
-              paramList: [
-                {
-                  inputString: '123',
-                },
-              ],
-            })
-
-            console.log('res => ', res)
-            return
-          }}
-        >
-          调试-触发请求
-        </Button>
-        <Button
-          onClick={async () => {
-            let res = ipcRenderer.sendSync('devtools-clear-all-session-storage', {})
-
-            console.log('res => ', res)
-            return
-          }}
-        >
-          调试-清除session
-        </Button>
-      </div>
-      <div className="action-panel">{/* 操作栏 */}</div>
       <div className="config-panel">
-        {/* 任务配置 */}
         <Form
           form={form}
           name="control-hooks"
