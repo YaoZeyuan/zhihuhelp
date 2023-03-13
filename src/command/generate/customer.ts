@@ -154,8 +154,10 @@ class GenerateCustomer extends Base {
     // 首先对数据进行预处理
     switch (generateType) {
       case Const_TaskConfig.Const_Generate_Type_独立输出电子书:
+        // 单独输出不需要额外处理
+        break
       case Const_TaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节:
-        // 单独输出/按任务合并章节不需要额外处理
+        //按任务合并章节不需要额外处理
         break
       case Const_TaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排:
         {
@@ -726,12 +728,12 @@ class GenerateCustomer extends Base {
     booktitle: string
     generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
   }): Package.Ebook_Column[] {
-    let totalPageCount = 0
+    let totalItemCount = 0
     for (let unitItem of unitItemList) {
-      totalPageCount = totalPageCount + unitItem.pageList.length
+      totalItemCount = totalItemCount + unitItem.getItemCount()
     }
 
-    let totalColumnCount = Math.ceil(totalPageCount / generateConfig.maxItemInBook)
+    let totalColumnCount = Math.ceil(totalItemCount / generateConfig.maxItemInBook)
     if (totalColumnCount <= 1) {
       // 不需要分卷
       return [
@@ -750,14 +752,14 @@ class GenerateCustomer extends Base {
       let bookname = `${booktitle}_${currentBookColumnIndex}/${totalColumnCount}卷`
 
       let currentUnitList: Package.Type_Unit_Item[] = []
-      let currentPageCount = 0
+      let currentItemCount = 0
       // 取出第一个unit
       let nextUnit = processUnitList.shift() as Package.Type_Unit_Item
       if (nextUnit === undefined) {
         continue
       }
 
-      while (currentPageCount + nextUnit.pageList.length < generateConfig.maxItemInBook) {
+      while (currentItemCount + nextUnit.getItemCount() < generateConfig.maxItemInBook) {
         currentUnitList.push(nextUnit)
         nextUnit = processUnitList.shift() as Package.Type_Unit_Item
         if (nextUnit === undefined) {
@@ -832,9 +834,30 @@ class GenerateCustomer extends Base {
         }
 
         // 生成当前单元和剩余单元对应的页码
-        let legalPageCount = generateConfig.maxItemInBook - currentPageCount
-        let legalPageList = [...nextUnit.pageList.slice(0, legalPageCount)]
-        let remainPageList = [...nextUnit.pageList.slice(legalPageCount)]
+        let legalItemCount = generateConfig.maxItemInBook - currentItemCount
+        let legalPageList: typeof nextUnit.pageList = []
+        let remainPageList: typeof nextUnit.pageList = []
+        for (let page of nextUnit.pageList) {
+          if (legalItemCount >= page.getItemCount()) {
+            legalPageList.push(page)
+            legalItemCount = legalItemCount - page.getItemCount()
+            continue
+          }
+          if (legalItemCount < page.getItemCount()) {
+            if (legalItemCount > 0) {
+              // 从page中取出还可以被放置的部分
+              let legalPage = page.slice(0, legalItemCount)
+              legalPageList.push(legalPage)
+              let remainPage = page.slice(legalItemCount)
+              remainPageList.push(remainPage)
+              // 剩余元素数一定为0
+              legalItemCount = 0
+            } else {
+              remainPageList.push(page)
+            }
+            continue
+          }
+        }
 
         for (let page of legalPageList) {
           legalUnit.add(page)

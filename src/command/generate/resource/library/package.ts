@@ -85,6 +85,18 @@ interface Interface_Base_Page_Item {
     item: Type_Record_Item
     orderWith: Types_Task_Config.Type_Order_With
   }): number
+
+  /**
+   * 获取对象内元素数量
+   */
+  getItemCount(): number
+
+  /**
+   * 获取对象内元素的拷贝
+   * @param start 
+   * @param end 
+   */
+  slice(start: number, end?: number): Interface_Base_Page_Item
 }
 
 export class Page_Question implements Interface_Base_Page_Item {
@@ -159,6 +171,23 @@ export class Page_Question implements Interface_Base_Page_Item {
       }
     })
   }
+
+  getItemCount() {
+    return this.recordList.length
+  }
+
+  slice(start: number, end?: number) {
+    if (end === undefined) {
+      end = this.recordList.length
+    }
+    const recordList = this.recordList.slice(start, end)
+
+    const newPageItem = new Page_Question({ baseInfo: this.baseInfo })
+    for (const record of recordList) {
+      newPageItem.add(record)
+    }
+    return newPageItem
+  }
 }
 
 export class Page_Article implements Interface_Base_Page_Item {
@@ -213,6 +242,23 @@ export class Page_Article implements Interface_Base_Page_Item {
         return -(aProperty - bProperty)
       }
     })
+  }
+
+  getItemCount() {
+    return this.recordList.length
+  }
+
+  slice(start: number, end?: number) {
+    if (end === undefined) {
+      end = this.recordList.length
+    }
+    const recordList = this.recordList.slice(start, end)
+
+    const newPageItem = new Page_Article()
+    for (const record of recordList) {
+      newPageItem.add(record)
+    }
+    return newPageItem
   }
 }
 
@@ -269,6 +315,24 @@ export class Page_Pin implements Interface_Base_Page_Item {
         return -(aProperty - bProperty)
       }
     })
+  }
+
+
+  getItemCount() {
+    return this.recordList.length
+  }
+
+  slice(start: number, end?: number) {
+    if (end === undefined) {
+      end = this.recordList.length
+    }
+    const recordList = this.recordList.slice(start, end)
+
+    const newPageItem = new Page_Pin()
+    for (const record of recordList) {
+      newPageItem.add(record)
+    }
+    return newPageItem
   }
 }
 
@@ -485,6 +549,14 @@ class Unit_Base {
         }
       }
     })
+  }
+
+  getItemCount() {
+    let itemCount = 0
+    for (let page of this.pageList) {
+      itemCount += page.getItemCount()
+    }
+    return itemCount
   }
 }
 
