@@ -1,9 +1,11 @@
 import { useSnapshot, subscribe } from 'valtio'
 import { createStore, Const_Default_Task_Item } from './state'
-import { Input, Select, Col, Row, Button, Divider, Space } from 'antd'
+import { Input, Select, Col, Row, Button, Divider, Space, Checkbox } from 'antd'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import * as Consts from '../../resource/const/index'
 import { useEffect, useRef } from 'react'
+
+import './index.less'
 
 export default ({
   value = {
@@ -41,6 +43,7 @@ export default ({
       type: snap.type,
       id: snap.id,
       rawInputText: snap.rawInputText,
+      skipFetch: snap.skipFetch,
     })
   }, [snap])
 
@@ -59,18 +62,27 @@ export default ({
           ></Select>
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.待抓取url}>
-          <Input
-            // 通过defaultValue, 避免每次value变更后, input的输入光标都被重置
-            defaultValue={snap.rawInputText}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              store.rawInputText = e.target.value
-            }}
-            // onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
-            //   // console.log('on input trigger', e.target.value)
-            //   store.rawInputText = e.target.value
-            // }}
-            placeholder={'示例url:' + Consts.Placeholder_By_Task_Type[snap.type]}
-          ></Input>
+          <div className="url-container">
+            <Checkbox
+              checked={snap.skipFetch === false}
+              onClick={(e) => {
+                // @ts-ignore
+                store.skipFetch = !e.target!.checked
+              }}
+            ></Checkbox>
+            <Input
+              // 通过defaultValue, 避免每次value变更后, input的输入光标都被重置
+              defaultValue={snap.rawInputText}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                store.rawInputText = e.target.value
+              }}
+              // onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+              //   // console.log('on input trigger', e.target.value)
+              //   store.rawInputText = e.target.value
+              // }}
+              placeholder={'示例url:' + Consts.Placeholder_By_Task_Type[snap.type]}
+            ></Input>
+          </div>
         </Col>
         <Col span={Consts.CONST_Task_Item_Width.任务id} offset={1}>
           <div>{snap.id === '' ? '未解析到任务id' : snap.id}</div>

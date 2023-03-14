@@ -8,7 +8,8 @@ export type Type_Form_Config = {
         {
             "type": "author-answer",
             "id": "xie-lu-tian-e",
-            "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers"
+            "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers",
+            skipFetch: boolean
         }
     ],
     "order-item-list": [
@@ -42,7 +43,7 @@ export default class Util {
                 "comment": "",
                 "id": taskItem.id,
                 "rawInputText": taskItem.rawInputText,
-                "skipFetch": false,
+                "skipFetch": taskItem.skipFetch,
                 "type": taskItem.type
             }
             if (fetchTaskItem.id === "") {
@@ -95,7 +96,7 @@ export default class Util {
                 "comment": "",
                 "id": taskItem.id,
                 "rawInputText": taskItem.rawInputText,
-                "skipFetch": false,
+                "skipFetch": taskItem.skipFetch,
                 "type": taskItem.type
             }
             status.fetchTaskList.push(fetchTaskItem)

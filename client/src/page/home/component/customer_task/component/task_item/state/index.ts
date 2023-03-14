@@ -16,12 +16,17 @@ type Type_Status = {
      * 原始输入
     */
     rawInputText: string,
+    /**
+     * 是否跳过抓取
+     */
+    skipFetch: boolean,
 }
 
 export const Const_Default_Task_Item: Type_Status = {
     type: ConstTaskConfig.Const_Task_Type_用户的所有回答,
     id: "",
     rawInputText: "",
+    skipFetch: false,
 }
 
 export function createStore(value: Type_Status = {
@@ -92,6 +97,7 @@ export function createStore(value: Type_Status = {
             return id
         },
         rawInputText: value.rawInputText,
+        skipFetch: value.skipFetch,
     })
     return store
 } 

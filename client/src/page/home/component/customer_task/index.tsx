@@ -144,7 +144,7 @@ export default () => {
           <Form.Item noStyle>
             <Row align="middle" gutter={1}>
               <Col span={Consts.CONST_Task_Item_Width.任务类型}>任务类型</Col>
-              <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url</Col>
+              <Col span={Consts.CONST_Task_Item_Width.待抓取url}>待抓取url(取消勾选则跳过抓取)</Col>
               <Col span={Consts.CONST_Task_Item_Width.任务id} offset={1}>
                 任务id
               </Col>
