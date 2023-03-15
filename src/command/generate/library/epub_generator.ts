@@ -164,9 +164,11 @@ class EpubGenerator {
   constructor({ bookname, imageQuilty }: { bookname: string; imageQuilty: Type_TaskConfig.Type_Image_Quilty }) {
     this.bookname = bookname
     this.imageQuilty = imageQuilty
-    this.epub = new Epub(bookname, this.epubCachePath)
-
+    // 必须要先处理静态资源, 否则创建出的Epub缓存目录会被删除
     this.initStaticRecource()
+
+    // 然后创建epub目录
+    this.epub = new Epub(bookname, this.epubCachePath)
   }
 
   // 初始化静态资源(电子书 & html目录)

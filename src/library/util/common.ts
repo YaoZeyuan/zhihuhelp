@@ -372,7 +372,7 @@ export default class CommonUtil {
     for (let key of Object.keys(illegalCharMap)) {
       let legalChar: string = illegalCharMap?.[key as Type_Key] ?? ''
       // 全局替换, 将非法文件名替换为合法Unicode字符
-      encodeFilename = encodeFilename.replaceAll(`\\${key}`, legalChar)
+      encodeFilename = encodeFilename.replaceAll(`${key}`, legalChar)
     }
     return encodeFilename
   }

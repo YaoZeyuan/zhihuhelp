@@ -17,6 +17,7 @@ import MColumn from '~/src/model/column'
 import MPin from '~/src/model/pin'
 import lodash from 'lodash'
 import json5 from 'json5'
+import CommonUtil from "~/src/library/util/common"
 
 import HtmlRender from './library/html_render'
 import fs from 'fs'
@@ -710,7 +711,7 @@ class GenerateCustomer extends Base {
       default:
         bookTitle = `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`
     }
-    return bookTitle
+    return CommonUtil.encodeFilename(bookTitle)
   }
 
   /**
@@ -971,7 +972,7 @@ class GenerateCustomer extends Base {
         })
     }
     return {
-      title: pageTitle,
+      title: CommonUtil.encodeFilename(pageTitle),
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
     }
@@ -1005,7 +1006,7 @@ class GenerateCustomer extends Base {
     }
 
     return {
-      title: pageTitle,
+      title: CommonUtil.encodeFilename(pageTitle),
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
     }
