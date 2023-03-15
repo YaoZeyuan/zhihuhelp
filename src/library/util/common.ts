@@ -167,16 +167,16 @@ class TaskManager {
     this.isSuspend = true
     logger.log(
       `[任务暂停]已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕, 休眠${sleep_ms / 1000
-      }秒, 当前剩余${this.taskList.length}个任务待执行`,
+      }秒, 当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 剩余${this.taskList.length}个任务待执行`,
     )
     while (this.runingRunner > 0) {
-      logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕, 等待所有待执行任务运行完毕后进行休眠`)
+      logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕,  当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 等待所有待执行任务运行完毕后进行休眠`)
       await CommonUtil.asyncSleep(1000)
     }
     logger.log(`[任务暂停]所有待执行任务均已执行完毕, 开始休眠计时, 休眠时长:${sleep_ms / 1000}s`)
     await CommonUtil.asyncSleep(sleep_ms)
     logger.log(
-      `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束,  当前剩余${this.taskList.length}个任务待执行`,
+      `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束,  当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 剩余${this.taskList.length}个任务待执行`,
     )
     this.isSuspend = false
   }
