@@ -291,6 +291,7 @@ export default class CommonUtil {
   static async asyncWaitAllTaskComplete() {
     await this.taskManagerWithProtect.asyncWaitAllTaskComplete()
     await this.taskManagerWithoutProtect.asyncWaitAllTaskComplete()
+    return
   }
 
   /**

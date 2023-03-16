@@ -25,6 +25,7 @@ specifiers:
   '@types/semver': ^7.3.10
   '@types/sharp': ^0.25.0
   '@types/shelljs': ^0.7.8
+  '@types/tiny-async-pool': ^2.0.0
   adm-zip: ^0.5.10
   axios: ^0.27.2
   babel-plugin-root-import: ^6.6.0
@@ -54,11 +55,13 @@ specifiers:
   sharp: ^0.30.7
   shelljs: ^0.8.1
   sqlite3: ^5.1.2
+  tiny-async-pool: ^2.1.0
   typescript: ^4.7.4
 
 dependencies:
   '@adonisjs/ace': 11.3.1_dcp26hjfxbju2etdd3namxtgxu
   '@adonisjs/core': 5.8.7
+  '@types/tiny-async-pool': 2.0.0
   adm-zip: 0.5.10
   axios: 0.27.2
   core-js: 3.26.0
@@ -77,6 +80,7 @@ dependencies:
   sharp: 0.30.7
   shelljs: 0.8.5
   sqlite3: 5.1.2
+  tiny-async-pool: 2.1.0
 
 devDependencies:
   '@adonisjs/application': 5.2.5
@@ -2281,6 +2285,10 @@ packages:
       '@types/glob': 8.0.0
       '@types/node': 16.18.2
     dev: true
+
+  /@types/tiny-async-pool/2.0.0:
+    resolution: {integrity: sha512-GB+FG7JF6SPX9yuGmfmDTRYFMdS2Za+YiYvh6RJPfTMa0LaTDEtQ6ncw6NYrHnf9cloVJxgXd6WGRdRp54O1cQ==}
+    dev: false
 
   /@types/validator/13.7.10:
     resolution: {integrity: sha512-t1yxFAR2n0+VO6hd/FJ9F2uezAZVWHLmpmlJzm1eX03+H7+HsuTAp7L8QJs+2pQCfWkP1+EXsGK9Z9v7o/qPVQ==}
@@ -7073,6 +7081,10 @@ packages:
   /tildify/2.0.0:
     resolution: {integrity: sha512-Cc+OraorugtXNfs50hU9KS369rFXCfgGLpfCfvlc+Ud5u6VWmUQsOAa9HbTvheQdYnrdJqqv1e5oIqXppMYnSw==}
     engines: {node: '>=8'}
+    dev: false
+
+  /tiny-async-pool/2.1.0:
+    resolution: {integrity: sha512-ltAHPh/9k0STRQqaoUX52NH4ZQYAJz24ZAEwf1Zm+HYg3l9OXTWeqWKyYsHu40wF/F0rxd2N2bk5sLvX2qlSvg==}
     dev: false
 
   /tmp-cache/1.1.0:

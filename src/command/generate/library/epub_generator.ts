@@ -12,6 +12,7 @@ import logger from '~/src/library/logger'
 import Epub from '~/src/library/epub'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import sharp from 'sharp'
+import AsyncPool from "tiny-async-pool"
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
 const Const_Zhihu_Img_CDN_List = [
@@ -374,11 +375,12 @@ class EpubGenerator {
    */
   async downloadImg() {
     let index = 0
+    let asyncTaskRunnerList: (() => Promise<void>)[] = []
     for (let imgItem of this.imgUriPool.values()) {
       index++
       // 检查缓存中是否有该文件
       if (fs.existsSync(imgItem.downloadCacheUri)) {
-        this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片已存在,自动跳过`)
+        this.log(`[第${index}张图片]-0-第${index}/${this.imgUriPool.size}张图片已存在,自动跳过`)
         continue
       }
 
@@ -386,16 +388,18 @@ class EpubGenerator {
         // 分批下载
         this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张图片添加到任务队列中`)
         let currentIndex = index
-        await CommonUtil.addAsyncTaskFunc({
-          asyncTaskFunc: async () => {
-            await this.asyncDownloadImg(currentIndex, imgItem.rawImgSrc, imgItem.downloadCacheUri)
-          },
-          needProtect: false,
+        asyncTaskRunnerList.push(async () => {
+          await this.asyncDownloadImg(currentIndex, imgItem.rawImgSrc, imgItem.downloadCacheUri)
+          return
         })
       }
     }
     this.log(`清空任务队列`)
-    await CommonUtil.asyncWaitAllTaskComplete()
+    let asyncTaskList = AsyncPool(20, asyncTaskRunnerList, (taskFunc) => {
+      return taskFunc()
+    })
+    for await (let _ of asyncTaskList) {
+    }
     this.log(`所有图片下载完毕`)
     this.log(`开始转换Latex图片`)
     index = 0
@@ -419,7 +423,6 @@ class EpubGenerator {
   }
 
   private async asyncDownloadImg(index: number, src: string, cacheUri: string) {
-    await CommonUtil.asyncSleep(1)
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
 

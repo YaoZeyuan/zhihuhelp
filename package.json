@@ -60,6 +60,7 @@
   "dependencies": {
     "@adonisjs/ace": "^11.3.1",
     "@adonisjs/core": "^5.8.4",
+    "@types/tiny-async-pool": "^2.0.0",
     "adm-zip": "^0.5.10",
     "axios": "^0.27.2",
     "core-js": "3",
@@ -77,7 +78,8 @@
     "semver": "^7.3.7",
     "sharp": "^0.30.7",
     "shelljs": "^0.8.1",
-    "sqlite3": "^5.1.2"
+    "sqlite3": "^5.1.2",
+    "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
     "@adonisjs/application": "^5.2.5",
