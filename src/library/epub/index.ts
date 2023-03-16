@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
-import archiver from 'archiver'
+import logger from '~/src/library/logger'
+import AdmZip from 'adm-zip'
 import OPF from './opf'
 import TOC from './toc'
 
@@ -118,23 +119,24 @@ class Epub {
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'toc.xhtml'), tocContent)
     let opfContent = this.opf.content
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
-    let epubWriteStream = fs.createWriteStream(path.resolve(this.epubCachePath, this.bookname + '.epub'))
-    console.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
 
-    let archive = archiver('zip', {
-      zlib: { level: 0 }, // Sets the compression level.
+    let zip = new AdmZip()
+    let epubUri = path.resolve(this.epubCachePath, this.bookname + '.epub')
+    logger.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
+
+    zip.addFile(
+      'mimetype',
+      fs.readFileSync(path.resolve(this.epubCachePath, 'mimetype'))
+    )
+    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'META-INF'), {
+      "zipPath": 'META-INF'
+    })
+    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'OEBPS'), {
+      "zipPath": 'OEBPS'
     })
 
-    // pipe archive data to the file
-    archive.pipe(epubWriteStream)
-
-    // append files from a sub-directory, putting its contents at the root of archive
-    archive.append(fs.createReadStream(path.resolve(this.epubCachePath, 'mimetype')), { name: 'mimetype' })
-    archive.directory(`${path.resolve(this.epubCachePath, 'META-INF/')}`, 'META-INF')
-    archive.directory(`${path.resolve(this.epubCachePath, 'OEBPS/')}`, 'OEBPS')
-
-    await archive.finalize()
-    console.log('epub制作完成')
+    await zip.writeZipPromise(epubUri)
+    logger.log('epub制作完成')
   }
 
   private CopyFileSyncSafe(fromUri: string, toUri: string) {

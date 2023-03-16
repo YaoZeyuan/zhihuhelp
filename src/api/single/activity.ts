@@ -1,6 +1,6 @@
 import Base from '~/src/api/single/base'
 import TypeActivity from '~/src/type/zhihu/activity'
-import moment from 'moment'
+import dayjs from 'dayjs'
 
 class Activity extends Base {
   /**
@@ -54,7 +54,7 @@ class Activity extends Base {
    */
   static async asyncGetAutherLastActivityAt(url_token: string): Promise<number> {
     const baseUrl = `https://www.zhihu.com/api/v4/members/${url_token}/activities`
-    let now = moment().unix()
+    let now = dayjs().unix()
     const config = {
       after_id: now,
       limit: 10,
