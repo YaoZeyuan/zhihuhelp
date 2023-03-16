@@ -323,8 +323,8 @@ class EpubGenerator {
     return processedHtml
   }
 
-  addHtml({ title, html }: { title: string; html: string }) {
-    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
+  addHtml({ filename, title, html }: { filename: string, title: string; html: string }) {
+    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${filename}.html`)
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)

@@ -33,6 +33,8 @@ import { ReactElement } from 'react'
  * 生成html
  */
 type Type_Generate_Html = {
+  // 文件名
+  filename: string
   // 页面标题
   title: string
   // 正常html
@@ -886,6 +888,7 @@ class GenerateCustomer extends Base {
    * @param unit
    */
   generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
+    let filename = ""
     let pageTitle = this.generateColumnTitle(unit)
     // 渲染结果
     let renderResult
@@ -972,7 +975,8 @@ class GenerateCustomer extends Base {
         })
     }
     return {
-      title: CommonUtil.encodeFilename(pageTitle),
+      filename: CommonUtil.encodeFilename(pageTitle),
+      title: pageTitle,
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
     }
@@ -980,9 +984,11 @@ class GenerateCustomer extends Base {
 
   generatePageHtml(page: Package.Type_Page_Item): Type_Generate_Html {
     let pageTitle = ''
+    let filename = ""
     let renderResult
     switch (page.type) {
       case Consts.Const_Type_Article:
+        filename = (page as Package.Page_Article).recordList[0].record.id + ""
         pageTitle = (page as Package.Page_Article).recordList[0].record.title
         renderResult = HtmlRender.renderArticle({
           title: pageTitle,
@@ -990,6 +996,7 @@ class GenerateCustomer extends Base {
         })
         break
       case Consts.Const_Type_Pin:
+        filename = (page as Package.Page_Pin).recordList[0].record.id
         pageTitle = (page as Package.Page_Pin).recordList[0].record.excerpt_title
         renderResult = HtmlRender.renderPin({
           title: pageTitle,
@@ -997,6 +1004,7 @@ class GenerateCustomer extends Base {
         })
         break
       case Consts.Const_Type_Question:
+        filename = (page as Package.Page_Question).recordList[0].record.question.id + ""
         pageTitle = (page as Package.Page_Question).recordList[0].record.question.title
         renderResult = HtmlRender.renderQuestion({
           title: pageTitle,
@@ -1006,7 +1014,8 @@ class GenerateCustomer extends Base {
     }
 
     return {
-      title: CommonUtil.encodeFilename(pageTitle),
+      filename: CommonUtil.encodeFilename(filename),
+      title: pageTitle,
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
     }
@@ -1019,6 +1028,7 @@ class GenerateCustomer extends Base {
     })
 
     return {
+      filename: "index",
       title: '目录',
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
@@ -1051,9 +1061,10 @@ class GenerateCustomer extends Base {
     let indexRecordList: Type_Index_Record[] = []
     for (let unit of epubColumn.unitList) {
       // 生成信息页
-      let { title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
+      let { filename, title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
       ele4SinglePageList.push(unitEle4SinglePage)
       let uri = epubGenerator.addHtml({
+        filename,
         title,
         html,
       })
@@ -1064,9 +1075,10 @@ class GenerateCustomer extends Base {
       }
       // 生成内容页
       for (let page of unit.pageList) {
-        let { title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
+        let { filename, title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
         ele4SinglePageList.push(pageEle4SinglePage)
         let uri = epubGenerator.addHtml({
+          filename,
           title,
           html,
         })
