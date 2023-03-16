@@ -416,9 +416,9 @@ class Unit_Base {
           }
         }
         break
+      default:
+        return
     }
-
-    this.pageList.push(page)
   }
 
   protected getOrderProperty({

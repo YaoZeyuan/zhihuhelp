@@ -888,7 +888,6 @@ class GenerateCustomer extends Base {
    * @param unit
    */
   generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
-    let filename = ""
     let pageTitle = this.generateColumnTitle(unit)
     // 渲染结果
     let renderResult

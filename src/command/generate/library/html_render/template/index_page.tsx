@@ -19,7 +19,10 @@ export default (props: { bookname: string; recordList: Type_Index_Record[] }) =>
     }
     let indexPage = (
       <div key={CommonUtil.getUuid()} className="panel panel-success center-block">
-        <div className="panel-heading">{subPackageRecord.title}</div>
+        <div className="panel-heading">
+          {/* 信息页也要可以点进去 */}
+          <a href={`${subPackageRecord.uri}`}>{subPackageRecord.title}</a>
+        </div>
         <div className="list-group">
           <ol>{pageEleList}</ol>
         </div>
