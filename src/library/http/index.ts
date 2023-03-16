@@ -156,8 +156,12 @@ export default class httpClient {
    */
   static async downloadImg(url: string): Promise<Buffer> {
     let res = await httpInstance.get(url, {
-      responseType: 'blob',
+      // 下载二进制文件时, 这里必须是arraybuffer, 否则会导致下载的文件损坏&无法识别
+      responseType: 'arraybuffer',
       timeout: CommonConfig.request_timeout_ms,
+    }).catch(e => {
+      logger.log(`图片下载失败, url=>${url}, message:${e.message}, stack=>${e.stack}`)
+      return { data: [] }
     })
     return res.data
   }
