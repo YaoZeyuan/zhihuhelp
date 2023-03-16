@@ -329,7 +329,10 @@ class EpubGenerator {
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)
     this.epub.addHtml(title, htmlUri)
-    return htmlUri
+
+    // 返回的html地址必须是相对地址, 以便在epub中进行定位
+    const returnHtmlUri = `./${filename}.html`
+    return returnHtmlUri
   }
 
   /**
@@ -351,7 +354,10 @@ class EpubGenerator {
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)
     this.epub.addIndexHtml(title, htmlUri)
-    return htmlUri
+
+    // 返回的html地址必须是相对地址, 以便在epub中进行定位
+    const returnHtmlUri = `./${title}.html`
+    return returnHtmlUri
   }
 
   processContent(content: string) {
