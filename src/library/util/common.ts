@@ -97,7 +97,7 @@ class TaskManager {
             }, this.Const_Task_Timeout_ms)
           })
         ]
-      ).finally(() => {
+      ).catch(() => { }).finally(() => {
         taskRunningCounter--
       })
     })
