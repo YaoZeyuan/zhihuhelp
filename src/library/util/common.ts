@@ -3,183 +3,36 @@ import fs from 'fs'
 import PathConfig from '~/src/config/path'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
-import CommonConfig from '~/src/config/common'
+import AsyncPool from 'tiny-async-pool'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
-const Const_Default_Task_Runner: Type_Asnyc_Task_Runner = async () => { }
-const Const_Default_Task_Label = Symbol('default_label')
+const Const_Default_Task_Label = 'default_label_5cbc1b8ca2dd5154437aab1d13f1a079'
+
+type Type_Task_Config = {
+  task: Type_Asnyc_Task_Runner,
+  taskNo: number,
+}
+
+type Type_Task_Pool = {
+  taskList: Type_Task_Config[],
+  currentTaskNo: number,
+}
+const Const_Default_Task_Pool: Type_Task_Pool = {
+  taskList: [],
+  currentTaskNo: 0,
+}
 
 // 每计数x次后, 重置任务
 class TaskManager {
   private maxTaskRunner = 10
 
-  // 当前正在执行的任务数
-  private runingRunner = 0
-
-  // 任务派发数
-  private taskDispatchCounter = 0
-  // 任务完成数
-  private taskCompleteCounter = 0
-
-  // 总任务计数器, 递增, 无实际意义
-  private taskCounter = 0
-
   // 任务超时时间, 走内部配置即可, 不需要全局配置
   private readonly Const_Task_Timeout_ms = 20 * 1000
-  // 最大记录的任务派发数/执行数, 超过该数自动重置计数器
-  private readonly Const_Max_Task_Counter = 10000 * 10000 * 10000
 
   /**
-   * 按label统计加入任务已完成的任务数, 和总任务数
+   * 按label添加任务队列
    */
-  private taskStateMapByLabel: Map<
-    // 任意key
-    any,
-    {
-      // 总任务数
-      total: number
-      // 已完成任务数
-      complete: number
-    }
-  > = new Map()
-
-  private taskList: {
-    asyncTaskFunc: Type_Asnyc_Task_Runner
-    label: any
-    taskNo: number
-  }[] = []
-
-  /**
-   * 是否暂停运行
-   */
-  private isSuspend = false
-
-  /**
-   * 保护配置
-   */
-  private protectedConfig = {
-    needProtect: false,
-    protectLoopCounter: 10,
-    protect2wait_ms: 1,
-  }
-
-  /**
-   *
-   * @param param0
-   */
-  constructor({
-    protectConfig = {
-      // 是否需要保护
-      needProtect: false,
-      // 每完成多少个任务进行一次保护
-      protectLoopCounter: 10,
-      // 每次保护的等待时长
-      protect2wait_ms: 1000,
-    },
-  }) {
-    // 将配置进一步解构出来
-    let {
-      // 是否需要保护
-      needProtect = false,
-      // 每完成多少个任务进行一次保护
-      protectLoopCounter = 10,
-      // 每次保护的等待时长
-      protect2wait_ms = 1000,
-    } = protectConfig
-
-    this.protectedConfig.needProtect = needProtect
-    this.protectedConfig.protect2wait_ms = protect2wait_ms
-    this.protectedConfig.protectLoopCounter = protectLoopCounter
-  }
-
-  canBeRun() {
-    return this.isSuspend === false && this.runingRunner < this.maxTaskRunner
-  }
-
-  async runner() {
-    // 先检查能否运行
-    let canBeRun = this.canBeRun()
-    while (canBeRun === false) {
-      await CommonUtil.asyncSleep(1000)
-      canBeRun = this.canBeRun()
-    }
-
-    // 当前总任务数
-    let totalTaskCount = this.taskList.length
-    // 是否有任务需要执行
-    let hasTaskToRun = totalTaskCount > 0
-
-    if (hasTaskToRun === false) {
-      // 没有任务需要执行, 直接返回即可
-      return
-    }
-
-    // 正在执行任务数+1
-    this.runingRunner++
-
-    let taskConfig = this.taskList.pop() ?? {
-      asyncTaskFunc: Const_Default_Task_Runner,
-      label: Const_Default_Task_Label,
-      taskNo: 0,
-    }
-    let { asyncTaskFunc = Const_Default_Task_Runner, label = Const_Default_Task_Label } = taskConfig
-    logger.log(`[开始执行]开始执行第${taskConfig.taskNo}个任务, 当前剩余${this.taskList.length}个任务待执行`)
-
-    await Promise.race([
-      asyncTaskFunc(),
-      new Promise((reslove, reject) => {
-        setTimeout(() => {
-          reject(new Error(`任务执行超时`))
-        }, this.Const_Task_Timeout_ms)
-      }),
-    ]).catch((e) => {
-      logger.log(`[执行异常]第${taskConfig.taskNo}个任务执行失败, 报错信息为: ${e}`)
-    })
-
-    // 正在执行任务数-1
-    this.runingRunner--
-
-    // 更新任务计数
-    let labelCounter = this.taskStateMapByLabel.get(label) ?? {
-      complete: 0,
-      total: 1,
-    }
-    labelCounter.complete = labelCounter.complete + 1
-    this.taskStateMapByLabel.set(label, labelCounter)
-
-    logger.log(`[执行完成]任务id:${taskConfig.taskNo}执行完成, 当前剩余${this.taskList.length}个任务待执行`)
-
-    // 累加任务计数器(不考虑溢出的情况)
-    this.taskCompleteCounter++
-
-    if (this.taskCompleteCounter > this.Const_Max_Task_Counter) {
-      logger.log(`[重置任务完成数]任务完成数已抵达阈值${this.Const_Max_Task_Counter}, 自动重置`)
-      // 运行次数足够多后, 重置任务计数器
-      this.taskCompleteCounter = 0
-    }
-  }
-
-  /**
-   * 整体休眠sleep_ms, 期间不会执行新任务, 以便保护知乎服务器
-   * @param sleep_ms
-   */
-  async suspendAllTask(sleep_ms: number) {
-    this.isSuspend = true
-    logger.log(
-      `[任务暂停]已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕, 休眠${sleep_ms / 1000
-      }秒, 当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 剩余${this.taskList.length}个任务待执行`,
-    )
-    while (this.runingRunner > 0) {
-      logger.log(`[任务暂停]当前正在执行任务数${this.runingRunner}, 已派发${this.taskDispatchCounter}个任务, 其中${this.taskCompleteCounter}个任务已执行完毕,  当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 等待所有待执行任务运行完毕后进行休眠`)
-      await CommonUtil.asyncSleep(1000)
-    }
-    logger.log(`[任务暂停]所有待执行任务均已执行完毕, 开始休眠计时, 休眠时长:${sleep_ms / 1000}s`)
-    await CommonUtil.asyncSleep(sleep_ms)
-    logger.log(
-      `[任务恢复]已执行${this.taskCompleteCounter}/${this.taskDispatchCounter}个任务, 休眠结束,  当前有${this.taskDispatchCounter - this.taskCompleteCounter}个任务执行中, 剩余${this.taskList.length}个任务待执行`,
-    )
-    this.isSuspend = false
-  }
+  private taskPoolMap: Map<string, Type_Task_Pool> = new Map()
 
   // 添加任务
   addAsyncTaskFunc({
@@ -190,44 +43,25 @@ class TaskManager {
     // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
     label?: any
   }) {
-    let labelCounter = this.taskStateMapByLabel.get(label) ?? {
-      complete: 0,
-      total: 0,
+    let taskPool = this.taskPoolMap.get(label) ?? {
+      ...Const_Default_Task_Pool
     }
-    labelCounter.total = labelCounter.total + 1
-    this.taskStateMapByLabel.set(label, labelCounter)
 
-    this.taskCounter++
-
-    this.taskList.push({
-      asyncTaskFunc,
-      label,
-      taskNo: this.taskCounter
+    taskPool.currentTaskNo = taskPool.currentTaskNo + 1
+    taskPool.taskList.push({
+      "task": asyncTaskFunc,
+      "taskNo": taskPool.currentTaskNo + 1
     })
-    this.taskDispatchCounter++
-
-    if (this.protectedConfig.needProtect) {
-      if (this.taskDispatchCounter % this.protectedConfig.protectLoopCounter === 0) {
-        this.suspendAllTask(this.protectedConfig.protect2wait_ms)
-      }
-    }
-
-    // 每次添加任务后, 直接分发出去一个runner即可, runner自己可以判断应该何时运行
-    this.runner()
-
-    if (this.taskDispatchCounter > this.Const_Max_Task_Counter) {
-      // 运行次数足够多后, 重置任务计数器
-      logger.log(`[重置任务派发数]任务派发数已抵达阈值${this.Const_Max_Task_Counter}, 自动重置`)
-      this.taskDispatchCounter = 0
-    }
+    this.taskPoolMap.set(label, taskPool)
+    return
   }
 
   /**
    * 等待所有任务执行完毕
    */
   async asyncWaitAllTaskComplete() {
-    while (this.taskList.length > 0 && this.runingRunner === 0) {
-      await CommonUtil.asyncSleep(1000)
+    for (let key of this.taskPoolMap.keys()) {
+      await this.asyncWaitTaskCompleteByLabel(key)
     }
     return true
   }
@@ -238,47 +72,55 @@ class TaskManager {
    * @returns
    */
   async asyncWaitTaskCompleteByLabel(label = Const_Default_Task_Label) {
-    while (true) {
-      let labelCounter = this.taskStateMapByLabel.get(label) ?? {
-        complete: 0,
-        total: 0,
-      }
-      if (labelCounter.complete >= labelCounter.total) {
-        return true
-      }
-      // 否则需要一直等待任务完成
-      await CommonUtil.asyncSleep(1000)
+    let taskPool = this.taskPoolMap.get(label) ?? {
+      ...Const_Default_Task_Pool
     }
+    let taskCompleteCounter = 0
+    let taskFailedCounter = 0
+    let taskRunningCounter = 0
+    let taskTotalCounter = taskPool.taskList.length
+
+    let taskPromiseList = AsyncPool(this.maxTaskRunner, taskPool.taskList, async (asyncRunnerConfig) => {
+      await Promise.race(
+        [
+          async () => {
+            taskRunningCounter++
+            logger.log(`[开始执行]开始执行第${asyncRunnerConfig.taskNo}个任务, 目前剩余个待完成, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
+            await asyncRunnerConfig.task()
+            logger.log(`第${asyncRunnerConfig.taskNo}个任务执行完毕`)
+            taskCompleteCounter++
+          },
+          new Promise((reslove, reject) => {
+            setTimeout(() => {
+              taskFailedCounter++
+              reject(new Error(`任务执行超时`))
+            }, this.Const_Task_Timeout_ms)
+          })
+        ]
+      ).finally(() => {
+        taskRunningCounter--
+      })
+    })
+    for await (const _ of taskPromiseList) {
+    }
+    return true
   }
 }
 
 export default class CommonUtil {
-  static taskManagerWithProtect = new TaskManager({
-    protectConfig: {
-      needProtect: true,
-      protect2wait_ms: CommonConfig.protect_To_Wait_ms,
-      protectLoopCounter: CommonConfig.protect_Loop_Count,
-    },
-  })
-  static taskManagerWithoutProtect = new TaskManager({})
+  static taskManager = new TaskManager()
 
   /**
    * 添加promise到任务队列
    */
   static addAsyncTaskFunc({
     asyncTaskFunc,
-    needProtect = true,
     label = Const_Default_Task_Label,
   }: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
-    needProtect?: boolean
     label?: any
   }) {
-    if (needProtect) {
-      this.taskManagerWithProtect.addAsyncTaskFunc({ asyncTaskFunc, label })
-    } else {
-      this.taskManagerWithoutProtect.addAsyncTaskFunc({ asyncTaskFunc, label })
-    }
+    this.taskManager.addAsyncTaskFunc({ asyncTaskFunc, label })
     return
   }
 
@@ -289,8 +131,7 @@ export default class CommonUtil {
    * 线上项目不能这么做
    */
   static async asyncWaitAllTaskComplete() {
-    await this.taskManagerWithProtect.asyncWaitAllTaskComplete()
-    await this.taskManagerWithoutProtect.asyncWaitAllTaskComplete()
+    await this.taskManager.asyncWaitAllTaskComplete()
     return
   }
 
@@ -298,8 +139,7 @@ export default class CommonUtil {
    * 等待指定label下所有任务执行完毕
    */
   static async asyncWaitAllTaskCompleteByLabel(label: any) {
-    await this.taskManagerWithProtect.asyncWaitTaskCompleteByLabel(label)
-    await this.taskManagerWithoutProtect.asyncWaitTaskCompleteByLabel(label)
+    await this.taskManager.asyncWaitTaskCompleteByLabel(label)
   }
 
   /**
