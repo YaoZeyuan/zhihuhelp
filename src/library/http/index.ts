@@ -4,8 +4,10 @@ import RequestConfig from '~/src/config/request'
 import logger from '~/src/library/logger'
 import asyncGetZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
-import _ from 'lodash'
+import lodash from 'lodash'
 import URL from 'url'
+import QuickLRU from "quick-lru"
+import md5 from 'md5'
 
 const Const_Headers_x_zse_93 = '101_3_3.0'
 
@@ -18,6 +20,8 @@ const httpInstance = axios.create({
     cookie: RequestConfig.cookie,
   },
 })
+
+let lruCache = new QuickLRU({ maxSize: 10000 })
 
 export function fixedEncodeURIComponent(str: string) {
   // 不需要对*进行转码
@@ -137,6 +141,15 @@ export default class httpClient {
       ...config.headers,
       ...extendHeader,
     }
+    const cacheKey = md5(url + JSON.stringify({
+      url,
+      cookie: RequestConfig.cookie,
+      ua: RequestConfig.ua,
+    }))
+    if (lruCache.has(cacheKey)) {
+      // logger.log(`命中缓存, 直接返回结果, url=>${url}`)
+      return lruCache.get(cacheKey)
+    }
 
     const response = await httpInstance.get(url, config).catch((e) => {
       logger.log(
@@ -146,6 +159,11 @@ export default class httpClient {
       return { data: [] }
     })
     const record = response.data || {}
+
+    if (lodash.isEmpty(record) === false) {
+      // 若响应值不为空, 则缓存响应结果, 保护知乎服务器
+      lruCache.set(cacheKey, record)
+    }
     return record
   }
 
