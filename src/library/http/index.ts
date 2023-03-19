@@ -21,7 +21,7 @@ const httpInstance = axios.create({
   },
 })
 
-let lruCache = new LruCache({ maxSize: 10000, ttl: 1000 * 3600 })
+let lruCache = new LruCache({ max: 10000, ttl: 1000 * 3600 })
 
 export function fixedEncodeURIComponent(str: string) {
   // 不需要对*进行转码
