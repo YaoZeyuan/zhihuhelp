@@ -31,7 +31,9 @@ class BatchFetchCollection extends Base {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`全部收藏摘要列表抓取完毕`)
     // 然后需要抓取涉及的回答/想法/文章
 

@@ -91,6 +91,9 @@ class TaskManager {
   async asyncWaitAllTaskComplete({
     needTTL
   }: {
+    /**
+    * 基本原则为: 单个抓取任务需要配置超时时间, 向下分配任务不需配置超时时间
+    */
     needTTL: boolean
   }) {
     this.currentTaskLoopNo++
@@ -213,6 +216,9 @@ export default class CommonUtil {
   static async asyncWaitAllTaskComplete({
     needTTL
   }: {
+    /**
+     * 基本原则为: 单个抓取任务需要配置超时时间, 向下分配任务不需配置超时时间
+     */
     needTTL: boolean
   }) {
     await this.taskManager.asyncWaitAllTaskComplete({

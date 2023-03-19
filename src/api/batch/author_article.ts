@@ -32,7 +32,9 @@ class BatchFetchAuthorArticle extends Base {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`开始抓取用户${name}(${urlToken})的所有文章详情,共${articleIdList.length}篇`)
     await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
     this.log(`用户${name}(${urlToken})的文章列表抓取完毕`)

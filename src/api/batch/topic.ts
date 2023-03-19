@@ -34,7 +34,9 @@ class BatchFetchTopic extends Base {
         needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`全部话题精华回答列表抓取完毕`)
 
     this.log(`开始抓取话题${topicInfo.name}(${topicInfo.id})的下所有精华回答,共${answerIdList.length}条`)

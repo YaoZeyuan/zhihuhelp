@@ -72,7 +72,9 @@ class BatchFetchAuthorActivity extends Base {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: false
+    })
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
 
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
@@ -133,7 +135,9 @@ class BatchFetchAuthorActivity extends Base {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕`)
   }
 }

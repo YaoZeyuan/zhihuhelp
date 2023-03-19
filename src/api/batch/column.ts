@@ -33,7 +33,9 @@ class BatchFetchColumn extends Base {
         needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`专栏${columnTitle}下全部文章id抓取完毕`)
 
     this.log(`开始抓取专栏${columnTitle}下所有文章,共${articleIdList.length}条`)

@@ -38,7 +38,9 @@ class BatchFetchQuestion extends Base {
         needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     // 然后集中获取相关回答内容
     let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
