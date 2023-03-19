@@ -35,7 +35,7 @@ async function asyncGet_X_Zse_96(param: {
     cookie_d_c0,
   ].join('+')
   var step1 = md5(info)
-  console.log('ipcRenderer step1 => ', step1, JSON.stringify({ url, cookie_d_c0, info }))
+  // console.log('ipcRenderer step1 => ', step1, JSON.stringify({ url, cookie_d_c0, info }))
   let signature = await bridgeFunc({
     method: 'encrypt-string',
     paramList: [
@@ -44,7 +44,7 @@ async function asyncGet_X_Zse_96(param: {
       },
     ],
   })
-  console.log('signature => ', signature)
+  // console.log('signature => ', signature)
   //   var signature = result //zhihuEncrypt(step1)
   var x_zse_96 = `${Const_Result_Prefix}_${signature}`
   return x_zse_96
