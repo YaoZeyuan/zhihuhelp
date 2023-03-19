@@ -30,10 +30,9 @@ class BatchFetchAuthorArticle extends Base {
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         needProtect: true,
-        label: this,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`开始抓取用户${name}(${urlToken})的所有文章详情,共${articleIdList.length}篇`)
     await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
     this.log(`用户${name}(${urlToken})的文章列表抓取完毕`)

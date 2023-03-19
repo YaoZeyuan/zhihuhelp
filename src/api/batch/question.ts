@@ -35,10 +35,10 @@ class BatchFetchQuestion extends Base {
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
-        label: this,
+        needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     // 然后集中获取相关回答内容
     let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)

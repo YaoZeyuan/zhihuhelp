@@ -20,7 +20,6 @@ class BatchFetchAuthorPin extends Base {
     this.log(`开始抓取想法列表`)
     let batchFetchPin = new BatchFetchPin()
     let pinIdList: string[] = []
-    let taskLabel = Symbol('BatchFetchAuthorPin-fetch')
     for (let offset = 0; offset < pinCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
         let authorPinsList = await AuthorApi.asyncGetAutherPinList(urlToken, offset, this.fetchLimit)
@@ -34,10 +33,9 @@ class BatchFetchAuthorPin extends Base {
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         needProtect: true,
-        label: taskLabel,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`开始抓取用户${name}(${urlToken})的所有想法详情记录,共${pinIdList.length}条`)
     await batchFetchPin.fetchListAndSaveToDb(pinIdList)
     this.log(`用户${name}(${urlToken})的想法列表抓取完毕`)

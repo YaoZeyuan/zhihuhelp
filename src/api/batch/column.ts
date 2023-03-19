@@ -30,10 +30,10 @@ class BatchFetchColumn extends Base {
 
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
-        label: this,
+        needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`专栏${columnTitle}下全部文章id抓取完毕`)
 
     this.log(`开始抓取专栏${columnTitle}下所有文章,共${articleIdList.length}条`)

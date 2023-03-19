@@ -29,7 +29,7 @@ class BatchFetchAuthorActivity extends Base {
 
     this.log(`检查用户${name}(${urlToken})首次活跃时间`)
     let loopCounter = 0
-    for (let checkAt = startAt; checkAt <= endAt; ) {
+    for (let checkAt = startAt; checkAt <= endAt;) {
       let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(urlToken, checkAt)
       if (hasActivityAfterAt) {
         this.log(
@@ -61,7 +61,7 @@ class BatchFetchAuthorActivity extends Base {
         .unix(endAt)
         .format(DATE_FORMAT.Const_Display_By_Second)}, 按照该范围按月抓取`,
     )
-    for (let fetchAt = startAt; startAt <= fetchAt && fetchAt <= endAt; ) {
+    for (let fetchAt = startAt; startAt <= fetchAt && fetchAt <= endAt;) {
       let fetchStartAt = fetchAt
       let fetchEndAt = moment.unix(fetchAt).endOf(DATE_FORMAT.Const_Unit_Month).unix()
       fetchAt = fetchEndAt + 1
@@ -70,10 +70,10 @@ class BatchFetchAuthorActivity extends Base {
           await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
         },
         needProtect: true,
-        label: this,
+        label: this.constructor.name,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
 
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
@@ -110,8 +110,7 @@ class BatchFetchAuthorActivity extends Base {
       .unix(endAt)
       .format(DATE_FORMAT.Const_Display_By_Day)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
-    let taskLabel = Symbol('fetchActivityInRange') // 保证label的唯一性
-    for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt; ) {
+    for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt;) {
       let asyncTaskFunc = async () => {
         this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
         let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
@@ -133,10 +132,9 @@ class BatchFetchAuthorActivity extends Base {
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         needProtect: true,
-        label: taskLabel,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕`)
   }
 }

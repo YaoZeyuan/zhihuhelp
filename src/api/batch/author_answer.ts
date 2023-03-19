@@ -27,11 +27,10 @@ class BatchFetchAuthorAnswer extends Base {
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
-        label: this,
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
     let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)

@@ -31,10 +31,10 @@ class BatchFetchTopic extends Base {
       }
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
-        label: this,
+        needProtect: true
       })
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(this)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`全部话题精华回答列表抓取完毕`)
 
     this.log(`开始抓取话题${topicInfo.name}(${topicInfo.id})的下所有精华回答,共${answerIdList.length}条`)

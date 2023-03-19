@@ -22,7 +22,6 @@ class BaseBatchFetch {
    */
   async fetchListAndSaveToDb(idList: string[]) {
     let index = 0
-    let taskLabel = Symbol(`${this.constructor.name}-fetchListAndSaveToDb`)
     for (let id of idList) {
       index = index + 1
       let taskIndex = index
@@ -40,12 +39,11 @@ class BaseBatchFetch {
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc,
         needProtect: true,
-        label: taskLabel,
       })
       // 等待新加入任务执行完毕, 避免出现几千个任务同时轮询的情况
-      await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
+      await CommonUtil.asyncWaitAllTaskComplete()
     }
-    await CommonUtil.asyncWaitAllTaskCompleteByLabel(taskLabel)
+    await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`所有抓取任务执行完毕`)
   }
 
