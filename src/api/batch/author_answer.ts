@@ -31,7 +31,9 @@ class BatchFetchAuthorAnswer extends Base {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: true
+    })
     this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
     let batchFetchAnswer = new BatchFetchAnswer()
     await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)

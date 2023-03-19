@@ -21,11 +21,12 @@ class BaseBatchFetch {
    * @param idList
    */
   async fetchListAndSaveToDb(idList: string[]) {
+    const label = this.constructor.name
     let index = 0
     for (let id of idList) {
       index = index + 1
       let taskIndex = index
-      this.log(`启动第${taskIndex}/${idList.length}个抓取任务(${id})`)
+      this.log(`添加第${taskIndex}/${idList.length}个抓取任务(${id})`)
       let asyncTaskFunc = async () => {
         await this.fetch(id)
           .then(() => {
@@ -41,7 +42,14 @@ class BaseBatchFetch {
         needProtect: true,
       })
     }
-    await CommonUtil.asyncWaitAllTaskComplete()
+    await CommonUtil.asyncWaitAllTaskComplete({
+      needTTL: false
+    })
+    // switch (label) {
+    //   case "BatchFetchAuthorAnswer":
+    //     console.log("here")
+    //     break;
+    // }
     this.log(`所有抓取任务执行完毕`)
   }
 
