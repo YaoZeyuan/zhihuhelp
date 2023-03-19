@@ -295,21 +295,21 @@ async function asyncJsRpcTriggerFunc({ method, paramList }: { method: string; pa
     })
   })
   if (isDebug) {
-    Logger.log(
-      `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
-        {
-          method,
-          paramList,
-          id,
-        },
-        null,
-        2,
-      )}`,
-    )
+    // Logger.log(
+    //   `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
+    //     {
+    //       method,
+    //       paramList,
+    //       id,
+    //     },
+    //     null,
+    //     2,
+    //   )}`,
+    // )
   }
   let result = await task
   if (isDebug) {
-    Logger.log(`id:${id}的js-rpc请求完成`)
+    // Logger.log(`id:${id}的js-rpc请求完成`)
   }
   return result
 }
