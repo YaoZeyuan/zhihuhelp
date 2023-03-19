@@ -148,7 +148,7 @@ export default class httpClient {
       ua: RequestConfig.ua,
     }))
     if (lruCache.get(cacheKey) !== undefined) {
-      // logger.log(`命中缓存, 直接返回结果, url=>${url}`)
+      console.log(`命中缓存, 直接返回结果, url=>${url}`)
       return lruCache.get(cacheKey)
     }
 
