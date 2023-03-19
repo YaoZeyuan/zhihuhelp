@@ -141,8 +141,9 @@ export default class httpClient {
       ...config.headers,
       ...extendHeader,
     }
-    const cacheKey = md5(url + JSON.stringify({
+    const cacheKey = md5(JSON.stringify({
       url,
+      // 重新登录账号后, 缓存作废
       cookie: RequestConfig.cookie,
       ua: RequestConfig.ua,
     }))
