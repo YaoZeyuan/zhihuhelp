@@ -40,8 +40,6 @@ class BaseBatchFetch {
         asyncTaskFunc,
         needProtect: true,
       })
-      // 等待新加入任务执行完毕, 避免出现几千个任务同时轮询的情况
-      await CommonUtil.asyncWaitAllTaskComplete()
     }
     await CommonUtil.asyncWaitAllTaskComplete()
     this.log(`所有抓取任务执行完毕`)
