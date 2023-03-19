@@ -6,7 +6,6 @@ import * as Const_TaskConfig from '~/src/constant/task_config'
 import AsyncPool from 'tiny-async-pool'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
-const Const_Default_Task_Label = 'default_label_5cbc1b8ca2dd5154437aab1d13f1a079'
 
 type Type_Task_Config = {
   task: Type_Asnyc_Task_Runner,
@@ -32,27 +31,32 @@ class TaskManager {
   /**
    * 按label添加任务队列
    */
-  private taskPoolMap: Map<string, Type_Task_Pool> = new Map()
+  private taskWithProtectPool: Type_Task_Pool = {
+    ...Const_Default_Task_Pool
+  }
+
+  /**
+  * 按label添加任务队列
+  */
+  private directTaskPool: Type_Task_Pool = {
+    ...Const_Default_Task_Pool
+  }
 
   // 添加任务
   addAsyncTaskFunc({
     asyncTaskFunc,
-    label = Const_Default_Task_Label,
+    needProtect = false,
   }: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
-    // 用于区分不同任务来源, 方便根据任务来源提供等待所有任务执行完毕的方法
-    label?: any
+    needProtect: boolean
   }) {
-    let taskPool = this.taskPoolMap.get(label) ?? {
-      ...Const_Default_Task_Pool
-    }
+    let taskPool: Type_Task_Pool = needProtect === true ? this.taskWithProtectPool : this.directTaskPool
 
     taskPool.currentTaskNo = taskPool.currentTaskNo + 1
     taskPool.taskList.push({
       "task": asyncTaskFunc,
-      "taskNo": taskPool.currentTaskNo + 1
+      "taskNo": taskPool.currentTaskNo
     })
-    this.taskPoolMap.set(label, taskPool)
     return
   }
 
@@ -60,36 +64,40 @@ class TaskManager {
    * 等待所有任务执行完毕
    */
   async asyncWaitAllTaskComplete() {
-    for (let key of this.taskPoolMap.keys()) {
-      await this.asyncWaitTaskCompleteByLabel(key)
-    }
+    logger.log(`开始执行任务`)
+
+    logger.log(`setp1: 执行无需等待的任务`)
+    await this.dispatchTask(this.directTaskPool, false)
+    logger.log(`所有无需等待的任务执行完毕`)
+
+    logger.log(`setp2: 执行需间隔中断的任务`)
+    await this.dispatchTask(this.taskWithProtectPool, true)
+    logger.log(`所有需间隔中断的任务执行完毕`)
+    logger.log(`所有任务执行完毕`)
     return true
   }
 
-  /**
-   * 等待指定任务label完成
-   * @param label
-   * @returns
-   */
-  async asyncWaitTaskCompleteByLabel(label = Const_Default_Task_Label) {
-    let taskPool = this.taskPoolMap.get(label) ?? {
-      ...Const_Default_Task_Pool
-    }
+  private async dispatchTask(taskPool: Type_Task_Pool, needProtect: boolean) {
+    // 需要保护的任务, 每次执行完毕后, 需要等待3秒
+    let protectMs = needProtect === true ? 3000 : 0
+
     let taskCompleteCounter = 0
     let taskFailedCounter = 0
     let taskRunningCounter = 0
     let taskTotalCounter = taskPool.taskList.length
 
     let taskPromiseList = AsyncPool(this.maxTaskRunner, taskPool.taskList, async (asyncRunnerConfig) => {
+      logger.log(`启动任务${asyncRunnerConfig.taskNo}`)
+      let asyncRunner = async () => {
+        taskRunningCounter++
+        logger.log(`[开始执行]开始执行第${asyncRunnerConfig.taskNo}个任务, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
+        await asyncRunnerConfig.task()
+        logger.log(`第${asyncRunnerConfig.taskNo}个任务执行完毕`)
+        taskCompleteCounter++
+      }
       await Promise.race(
         [
-          async () => {
-            taskRunningCounter++
-            logger.log(`[开始执行]开始执行第${asyncRunnerConfig.taskNo}个任务, 目前剩余个待完成, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
-            await asyncRunnerConfig.task()
-            logger.log(`第${asyncRunnerConfig.taskNo}个任务执行完毕`)
-            taskCompleteCounter++
-          },
+          asyncRunner(),
           new Promise((reslove, reject) => {
             setTimeout(() => {
               taskFailedCounter++
@@ -101,7 +109,15 @@ class TaskManager {
         taskRunningCounter--
       })
     })
+
+    let promiseCounter = 0
     for await (const _ of taskPromiseList) {
+      promiseCounter++
+      if (promiseCounter % 5 === 0 && needProtect === true) {
+        logger.log(`当前已执行${promiseCounter}个任务, 执行全局休眠策略, 休眠${protectMs / 1000}秒`)
+        await CommonUtil.asyncSleep(protectMs)
+        logger.log(`休眠完毕, 继续执行剩余任务`)
+      }
     }
     return true
   }
@@ -115,12 +131,12 @@ export default class CommonUtil {
    */
   static addAsyncTaskFunc({
     asyncTaskFunc,
-    label = Const_Default_Task_Label,
+    needProtect = false,
   }: {
     asyncTaskFunc: Type_Asnyc_Task_Runner
-    label?: any
+    needProtect: boolean,
   }) {
-    this.taskManager.addAsyncTaskFunc({ asyncTaskFunc, label })
+    this.taskManager.addAsyncTaskFunc({ asyncTaskFunc, needProtect })
     return
   }
 
@@ -133,13 +149,6 @@ export default class CommonUtil {
   static async asyncWaitAllTaskComplete() {
     await this.taskManager.asyncWaitAllTaskComplete()
     return
-  }
-
-  /**
-   * 等待指定label下所有任务执行完毕
-   */
-  static async asyncWaitAllTaskCompleteByLabel(label: any) {
-    await this.taskManager.asyncWaitTaskCompleteByLabel(label)
   }
 
   /**
