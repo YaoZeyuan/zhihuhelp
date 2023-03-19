@@ -6,7 +6,7 @@ import asyncGetZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
 import lodash from 'lodash'
 import URL from 'url'
-import QuickLRU from "quick-lru"
+import LruCache from "lru-cache"
 import md5 from 'md5'
 
 const Const_Headers_x_zse_93 = '101_3_3.0'
@@ -21,7 +21,7 @@ const httpInstance = axios.create({
   },
 })
 
-let lruCache = new QuickLRU({ maxSize: 10000 })
+let lruCache = new LruCache({ maxSize: 10000, ttl: 1000 * 3600 })
 
 export function fixedEncodeURIComponent(str: string) {
   // 不需要对*进行转码
@@ -147,7 +147,7 @@ export default class httpClient {
       cookie: RequestConfig.cookie,
       ua: RequestConfig.ua,
     }))
-    if (lruCache.has(cacheKey)) {
+    if (lruCache.get(cacheKey) !== undefined) {
       // logger.log(`命中缓存, 直接返回结果, url=>${url}`)
       return lruCache.get(cacheKey)
     }
