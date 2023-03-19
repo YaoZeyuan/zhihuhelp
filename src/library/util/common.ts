@@ -4,28 +4,47 @@ import PathConfig from '~/src/config/path'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import AsyncPool from 'tiny-async-pool'
+import md5 from 'md5'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
 
 type Type_Task_Config = {
-  task: Type_Asnyc_Task_Runner,
+  /**
+   * 待执行任务函数
+   */
+  asyncTask: Type_Asnyc_Task_Runner,
+  /**
+   * 任务所属轮次
+   */
+  taskLoopNo: number,
+  /**
+   * 本轮任务的序号
+   */
   taskNo: number,
+  /**
+   * 任务uuid
+   */
+  uuid: string
 }
 
 type Type_Task_Pool = {
   taskList: Type_Task_Config[],
   currentTaskNo: number,
 }
-const Const_Default_Task_Pool: Type_Task_Pool = {
-  taskList: [],
-  currentTaskNo: 0,
+const getDefaultTaskPool = (): Type_Task_Pool => {
+  return {
+    taskList: [],
+    currentTaskNo: 0,
+  }
 }
 
 // 每计数x次后, 重置任务
 class TaskManager {
   private maxTaskRunner = 10
 
-  private currentTaskLoop = 0
+  private currentTaskLoopNo = 0
+
+  private globalDispatchTaskCounter = 0
 
   // 任务超时时间, 走内部配置即可, 不需要全局配置
   private readonly Const_Task_Timeout_ms = 20 * 1000
@@ -33,16 +52,12 @@ class TaskManager {
   /**
    * 按label添加任务队列
    */
-  private taskWithProtectPool: Type_Task_Pool = {
-    ...Const_Default_Task_Pool,
-  }
+  private taskWithProtectPool: Type_Task_Pool = getDefaultTaskPool()
 
   /**
   * 按label添加任务队列
   */
-  private directTaskPool: Type_Task_Pool = {
-    ...Const_Default_Task_Pool,
-  }
+  private directTaskPool: Type_Task_Pool = getDefaultTaskPool()
 
   // 添加任务
   addAsyncTaskFunc({
@@ -52,12 +67,15 @@ class TaskManager {
     asyncTaskFunc: Type_Asnyc_Task_Runner
     needProtect: boolean
   }) {
-    let taskPool: Type_Task_Pool = needProtect === true ? this.taskWithProtectPool : this.directTaskPool
+    let taskPool: Type_Task_Pool = needProtect === true ? this.taskWithProtectPool
+      : this.directTaskPool
 
     taskPool.currentTaskNo = taskPool.currentTaskNo + 1
     taskPool.taskList.push({
-      "task": asyncTaskFunc,
-      "taskNo": taskPool.currentTaskNo
+      "asyncTask": asyncTaskFunc,
+      "taskNo": taskPool.currentTaskNo,
+      "taskLoopNo": this.currentTaskLoopNo,
+      "uuid": CommonUtil.getUuid()
     })
     return
   }
@@ -66,33 +84,29 @@ class TaskManager {
    * 等待所有任务执行完毕
    */
   async asyncWaitAllTaskComplete() {
-    this.currentTaskLoop++
+    this.currentTaskLoopNo++
 
     // 开始执行任务后, 需要重置任务池, 避免新添加的任务影响到当前任务的执行
     const directTaskPool = this.directTaskPool
     const taskWithProtectPool = this.taskWithProtectPool
-    this.directTaskPool = {
-      ...Const_Default_Task_Pool
-    }
-    this.taskWithProtectPool = {
-      ...Const_Default_Task_Pool
-    }
+    this.directTaskPool = getDefaultTaskPool()
+    this.taskWithProtectPool = getDefaultTaskPool()
 
-    logger.log(`开始执行第${this.currentTaskLoop}轮任务`)
-    logger.log(`[第${this.currentTaskLoop}轮任务-setp1/2]执行无需等待的任务`)
+    logger.log(`开始执行第${this.currentTaskLoopNo}轮任务`)
+    logger.log(`[第${this.currentTaskLoopNo}轮任务1/2]执行无需等待的任务`)
     await this.dispatchTask(directTaskPool, false)
-    logger.log(`[第${this.currentTaskLoop}轮任务-setp1/2]所有无需等待的任务执行完毕`)
+    logger.log(`[第${this.currentTaskLoopNo}轮任务1/2]所有无需等待的任务执行完毕`)
 
-    logger.log(`[第${this.currentTaskLoop}轮任务-setp2/2]执行需间隔中断的任务`)
+    logger.log(`[第${this.currentTaskLoopNo}轮任务2/2]执行需间隔中断的任务`)
     await this.dispatchTask(taskWithProtectPool, true)
-    logger.log(`[第${this.currentTaskLoop}轮任务-setp2/2]所有需间隔中断的任务执行完毕`)
-    logger.log(`[第${this.currentTaskLoop}轮任务]所有任务执行完毕`)
+    logger.log(`[第${this.currentTaskLoopNo}轮任务2/2]所有需间隔中断的任务执行完毕`)
+    logger.log(`[第${this.currentTaskLoopNo}轮任务]所有任务执行完毕`)
     return true
   }
 
   private async dispatchTask(taskPool: Type_Task_Pool, needProtect: boolean) {
-    // 需要保护的任务, 每次执行完毕后, 需要等待3秒
-    let protectMs = needProtect === true ? 3000 : 0
+    // 需要保护的任务, 每次执行完毕后, 需要等待10秒(只能暂停派发任务, 已派发的任务无法中止)
+    let protectMs = needProtect === true ? 10 * 1000 : 0
 
     let taskCompleteCounter = 0
     let taskFailedCounter = 0
@@ -100,12 +114,11 @@ class TaskManager {
     let taskTotalCounter = taskPool.taskList.length
 
     let taskPromiseList = AsyncPool(this.maxTaskRunner, taskPool.taskList, async (asyncRunnerConfig) => {
-      logger.log(`启动任务${asyncRunnerConfig.taskNo}`)
       let asyncRunner = async () => {
         taskRunningCounter++
-        logger.log(`[开始执行]开始执行第${asyncRunnerConfig.taskNo}个任务, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
-        await asyncRunnerConfig.task()
-        logger.log(`第${asyncRunnerConfig.taskNo}个任务执行完毕`)
+        logger.log(`[uuid:${asyncRunnerConfig.uuid}]开始执行第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
+        await asyncRunnerConfig.asyncTask()
+        logger.log(`[uuid:${asyncRunnerConfig.uuid}]第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务执行完毕`)
         taskCompleteCounter++
       }
       await Promise.race(
@@ -123,11 +136,11 @@ class TaskManager {
       })
     })
 
-    let promiseCounter = 0
+
     for await (const _ of taskPromiseList) {
-      promiseCounter++
-      if (promiseCounter % 5 === 0 && needProtect === true) {
-        logger.log(`当前已执行${promiseCounter}个任务, 执行全局休眠策略, 休眠${protectMs / 1000}秒`)
+      this.globalDispatchTaskCounter++
+      if (this.globalDispatchTaskCounter % 5 === 0 && needProtect === true) {
+        logger.log(`当前已累计派发${this.globalDispatchTaskCounter}个任务, 暂停派发任务${protectMs / 1000}秒, 以保护知乎服务器`)
         await CommonUtil.asyncSleep(protectMs)
         logger.log(`休眠完毕, 继续执行剩余任务`)
       }
