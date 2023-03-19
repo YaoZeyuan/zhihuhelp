@@ -19,6 +19,7 @@ class BatchFetchAuthorAnswer extends Base {
     let answetIdList: string[] = []
     for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
+        this.log(`准备收集${name}的第${offset}~${offset + this.fetchLimit}条回答id`)
         let answerList = await AuthorApi.asyncGetAutherAnswerList(urlToken, offset, this.fetchLimit)
         for (let answer of answerList) {
           answetIdList.push(`${answer.id}`)

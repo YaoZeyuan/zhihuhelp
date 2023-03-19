@@ -70,7 +70,6 @@ class BatchFetchAuthorActivity extends Base {
           await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
         },
         needProtect: true,
-        label: this.constructor.name,
       })
     }
     await CommonUtil.asyncWaitAllTaskComplete()
