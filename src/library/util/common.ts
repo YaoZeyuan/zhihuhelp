@@ -63,6 +63,14 @@ class TaskManager {
   */
   private directTaskPool: Type_Task_Pool = getDefaultTaskPool()
 
+  /**
+   * 任务保护配置
+   */
+  private protectConfig = {
+    perTask2Protect: 10,
+    protectMs: 10 * 1000,
+  }
+
   // 添加任务
   addAsyncTaskFunc({
     asyncTaskFunc,
@@ -137,9 +145,6 @@ class TaskManager {
      */
     needTTL: boolean
   }) {
-    // 需要保护的任务, 每次执行完毕后, 需要等待10秒(只能暂停派发任务, 已派发的任务无法中止)
-    let protectMs = needProtect === true ? 10 * 1000 : 0
-
     let taskCompleteCounter = 0
     let taskFailedCounter = 0
     let taskRunningCounter = 0
@@ -179,9 +184,10 @@ class TaskManager {
 
     for await (const _ of taskPromiseList) {
       this.globalDispatchTaskCounter++
-      if (this.globalDispatchTaskCounter % 5 === 0 && needProtect === true) {
-        logger.log(`当前已累计派发${this.globalDispatchTaskCounter}个任务, 暂停派发任务${protectMs / 1000}秒, 以保护知乎服务器`)
-        await CommonUtil.asyncSleep(protectMs)
+      // 需要保护的任务, 每次执行完毕后, 需要等待一段时间(只能暂停派发任务, 已派发的任务无法中止)
+      if (this.globalDispatchTaskCounter % this.protectConfig.perTask2Protect === 0 && needProtect === true) {
+        logger.log(`当前已累计派发${this.globalDispatchTaskCounter}个任务, 暂停派发任务${this.protectConfig.protectMs / 1000}秒, 以保护知乎服务器`)
+        await CommonUtil.asyncSleep(this.protectConfig.protectMs)
         logger.log(`休眠完毕, 继续执行剩余任务`)
       }
     }
