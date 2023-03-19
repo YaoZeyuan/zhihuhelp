@@ -25,6 +25,8 @@ const Const_Default_Task_Pool: Type_Task_Pool = {
 class TaskManager {
   private maxTaskRunner = 10
 
+  private currentTaskLoop = 0
+
   // 任务超时时间, 走内部配置即可, 不需要全局配置
   private readonly Const_Task_Timeout_ms = 20 * 1000
 
@@ -32,14 +34,14 @@ class TaskManager {
    * 按label添加任务队列
    */
   private taskWithProtectPool: Type_Task_Pool = {
-    ...Const_Default_Task_Pool
+    ...Const_Default_Task_Pool,
   }
 
   /**
   * 按label添加任务队列
   */
   private directTaskPool: Type_Task_Pool = {
-    ...Const_Default_Task_Pool
+    ...Const_Default_Task_Pool,
   }
 
   // 添加任务
@@ -64,16 +66,27 @@ class TaskManager {
    * 等待所有任务执行完毕
    */
   async asyncWaitAllTaskComplete() {
-    logger.log(`开始执行任务`)
+    this.currentTaskLoop++
 
-    logger.log(`setp1: 执行无需等待的任务`)
-    await this.dispatchTask(this.directTaskPool, false)
-    logger.log(`所有无需等待的任务执行完毕`)
+    // 开始执行任务后, 需要重置任务池, 避免新添加的任务影响到当前任务的执行
+    const directTaskPool = this.directTaskPool
+    const taskWithProtectPool = this.taskWithProtectPool
+    this.directTaskPool = {
+      ...Const_Default_Task_Pool
+    }
+    this.taskWithProtectPool = {
+      ...Const_Default_Task_Pool
+    }
 
-    logger.log(`setp2: 执行需间隔中断的任务`)
-    await this.dispatchTask(this.taskWithProtectPool, true)
-    logger.log(`所有需间隔中断的任务执行完毕`)
-    logger.log(`所有任务执行完毕`)
+    logger.log(`开始执行第${this.currentTaskLoop}轮任务`)
+    logger.log(`[第${this.currentTaskLoop}轮任务-setp1/2]执行无需等待的任务`)
+    await this.dispatchTask(directTaskPool, false)
+    logger.log(`[第${this.currentTaskLoop}轮任务-setp1/2]所有无需等待的任务执行完毕`)
+
+    logger.log(`[第${this.currentTaskLoop}轮任务-setp2/2]执行需间隔中断的任务`)
+    await this.dispatchTask(taskWithProtectPool, true)
+    logger.log(`[第${this.currentTaskLoop}轮任务-setp2/2]所有需间隔中断的任务执行完毕`)
+    logger.log(`[第${this.currentTaskLoop}轮任务]所有任务执行完毕`)
     return true
   }
 
