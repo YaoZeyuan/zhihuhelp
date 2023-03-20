@@ -58,6 +58,21 @@ export default () => {
   Ahooks.useAsyncEffect(async () => {
     // 任务列表内容发生变更, 重新生成电子书标题
     // console.log('legalTaskItemList has changed => ', legalTaskItemList)
+    if (autoGenerateTitle) {
+      let title = ''
+      for (const config of legalTaskItemList) {
+        const bufTitle = ipcRenderer.sendSync('get-task-default-title', {
+          taskType: config.type,
+          taskId: config.id,
+        })
+        if (title === '') {
+          title = bufTitle
+        } else {
+          title = title + '_' + bufTitle
+        }
+      }
+      form.setFieldValue('book-title', title)
+    }
   }, [JSON.stringify(legalTaskItemList)])
 
   let [forceUpdate, setForceUpdate] = useState<number>(0)

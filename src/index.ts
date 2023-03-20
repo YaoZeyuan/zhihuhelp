@@ -250,7 +250,7 @@ ipcMain.on('start-customer-task', async (event, { config }: { config: Type_TaskC
   return
 })
 
-ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => {
+ipcMain.on('get-task-default-title', async (event, { taskId, taskType }: { taskType: any, taskId: string }) => {
   await asyncUpdateCookie()
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
