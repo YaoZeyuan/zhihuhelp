@@ -1,5 +1,20 @@
 import electron from 'electron'
-import { Button, message, Input, Form, Divider, Radio, Select, Space, Row, Col, InputNumber, Dropdown, App } from 'antd'
+import {
+  Button,
+  message,
+  Input,
+  Form,
+  Divider,
+  Radio,
+  Select,
+  Space,
+  Row,
+  Col,
+  InputNumber,
+  Dropdown,
+  App,
+  Checkbox,
+} from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import { useSnapshot } from 'valtio'
 
@@ -32,6 +47,8 @@ export default () => {
   let refStore = useRef(createStore())
   const store = refStore.current
   let snap = useSnapshot(store)
+
+  let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
 
   const [form] = Form.useForm<Type_Form_Config>()
 
@@ -126,20 +143,38 @@ export default () => {
           labelAlign="left"
         >
           <Form.Item noStyle>
-            <Row justify="space-between" align="top" gutter={1}>
-              <Col span={18}>
-                <Form.Item name="book-title" label="电子书名">
+            <Row justify="space-between" align="middle" gutter={1}>
+              <Col span={16}>
+                <Form.Item
+                  name="book-title"
+                  label="电子书名"
+                  style={{
+                    margin: '0 auto',
+                  }}
+                >
                   <Input
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       store.generateConfig.bookTitle = e.target.value
                     }}
+                    disabled={autoGenerateTitle}
                   />
                 </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Checkbox
+                  checked={autoGenerateTitle}
+                  onChange={(e) => {
+                    setAutoGenerateTitle(e.target.checked)
+                  }}
+                >
+                  自动生成书名
+                </Checkbox>
               </Col>
               <Col span={4}>
                 <Button>批量添加任务</Button>
               </Col>
             </Row>
+            <Divider style={{ margin: '12px' }} />
           </Form.Item>
           <Form.Item noStyle>
             <Row align="middle" gutter={1}>
