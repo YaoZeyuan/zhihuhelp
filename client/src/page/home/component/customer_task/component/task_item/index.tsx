@@ -11,13 +11,13 @@ export default ({
   value = {
     ...Const_Default_Task_Item,
   },
-  fieldKey,
+  fieldIndex,
   onChange = () => {},
   action,
 }: {
   value?: ReturnType<typeof createStore>
   onChange?: (value: ReturnType<typeof createStore>) => void
-  fieldKey: number
+  fieldIndex: number
   action: {
     add: (taskItem: typeof Const_Default_Task_Item) => void
     remove: (key: number) => void
@@ -106,7 +106,8 @@ export default ({
               size="small"
               icon={<MinusOutlined />}
               onClick={() => {
-                action.remove(fieldKey)
+                // console.log('remove task item index => ', fieldIndex)
+                action.remove(fieldIndex)
               }}
             ></Button>
           </Space>

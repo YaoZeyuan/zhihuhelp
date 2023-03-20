@@ -7,7 +7,7 @@ export type Type_Form_Config = {
     "task-item-list": [
         {
             "type": "author-answer",
-            "id": "xie-lu-tian-e",
+            "id": "xie-lu-tian-e" | string,
             "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers",
             skipFetch: boolean
         }

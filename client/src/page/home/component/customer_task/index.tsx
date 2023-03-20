@@ -52,6 +52,14 @@ export default () => {
 
   const [form] = Form.useForm<Type_Form_Config>()
 
+  const taskItemList = Form.useWatch('task-item-list', form)
+  const legalTaskItemList = taskItemList?.filter((item) => item.id !== '')
+
+  Ahooks.useAsyncEffect(async () => {
+    // 任务列表内容发生变更, 重新生成电子书标题
+    // console.log('legalTaskItemList has changed => ', legalTaskItemList)
+  }, [JSON.stringify(legalTaskItemList)])
+
   let [forceUpdate, setForceUpdate] = useState<number>(0)
   let [initStoreValue, setInitStoreValue] = useState<ReturnType<typeof Util.generateStatus>>({} as any)
 
@@ -193,9 +201,11 @@ export default () => {
                 return (
                   <Form.Item {...field} noStyle>
                     <TaskItem
-                      fieldKey={field.key}
+                      fieldIndex={field.name}
                       action={{
-                        remove: operation.remove,
+                        remove: (index: number) => {
+                          operation.remove(index)
+                        },
                         add: operation.add,
                       }}
                     ></TaskItem>
