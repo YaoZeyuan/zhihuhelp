@@ -18,6 +18,7 @@ const Const_Zhihu_Img_CDN_List = [
   'https://pic2.zhimg.com',
   'https://pic3.zhimg.com',
   'https://pic4.zhimg.com',
+  'https://picx.zhimg.com',
 ]
 
 type TypeSrc2Download = string
