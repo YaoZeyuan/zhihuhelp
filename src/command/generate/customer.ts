@@ -661,7 +661,7 @@ class GenerateCustomer extends Base {
     let bookTitle = ''
     switch (unitItem.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
-        bookTitle = `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`
+        bookTitle = `问答混排_${moment().format(Date_Format.Const_Display_By_Second)}`
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         bookTitle = `收藏夹_${unitItem.info['title']}(${unitItem.info['id']})`

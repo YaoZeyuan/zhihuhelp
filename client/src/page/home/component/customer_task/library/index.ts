@@ -59,7 +59,7 @@ export default class Util {
             maxItemInBook: param["max-item-in-book"],
             "comment": param.comment,
             "orderByList": [],
-            generateType: "merge_by_all"
+            generateType: "merge_by_task"
         }
         // 排序配置
         for (let orderItem of param["order-item-list"]) {

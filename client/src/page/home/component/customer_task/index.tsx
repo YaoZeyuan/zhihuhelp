@@ -53,7 +53,7 @@ export default () => {
   const [form] = Form.useForm<Type_Form_Config>()
 
   const taskItemList = Form.useWatch('task-item-list', form)
-  const legalTaskItemList = taskItemList?.filter((item) => item.id !== '')
+  const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
 
   Ahooks.useAsyncEffect(async () => {
     // 任务列表内容发生变更, 重新生成电子书标题
