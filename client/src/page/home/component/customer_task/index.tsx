@@ -14,6 +14,7 @@ import {
   Dropdown,
   App,
   Checkbox,
+  Modal,
 } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import { useSnapshot } from 'valtio'
@@ -24,7 +25,7 @@ import * as Consts from './resource/const/index'
 import { createStore } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
-import Util, { Type_Form_Config } from './library/index'
+import Util, { Type_Form_Config } from './library/util'
 import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
@@ -51,6 +52,9 @@ export default () => {
   let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
 
   const [form] = Form.useForm<Type_Form_Config>()
+  const [modalForm] = Form.useForm<{
+    'batch-url-list-str': string
+  }>()
 
   const taskItemList = Form.useWatch('task-item-list', form)
   const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
@@ -75,7 +79,22 @@ export default () => {
     }
   }, [JSON.stringify(legalTaskItemList)])
 
-  let [forceUpdate, setForceUpdate] = useState<number>(0)
+  useEffect(() => {
+    // 监控任务列表不能为空
+    if (taskItemList?.length === 0) {
+      form.setFieldValue('task-item-list', [
+        {
+          id: '',
+          rawInputText: '',
+          type: Util.detectTaskType({
+            rawInputText: '',
+          }),
+          skipFetch: false,
+        },
+      ])
+    }
+  }, [taskItemList])
+
   let [initStoreValue, setInitStoreValue] = useState<ReturnType<typeof Util.generateStatus>>({} as any)
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
@@ -100,6 +119,9 @@ export default () => {
       form.setFieldValue('image-quilty', initStoreValue.generateConfig.imageQuilty)
       form.setFieldValue('max-item-in-book', initStoreValue.generateConfig.maxItemInBook)
       form.setFieldValue('comment', initStoreValue.generateConfig.comment)
+
+      // 同步到批量任务模态框
+      handleBatchTaskModal.syncToModalValue(initStoreValue.fetchTaskList)
     }
   }, [initStoreValue])
 
@@ -142,6 +164,45 @@ export default () => {
     } else {
       return false
     }
+  }
+
+  const handleBatchTaskModal = {
+    syncToModalValue: (fetchTaskList: Type_Form_Config['task-item-list']) => {
+      const batchUrlListStr = fetchTaskList?.map((item) => item.rawInputText)?.join('\n') ?? ''
+      modalForm.setFieldValue('batch-url-list-str', batchUrlListStr)
+    },
+    syncToTaskList: (batchUrlListStr: string) => {
+      const batchUrlList = batchUrlListStr.split('\n')
+      const taskList: Type_Form_Config['task-item-list'] = []
+      for (let url of batchUrlList) {
+        url = url.trim()
+        if (url === '') {
+          continue
+        }
+        const taskType = Util.detectTaskType({
+          rawInputText: url,
+        })
+        const taskItem: Type_Form_Config['task-item-list'][0] = {
+          id: '',
+          rawInputText: url,
+          skipFetch: false,
+          type: taskType,
+        }
+        taskList.push(taskItem)
+      }
+      form.setFieldValue('task-item-list', taskList)
+    },
+    showModal: () => {
+      setIsModalShow(true)
+    },
+    onOk: () => {
+      const batchUrlListStr = modalForm.getFieldValue('batch-url-list-str')
+      handleBatchTaskModal.syncToTaskList(batchUrlListStr)
+      setIsModalShow(false)
+    },
+    onCancel: () => {
+      setIsModalShow(false)
+    },
   }
 
   return (
@@ -194,8 +255,26 @@ export default () => {
                 </Checkbox>
               </Col>
               <Col span={4}>
-                <Button>批量添加任务</Button>
+                <Button
+                  onClick={() => {
+                    handleBatchTaskModal.showModal()
+                  }}
+                >
+                  批量添加任务
+                </Button>
               </Col>
+              <Modal
+                title="批量输入"
+                open={isModalShow}
+                onOk={handleBatchTaskModal.onOk}
+                onCancel={handleBatchTaskModal.onCancel}
+              >
+                <Form form={modalForm}>
+                  <Form.Item name="batch-url-list-str" label="任务列表">
+                    <Input.TextArea suffix={''} autoSize={{ minRows: 10 }} allowClear></Input.TextArea>
+                  </Form.Item>
+                </Form>
+              </Modal>
             </Row>
             <Divider style={{ margin: '12px' }} />
           </Form.Item>
@@ -295,7 +374,7 @@ export default () => {
             }}
             wrapperCol={{ span: 18 }}
           >
-            <TextArea allowClear />
+            <TextArea suffix={''} allowClear />
           </Form.Item>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
             <Button type="primary" htmlType="submit">
