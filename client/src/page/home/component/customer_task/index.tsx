@@ -50,6 +50,8 @@ export default () => {
   let snap = useSnapshot(store)
 
   let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
+  // 用于生成计数key, 解决批量导入任务后, 组件不更新的问题
+  let [batchTaskUpdateCounter, setBatchTaskUpdateCounter] = useState<number>(0)
 
   const [form] = Form.useForm<Type_Form_Config>()
   const [modalForm] = Form.useForm<{
@@ -203,6 +205,7 @@ export default () => {
     onOk: () => {
       const batchUrlListStr = modalForm.getFieldValue('batch-url-list-str')
       handleBatchTaskModal.syncToTaskList(batchUrlListStr)
+      setBatchTaskUpdateCounter(batchTaskUpdateCounter + 1)
       setIsModalShow(false)
     },
     onCancel: () => {
@@ -300,6 +303,8 @@ export default () => {
                 return (
                   <Form.Item {...field} noStyle>
                     <TaskItem
+                      // 每次导入批量数据后, 都强制刷新TaskItem组件, 重建Input组件, 以避免旧defaultValue无法更新的问题
+                      key={`${batchTaskUpdateCounter}-${field.key}`}
                       fieldIndex={field.name}
                       action={{
                         remove: (index: number) => {
