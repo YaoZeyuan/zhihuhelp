@@ -92,6 +92,11 @@ export default () => {
           skipFetch: false,
         },
       ])
+      // 同步到批量任务模态框
+      handleBatchTaskModal.syncToModalValue([])
+    } else {
+      // 同步到批量任务模态框
+      handleBatchTaskModal.syncToModalValue(taskItemList)
     }
   }, [taskItemList])
 
