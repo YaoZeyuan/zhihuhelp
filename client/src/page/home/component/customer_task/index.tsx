@@ -448,7 +448,6 @@ export default () => {
           </Form.Item>
         </Form>
       </div>
-      <div className="debug-panel">{/* 调试栏 */}</div>
     </div>
   )
 }
