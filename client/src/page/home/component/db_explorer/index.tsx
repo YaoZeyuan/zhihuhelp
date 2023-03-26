@@ -8,6 +8,7 @@ import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
 import { createStore } from './state/index'
 import { useSnapshot } from 'valtio'
+import * as Ahooks from 'ahooks'
 
 import './index.less'
 
@@ -24,17 +25,29 @@ export default () => {
   const store = refStore.current
   let snap = useSnapshot(store)
 
-  useEffect(() => {
-    let asyncRunner = async () => {}
-    asyncRunner()
-  }, [forceUpdate])
+  const handleRecordSync = {
+    async asyncGetBaseInfo() {
+      let summaryInfo = ipcRenderer.sendSync('get-db-summary-info')
+      store.baseInfo.count = summaryInfo
+    },
+  }
+  // 初始化时获取数据库数据
+  Ahooks.useAsyncEffect(handleRecordSync.asyncGetBaseInfo, [])
 
   return (
     <div className="db_explorer_dawqxf">
       {/* 需要写一个数据库浏览插件 */}
       {/* 1. 能够查看用户列表, 支持分页 */}
       {/* 2. 确定用户后, 能够显示回答列表, 支持分页 */}
-      <Card title="已入库数据汇总" style={{ width: '100%' }}>
+      <Card
+        title="已入库数据汇总"
+        style={{ width: '100%' }}
+        extra={[
+          <Button key="refresh" type="link" onClick={handleRecordSync.asyncGetBaseInfo}>
+            刷新
+          </Button>,
+        ]}
+      >
         <Descriptions title="基础数据" bordered>
           <Descriptions.Item label="文章">{snap.baseInfo.count.article}</Descriptions.Item>
           <Descriptions.Item label="回答">{snap.baseInfo.count.answer}</Descriptions.Item>

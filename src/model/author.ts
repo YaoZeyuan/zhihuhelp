@@ -42,6 +42,21 @@ class Author extends Base {
     })
     return
   }
+
+  /**
+   * 获取所有author数量
+   * @returns 
+   */
+  static async asyncGetAuthorCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("url_token as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
+  }
 }
 
 export default Author

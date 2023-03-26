@@ -40,6 +40,21 @@ class Column extends Base {
     })
     return
   }
+
+  /**
+   * 获取所有collumn数量
+   * @returns 
+   */
+  static async asyncGetColumnCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("column_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
+  }
 }
 
 export default Column

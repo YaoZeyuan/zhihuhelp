@@ -425,7 +425,7 @@ class EpubGenerator {
     // 确保下载日志可以和下载成功的日志一起输出, 保证日志完整性, 方便debug
     this.log(`[第${index}张图片]-1-准备下载第${index}/${this.imgUriPool.size}张图片, src => ${src}`)
 
-    let imgContent: Buffer = new Buffer('')
+    let imgContent: Buffer = Buffer.from("")
     // 知乎图片cdn不稳定, 需要把几个服务器都试下, 直到成功下载到图片为止
     if (src.match(Const_Zhihu_Img_Prefix_Reg) !== null) {
       // 匹配到说明是知乎的服务器
@@ -435,7 +435,7 @@ class EpubGenerator {
         if (imgContent.length === 0) {
           tryImgSrc = rawSrc.replace(Const_Zhihu_Img_Prefix_Reg, prefix)
           imgContent = await http.downloadImg(tryImgSrc).catch((e) => {
-            return new Buffer('')
+            return Buffer.from("")
           })
         }
       }

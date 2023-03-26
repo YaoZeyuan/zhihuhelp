@@ -104,6 +104,21 @@ class Pin extends Base {
     )
     return
   }
+
+  /**
+   * 获取所有pin数量
+   * @returns 
+   */
+  static async asyncGetPinCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("pin_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
+  }
 }
 
 export default Pin

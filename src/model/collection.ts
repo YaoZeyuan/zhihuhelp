@@ -4,9 +4,9 @@ import moment from 'moment'
 
 type Type_Record = {
   record_type:
-    | typeof Collection.Const_Record_Type_回答
-    | typeof Collection.Const_Record_Type_想法
-    | typeof Collection.Const_Record_Type_文章
+  | typeof Collection.Const_Record_Type_回答
+  | typeof Collection.Const_Record_Type_想法
+  | typeof Collection.Const_Record_Type_文章
   record_id: string
   record_at: number
 }
@@ -110,6 +110,21 @@ class Collection extends Base {
       this.COLLECTION_RECORD_TABLE_NAME,
     )
     return
+  }
+
+  /**
+   * 获取所有collection数量
+   * @returns 
+   */
+  static async asyncGetCollectionCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("collection_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
   }
 }
 

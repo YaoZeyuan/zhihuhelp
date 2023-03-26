@@ -8,6 +8,7 @@ import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
 import * as Type_TaskConfig from '~/src/type/task_config'
+import MSummary from '~/src/model/summary'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
@@ -257,6 +258,16 @@ ipcMain.on('get-task-default-title', async (event, { taskId, taskType }: { taskT
   event.returnValue = title
   return
 })
+
+/**
+ * 获取数据库内的汇总信息
+ */
+ipcMain.on('get-db-summary-info', async (event) => {
+  const summary = await MSummary.asyncGetSummaryInfo()
+  event.returnValue = summary
+  return
+})
+
 
 // 清空所有登录信息
 ipcMain.on('clear-all-session-storage', async (event) => {

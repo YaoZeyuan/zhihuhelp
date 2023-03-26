@@ -133,6 +133,21 @@ class Article extends Base {
     })
     return
   }
+
+  /**
+   * 获取所有question数量
+   * @returns 
+   */
+  static async asyncGetArticleCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("article_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
+  }
 }
 
 export default Article

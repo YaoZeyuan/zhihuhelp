@@ -80,6 +80,21 @@ class Topic extends Base {
     )
     return
   }
+
+  /**
+   * 获取所有topic数量
+   * @returns 
+   */
+  static async asyncGetTopicCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("topic_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
+  }
 }
 
 export default Topic
