@@ -1,3 +1,4 @@
+import { type } from 'os'
 import * as Consts from '../const'
 
 export type Select_Type = typeof Consts.Current_Select_Type_专栏
@@ -14,11 +15,7 @@ export type Status = {
     currentSelect: {
         type: Select_Type,
         id: string,
-        info: {
-            itemCount: number,
-            pageSize: number,
-            pageNo: number,
-        },
+        info: FetchListRes,
     },
     /**
       * 目前数据库中已有的类别数据
@@ -65,6 +62,17 @@ export type Status = {
     /**
      * 记录列表
      */
-    recordList: []
+    recordList: DataType[]
+}
 
+export type FetchListRes = {
+    recordList: DataType[],
+    total: number,
+    pageNo: number,
+    pageSize: number,
+}
+
+export type DataType = {
+    key: string;
+    name: string;
 }

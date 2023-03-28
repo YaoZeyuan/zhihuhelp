@@ -1,6 +1,6 @@
 import electron from 'electron'
 import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Descriptions, Badge, Divider } from 'antd'
-
+import { ColumnsType } from 'antd/lib/table'
 import { useState, useRef, useEffect } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Types_Task_Config from '~/src/resource/type/task_config'
@@ -25,15 +25,41 @@ export default () => {
   const store = refStore.current
   let snap = useSnapshot(store)
 
-  const handleRecordSync = {
-    async asyncGetBaseInfo() {
+  const handleRecordFunc = {
+    getBaseInfo: () => {
       let summaryInfo = ipcRenderer.sendSync('get-db-summary-info')
       store.baseInfo.count = summaryInfo
     },
+    getTabList: () => {
+      let fetchListRes: Types.FetchListRes = ipcRenderer.sendSync('get-db-tab-list', {
+        type: snap.currentSelect.type,
+        pageNo: snap.currentSelect.info.pageNo,
+        pageSize: snap.currentSelect.info.pageSize,
+      })
+      store.currentSelect.info = fetchListRes
+    },
   }
   // 初始化时获取数据库数据
-  Ahooks.useAsyncEffect(handleRecordSync.asyncGetBaseInfo, [])
+  useEffect(handleRecordFunc.getBaseInfo, [])
 
+  const columns: ColumnsType<Types.DataType> = [
+    {
+      title: '名称',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'id',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: '操作',
+      dataIndex: 'id',
+      key: 'id',
+    },
+  ]
+  const data: Types.DataType[] = []
   return (
     <div className="db_explorer_dawqxf">
       {/* 需要写一个数据库浏览插件 */}
@@ -43,7 +69,7 @@ export default () => {
         title="已入库数据汇总"
         style={{ width: '100%' }}
         extra={[
-          <Button key="refresh" type="link" onClick={handleRecordSync.asyncGetBaseInfo}>
+          <Button key="refresh" type="link" onClick={handleRecordFunc.getBaseInfo}>
             刷新
           </Button>,
         ]}
@@ -96,6 +122,7 @@ export default () => {
           </Card.Grid>
         </Card>
       </Card>
+      <Table columns={columns} dataSource={data} />;
     </div>
   )
 }
