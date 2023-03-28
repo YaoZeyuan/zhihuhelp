@@ -48,20 +48,53 @@ export default () => {
           </Button>,
         ]}
       >
-        <Descriptions title="基础数据" bordered>
-          <Descriptions.Item label="文章">{snap.baseInfo.count.article}</Descriptions.Item>
-          <Descriptions.Item label="回答">{snap.baseInfo.count.answer}</Descriptions.Item>
-          <Descriptions.Item label="想法">{snap.baseInfo.count.pin}</Descriptions.Item>
-        </Descriptions>
-        <Divider></Divider>
-        <Descriptions title="汇总类别" bordered>
-          <Descriptions.Item label="问题">{snap.baseInfo.count.question}</Descriptions.Item>
-          <Descriptions.Item label="用户">{snap.baseInfo.count.author}</Descriptions.Item>
-          <Descriptions.Item label="专栏">{snap.baseInfo.count.column}</Descriptions.Item>
-          <Descriptions.Item label="收藏夹">{snap.baseInfo.count.collection}</Descriptions.Item>
-          <Descriptions.Item label="话题">{snap.baseInfo.count.topic}</Descriptions.Item>
-          <Descriptions.Item label="其他">{'-'}</Descriptions.Item>
-        </Descriptions>
+        <Card title="基础数据" className="summary-card">
+          <Card.Grid>文章:{snap.baseInfo.count.article}</Card.Grid>
+          <Card.Grid>回答:{snap.baseInfo.count.answer}</Card.Grid>
+          <Card.Grid>想法:{snap.baseInfo.count.pin}</Card.Grid>
+        </Card>
+        <Card title="汇总类别" className="summary-card">
+          <Card.Grid
+            onClick={() => {
+              store.currentSelect.type = Consts.Current_Select_Type_问题
+            }}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_问题 ? 'active' : ''}
+          >
+            问题: {snap.baseInfo.count.question}
+          </Card.Grid>
+          <Card.Grid
+            onClick={() => {
+              store.currentSelect.type = Consts.Current_Select_Type_用户的所有回答
+            }}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_用户的所有回答 ? 'active' : ''}
+          >
+            用户: {snap.baseInfo.count.author}
+          </Card.Grid>
+          <Card.Grid
+            onClick={() => {
+              store.currentSelect.type = Consts.Current_Select_Type_专栏
+            }}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_专栏 ? 'active' : ''}
+          >
+            专栏: {snap.baseInfo.count.column}
+          </Card.Grid>
+          <Card.Grid
+            onClick={() => {
+              store.currentSelect.type = Consts.Current_Select_Type_收藏夹
+            }}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_收藏夹 ? 'active' : ''}
+          >
+            收藏夹: {snap.baseInfo.count.collection}
+          </Card.Grid>
+          <Card.Grid
+            onClick={() => {
+              store.currentSelect.type = Consts.Current_Select_Type_话题
+            }}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_话题 ? 'active' : ''}
+          >
+            话题: {snap.baseInfo.count.topic}
+          </Card.Grid>
+        </Card>
       </Card>
     </div>
   )
