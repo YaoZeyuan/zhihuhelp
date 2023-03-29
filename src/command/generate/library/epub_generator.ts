@@ -348,15 +348,15 @@ class EpubGenerator {
     return processContent
   }
 
-  addIndexHtml({ title, html }: { title: string; html: string }) {
-    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${title}.html`)
+  addIndexHtml({ filename, title, html }: { filename: string, title: string; html: string }) {
+    let htmlUri = path.resolve(this.htmlCacheHtmlPath, `${filename}.html`)
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)
     this.epub.addIndexHtml(title, htmlUri)
 
     // 返回的html地址必须是相对地址, 以便在epub中进行定位
-    const returnHtmlUri = `./${title}.html`
+    const returnHtmlUri = `./${filename}.html`
     return returnHtmlUri
   }
 
