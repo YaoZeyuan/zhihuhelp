@@ -19,7 +19,7 @@
     "build-without-sourcemap": "babel src --copy-files -d dist --verbose --extensions \".ts,.tsx,.js,.jsx\" ",
     "pack": "npm run build-without-sourcemap && npm run buildgui && electron-builder --dir",
     "dist": "npm run build-without-sourcemap && npm run buildgui && electron-builder",
-    "postinstall-4-mac": "npm install --platform=darwin --arch=x64 sharp && npm rebuild --platform=darwin --arch=arm64 sharp && electron-builder install-app-deps",
+    "postinstall-4-mac": "npm install sharp --build-from-source",
     "server": "nodemon --inspect dist/start-dev-server.js",
     "tsc": "tsc",
     "lint": "tsc && NODE_ENV=production eslint src",

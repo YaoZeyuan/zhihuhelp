@@ -18,7 +18,12 @@ export default () => {
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const ContainerHeight = 768
   const fetchLogList = () => {
-    const content = ipcRenderer.sendSync('get-log-content')
+    let content = ipcRenderer.sendSync('get-log-content')
+    // console.log('content', content)
+    // 暴力避免content为空字符串
+    if (typeof content?.split !== 'function') {
+      content = ''
+    }
     const rawLogList = content?.split('\n') ?? []
     const logList: Type_Log_Item[] = []
     let counter = 0
