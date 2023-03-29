@@ -33,12 +33,12 @@ jobs:
       - run: cd ./client && yarn && cd ..
       - run: yarn
        # 只安装intel版的sharp库即可, m1上可以运行intel的代码
-      - run: npm install --platform=darwin --arch=x64 sharp
+      - run: npm install --platform=darwin --arch=x64 --build-from-source sharp 
       # 尝试解决mac上无法构建的问题
       # - run: npm install --platform=darwin --arch=x64 sharp
       # - run: npm rebuild --platform=darwin --arch=arm64 sharp
       # - run: electron-builder install-app-deps
-      # - run: yarn postinstall-4-mac
+      - run: yarn postinstall-4-mac
       - run: yarn dist
         env:
           CI: true
