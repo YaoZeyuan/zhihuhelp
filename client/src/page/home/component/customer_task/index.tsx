@@ -136,22 +136,23 @@ export default () => {
     // 提交数据, 生成配置文件
     console.log('final config => ', JSON.stringify(values, null, 2))
     const config = Util.generateTaskConfig(values)
-    // let isLogin = await asyncCheckLogin()
-    // if (isLogin === false) {
-    //   SimpleModal.warning({
-    //     title: '登录状态异常',
-    //     content: '请先登录知乎账号后再启动任务',
-    //     okText: '去登陆',
-    //     onOk: () => {
-    //       setCurrentTab(Consts_Page.Const_Page_登录)
-    //     },
-    //   })
-    //   return
-    // }
+    let isLogin = await asyncCheckLogin()
+    if (isLogin === false) {
+      SimpleModal.warning({
+        title: '登录状态异常',
+        content: '请先登录知乎账号后再启动任务',
+        okText: '去登陆',
+        onOk: () => {
+          setCurrentTab(Consts_Page.Const_Page_登录)
+        },
+      })
+      return
+    }
 
-    ipcRenderer.sendSync('start-customer-task', {
+    ipcRenderer.send('start-customer-task', {
       config: config,
     })
+    setCurrentTab(Consts_Page.Const_Page_运行日志)
   }
 
   const asyncCheckLogin = async () => {

@@ -1091,6 +1091,7 @@ class GenerateCustomer extends Base {
     }
     let indexPage = this.generateIndexHtml(indexRecordList)
     let indexUri = epubGenerator.addIndexHtml({
+      filename: indexPage.filename,
       title: indexPage.title,
       html: indexPage.html,
     })

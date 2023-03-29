@@ -14,7 +14,7 @@ type Type_Log_Item = {
 }
 
 export default () => {
-  const [isAutoFresh, setIsAutoFresh] = useState<boolean>(false)
+  const [isAutoFresh, setIsAutoFresh] = useState<boolean>(true)
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const ContainerHeight = 768
   const fetchLogList = () => {
@@ -40,10 +40,10 @@ export default () => {
   }
   Ahooks.useInterval(() => {
     if (isAutoFresh) {
-      // 若自动刷新, 则每秒刷新一次
+      // 若自动刷新, 则每2秒刷新一次
       fetchLogList()
     }
-  }, 1 * 1000)
+  }, 2 * 1000)
 
   useEffect(() => {
     fetchLogList()
