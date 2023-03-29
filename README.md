@@ -41,7 +41,10 @@
 1.  电子书名
     1.  最终生成的电子书名
 2.  抓取任务
-    1.  每一项为一个子任务, 最终的电子书是所有子任务的合集
+    1.  支持三种模式:
+        1.  **默认**独立输出单本电子书: 按子任务分别输出电子书 -> 不允许自定义电子书名
+        2.  合并混排输出: 输出一本电子书, 电子书内容为将多个子任务的内容混排后进行输出 -> 允许自定义电子书名
+        3.  合并按顺序输出: 输出一本电子书, 但内部按子任务进行合并排序, 每个子任务是一个章节 -> 允许自定义电子书名
 3.  排序规则
     1.  可以按照: 创建时间/更新时间/赞同数/回答数对内容进行排序
     2.  当有多个排序规则时, 排序优先级按从上到下进行
@@ -266,9 +269,9 @@
     1.  编译指南: https://www.cnblogs.com/DonaHero/p/9809325.html
     2.  流程
         1.  Windows 用户
-            1.  安装[VS 2015 社区版](http://download.microsoft.com/download/B/4/8/B4870509-05CB-447C-878F-2F80E4CB464C/vs2015.com_chs.iso), 是的你没看错
-            2.  文件-新建项目-Visual C++ -> 选择 安装 vs2015 所需的 C++开发环境
-            3.  好了一个小时过去了
+            1.  安装 Python3, 第一步时勾选`添加Python到Path`, 如果未勾选, 可以重装一遍
+            2.  安装[VS 2022 社区版](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false)
+            3.  文件-新建项目-Visual C++ -> 选择 安装 vs2022 所需的 C++开发环境
             4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成 sqlite3 之后, 就可以启动 GUI 界面了
         2.  Mac 用户
             1.  我没有 mac 谢谢
@@ -332,6 +335,7 @@
         npm config set disturl https://npm.taobao.org/dist
         npm config set electron_mirror https://npm.taobao.org/mirrors/electron/
         ```
+    4.  如果 sharp 无法安装, 可以尝试使用`npm install`进行安装
 
 # 功能建议
 

@@ -1,6 +1,5 @@
 import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/namespace/author'
-import _ from 'lodash'
+import TypeAuthor from '~/src/type/zhihu/author'
 
 class AuthorAskQuestion extends Base {
   static TABLE_NAME = `Author_Ask_Question`
@@ -10,7 +9,7 @@ class AuthorAskQuestion extends Base {
    * 从数据库中获取用户提问的问题id列表
    * @param urlToken
    */
-  static async asyncGetAuthorAskQuestionIdList(urlToken: string): Promise<Array<string>> {
+  static async asyncGetAuthorAskQuestionIdList(urlToken: string): Promise<string[]> {
     let recordList = await this.db
       .select(`question_id`)
       .from(this.TABLE_NAME)
@@ -21,7 +20,7 @@ class AuthorAskQuestion extends Base {
 
     let questionIdList = []
     for (let record of recordList) {
-      let questionId: string = _.get(record, ['question_id'], '')
+      let questionId: string = record?.question_id ?? ''
       if (questionId === '') {
         continue
       }
@@ -34,7 +33,11 @@ class AuthorAskQuestion extends Base {
    * 存储用户提问记录
    * @param authorQuestionRecord
    */
-  static async asyncReplaceAuthorQuestion(author_url_token: string, author_id: string, authorQuestionRecord: TypeAuthor.Question): Promise<void> {
+  static async asyncReplaceAuthorQuestion(
+    author_url_token: string,
+    author_id: string,
+    authorQuestionRecord: TypeAuthor.Question,
+  ): Promise<void> {
     let question_id = authorQuestionRecord.id
     let raw_json = JSON.stringify(authorQuestionRecord)
     await this.replaceInto({

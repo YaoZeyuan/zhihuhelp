@@ -1,10 +1,10 @@
 import Base from '~/src/model/base'
-import TypeArticle from '~/src/type/namespace/article'
-import _ from 'lodash'
+import TypeArticle from '~/src/type/zhihu/article'
+import lodash from 'lodash'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
-  static TABLE_COLUMN = [`article_id`, `author_url_token`, `column_id`, `raw_json`]
+  static TABLE_COLUMN = [`article_id`, `author_url_token`, `author_id`, `column_id`, `raw_json`]
 
   /**
    * 从数据库中获取文章详情
@@ -18,7 +18,7 @@ class Article extends Base {
       .catch(() => {
         return []
       })
-    let articleJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let articleJson = recordList?.[0]?.raw_json
     let article
     try {
       article = JSON.parse(articleJson)
@@ -32,7 +32,7 @@ class Article extends Base {
    * 从数据库中根据专栏id获取文章列表
    * @param columnId
    */
-  static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<TypeArticle.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -43,14 +43,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
@@ -61,7 +61,7 @@ class Article extends Base {
    * 从数据库中根据专栏id获取文章列表
    * @param columnId
    */
-  static async asyncGetArticleListByColumnId(columnId: string): Promise<Array<TypeArticle.Record>> {
+  static async asyncGetArticleListByColumnId(columnId: string): Promise<TypeArticle.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -72,14 +72,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
@@ -90,12 +90,8 @@ class Article extends Base {
    * 从数据库中获取文章列表
    * @param articleIdList
    */
-  static async asyncGetArticleList(articleIdList: Array<string>): Promise<Array<TypeArticle.Record>> {
-    let sql = this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .whereIn('article_id', articleIdList)
-      .toString()
+  static async asyncGetArticleList(articleIdList: string[]): Promise<TypeArticle.Record[]> {
+    let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('article_id', articleIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch(() => {
       return []
@@ -103,14 +99,14 @@ class Article extends Base {
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = _.get(record, ['raw_json'], '{}')
+      let articleRecordJson = record?.raw_json
       let articleRecord
       try {
         articleRecord = JSON.parse(articleRecordJson)
       } catch {
         articleRecord = {}
       }
-      if (_.isEmpty(articleRecord) === false) {
+      if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
     }
@@ -124,16 +120,33 @@ class Article extends Base {
   static async asyncReplaceArticle(articleRecord: TypeArticle.Record): Promise<void> {
     let id = articleRecord.id
     // 文章可能不隶属于任何专栏, 也就可能没有column.id
-    let columnId = _.get(articleRecord, ['column', 'id'], 'ColumnNotExists')
-    let authorUrlToken = _.get(articleRecord, ['author', 'url_token'], 'AuthorNotExists')
+    let columnId = articleRecord?.column?.id ?? 'ColumnNotExists'
+    let authorUrlToken = articleRecord?.author?.url_token ?? 'AuthorNotExists'
+    let authorId = articleRecord?.author?.id ?? 'AuthorIdNotExists'
     let raw_json = JSON.stringify(articleRecord)
     await this.replaceInto({
       article_id: id,
+      author_id: authorId,
       author_url_token: authorUrlToken,
       column_id: columnId,
       raw_json,
     })
     return
+  }
+
+  /**
+   * 获取所有question数量
+   * @returns 
+   */
+  static async asyncGetArticleCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("article_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
   }
 }
 

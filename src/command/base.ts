@@ -1,20 +1,14 @@
-import { Command } from '@adonisjs/ace'
-import _ from 'lodash'
+import { BaseCommand, args, flags } from '@adonisjs/ace'
+import { CommandSettings } from '@adonisjs/ace/build/src/Contracts'
+import lodash from 'lodash'
 import logger from '~/src/library/logger'
 
-class Base extends Command {
-  static get signature() {
-    return `
-     Parse:Base
+class Base extends BaseCommand {
+  public static commandName = 'Command:Base'
+  public static description = '命令基类, 无实际功能'
 
-     {--onlyFlag:[必传]flag,只有true/false两个值}
-     {--logName=@value:[必传]日志文件名}
-     {--isTest?=@value:[可选]是否处于测试环境}
-     `
-  }
-
-  static get description() {
-    return '解析kafka日志, Base'
+  static settings: CommandSettings = {
+    "stayAlive": true,
   }
 
   /**
@@ -23,9 +17,9 @@ class Base extends Command {
    * @param options
    * @returns {Promise<void>}
    */
-  async handle(args: any, options: any) {
+  async run() {
     this.log('command start')
-    await this.execute(args, options).catch(e => {
+    await this.execute().catch((e) => {
       this.log('catch error')
       this.log(e.stack)
     })
@@ -33,18 +27,11 @@ class Base extends Command {
   }
 
   /**
-   * 空promise函数, 方便清空promise队列
-   */
-  async emptyPromiseFunction() {
-    return
-  }
-
-  /**
    *
    * @param args
    * @param options
    */
-  async execute(args: any, options: any): Promise<any> {}
+  async execute(): Promise<any> { }
 
   /**
    * 简易logger
@@ -53,7 +40,7 @@ class Base extends Command {
   async log(...argumentList: string[] | any): Promise<any> {
     let message = ''
     for (const rawMessage of argumentList) {
-      if (_.isString(rawMessage) === false) {
+      if (lodash.isString(rawMessage) === false) {
         message = message + JSON.stringify(rawMessage)
       } else {
         message = message + rawMessage
@@ -69,7 +56,7 @@ class Base extends Command {
   async warn() {
     let message = ''
     for (const rawMessage of arguments) {
-      if (_.isString(rawMessage) === false) {
+      if (lodash.isString(rawMessage) === false) {
         message = message + JSON.stringify(rawMessage)
       } else {
         message = message + rawMessage

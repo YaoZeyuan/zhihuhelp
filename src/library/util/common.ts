@@ -1,49 +1,236 @@
 import logger from '~/src/library/logger'
 import fs from 'fs'
 import PathConfig from '~/src/config/path'
-import TypeConfig from '~/src/type/namespace/config'
-import RequestConfig from '~/src/config/request'
+import * as Type_TaskConfig from '~/src/type/task_config'
+import * as Const_TaskConfig from '~/src/constant/task_config'
+import AsyncPool from 'tiny-async-pool'
+import md5 from 'md5'
 
-class Common {
-  static promiseList: Array<Promise<any>> = []
-  // 并发数限制到10即可
-  static maxBuf = 10
+type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
+
+type Type_Task_Config = {
   /**
-   * 添加promise, 到指定容量后再执行
-   * 警告, 该函数只能用于独立任务. 如果任务中依然调用asyncAppendPromiseWithDebounce方法, 会导致任务队列异常, 运行出非预期结果(外层函数结束后内层代码仍处于未完成,进行中状态)
+   * 待执行任务函数
    */
-  static async asyncAppendPromiseWithDebounce(promise: Promise<any>, forceDispatch = false, protectZhihuServer = true) {
-    Common.promiseList.push(promise)
-    if (Common.promiseList.length >= Common.maxBuf || forceDispatch) {
-      // 在执行的时候, 需要清空公共的promiseList数组.
-      // 否则, 会出现: 执行公共PromiseList中第一个任务时, 第一个任务又向PromiseList中添加了一个待执行任务, 然后又从第一个任务开始执行(但因为第一个任务此时正在执行, 不可能执行一个正在执行的任务, 就会导致node崩溃, 而且不会打印错误)
-      let taskList = Common.promiseList
-      Common.promiseList = []
-      logger.log(`任务队列已满, 开始执行任务, 共${taskList.length}个任务待执行`)
-      // 模拟allSettled方法, 需要所有任务都完成后才能继续
-      let wrappedPromises = taskList.map(p =>
-        Promise.resolve(p).then(
-          val => ({ state: 'fulfilled', value: val }),
-          err => ({ state: 'rejected', reason: err }),
-        ),
-      )
-      await Promise.all(wrappedPromises)
-      if (protectZhihuServer) {
-        // 每完成一组抓取, 休眠1s
-        logger.log(`队列已满, 休眠${RequestConfig.waitSecond2ProtectZhihuServer}s, 保护知乎服务器`)
-        await Common.asyncSleep(RequestConfig.waitSecond2ProtectZhihuServer * 1000)
-      }
-      logger.log(`任务队列内所有任务执行完毕`)
-    }
+  asyncTask: Type_Asnyc_Task_Runner,
+  /**
+   * 任务所属轮次
+   */
+  taskLoopNo: number,
+  /**
+   * 本轮任务的序号
+   */
+  taskNo: number,
+  /**
+   * 任务uuid
+   */
+  uuid: string
+  /**
+   * 任务状态
+   */
+  state: "pending" | "running" | "success" | "fail"
+}
+
+type Type_Task_Pool = {
+  taskList: Type_Task_Config[],
+  currentTaskNo: number,
+}
+const getDefaultTaskPool = (): Type_Task_Pool => {
+  return {
+    taskList: [],
+    currentTaskNo: 0,
+  }
+}
+
+// 每计数x次后, 重置任务
+class TaskManager {
+  private maxTaskRunner = 10
+
+  private currentTaskLoopNo = 0
+
+  private globalDispatchTaskCounter = 0
+
+  // 任务超时时间, 走内部配置即可, 不需要全局配置
+  private readonly Const_Task_Timeout_ms = 20 * 1000
+
+  /**
+   * 按label添加任务队列
+   */
+  private taskWithProtectPool: Type_Task_Pool = getDefaultTaskPool()
+
+  /**
+  * 按label添加任务队列
+  */
+  private directTaskPool: Type_Task_Pool = getDefaultTaskPool()
+
+  /**
+   * 任务保护配置
+   */
+  private protectConfig = {
+    perTask2Protect: 10,
+    protectMs: 10 * 1000,
+  }
+
+  // 添加任务
+  addAsyncTaskFunc({
+    asyncTaskFunc,
+    needProtect = false,
+  }: {
+    asyncTaskFunc: Type_Asnyc_Task_Runner
+    needProtect: boolean
+  }) {
+    let taskPool: Type_Task_Pool = needProtect === true ? this.taskWithProtectPool
+      : this.directTaskPool
+
+    taskPool.currentTaskNo = taskPool.currentTaskNo + 1
+    taskPool.taskList.push({
+      "asyncTask": asyncTaskFunc,
+      "taskNo": taskPool.currentTaskNo,
+      "taskLoopNo": this.currentTaskLoopNo,
+      "uuid": CommonUtil.getUuid(),
+      "state": "pending",
+    })
     return
   }
 
   /**
-   * 派发所有未发出的Promise请求
+   * 等待所有任务执行完毕
    */
-  static async asyncDispatchAllPromiseInQueen() {
-    await Common.asyncAppendPromiseWithDebounce(true, true)
+  async asyncWaitAllTaskComplete({
+    needTTL
+  }: {
+    /**
+    * 基本原则为: 单个抓取任务需要配置超时时间, 向下分配任务不需配置超时时间
+    */
+    needTTL: boolean
+  }) {
+    this.currentTaskLoopNo++
+    const taskLoopNo = this.currentTaskLoopNo
+
+    // 开始执行任务后, 需要重置任务池, 避免新添加的任务影响到当前任务的执行
+    const directTaskPool = this.directTaskPool
+    const taskWithProtectPool = this.taskWithProtectPool
+    this.directTaskPool = getDefaultTaskPool()
+    this.taskWithProtectPool = getDefaultTaskPool()
+
+    logger.log(`开始执行第${taskLoopNo}轮任务`)
+    logger.log(`[第${taskLoopNo}轮任务1/2]执行无需等待的任务`)
+    await this.dispatchTask({
+      taskPool: directTaskPool,
+      needProtect: false,
+      needTTL: needTTL
+    })
+    logger.log(`[第${taskLoopNo}轮任务1/2]所有无需等待的任务执行完毕`)
+
+    logger.log(`[第${taskLoopNo}轮任务2/2]执行需间隔中断的任务`)
+    await this.dispatchTask({
+      taskPool: taskWithProtectPool,
+      needProtect: true,
+      needTTL: needTTL
+    })
+    logger.log(`[第${taskLoopNo}轮任务2/2]所有需间隔中断的任务执行完毕`)
+    logger.log(`[第${taskLoopNo}轮任务]所有任务执行完毕`)
     return true
+  }
+
+  private async dispatchTask({
+    taskPool,
+    needProtect,
+    needTTL
+  }: {
+    taskPool: Type_Task_Pool,
+    needProtect: boolean,
+    /**
+     * 是否需要设置任务超时时间
+     */
+    needTTL: boolean
+  }) {
+    let taskCompleteCounter = 0
+    let taskFailedCounter = 0
+    let taskRunningCounter = 0
+    let taskTotalCounter = taskPool.taskList.length
+
+    let taskPromiseList = AsyncPool(this.maxTaskRunner, taskPool.taskList, async (asyncRunnerConfig) => {
+      let asyncRunner = async () => {
+        taskRunningCounter++
+        logger.log(`[uuid:${asyncRunnerConfig.uuid}]开始执行第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
+        asyncRunnerConfig.state = "running"
+        await asyncRunnerConfig.asyncTask()
+        logger.log(`[uuid:${asyncRunnerConfig.uuid}]第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务执行完毕`)
+        taskCompleteCounter++
+      }
+      await Promise.race(
+        [
+          asyncRunner(),
+          new Promise((reslove, reject) => {
+            if (needTTL) {
+              // 只在需要设置超时时间时启用
+              setTimeout(() => {
+                taskFailedCounter++
+                reject(new Error(`任务执行超时`))
+              }, this.Const_Task_Timeout_ms)
+            }
+          })
+        ]
+      ).then(() => {
+        asyncRunnerConfig.state = "success"
+      }).catch(() => {
+        asyncRunnerConfig.state = "fail"
+      }).finally(() => {
+        taskRunningCounter--
+      })
+    })
+
+
+    for await (const _ of taskPromiseList) {
+      this.globalDispatchTaskCounter++
+      // 需要保护的任务, 每次执行完毕后, 需要等待一段时间(只能暂停派发任务, 已派发的任务无法中止)
+      if (this.globalDispatchTaskCounter % this.protectConfig.perTask2Protect === 0 && needProtect === true) {
+        logger.log(`当前已累计派发${this.globalDispatchTaskCounter}个任务, 暂停派发任务${this.protectConfig.protectMs / 1000}秒, 以保护知乎服务器`)
+        await CommonUtil.asyncSleep(this.protectConfig.protectMs)
+        logger.log(`休眠完毕, 继续执行剩余任务`)
+      }
+    }
+    logger.log(`所有任务执行完毕`)
+    return true
+  }
+}
+
+export default class CommonUtil {
+  static taskManager = new TaskManager()
+
+  /**
+   * 添加promise到任务队列
+   */
+  static addAsyncTaskFunc({
+    asyncTaskFunc,
+    needProtect = false,
+  }: {
+    asyncTaskFunc: Type_Asnyc_Task_Runner
+    needProtect: boolean,
+  }) {
+    this.taskManager.addAsyncTaskFunc({ asyncTaskFunc, needProtect })
+    return
+  }
+
+  /**
+   * 等待所有任务执行完毕
+   *
+   * 由于项目只有一个开发者, 整个进程为单进程模型, 不会出现一边加任务, 一边等待所有任务完成的极端case, 所以可以一次性等待两个队列的执行完成
+   * 线上项目不能这么做
+   */
+  static async asyncWaitAllTaskComplete({
+    needTTL
+  }: {
+    /**
+     * 基本原则为: 单个抓取任务需要配置超时时间, 向下分配任务不需配置超时时间
+     */
+    needTTL: boolean
+  }) {
+    await this.taskManager.asyncWaitAllTaskComplete({
+      needTTL
+    })
+    return
   }
 
   /**
@@ -51,7 +238,7 @@ class Common {
    * @param {number} ms
    */
   static async asyncSleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   static getUuid() {
@@ -65,50 +252,60 @@ class Common {
     return uuid
   }
 
-  static getConfig() {
+  static getConfig(): Type_TaskConfig.Type_Task_Config {
     if (fs.existsSync(PathConfig.configUri) === false) {
       // 没有就初始化一份
-      fs.writeFileSync(
-        PathConfig.configUri,
-        JSON.stringify(
-          {
-            request: {
-              ua:
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-              cookie: '',
-            },
-          },
-          null,
-          4,
-        ),
-      )
+      fs.writeFileSync(PathConfig.configUri, JSON.stringify(Const_TaskConfig.Const_Default_Config, null, 2))
     }
-    let configJson = fs.readFileSync(PathConfig.configUri)
-    let config: TypeConfig.Local
+    let configJson = fs.readFileSync(PathConfig.configUri)?.toString() ?? ''
+    let config: Type_TaskConfig.Type_Task_Config
     try {
-      config = JSON.parse(configJson.toString())
+      config = JSON.parse(configJson)
     } catch (e) {
       config = {
-        request: {
-          ua:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-          cookie: '',
-        },
+        ...Const_TaskConfig.Const_Default_Config,
       }
     }
     return config
   }
 
-  static getPackageJsonConfig() {
-    let configJson = fs.readFileSync(PathConfig.packageJsonUri)
-    let config
-    try {
-      config = JSON.parse(configJson.toString())
-    } catch (e) {
-      config = {}
+  static saveConfig(config: Type_TaskConfig.Type_Task_Config) {
+    fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 2))
+    return
+  }
+
+  /**
+   *
+   * @param rawFilename
+   */
+  static encodeFilename(rawFilename: string) {
+    let encodeFilename = rawFilename
+    let illegalCharMap = {
+      '\\': '＼',
+      '/': '／',
+      ':': '：',
+      '*': '＊',
+      '?': '？',
+      '=': '＝',
+      '%': '％',
+      '+': '＋',
+      '<': '《',
+      '>': '》',
+      '|': '｜',
+      '"': '〃',
+      '!': '！',
+      '\n': '',
+      '\r': '',
+      '&': '＆',
     }
-    return config
+
+    type Type_Key = keyof typeof illegalCharMap
+
+    for (let key of Object.keys(illegalCharMap)) {
+      let legalChar: string = illegalCharMap?.[key as Type_Key] ?? ''
+      // 全局替换, 将非法文件名替换为合法Unicode字符
+      encodeFilename = encodeFilename.replaceAll(`${key}`, legalChar)
+    }
+    return encodeFilename
   }
 }
-
-export default Common

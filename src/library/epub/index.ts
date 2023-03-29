@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import shelljs from 'shelljs'
-import archiver from 'archiver'
-import _ from 'lodash'
+import logger from '~/src/library/logger'
+import AdmZip from 'adm-zip'
 import OPF from './opf'
 import TOC from './toc'
 
@@ -16,16 +16,30 @@ class Epub {
   bookIdentifier = 'helloworld' // id, 直接写死
   creator = 'zhihuhelp' // 创建者, 直接写死
 
-  get currentPath () { return path.resolve(__dirname) }
-  get resourcePath () { return path.resolve(this.currentPath, 'resource') }
+  get currentPath() {
+    return path.resolve(__dirname)
+  }
+  get resourcePath() {
+    return path.resolve(this.currentPath, 'resource')
+  }
 
-  get epubCachePath () { return path.resolve(this.basePath) }
-  get epubContentCachePath () { return path.resolve(this.epubCachePath, 'OEBPS') }
-  get epubCacheHtmlPath () { return path.resolve(this.epubContentCachePath, 'html') }
-  get epubCacheCssPath () { return path.resolve(this.epubContentCachePath, 'css') }
-  get epubCacheImagePath () { return path.resolve(this.epubContentCachePath, 'image') }
+  get epubCachePath() {
+    return path.resolve(this.basePath)
+  }
+  get epubContentCachePath() {
+    return path.resolve(this.epubCachePath, 'OEBPS')
+  }
+  get epubCacheHtmlPath() {
+    return path.resolve(this.epubContentCachePath, 'html')
+  }
+  get epubCacheCssPath() {
+    return path.resolve(this.epubContentCachePath, 'css')
+  }
+  get epubCacheImagePath() {
+    return path.resolve(this.epubContentCachePath, 'image')
+  }
 
-  constructor (bookname: string, basePath: string) {
+  constructor(bookname: string, basePath: string) {
     this.basePath = basePath
     this.bookname = bookname
 
@@ -38,7 +52,7 @@ class Epub {
     this.initPath()
   }
 
-  initPath () {
+  initPath() {
     shelljs.mkdir('-p', this.epubCachePath)
     shelljs.mkdir('-p', this.epubContentCachePath)
     shelljs.mkdir('-p', this.epubCacheCssPath)
@@ -50,51 +64,48 @@ class Epub {
     // 静态资源
     fs.copyFileSync(
       path.resolve(this.resourcePath, 'META-INF', 'container.xml'),
-      path.resolve(this.epubCachePath, 'META-INF', 'container.xml')
+      path.resolve(this.epubCachePath, 'META-INF', 'container.xml'),
     )
     fs.copyFileSync(
       path.resolve(this.resourcePath, 'META-INF', 'duokan-extension.xml'),
-      path.resolve(this.epubCachePath, 'META-INF', 'duokan-extension.xml')
+      path.resolve(this.epubCachePath, 'META-INF', 'duokan-extension.xml'),
     )
-    fs.copyFileSync(
-      path.resolve(this.resourcePath, 'mimetype'),
-      path.resolve(this.epubCachePath, 'mimetype')
-    )
+    fs.copyFileSync(path.resolve(this.resourcePath, 'mimetype'), path.resolve(this.epubCachePath, 'mimetype'))
   }
 
-  parseFilename (uri: string) {
+  parseFilename(uri: string) {
     let uriSplitList = uri.split(path.sep)
-    let filename = _.get(uriSplitList, uriSplitList.length - 1, '')
+    let filename = uriSplitList?.[uriSplitList.length - 1] ?? ''
     return filename
   }
 
-  addIndexHtml (title: string, uri: string) {
+  addIndexHtml(title: string, uri: string) {
     let filename = this.parseFilename(uri)
     this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheHtmlPath, filename))
     this.opf.addIndexHtml(filename)
     this.toc.addIndexHtml(title, filename)
   }
 
-  addHtml (title: string, uri: string) {
+  addHtml(title: string, uri: string) {
     let filename = this.parseFilename(uri)
     this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheHtmlPath, filename))
     this.opf.addHtml(filename)
     this.toc.addHtml(title, filename)
   }
 
-  addCss (uri: string) {
+  addCss(uri: string) {
     let filename = this.parseFilename(uri)
     this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheCssPath, filename))
     this.opf.addCss(filename)
   }
 
-  addImage (uri: string) {
+  addImage(uri: string) {
     let filename = this.parseFilename(uri)
     this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheImagePath, filename))
     this.opf.addImage(filename)
   }
 
-  addCoverImage (uri: string) {
+  addCoverImage(uri: string) {
     let filename = this.parseFilename(uri)
     this.CopyFileSyncSafe(uri, path.resolve(this.epubCacheImagePath, filename))
     this.opf.addCoverImage(filename)
@@ -103,67 +114,32 @@ class Epub {
   /**
    * 生成epub
    */
-  async asyncGenerate () {
+  async asyncGenerate() {
     let tocContent = this.toc.content
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'toc.xhtml'), tocContent)
     let opfContent = this.opf.content
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
-    let epubWriteStream = fs.createWriteStream(path.resolve(this.epubCachePath, this.bookname + '.epub'))
-    console.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
-    await new Promise((resolve, reject) => {
-      let archive = archiver('zip', {
-        zlib: { level: 0 } // Sets the compression level.
-      })
-      // listen for all archive data to be written
-      // 'close' event is fired only when a file descriptor is involved
-      epubWriteStream.on('close', function () {
-        console.log(archive.pointer() + ' total bytes')
-        console.log('epub制作完成')
-        // console.log('archiver has been finalized and the output file descriptor has closed.')
-        resolve()
-      })
 
-      // This event is fired when the data source is drained no matter what was the data source.
-      // It is not part of this library but rather from the NodeJS Stream API.
-      // @see: https://nodejs.org/api/stream.html#stream_event_end
-      epubWriteStream.on('end', function () {
-        console.log('epub制作完成')
-        console.log('Data has been drained')
-        resolve()
-      })
+    let zip = new AdmZip()
+    let epubUri = path.resolve(this.epubCachePath, this.bookname + '.epub')
+    logger.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
 
-      // good practice to catch warnings (ie stat failures and other non-blocking errors)
-      archive.on('warning', function (err) {
-        console.log('epub制作失败')
-        reject(err)
-        if (err.code === 'ENOENT') {
-          // log warning
-        } else {
-          // throw error
-          throw err
-        }
-      })
-
-      // good practice to catch this error explicitly
-      archive.on('error', function (err) {
-        reject(err)
-      })
-
-      // pipe archive data to the file
-      archive.pipe(epubWriteStream)
-
-      // append files from a sub-directory, putting its contents at the root of archive
-      archive.append(fs.createReadStream(path.resolve(this.epubCachePath, 'mimetype')), { name: 'mimetype' })
-      archive.directory(`${path.resolve(this.epubCachePath, 'META-INF/')}`, 'META-INF')
-      archive.directory(`${path.resolve(this.epubCachePath, 'OEBPS/')}`, 'OEBPS')
-
-      // finalize the archive (ie we are done appending files but streams have to finish yet)
-      // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
-      archive.finalize()
+    zip.addFile(
+      'mimetype',
+      fs.readFileSync(path.resolve(this.epubCachePath, 'mimetype'))
+    )
+    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'META-INF'), {
+      "zipPath": 'META-INF'
     })
+    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'OEBPS'), {
+      "zipPath": 'OEBPS'
+    })
+
+    await zip.writeZipPromise(epubUri)
+    logger.log('epub制作完成')
   }
 
-  private CopyFileSyncSafe (fromUri: string, toUri: string) {
+  private CopyFileSyncSafe(fromUri: string, toUri: string) {
     if (fs.existsSync(fromUri) === false) {
       return
     }

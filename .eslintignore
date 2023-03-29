@@ -1,0 +1,2 @@
+#   忽略引入的外部库文件
+src/library/zhihu_encrypt/lib/zhihu_encrypt.ts

@@ -4,22 +4,26 @@
       "@babel/env",
       {
         "targets": {
-          "node": "6.10"
-        }
+          "node": "16.0"
+        },
+        "useBuiltIns": "entry",
+        "corejs": "3.22"
       }
     ],
     ["@babel/preset-react"],
     "@babel/typescript"
   ],
   "plugins": [
-    "@babel/proposal-class-properties",
-    "@babel/proposal-object-rest-spread",
     [
       "babel-plugin-root-import",
       {
         "rootPathSuffix": "./src",
         "rootPathPrefix": "~/src"
       }
-    ]
+    ],
+    // 更新到7.18.0后唯一正确的用法
+    // https://babeljs.io/docs/en/babel-plugin-proposal-decorators#legacy
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    "@babel/plugin-proposal-class-properties"
   ]
 }

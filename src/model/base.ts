@@ -1,10 +1,8 @@
 import Knex from '~/src/library/knex'
-import TypeKnex from 'knex'
-import _ from 'lodash'
 
 class Base {
   static TABLE_NAME = ``
-  static TABLE_COLUMN: Array<string>
+  static TABLE_COLUMN: string[]
   static PRIMARY_KEY = ``
 
   /**
@@ -17,7 +15,7 @@ class Base {
   /**
    * 获取sqlite客户端
    */
-  static get rawClient(): TypeKnex {
+  static get rawClient() {
     return Knex
   }
 
@@ -32,12 +30,32 @@ class Base {
     for (let key of Object.keys(data)) {
       columnList.push(`\`${key}\``)
       markList.push(`?`)
-      valueList.push(_.get(data, [key], ''))
+      valueList.push((data as any)?.[key] ?? '')
     }
     let rawSql = `
         REPLACE INTO ${tableName} (${columnList.join(',')}) VALUES (${markList.join(',')})
         `
     return Knex.raw(rawSql, valueList)
+  }
+
+  /**
+   * 获取记录列表
+   * @param param0 
+   * @returns 
+   */
+  static async asyncGetList({ pageNo, pageSize }: {
+    pageNo: number,
+    pageSize: number,
+  }) {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .limit(pageSize)
+      .offset(pageNo * pageSize)
+      .catch(() => {
+        return []
+      })
+    return recordList
   }
 }
 

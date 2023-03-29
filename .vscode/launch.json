@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      // 调试命令生成
+      "command": "npm run ace  Init:Env",
+      "name": "npm run ace Init:Env",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "生成电子书-wsl",
@@ -14,7 +21,6 @@
         // "Fetch:Customer"
         "Generate:Customer" // 这里可以是任意命令
       ],
-      "useWSL": true, // windows 使用WSL进行调试
       "cwd": "${workspaceRoot}",
       "env": {
         "NODE_ENV": "development"
@@ -33,7 +39,6 @@
         "Fetch:Collection", // 这里可以是任意命令
         "323577575" // 拿自己的账号测试
       ],
-      "useWSL": true, // windows 使用WSL进行调试
       "cwd": "${workspaceRoot}",
       "env": {
         "NODE_ENV": "development"
@@ -74,8 +79,7 @@
       },
       "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "runtimeExecutable": "C:/Users/yaoze/AppData/Roaming/nvm/v14.0.0/node.exe"
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
     {
       "name": "Debug Electron",

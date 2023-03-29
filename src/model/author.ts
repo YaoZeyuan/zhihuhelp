@@ -1,14 +1,9 @@
 import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/namespace/author'
-import _ from 'lodash'
+import TypeAuthor from '~/src/type/zhihu/author'
 
 class Author extends Base {
   static TABLE_NAME = `Author`
-  static TABLE_COLUMN = [
-    `id`,
-    `url_token`,
-    `raw_json`
-  ]
+  static TABLE_COLUMN = [`id`, `url_token`, `raw_json`]
 
   /**
    * 从数据库中获取用户信息
@@ -19,8 +14,10 @@ class Author extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
-      .catch(() => { return [] })
-    let authorInfoJson = _.get(recordList, [0, 'raw_json'], '{}')
+      .catch(() => {
+        return []
+      })
+    let authorInfoJson = recordList?.[0]?.raw_json
     let authorInfo
     try {
       authorInfo = JSON.parse(authorInfoJson)
@@ -41,9 +38,24 @@ class Author extends Base {
     await this.replaceInto({
       id,
       url_token,
-      raw_json
+      raw_json,
     })
     return
+  }
+
+  /**
+   * 获取所有author数量
+   * @returns 
+   */
+  static async asyncGetAuthorCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("url_token as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
   }
 }
 

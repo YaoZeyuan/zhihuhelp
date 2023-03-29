@@ -1,24 +1,20 @@
 import Base from '~/src/command/base'
-import http from '~/src/library/http'
+import { args, flags } from '@adonisjs/ace'
 
 class CommandDemo extends Base {
-  static get signature () {
-    return `
-     Command:Demo
+  public static commandName = 'Command:Demo'
+  public static description = 'demo命令'
 
-     {name?:[可选]称谓}
+  @flags.boolean({ description: '[必传]flag,只有true/false两个值' })
+  onlyFlag: boolean = false
 
-     {--onlyFlag:[必传]flag,只有true/false两个值}
-     {--logName=@value:[必传]日志文件名}
-     {--isTest?=@value:[可选]是否处于测试环境}
-     `
-  }
+  @args.string({ description: '[必传]日志文件名', required: false })
+  logName: string = ''
 
-  static get description () {
-    return 'demo命令'
-  }
+  @flags.boolean({ description: '[可选]是否处于测试环境' })
+  isTest: boolean = false
 
-  async execute () {
+  async execute() {
     this.log('获取回答列表')
   }
 }

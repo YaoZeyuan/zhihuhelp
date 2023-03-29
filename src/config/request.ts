@@ -1,21 +1,14 @@
-import _ from 'lodash'
-import InitConfig from '~/src/config/init_config'
+import CommonUtil from '~/src/library/util/common'
 
-// 优先使用本地配置
-let config = InitConfig.getConfig()
+export default class RequestConfig {
+  // Request配置为动态配置, 需要单独进行拆分, 避免循环依赖
+  static ua = ''
+  static cookie = ''
 
-class Request {
-  /**
-   * 保护知乎服务器的时间
-   */
-  static waitSecond2ProtectZhihuServer = 1
-  /**
-   * 每x次抓取触发一次保护
-   */
-  static perLoop2TriggerProtect = 1
-  static timeoutMs = 20 * 1000
-  static ua =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-  static cookie = _.get(config, ['request', 'cookie'], '')
+  static reloadTaskConfig() {
+    // 更新配置信息
+    let config = CommonUtil.getConfig()
+    this.ua = config.requestConfig.ua
+    this.cookie = config.requestConfig.cookie
+  }
 }
-export default Request

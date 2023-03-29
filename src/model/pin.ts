@@ -1,16 +1,16 @@
 import Base from '~/src/model/base'
-import TypePin from '~/src/type/namespace/pin'
-import _ from 'lodash'
+import * as TypePin from '~/src/type/zhihu/pin'
+import lodash from 'lodash'
 
 class Pin extends Base {
-  static TABLE_NAME = `V2_Total_Pin`
+  static TABLE_NAME = `Pin`
   static TABLE_COLUMN = [`pin_id`, `author_url_token`, `author_id`, `raw_json`]
 
   /**
    * 从数据库中获取用户的想法列表
    * @param questionId
    */
-  static async asyncGetPinListByAuthorUrlToken(authorUrlToken: string): Promise<Array<TypePin.Record>> {
+  static async asyncGetPinListByAuthorUrlToken(authorUrlToken: string): Promise<TypePin.Record[]> {
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
@@ -20,14 +20,14 @@ class Pin extends Base {
       })
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = _.get(record, ['raw_json'], '{}')
+      let pinRecordJson = record?.raw_json
       let pinRecord
       try {
         pinRecord = JSON.parse(pinRecordJson)
       } catch {
         pinRecord = {}
       }
-      if (_.isEmpty(pinRecord) === false) {
+      if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
     }
@@ -46,12 +46,12 @@ class Pin extends Base {
       .catch(() => {
         return []
       })
-    let pinRecordJson = _.get(recordList, [0, 'raw_json'], '{}')
+    let pinRecordJson = recordList?.[0]?.raw_json
     let pinRecord: TypePin.Record
     try {
       pinRecord = JSON.parse(pinRecordJson)
     } catch {
-      pinRecord = {}
+      pinRecord = {} as any
     }
 
     return pinRecord
@@ -61,26 +61,22 @@ class Pin extends Base {
    * 根据pinId从数据库中获取用户的想法列表
    * @param pinIdList
    */
-  static async asyncGetPinList(pinIdList: Array<string>): Promise<Array<TypePin.Record>> {
-    let sql = this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .whereIn('pin_id', pinIdList)
-      .toString()
+  static async asyncGetPinList(pinIdList: string[]): Promise<TypePin.Record[]> {
+    let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('pin_id', pinIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
     let recordList = await this.rawClient.raw(sql, []).catch(() => {
       return []
     })
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = _.get(record, ['raw_json'], '{}')
+      let pinRecordJson = record?.raw_json
       let pinRecord
       try {
         pinRecord = JSON.parse(pinRecordJson)
       } catch {
         pinRecord = {}
       }
-      if (_.isEmpty(pinRecord) === false) {
+      if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
     }
@@ -107,6 +103,21 @@ class Pin extends Base {
       this.TABLE_NAME,
     )
     return
+  }
+
+  /**
+   * 获取所有pin数量
+   * @returns 
+   */
+  static async asyncGetPinCount(): Promise<number> {
+    let count = await this.db
+      .countDistinct("pin_id as count")
+      .from(this.TABLE_NAME)
+      .catch(() => {
+        return []
+      }) as { "count": number }[]
+
+    return count?.[0]?.count ?? 0
   }
 }
 

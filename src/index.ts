@@ -1,18 +1,29 @@
 // Modules to control application life and create native browser window
 import Electron, { Menu } from 'electron'
-import CommonUtil from '~/src/library/util/common'
-import ConfigHelperUtil from '~/src/library/util/config_helper'
+import RequestConfig from '~/src/config/request'
 import PathConfig from '~/src/config/path'
-import InitConfig from '~/src/config/init_config'
+import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
-import DispatchTaskCommand from '~/src/command/dispatch_task'
+import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
+import * as Type_TaskConfig from '~/src/type/task_config'
+import MSummary from '~/src/model/summary'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
-import _ from 'lodash'
+import JSON5 from 'json5'
 
+
+// 项目初始化时, 自动生成 .adonisrc.json 文件
+const adonisRcUri = path.resolve(__dirname, '.adonisrc.json')
+const adonisRcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
+const adonisRcContent = fs.readFileSync(adonisRcTemplateUri).toString()
+const adonisRcConfig = JSON5.parse(adonisRcContent)
+fs.writeFileSync(adonisRcUri, JSON.stringify(adonisRcConfig, null, 2))
+
+const Const_Current_Path = path.resolve(__dirname)
+let ace = new Ignitor(Const_Current_Path).ace()
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
 let { app, BrowserWindow, ipcMain, session, shell } = Electron
@@ -24,7 +35,7 @@ let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
 
-function createWindow() {
+async function asyncCreateWindow() {
   if (process.platform === 'darwin') {
     const template = [
       {
@@ -86,7 +97,7 @@ function createWindow() {
   jsRpcWindow = new BrowserWindow({
     enableLargerThanScreen: true,
     width: 760,
-    height: 10,
+    height: 500,
     // 负责渲染的子窗口不需要显示出来, 避免被用户误关闭
     show: isDebug ? true : false,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
@@ -150,22 +161,23 @@ function createWindow() {
 
 async function asyncUpdateCookie() {
   let cookieContent = ''
-  let cookieList = await session.defaultSession.cookies.get({})
+  let cookieList = await mainWindow.webContents.session.cookies.get({})
   for (let cookie of cookieList) {
     cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
   }
   // 将cookie更新到本地配置中
-  let config = InitConfig.getConfig()
-  _.set(config, ['request', 'cookie'], cookieContent)
+  let config = CommonUtil.getConfig()
+  config.requestConfig.cookie = cookieContent
   fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
-  ConfigHelperUtil.reloadConfig()
+  RequestConfig.reloadTaskConfig()
+  return config
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', asyncCreateWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -180,32 +192,27 @@ app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    asyncCreateWindow()
   }
 })
 
-ipcMain.on('openOutputDir', (event) => {
+ipcMain.on('open-output-dir', (event) => {
   // 打开输出文件夹
+  console.log("PathConfig.outputPath => ", PathConfig.outputPath)
   shell.showItemInFolder(PathConfig.outputPath)
   event.returnValue = ''
   return
 })
 
-ipcMain.on('getPathConfig', (event) => {
-  // 获取pathConfig
-
-  let obj: any = {}
-  for (let key in PathConfig) {
-    // @ts-ignore
-    obj[key] = PathConfig[key]
-  }
-  let jsonStr = JSON.stringify(obj, null, 2)
-
-  event.returnValue = jsonStr
+// 获取任务配置
+ipcMain.on('get-common-config', (event) => {
+  let config = CommonUtil.getConfig()
+  event.returnValue = config
   return
 })
 
-ipcMain.on('startCustomerTask', async (event) => {
+// 启动任务
+ipcMain.on('start-customer-task', async (event, { config }: { config: Type_TaskConfig.Type_Task_Config }) => {
   if (isRunning) {
     event.returnValue = '目前尚有任务执行, 请稍后'
     return
@@ -213,19 +220,38 @@ ipcMain.on('startCustomerTask', async (event) => {
   isRunning = true
   Logger.log('开始工作')
 
+  // 将配置写入本地
   await asyncUpdateCookie()
+  let oldConfig = CommonUtil.getConfig()
+  console.log("oldConfig => ", oldConfig)
+  config.requestConfig.cookie = oldConfig.requestConfig.cookie
+  console.log("config => ", config)
+  config.requestConfig.ua = oldConfig.requestConfig.ua
+  CommonUtil.saveConfig(config)
 
   Logger.log(`开始执行任务`)
   event.returnValue = 'success'
-  let dispatchTaskCommand = new DispatchTaskCommand()
-  await dispatchTaskCommand.handle({}, {})
+
+  // 此后操作均为异步操作, 无需等待
+
+  Logger.log(`初始化ace命令集`)
+  await ace.handle(['generate:manifest'])
+  Logger.log(`初始化运行环境`)
+  await ace.handle(['Init:Env'])
+
+  Logger.log(`开始抓取数据`)
+  await ace.handle(['Fetch:Customer'])
+  Logger.log(`开始生成电子书`)
+  await ace.handle(['Generate:Customer'])
   Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
   // 输出打开文件夹
   shell.showItemInFolder(PathConfig.outputPath)
   isRunning = false
+
+  return
 })
 
-ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => {
+ipcMain.on('get-task-default-title', async (event, { taskId, taskType }: { taskType: any, taskId: string }) => {
   await asyncUpdateCookie()
 
   let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
@@ -233,8 +259,18 @@ ipcMain.on('get-task-default-title', async (event, taskType, taskId: string) => 
   return
 })
 
+/**
+ * 获取数据库内的汇总信息
+ */
+ipcMain.on('get-db-summary-info', async (event) => {
+  const summary = await MSummary.asyncGetSummaryInfo()
+  event.returnValue = summary
+  return
+})
+
+
 // 清空所有登录信息
-ipcMain.on('devtools-clear-all-session-storage', async (event) => {
+ipcMain.on('clear-all-session-storage', async (event) => {
   await session.defaultSession.clearCache()
   await session.defaultSession.clearStorageData()
   await session.defaultSession.clearHostResolverCache()
@@ -270,21 +306,21 @@ async function asyncJsRpcTriggerFunc({ method, paramList }: { method: string; pa
     })
   })
   if (isDebug) {
-    Logger.log(
-      `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
-        {
-          method,
-          paramList,
-          id,
-        },
-        null,
-        2,
-      )}`,
-    )
+    // Logger.log(
+    //   `派发js-rpc请求, 任务id: ${id}, ${JSON.stringify(
+    //     {
+    //       method,
+    //       paramList,
+    //       id,
+    //     },
+    //     null,
+    //     2,
+    //   )}`,
+    // )
   }
   let result = await task
   if (isDebug) {
-    Logger.log(`id:${id}的js-rpc请求完成`)
+    // Logger.log(`id:${id}的js-rpc请求完成`)
   }
   return result
 }
@@ -312,12 +348,12 @@ ipcMain.on('js-rpc-response', async (event, { id, value }) => {
   return
 })
 
-ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string; params: { [key: string]: any } }) => {
+ipcMain.on('zhihu-http-get', async (event, { url, params }: { url: string; params: { [key: string]: any } }) => {
   // 调用知乎的get请求
-  console.log('rawUrl => ', rawUrl)
+  // console.log('rawUrl => ', url)
   await asyncUpdateCookie()
   let res = await http
-    .get(rawUrl, {
+    .get(url, {
       params: params,
     })
     .catch((e) => {
@@ -325,6 +361,24 @@ ipcMain.on('zhihu-http-get', async (event, { rawUrl, params }: { rawUrl: string;
     })
   event.returnValue = res
   return res
+})
+ipcMain.on('get-log-content', async (event) => {
+  // 获取日志内容
+  let content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
+  const logList = content?.split("\n") ?? []
+  if (logList.length > 5000) {
+    // 自动清理日志, 控制在2000条以下
+    content = logList.slice(logList.length - 2000).join("\n")
+    fs.writeFileSync(PathConfig.runtimeLogUri, content)
+  }
+  event.returnValue = content
+  return
+})
+ipcMain.on('clear-log-content', async (event) => {
+  // 清理日志内容
+  fs.writeFileSync(PathConfig.runtimeLogUri, '')
+  event.returnValue = ""
+  return
 })
 ipcMain.on('open-devtools', async (event) => {
   // 打开调试面板

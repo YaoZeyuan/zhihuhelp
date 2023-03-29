@@ -9,9 +9,9 @@ class TOC {
 
   publisher = 'zhihuhelp'
 
-  navMapList: Array<string> = []
+  navMapList: string[] = []
 
-  get content () {
+  get content() {
     return `<?xml version="1.0"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
@@ -26,16 +26,15 @@ class TOC {
 </body>
 </html>
 `
-
   }
 
-  get navOlString () {
+  get navOlString() {
     return this.navMapList.join('\n')
   }
 
-  addIndexHtml (title: string, filename: string) {
+  addIndexHtml(title: string, filename: string) {
     this.index = this.index + 1
-        // 目录肯定要插到第一条
+    // 目录肯定要插到第一条
     this.navMapList.unshift(`
             <li id="nav_index_${this.index}">
                 <a href="./html/${filename}">${title}</a>
@@ -43,7 +42,7 @@ class TOC {
         `)
   }
 
-  addHtml (title: string, filename: string) {
+  addHtml(title: string, filename: string) {
     this.index = this.index + 1
     this.navMapList.push(`
             <li id="nav_index_${this.index}">
