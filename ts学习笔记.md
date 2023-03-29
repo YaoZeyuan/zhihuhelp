@@ -3,3 +3,4 @@
 3.  所以, 根目录别名这种东西还是要用`babel-plugin-root-import`插件
 4.  文本教程: [中文](https://www.tslang.cn/docs/handbook/basic-types.html), [英文](http://www.typescriptlang.org/docs/handbook/basic-types.html)
 5.  tslint使用命令: `./node_modules/.bin/tslint -c tslint.json src/**/* --fix`
+
