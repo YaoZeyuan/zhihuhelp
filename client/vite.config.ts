@@ -45,7 +45,7 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       // assetsDir: '', // require时使用相对路径, 解决加载问题
-      sourcemap: isProduction === false,
+      sourcemap: true,
       assetsDir: '', // require时使用相对路径, 解决加载问题
       rollupOptions: {
         output: {

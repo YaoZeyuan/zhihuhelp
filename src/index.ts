@@ -365,6 +365,10 @@ ipcMain.on('zhihu-http-get', async (event, { url, params }: { url: string; param
 ipcMain.on('get-log-content', async (event) => {
   // 获取日志内容
   let content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
+  if (!!content === false) {
+    // 避免为undefined
+    content = ""
+  }
   const logList = content?.split("\n") ?? []
   if (logList.length > 5000) {
     // 自动清理日志, 控制在2000条以下
