@@ -79,7 +79,7 @@
       "order": "desc"
     }
   ],
-  "maxQuestionOrArticleInBook": 1000,
+  "maxQuestionOrArticleInBook": 10000,
   "imageQuilty": "none",
   "bookTitle": "测试电子书",
   "comment": "测试"

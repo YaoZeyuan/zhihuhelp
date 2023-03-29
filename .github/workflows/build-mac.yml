@@ -1,4 +1,4 @@
-name: CI
+name: CI-Mac
 
 on:
   push:
@@ -7,10 +7,10 @@ on:
       - '*' # Push events to matching any tags
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-12
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: ['16.14.2']
 
     steps:
       - uses: actions/checkout@v2
@@ -20,14 +20,16 @@ jobs:
           node-version: ${{ matrix.node-version }}
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
-        uses: tyankatsu0105/read-package-version-actions@v1
-        id: package-version
+        uses: myrotvorets/info-from-package-json-action@1.0.0
+        id: get-version-from-package-json
       - name: Show version number
-        run: echo "current version is ${{ steps.package-version.outputs.version }}"
+        run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
       # mac需要提前安装vips, 否则无法启动sharp构建
-      - run: brew install vips
+      # - run: brew install vips
       - run: cd ./client && yarn && cd ..
       - run: yarn
+      # 只安装intel版的sharp库即可, m1上可以运行intel的代码
+      - run: npm install --platform=darwin --arch=x64 sharp
       - run: yarn dist
         env:
           CI: true
@@ -38,8 +40,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: mac-${{ steps.package-version.outputs.version  }}
-          release_name: ${{ steps.package-version.outputs.version  }}
+          tag_name: mac-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
+          release_name: mac-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
           draft: true
           prerelease: true
       - name: Upload Release normal mac
@@ -48,6 +50,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./release/知乎助手-${{ steps.package-version.outputs.version }}.dmg
-          asset_name: zhihuhelp-${{ steps.package-version.outputs.version }}.dmg
+          asset_path: ./release/知乎助手-${{ steps.get-version-from-package-json.outputs.packageVersion }}.dmg
+          asset_name: mac-zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}.dmg
           asset_content_type: application/zip
