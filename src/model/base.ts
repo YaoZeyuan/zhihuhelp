@@ -37,6 +37,26 @@ class Base {
         `
     return Knex.raw(rawSql, valueList)
   }
+
+  /**
+   * 获取记录列表
+   * @param param0 
+   * @returns 
+   */
+  static async asyncGetList({ pageNo, pageSize }: {
+    pageNo: number,
+    pageSize: number,
+  }) {
+    let recordList = await this.db
+      .select(this.TABLE_COLUMN)
+      .from(this.TABLE_NAME)
+      .limit(pageSize)
+      .offset(pageNo * pageSize)
+      .catch(() => {
+        return []
+      })
+    return recordList
+  }
 }
 
 export default Base

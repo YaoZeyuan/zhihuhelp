@@ -23,9 +23,10 @@ export const Default_Status: Types.Status = {
     "currentSelect": {
         "id": "",
         "info": {
-            "itemCount": 0,
+            total: 0,
             "pageNo": 0,
-            "pageSize": 15
+            "pageSize": 15,
+            "recordList": [],
         },
         "type": Current_Select_Type_用户的所有回答
     },
