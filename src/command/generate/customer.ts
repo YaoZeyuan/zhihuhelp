@@ -889,6 +889,7 @@ class GenerateCustomer extends Base {
    */
   generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
     let pageTitle = this.generateColumnTitle(unit)
+    let filename = ""
     // 渲染结果
     let renderResult
     switch (unit.type) {
@@ -896,22 +897,25 @@ class GenerateCustomer extends Base {
         renderResult = HtmlRender.renderInfoPage({
           title: `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`,
         })
+        filename = `mix_type_${moment().format(Date_Format.Const_Display_By_Second)}`
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         renderResult = HtmlRender.renderInfoPage({
           title: `收藏夹_${unit.info['title']}(${unit.info['id']})`,
         })
+        filename = `collection_type_${unit.info['id']}`
         break
       case Const_TaskConfig.Const_Task_Type_专栏:
         renderResult = HtmlRender.renderInfoPage({
           title: `专栏_${unit.info['title']}(${unit.info['id']})`,
         })
-
+        filename = `column_type_${unit.info['id']}`
         break
       case Const_TaskConfig.Const_Task_Type_话题:
         renderResult = HtmlRender.renderInfoPage({
           title: `话题_${unit.info['name']}(${unit.info['id']})`,
         })
+        filename = `topic_type_${unit.info['id']}`
         break
       case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
       case Const_TaskConfig.Const_Task_Type_用户的所有回答:
@@ -928,43 +932,50 @@ class GenerateCustomer extends Base {
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_提问过的所有问题`,
               })
+              filename = `author_type_${unit.info['id']}_ask_all_question`
               break
             case Const_TaskConfig.Const_Task_Type_用户的所有回答:
             case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_的所有回答`,
               })
+              filename = `author_type_${unit.info['id']}_all_answer`
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有文章`,
               })
+              filename = `author_type_${unit.info['id']}_all_article`
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有想法`,
               })
+              filename = `author_type_${unit.info['id']}_all_pin`
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有回答`,
               })
-
+              filename = `author_type_${unit.info['id']}_all_argee_answer`
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有文章`,
               })
+              filename = `author_type_${unit.info['id']}_all_argee_article`
               break
             case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_关注过的所有问题`,
               })
+              filename = `author_type_${unit.info['id']}_all_follow_question`
               break
             default:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}`,
               })
+              filename = `author_type_default_${moment().format(Date_Format.Const_Display_By_Second)}`
           }
         }
         break
@@ -972,9 +983,10 @@ class GenerateCustomer extends Base {
         renderResult = HtmlRender.renderInfoPage({
           title: `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`,
         })
+        filename = `unknown_type_${moment().format(Date_Format.Const_Display_By_Second)}`
     }
     return {
-      filename: CommonUtil.encodeFilename(pageTitle),
+      filename: filename,
       title: pageTitle,
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
