@@ -10,7 +10,8 @@ on:
       - "*" # Push events to matching any tags
 jobs:
   build:
-    runs-on: windows-2022
+    # 见 https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: windows-latest
     strategy:
       matrix:
         node-version: ['16.14.2']
