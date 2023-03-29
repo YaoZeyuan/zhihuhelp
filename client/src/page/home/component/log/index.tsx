@@ -19,9 +19,10 @@ export default () => {
   const ContainerHeight = 768
   const fetchLogList = () => {
     const content = ipcRenderer.sendSync('get-log-content')
+    const rawLogList = content?.split('\n') ?? []
     const logList: Type_Log_Item[] = []
     let counter = 0
-    for (let item of content.split('\n')) {
+    for (let item of rawLogList) {
       counter++
       logList.push({
         lineNo: counter,
