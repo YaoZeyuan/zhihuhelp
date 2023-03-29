@@ -2,11 +2,11 @@ name: CI-Windows
 
 on:
   push:
-    branches:
-      - master
+    # branches:
+      # - master
     # Sequence of patterns matched against refs/tags
     tags:
-      - * # Push events to matching any tags
+      - "*" # Push events to matching any tags
 jobs:
   build:
     runs-on: windows-2022
