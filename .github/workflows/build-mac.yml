@@ -1,6 +1,7 @@
 name: CI-Mac
 
 on:
+  workflow_dispatch:
   push:
     # branches:
       # - master
