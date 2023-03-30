@@ -14,7 +14,9 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: ['16.14.2']
+        # electron-23.2.1对应node版本为18.12.1
+        # 见https://releases.electronjs.org/
+        node-version: ['18.12.1']
 
     steps:
       - uses: actions/checkout@v2
@@ -30,7 +32,9 @@ jobs:
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
       - run: cd ./client ; yarn ; cd ..
       - run: yarn
-      - run: yarn dist
+      - run: yarn build-without-sourcemap
+      - run: yarn buildgui
+      - run: yarn electron-builder
         env:
           CI: true
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)

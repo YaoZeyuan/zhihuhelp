@@ -14,7 +14,9 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        node-version: ['16.14.2']
+        # electron-23.2.1对应node版本为18.12.1
+        # 见https://releases.electronjs.org/
+        node-version: ['18.12.1']
 
     steps:
       - uses: actions/checkout@v2
@@ -33,13 +35,15 @@ jobs:
       - run: cd ./client && yarn && cd ..
       - run: yarn
        # 只安装intel版的sharp库即可, m1上可以运行intel的代码
-      - run: npm install --platform=darwin --arch=x64 --build-from-source sharp 
+      - run: npm install --platform=darwin --arch=x64 sharp 
       # 尝试解决mac上无法构建的问题
       # - run: npm install --platform=darwin --arch=x64 sharp
       # - run: npm rebuild --platform=darwin --arch=arm64 sharp
       # - run: electron-builder install-app-deps
       - run: yarn postinstall-4-mac
-      - run: yarn dist
+      - run: yarn build-without-sourcemap
+      - run: yarn buildgui
+      - run: yarn electron-builder
         env:
           CI: true
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
