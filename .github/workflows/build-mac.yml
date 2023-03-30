@@ -40,7 +40,7 @@ jobs:
       # - run: npm install --platform=darwin --arch=x64 sharp
       # - run: npm rebuild --platform=darwin --arch=arm64 sharp
       # - run: electron-builder install-app-deps
-      - run: yarn postinstall-4-mac
+      # - run: yarn postinstall-4-mac
       - run: yarn build-without-sourcemap
       - run: yarn buildgui
       - run: yarn electron-builder

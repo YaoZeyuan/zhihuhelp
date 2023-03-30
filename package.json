@@ -21,6 +21,7 @@
     "dist": "npm run build-without-sourcemap && npm run buildgui && electron-builder",
     "electron-builder": "electron-builder",
     "postinstall-4-mac": "electron-rebuild -f -w sharp",
+    "postinstall-4-win": "electron-builder install-app-deps",
     "server": "nodemon --inspect dist/start-dev-server.js",
     "tsc": "tsc",
     "lint": "tsc && NODE_ENV=production eslint src",
@@ -31,8 +32,8 @@
     "productName": "知乎助手",
     "appId": "zhihuhelp",
     "copyright": "@姚泽源",
-    "npmRebuild": true,
-    "buildDependenciesFromSource": true,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
     "asar": false,
     "directories": {
       "output": "release"
