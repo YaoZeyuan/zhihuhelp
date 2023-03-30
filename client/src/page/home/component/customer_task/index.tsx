@@ -25,6 +25,7 @@ import * as Consts from './resource/const/index'
 import { createStore } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
+import { Const_Default_Order_Item } from './component/order_item/state/index'
 import Util, { Type_Form_Config } from './library/util'
 import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
@@ -59,6 +60,7 @@ export default () => {
   }>()
 
   const taskItemList = Form.useWatch('task-item-list', form)
+  const orderItemList = Form.useWatch('order-item-list', form)
   const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
 
   Ahooks.useAsyncEffect(async () => {
@@ -82,6 +84,15 @@ export default () => {
   }, [JSON.stringify(legalTaskItemList)])
 
   useEffect(() => {
+    // 监控排序列表不能为空
+    if (orderItemList?.length === 0) {
+      form.setFieldValue('order-item-list', [
+        {
+          ...Const_Default_Order_Item,
+        },
+      ])
+    }
+
     // 监控任务列表不能为空
     if (taskItemList?.length === 0) {
       form.setFieldValue('task-item-list', [
@@ -100,7 +111,7 @@ export default () => {
       // 同步到批量任务模态框
       handleBatchTaskModal.syncToModalValue(taskItemList)
     }
-  }, [taskItemList])
+  }, [taskItemList, orderItemList])
 
   let [initStoreValue, setInitStoreValue] = useState<ReturnType<typeof Util.generateStatus>>({} as any)
 
