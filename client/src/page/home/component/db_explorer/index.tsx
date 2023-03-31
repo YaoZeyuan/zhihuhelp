@@ -1,4 +1,3 @@
-import electron from 'electron'
 import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio, Descriptions, Badge, Divider } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import { useState, useRef, useEffect } from 'react'
@@ -12,13 +11,12 @@ import * as Ahooks from 'ahooks'
 
 import './index.less'
 
-const { ipcRenderer } = electron
-
 export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100
 
 export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
+  let [isLoading, setIsLoading] = useState<boolean>(false)
 
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
   let refStore = useRef(createStore())
@@ -26,21 +24,15 @@ export default () => {
   let snap = useSnapshot(store)
 
   const handleRecordFunc = {
-    getBaseInfo: () => {
-      let summaryInfo = ipcRenderer.sendSync('get-db-summary-info')
+    getBaseInfo: async () => {
+      setIsLoading(true)
+      let summaryInfo = await window.electronAPI['get-db-summary-info']()
       store.baseInfo.count = summaryInfo
+      setIsLoading(false)
     },
-    // getTabList: () => {
-    //   let fetchListRes: Types.FetchListRes = ipcRenderer.sendSync('get-db-tab-list', {
-    //     type: snap.currentSelect.type,
-    //     pageNo: snap.currentSelect.info.pageNo,
-    //     pageSize: snap.currentSelect.info.pageSize,
-    //   })
-    //   store.currentSelect.info = fetchListRes
-    // },
   }
   // 初始化时获取数据库数据
-  useEffect(handleRecordFunc.getBaseInfo, [])
+  Ahooks.useAsyncEffect(handleRecordFunc.getBaseInfo, [])
 
   return (
     <div className="db_explorer_dawqxf">
@@ -48,6 +40,7 @@ export default () => {
       {/* 1. 能够查看用户列表, 支持分页 */}
       {/* 2. 确定用户后, 能够显示回答列表, 支持分页 */}
       <Card
+        loading={isLoading}
         title="已入库数据汇总"
         style={{ width: '100%' }}
         extra={[

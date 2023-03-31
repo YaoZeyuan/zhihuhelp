@@ -1,4 +1,3 @@
-import electron from 'electron'
 import { Button, message, Input, Form, Table, Modal, Tag, Card, Radio } from 'antd'
 
 import { useState, useContext, useEffect } from 'react'
@@ -10,8 +9,6 @@ import * as Types from './resource/type/index'
 import moment from 'moment'
 
 import './index.less'
-
-const { ipcRenderer } = electron
 
 export const Const_Storage_Key = 'login_msk'
 const Const_Table_Column_Width = 100

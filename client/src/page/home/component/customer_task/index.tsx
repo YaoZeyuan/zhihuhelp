@@ -1,4 +1,3 @@
-import electron from 'electron'
 import {
   Button,
   message,
@@ -34,7 +33,6 @@ import * as Ahooks from 'ahooks'
 
 import './index.less'
 
-const { ipcRenderer } = electron
 const { Option } = Select
 const { TextArea } = Input
 
@@ -69,7 +67,7 @@ export default () => {
     if (autoGenerateTitle) {
       let title = ''
       for (const config of legalTaskItemList) {
-        const bufTitle = ipcRenderer.sendSync('get-task-default-title', {
+        const bufTitle = await window.electronAPI['get-task-default-title']({
           taskType: config.type,
           taskId: config.id,
         })
@@ -117,9 +115,9 @@ export default () => {
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
 
-  Ahooks.useMount(() => {
+  Ahooks.useMount(async () => {
     // 初始化时载入一次
-    let config = ipcRenderer.sendSync('get-common-config')
+    let config = await window.electronAPI['get-common-config']()
     // console.log('init config =>', config)
     let initStoreValue = Util.generateStatus(config)
     setInitStoreValue(initStoreValue)
@@ -160,14 +158,15 @@ export default () => {
       return
     }
 
-    ipcRenderer.send('start-customer-task', {
+    // 直接派发任务即可
+    window.electronAPI['start-customer-task']({
       config: config,
     })
     setCurrentTab(Consts_Page.Const_Page_运行日志)
   }
 
   const asyncCheckLogin = async () => {
-    let res = ipcRenderer.sendSync('zhihu-http-get', {
+    let res = await window.electronAPI['zhihu-http-get']({
       url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
       params: {
         include:
@@ -405,8 +404,8 @@ export default () => {
             <Divider type="vertical"></Divider>
             <Button
               htmlType="button"
-              onClick={() => {
-                ipcRenderer.sendSync('open-output-dir')
+              onClick={async () => {
+                await window.electronAPI['open-output-dir']()
               }}
             >
               打开输出目录
@@ -430,15 +429,15 @@ export default () => {
                     },
                     {
                       label: '打开开发者工具',
-                      onClick: () => {
-                        ipcRenderer.sendSync('open-devtools')
+                      onClick: async () => {
+                        await window.electronAPI['open-devtools']()
                       },
                     },
                     {
                       label: '注销登录',
                       danger: true,
-                      onClick: () => {
-                        ipcRenderer.sendSync('clear-all-session-storage')
+                      onClick: async () => {
+                        await window.electronAPI['clear-all-session-storage']()
                         SimpleModal.warning({
                           title: '注销成功',
                           content: '请重新登录知乎账号',

@@ -1,12 +1,9 @@
 import { Button, List, Typography, Card, Row, Divider, Space, Col, Checkbox, message } from 'antd'
-import Electron from 'electron'
 import { useState, useContext, useEffect } from 'react'
 import VirtualList from 'rc-virtual-list'
 import * as Ahooks from 'ahooks'
 
 import './index.less'
-
-const { ipcRenderer } = Electron
 
 type Type_Log_Item = {
   lineNo: number
@@ -17,8 +14,8 @@ export default () => {
   const [isAutoFresh, setIsAutoFresh] = useState<boolean>(true)
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const ContainerHeight = 768
-  const fetchLogList = () => {
-    let content = ipcRenderer.sendSync('get-log-content')
+  const asyncFetchLogList = async () => {
+    let content = await window.electronAPI['get-log-content']()
     // console.log('content', content)
     // 暴力避免content为空字符串
     if (typeof content?.split !== 'function') {
@@ -40,19 +37,19 @@ export default () => {
       containerEle.scrollTop = containerEle.scrollHeight ?? 1000000000
     }
   }
-  const clearLogList = () => {
-    ipcRenderer.sendSync('clear-log-content')
-    fetchLogList()
+  const asyncClearLogList = async () => {
+    await window.electronAPI['clear-log-content']()
+    await asyncFetchLogList()
   }
-  Ahooks.useInterval(() => {
+  Ahooks.useInterval(async () => {
     if (isAutoFresh) {
       // 若自动刷新, 则每2秒刷新一次
-      fetchLogList()
+      await asyncFetchLogList()
     }
   }, 2 * 1000)
 
-  useEffect(() => {
-    fetchLogList()
+  Ahooks.useAsyncEffect(async () => {
+    await asyncFetchLogList()
   }, [])
 
   return (
@@ -81,11 +78,11 @@ export default () => {
             </Checkbox>
           </Col>
           <Col offset={6}>
-            <Button type="primary" onClick={fetchLogList}>
+            <Button type="primary" onClick={asyncFetchLogList}>
               刷新日志
             </Button>
             <Divider type="vertical"></Divider>
-            <Button danger onClick={clearLogList}>
+            <Button danger onClick={asyncClearLogList}>
               清空日志
             </Button>
           </Col>
