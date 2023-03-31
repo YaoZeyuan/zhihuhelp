@@ -75,6 +75,11 @@ export default class Util {
         let status: Type_Status = {
             status: {
                 forceUpdate: 0,
+                loading: {
+                    "startTask": false,
+                    "checkLogin": false,
+                    "checkUpdate": false
+                }
             },
             "fetchTaskList": [],
             "generateConfig": {

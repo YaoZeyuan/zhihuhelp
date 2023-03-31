@@ -12,6 +12,11 @@ export type Type_Status = {
      */
     status: {
         forceUpdate: number,
+        loading: {
+            startTask: boolean,
+            checkUpdate: boolean
+            checkLogin: boolean
+        }
     }
     fetchTaskList: Types_Task_Config.Type_Fetch_Task_Config_Item[]
     generateConfig: {
@@ -32,6 +37,11 @@ export function createStore() {
     const store = proxy<Type_Status>({
         status: {
             forceUpdate: 0,
+            loading: {
+                startTask: false,
+                checkUpdate: false,
+                checkLogin: false
+            }
         },
         fetchTaskList: [],
         generateConfig: {

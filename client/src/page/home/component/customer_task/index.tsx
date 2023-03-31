@@ -142,6 +142,7 @@ export default () => {
   }, [initStoreValue])
 
   const asyncOnFinish = async (values: any) => {
+    store.status.loading.startTask = true
     // 提交数据, 生成配置文件
     console.log('final config => ', JSON.stringify(values, null, 2))
     const config = Util.generateTaskConfig(values)
@@ -157,6 +158,7 @@ export default () => {
       })
       return
     }
+    store.status.loading.startTask = false
 
     // 直接派发任务即可
     window.electronAPI['start-customer-task']({
@@ -166,6 +168,7 @@ export default () => {
   }
 
   const asyncCheckLogin = async () => {
+    console.log('check login')
     let res = await window.electronAPI['zhihu-http-get']({
       url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
       params: {
@@ -174,6 +177,8 @@ export default () => {
         offset: 0,
         limit: 20,
         sort_by: 'created',
+        // 避免请求被缓存住
+        random: Math.floor(Math.random() * 100000),
       },
     })
     console.log('res => ', res)
@@ -398,7 +403,7 @@ export default () => {
             <TextArea suffix={''} allowClear />
           </Form.Item>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={snap.status.loading.startTask}>
               开始
             </Button>
             <Divider type="vertical"></Divider>
@@ -416,9 +421,12 @@ export default () => {
                 menu={{
                   items: [
                     {
+                      loading: snap.status.loading.checkLogin,
                       label: '检查登录状态',
                       onClick: async () => {
+                        store.status.loading.checkLogin = true
                         let isLogin = await asyncCheckLogin()
+                        store.status.loading.checkLogin = false
                         if (isLogin) {
                           message.success('当前状态: 已登录')
                           return
