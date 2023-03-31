@@ -572,6 +572,7 @@ document.getElementById('open-devtools').addEventListener('click', openDevTools)
  * @returns
  */
 async function asyncEncrypt(inputStr) {
+  // console.log('start asyncEncrypt => ', inputStr)
   if (!!webviewEle === false) {
     // rpc-webview尚未完成初始化
     return ''
@@ -583,18 +584,21 @@ async function asyncEncrypt(inputStr) {
 asyncInit()
 
 /**
- * 接收主进程请求, onEncryptString 注册在preload.js文件中
+ * 接收主进程请求, encryptString 注册在preload.js文件中
  */
-window.electronAPI.onEncryptString(async (event, paramList, id) => {
+window.electronAPI.registerEncryptCallback(async (event, paramList, id) => {
   let param = paramList[0]
   let { inputString = '' } = param
-  // console.log('run onEncryptString => ', { paramList, id })
+  // console.log('run method encrypt-string => ', { paramList, id })
   let result = await asyncEncrypt(inputString).catch((e) => {
     // 加密执行失败也返回空字符串
     return ''
   })
-  event.sender.send('js-rpc-response', {
+  // console.log('result => ', result)
+  //  通过js-rpc-response方法向主进程返回结果
+  window.electronAPI.jsRpcResponse({
     id,
     value: result,
   })
+  return ''
 })

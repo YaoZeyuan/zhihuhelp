@@ -108,8 +108,8 @@ async function asyncCreateWindow() {
       devTools: true,
       // 禁用同源策略, 允许加载任何来源的js
       webSecurity: false,
-      // js-rpc需要
-      contextIsolation: true,
+      // // js-rpc需要
+      // contextIsolation: true,
       // 启用webview标签
       webviewTag: true,
       // 启用preload.js, 以进行rpc通信
@@ -323,11 +323,11 @@ app.whenReady().then(() => {
   // 使用js-rpc获取签名
   setBridgeFunc(asyncJsRpcTriggerFunc)
 
-  // 触发js-rpc请求
-  ipcMain.handle('js-rpc-trigger', async (event, { method, paramList }) => {
-    let result = await asyncJsRpcTriggerFunc({ method, paramList })
-    return JSON.stringify(result)
-  })
+  // 工具函数, 用于在测试时手工触发js-rpc请求
+  // ipcMain.handle('js-rpc-trigger', async (event, { method, paramList }) => {
+  //   let result = await asyncJsRpcTriggerFunc({ method, paramList })
+  //   return JSON.stringify(result)
+  // })
 
   // 回收js-rpc调用响应值
   ipcMain.handle('js-rpc-response', async (event, { id, value }) => {
