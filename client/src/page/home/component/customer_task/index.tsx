@@ -418,10 +418,10 @@ export default () => {
             <Divider type="vertical"></Divider>
             <Space wrap>
               <Dropdown.Button
+                loading={snap.status.loading.checkLogin}
                 menu={{
                   items: [
                     {
-                      loading: snap.status.loading.checkLogin,
                       label: '检查登录状态',
                       onClick: async () => {
                         store.status.loading.checkLogin = true
