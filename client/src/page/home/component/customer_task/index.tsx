@@ -132,52 +132,53 @@ export default () => {
     statusStore.initComplete = true
   })
 
-  const asyncOnFinish = async (values: any) => {
-    statusStore.loading.startTask = true
-    // 提交数据, 生成配置文件
-    console.log('final config => ', JSON.stringify(values, null, 2))
-    const config = Util.generateTaskConfig(values)
-    let isLogin = await asyncCheckLogin()
-    if (isLogin === false) {
-      SimpleModal.warning({
-        title: '登录状态异常',
-        content: '请先登录知乎账号后再启动任务',
-        okText: '去登陆',
-        onOk: () => {
-          setCurrentTab(Consts_Page.Const_Page_登录)
+  const handleFormAction = {
+    asyncOnFinish: async (values: any) => {
+      statusStore.loading.startTask = true
+      // 提交数据, 生成配置文件
+      console.log('final config => ', JSON.stringify(values, null, 2))
+      const config = Util.generateTaskConfig(values)
+      let isLogin = await handleFormAction.asyncCheckLogin()
+      if (isLogin === false) {
+        SimpleModal.warning({
+          title: '登录状态异常',
+          content: '请先登录知乎账号后再启动任务',
+          okText: '去登陆',
+          onOk: () => {
+            setCurrentTab(Consts_Page.Const_Page_登录)
+          },
+        })
+        return
+      }
+      statusStore.loading.startTask = false
+
+      // 直接派发任务即可
+      window.electronAPI['start-customer-task']({
+        config: config,
+      })
+      setCurrentTab(Consts_Page.Const_Page_运行日志)
+    },
+    asyncCheckLogin: async () => {
+      console.log('check login')
+      let res = await window.electronAPI['zhihu-http-get']({
+        url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
+        params: {
+          include:
+            'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
+          offset: 0,
+          limit: 20,
+          sort_by: 'created',
+          // 避免请求被缓存住
+          random: Math.floor(Math.random() * 100000),
         },
       })
-      return
-    }
-    statusStore.loading.startTask = false
-
-    // 直接派发任务即可
-    window.electronAPI['start-customer-task']({
-      config: config,
-    })
-    setCurrentTab(Consts_Page.Const_Page_运行日志)
-  }
-
-  const asyncCheckLogin = async () => {
-    console.log('check login')
-    let res = await window.electronAPI['zhihu-http-get']({
-      url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
-      params: {
-        include:
-          'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
-        offset: 0,
-        limit: 20,
-        sort_by: 'created',
-        // 避免请求被缓存住
-        random: Math.floor(Math.random() * 100000),
-      },
-    })
-    console.log('res => ', res)
-    if (res.data !== undefined) {
-      return true
-    } else {
-      return false
-    }
+      console.log('res => ', res)
+      if (res.data !== undefined) {
+        return true
+      } else {
+        return false
+      }
+    },
   }
 
   const handleBatchTaskModal = {
@@ -226,7 +227,7 @@ export default () => {
         <Form
           form={form}
           name="control-hooks"
-          onFinish={asyncOnFinish}
+          onFinish={handleFormAction.asyncOnFinish}
           colon={false}
           initialValues={{
             taskItemList: [],
@@ -406,7 +407,7 @@ export default () => {
                       label: '检查登录状态',
                       onClick: async () => {
                         statusStore.loading.checkLogin = true
-                        let isLogin = await asyncCheckLogin()
+                        let isLogin = await handleFormAction.asyncCheckLogin()
                         statusStore.loading.checkLogin = false
                         if (isLogin) {
                           message.success('当前状态: 已登录')
