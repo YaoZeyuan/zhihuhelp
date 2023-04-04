@@ -78,8 +78,16 @@ export default () => {
             </Checkbox>
           </Col>
           <Col offset={6}>
-            <Button type="primary" onClick={asyncFetchLogList}>
-              刷新日志
+            <Button onClick={asyncFetchLogList}>刷新日志</Button>
+            <Divider type="vertical"></Divider>
+            <Button
+              type="primary"
+              htmlType="button"
+              onClick={async () => {
+                await window.electronAPI['open-output-dir']()
+              }}
+            >
+              打开输出目录
             </Button>
             <Divider type="vertical"></Divider>
             <Button danger onClick={asyncClearLogList}>
