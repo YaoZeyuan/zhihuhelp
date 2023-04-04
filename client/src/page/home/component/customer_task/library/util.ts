@@ -2,22 +2,22 @@ import * as TypeTaskConfig from "~/src/resource/type/task_config"
 import * as ConstTaskConfig from "~/src/resource/const/task_config"
 import querystring from 'query-string'
 
-import { Type_Status } from '../state/index'
+import { Type_Status, Type_FormValue } from '../state/index'
 
 export type Type_Form_Config = {
-    "book-title": "知乎助手生成的电子书",
-    "task-item-list": {
+    "bookTitle": "知乎助手生成的电子书",
+    "taskItemList": {
         "type": TypeTaskConfig.Type_Item_Collection_Type | TypeTaskConfig.Type_Author_Collection_Type,
         "id": "xie-lu-tian-e" | string,
         "rawInputText": "https://www.zhihu.com/people/xie-lu-tian-e/answers" | string,
         skipFetch: boolean
     }[],
-    "order-item-list": {
+    "orderItemList": {
         "orderBy": "asc",
         "orderWith": "createAt"
     }[],
-    "image-quilty": "hd",
-    "max-item-in-book": 10000,
+    "imageQuilty": "hd",
+    "maxItemInBook": 10000,
     "comment": ""
 }
 
@@ -35,7 +35,7 @@ export default class Util {
 
         // 抓取任务
         config.fetchTaskList = []
-        for (let taskItem of param["task-item-list"]) {
+        for (let taskItem of param["taskItemList"]) {
 
             let fetchTaskItem: TypeTaskConfig.Type_Task_Config['fetchTaskList'][number] = {
                 "comment": "",
@@ -52,15 +52,15 @@ export default class Util {
         }
         // 任务执行配置
         config.generateConfig = {
-            "bookTitle": param["book-title"],
-            imageQuilty: param["image-quilty"],
-            maxItemInBook: param["max-item-in-book"],
+            "bookTitle": param["bookTitle"],
+            imageQuilty: param["imageQuilty"],
+            maxItemInBook: param["maxItemInBook"],
             "comment": param.comment,
             "orderByList": [],
             generateType: "merge_by_task"
         }
         // 排序配置
-        for (let orderItem of param["order-item-list"]) {
+        for (let orderItem of param["orderItemList"]) {
             let orderByItem: TypeTaskConfig.Type_Order_By_Config = {
                 orderBy: orderItem.orderBy,
                 orderWith: orderItem.orderWith
@@ -71,58 +71,48 @@ export default class Util {
         return config
     }
 
-    static generateStatus(config: TypeTaskConfig.Type_Task_Config): Type_Status {
-        let status: Type_Status = {
-            status: {
-                forceUpdate: 0,
-                loading: {
-                    "startTask": false,
-                    "checkLogin": false,
-                    "checkUpdate": false
-                }
-            },
-            "fetchTaskList": [],
-            "generateConfig": {
-                "bookTitle": "",
-                "comment": "",
-                "generateType": "single",
-                "imageQuilty": "hd",
-                "maxItemInBook": 10000,
-                "orderByList": []
-            }
+    static generateStatus(config: TypeTaskConfig.Type_Task_Config): Type_FormValue {
+        let formConfig: Type_FormValue = {
+            "taskItemList": [],
+            "bookTitle": "",
+            "comment": "",
+            "generateType": "single",
+            "imageQuilty": "hd",
+            "maxItemInBook": 10000,
+            "orderItemList": []
         }
 
         // 抓取任务
-        status.fetchTaskList = []
         for (let taskItem of config.fetchTaskList) {
-            let fetchTaskItem: Type_Status['fetchTaskList'][number] = {
+            let fetchTaskItem: Type_FormValue['taskItemList'][number] = {
                 "comment": "",
                 "id": taskItem.id,
                 "rawInputText": taskItem.rawInputText,
                 "skipFetch": taskItem.skipFetch,
                 "type": taskItem.type
             }
-            status.fetchTaskList.push(fetchTaskItem)
+            formConfig['taskItemList'].push(fetchTaskItem)
         }
         // 任务执行配置
-        status.generateConfig = {
+        formConfig = {
+            "taskItemList": formConfig['taskItemList'],
             "bookTitle": config.generateConfig.bookTitle,
-            imageQuilty: config.generateConfig.imageQuilty,
-            maxItemInBook: config.generateConfig.maxItemInBook,
+            "imageQuilty": config.generateConfig.imageQuilty,
+            "maxItemInBook": config.generateConfig.maxItemInBook,
             "comment": config.generateConfig.comment,
-            "orderByList": [],
-            generateType: config.generateConfig.generateType
+            "orderItemList": [],
+            "generateType": config.generateConfig.generateType
         }
         // 排序配置
         for (let orderItem of config.generateConfig.orderByList) {
-            let orderByItem: Type_Status['generateConfig']['orderByList'][number] = {
+            let orderByItem: Type_FormValue["orderItemList"][number] = {
                 orderBy: orderItem.orderBy,
                 orderWith: orderItem.orderWith
             }
-            status.generateConfig.orderByList.push(orderByItem)
+            formConfig['orderItemList'].push(orderByItem)
         }
 
-        return status
+        return formConfig
     }
 
     static matchId({

@@ -21,7 +21,7 @@ import { useSnapshot } from 'valtio'
 import { useState, useContext, useEffect } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Consts from './resource/const/index'
-import { createStore } from './state'
+import { createStatusStore } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import { Const_Default_Order_Item } from './component/order_item/state/index'
@@ -33,20 +33,18 @@ import * as Ahooks from 'ahooks'
 
 import './index.less'
 
-const { Option } = Select
 const { TextArea } = Input
 
 export const Const_Storage_Key = 'login_msk'
-const Const_Table_Column_Width = 100
 
 export default () => {
   const { modal: SimpleModal } = App.useApp()
   let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
 
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
-  let refStore = useRef(createStore())
-  const store = refStore.current
-  let snap = useSnapshot(store)
+  let refStatusStore = useRef(createStatusStore())
+  const statusStore = refStatusStore.current
+  let statusSnap = useSnapshot(statusStore)
 
   let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
   // 用于生成计数key, 解决批量导入任务后, 组件不更新的问题
@@ -54,16 +52,15 @@ export default () => {
 
   const [form] = Form.useForm<Type_Form_Config>()
   const [modalForm] = Form.useForm<{
-    'batch-url-list-str': string
+    batchUrlListStr: string
   }>()
 
-  const taskItemList = Form.useWatch('task-item-list', form)
-  const orderItemList = Form.useWatch('order-item-list', form)
+  const taskItemList = Form.useWatch('taskItemList', form)
+  const orderItemList = Form.useWatch('orderItemList', form)
   const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
 
   Ahooks.useAsyncEffect(async () => {
     // 任务列表内容发生变更, 重新生成电子书标题
-    // console.log('legalTaskItemList has changed => ', legalTaskItemList)
     if (autoGenerateTitle) {
       let title = ''
       for (const config of legalTaskItemList) {
@@ -77,14 +74,18 @@ export default () => {
           title = title + '_' + bufTitle
         }
       }
-      form.setFieldValue('book-title', title)
+      form.setFieldValue('bookTitle', title)
     }
   }, [JSON.stringify(legalTaskItemList)])
 
   useEffect(() => {
+    if (statusSnap.initComplete === false) {
+      // 配置未载入完成前不进行兜底操作
+      return
+    }
     // 监控排序列表不能为空
     if (orderItemList?.length === 0) {
-      form.setFieldValue('order-item-list', [
+      form.setFieldValue('orderItemList', [
         {
           ...Const_Default_Order_Item,
         },
@@ -93,7 +94,7 @@ export default () => {
 
     // 监控任务列表不能为空
     if (taskItemList?.length === 0) {
-      form.setFieldValue('task-item-list', [
+      form.setFieldValue('taskItemList', [
         {
           id: '',
           rawInputText: '',
@@ -111,38 +112,28 @@ export default () => {
     }
   }, [taskItemList, orderItemList])
 
-  let [initStoreValue, setInitStoreValue] = useState<ReturnType<typeof Util.generateStatus>>({} as any)
-
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
 
   Ahooks.useMount(async () => {
     // 初始化时载入一次
     let config = await window.electronAPI['get-common-config']()
-    // console.log('init config =>', config)
-    let initStoreValue = Util.generateStatus(config)
-    setInitStoreValue(initStoreValue)
+    let initValue = Util.generateStatus(config)
+
+    form.setFieldValue('book-title', initValue.bookTitle)
+    form.setFieldValue('taskItemList', initValue.taskItemList)
+    form.setFieldValue('orderItemList', initValue.orderItemList)
+    form.setFieldValue('image-quilty', initValue.imageQuilty)
+    form.setFieldValue('maxItemInBook', initValue.maxItemInBook)
+    form.setFieldValue('comment', initValue.comment)
+
+    handleBatchTaskModal.syncToModalValue(initValue.taskItemList)
+
+    // 载入完成后标记状态
+    statusStore.initComplete = true
   })
 
-  useEffect(() => {
-    if (initStoreValue?.generateConfig?.bookTitle !== undefined) {
-      for (let key of Object.keys(initStoreValue)) {
-        // @ts-ignore
-        store[key] = initStoreValue[key]
-      }
-      form.setFieldValue('book-title', initStoreValue.generateConfig.bookTitle)
-      form.setFieldValue('task-item-list', initStoreValue.fetchTaskList)
-      form.setFieldValue('order-item-list', initStoreValue.generateConfig.orderByList)
-      form.setFieldValue('image-quilty', initStoreValue.generateConfig.imageQuilty)
-      form.setFieldValue('max-item-in-book', initStoreValue.generateConfig.maxItemInBook)
-      form.setFieldValue('comment', initStoreValue.generateConfig.comment)
-
-      // 同步到批量任务模态框
-      handleBatchTaskModal.syncToModalValue(initStoreValue.fetchTaskList)
-    }
-  }, [initStoreValue])
-
   const asyncOnFinish = async (values: any) => {
-    store.status.loading.startTask = true
+    statusStore.loading.startTask = true
     // 提交数据, 生成配置文件
     console.log('final config => ', JSON.stringify(values, null, 2))
     const config = Util.generateTaskConfig(values)
@@ -158,7 +149,7 @@ export default () => {
       })
       return
     }
-    store.status.loading.startTask = false
+    statusStore.loading.startTask = false
 
     // 直接派发任务即可
     window.electronAPI['start-customer-task']({
@@ -190,13 +181,13 @@ export default () => {
   }
 
   const handleBatchTaskModal = {
-    syncToModalValue: (fetchTaskList: Type_Form_Config['task-item-list']) => {
+    syncToModalValue: (fetchTaskList: Type_Form_Config['taskItemList']) => {
       const batchUrlListStr = fetchTaskList?.map((item) => item.rawInputText)?.join('\n') ?? ''
-      modalForm.setFieldValue('batch-url-list-str', batchUrlListStr)
+      modalForm.setFieldValue('batchUrlListStr', batchUrlListStr)
     },
     syncToTaskList: (batchUrlListStr: string) => {
       const batchUrlList = batchUrlListStr.split('\n')
-      const taskList: Type_Form_Config['task-item-list'] = []
+      const taskList: Type_Form_Config['taskItemList'] = []
       for (let url of batchUrlList) {
         url = url.trim()
         if (url === '') {
@@ -205,7 +196,7 @@ export default () => {
         const taskType = Util.detectTaskType({
           rawInputText: url,
         })
-        const taskItem: Type_Form_Config['task-item-list'][0] = {
+        const taskItem: Type_Form_Config['taskItemList'][0] = {
           id: '',
           rawInputText: url,
           skipFetch: false,
@@ -213,13 +204,13 @@ export default () => {
         }
         taskList.push(taskItem)
       }
-      form.setFieldValue('task-item-list', taskList)
+      form.setFieldValue('taskItemList', taskList)
     },
     showModal: () => {
       setIsModalShow(true)
     },
     onOk: () => {
-      const batchUrlListStr = modalForm.getFieldValue('batch-url-list-str')
+      const batchUrlListStr = modalForm.getFieldValue('batchUrlListStr')
       handleBatchTaskModal.syncToTaskList(batchUrlListStr)
       setBatchTaskUpdateCounter(batchTaskUpdateCounter + 1)
       setIsModalShow(false)
@@ -238,12 +229,13 @@ export default () => {
           onFinish={asyncOnFinish}
           colon={false}
           initialValues={{
-            'book-title': snap.generateConfig.bookTitle,
-            'task-item-list': [...snap.fetchTaskList],
-            'order-item-list': [...snap.generateConfig.orderByList],
-            'image-quilty': snap.generateConfig.imageQuilty,
-            'max-item-in-book': snap.generateConfig.maxItemInBook,
-            comment: snap.generateConfig.comment,
+            taskItemList: [],
+            imageQuilty: 'hd', // 图片质量
+            bookTitle: '', // 书名
+            comment: '', // 备注
+            maxItemInBook: 10000, // 自动分卷: 单本电子书中最大回答/想法/文章数量
+            orderItemList: [],
+            generateType: 'single',
           }}
           labelCol={{
             span: 4,
@@ -254,18 +246,13 @@ export default () => {
             <Row justify="space-between" align="middle" gutter={1}>
               <Col span={16}>
                 <Form.Item
-                  name="book-title"
+                  name="bookTitle"
                   label="电子书名"
                   style={{
                     margin: '0 auto',
                   }}
                 >
-                  <Input
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      store.generateConfig.bookTitle = e.target.value
-                    }}
-                    disabled={autoGenerateTitle}
-                  />
+                  <Input disabled={autoGenerateTitle} />
                 </Form.Item>
               </Col>
               <Col span={4}>
@@ -294,7 +281,7 @@ export default () => {
                 onCancel={handleBatchTaskModal.onCancel}
               >
                 <Form form={modalForm}>
-                  <Form.Item name="batch-url-list-str" label="任务列表">
+                  <Form.Item name="batchUrlListStr" label="任务列表">
                     <Input.TextArea suffix={''} autoSize={{ minRows: 10 }} allowClear></Input.TextArea>
                   </Form.Item>
                 </Form>
@@ -313,7 +300,7 @@ export default () => {
             </Row>
             <Divider style={{ margin: '12px' }} />
           </Form.Item>
-          <Form.List name="task-item-list">
+          <Form.List name="taskItemList">
             {(fields, operation) => {
               return fields.map((field) => {
                 return (
@@ -342,7 +329,7 @@ export default () => {
             </Row>
             <Divider style={{ margin: '12px' }} />
           </Form.Item>
-          <Form.List name="order-item-list">
+          <Form.List name="orderItemList">
             {(fields, operation) => {
               return fields.map((field) => {
                 return (
@@ -360,19 +347,13 @@ export default () => {
             }}
           </Form.List>
           <Form.Item
-            name="image-quilty"
+            name="imageQuilty"
             label="图片质量"
             labelCol={{
               span: 3,
             }}
           >
-            <Radio.Group
-              onChange={(e) => {
-                console.log('imageQuilty => ', e.target.value)
-                store.generateConfig.imageQuilty = e.target.value
-              }}
-              buttonStyle="solid"
-            >
+            <Radio.Group buttonStyle="solid">
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
@@ -386,7 +367,7 @@ export default () => {
           >
             <Space>
               单本电子书中最多
-              <Form.Item name="max-item-in-book" noStyle>
+              <Form.Item name="maxItemInBook" noStyle>
                 <InputNumber step={1000}></InputNumber>
               </Form.Item>
               条答案/想法/文章
@@ -403,7 +384,7 @@ export default () => {
             <TextArea suffix={''} allowClear />
           </Form.Item>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
-            <Button type="primary" htmlType="submit" loading={snap.status.loading.startTask}>
+            <Button type="primary" htmlType="submit" loading={statusSnap.loading.startTask}>
               开始
             </Button>
             <Divider type="vertical"></Divider>
@@ -418,15 +399,15 @@ export default () => {
             <Divider type="vertical"></Divider>
             <Space wrap>
               <Dropdown.Button
-                loading={snap.status.loading.checkLogin}
+                loading={statusSnap.loading.checkLogin}
                 menu={{
                   items: [
                     {
                       label: '检查登录状态',
                       onClick: async () => {
-                        store.status.loading.checkLogin = true
+                        statusStore.loading.checkLogin = true
                         let isLogin = await asyncCheckLogin()
-                        store.status.loading.checkLogin = false
+                        statusStore.loading.checkLogin = false
                         if (isLogin) {
                           message.success('当前状态: 已登录')
                           return
