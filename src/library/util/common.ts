@@ -282,7 +282,8 @@ export default class CommonUtil {
     let encodeFilename = rawFilename
     let illegalCharMap = {
       '\\': '＼',
-      '/': '／',
+      // hack掉, 解决图片中包含／时, 文件名中不带／的导致找不到对应图片的问题
+      '/': '',
       ':': '：',
       '*': '＊',
       '?': '？',
