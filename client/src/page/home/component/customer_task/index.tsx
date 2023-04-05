@@ -110,7 +110,8 @@ export default () => {
       // 同步到批量任务模态框
       handleBatchTaskModal.syncToModalValue(taskItemList)
     }
-  }, [taskItemList, orderItemList])
+    // 当配置载入成功时, 也重新执行一次检查工作
+  }, [taskItemList, orderItemList, statusSnap.initComplete])
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
 
