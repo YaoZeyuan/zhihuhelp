@@ -12,7 +12,7 @@ class Collection extends Base {
     offset: number = 0,
     limit: number = 20,
   ): Promise<TypeCollection.AnswerExcerpt[]> {
-    const baseUrl = `https://api.zhihu.com/collections/${colectionId}/answers`
+    const baseUrl = `https://www.zhihu.com/api/v4/collections/${colectionId}/items`
     const config = {
       offset: offset,
       limit: limit,
@@ -42,7 +42,7 @@ class Collection extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const recordList = record?.data?.data ?? []
+    const recordList = record?.data ?? []
     return recordList
   }
 
@@ -51,7 +51,7 @@ class Collection extends Base {
    * @param collectionId
    */
   static async asyncGetCollectionInfo(collectionId: number | string): Promise<TypeCollection.Info> {
-    const baseUrl = `https://api.zhihu.com/collections/${collectionId}`
+    const baseUrl = `https://www.zhihu.com/api/v4/collections/${collectionId}`
     const config = {}
     const rawCollectionInfoRecord: any = await Base.http.get(baseUrl, {
       params: config,

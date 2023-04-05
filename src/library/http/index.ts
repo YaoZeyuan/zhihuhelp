@@ -121,7 +121,7 @@ export default class httpClient {
   static async get(url: string, config: AxiosRequestConfig = {}) {
     // 知乎有自己的query-encode方法, 因此不能使用axios自带的params合并方法
     // 否则会导致加密失败
-    if (config.params) {
+    if (config?.params && Object.keys(config?.params ?? {}).length > 0) {
       url = `${url}?${querystring.stringify(config.params, undefined, undefined, {
         encodeURIComponent: fixedEncodeURIComponent
       })}`
