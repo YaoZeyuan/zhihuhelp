@@ -519,10 +519,10 @@ class Unit_Base {
       let aProperty = 0
       let bProperty = 0
       if (a.type !== b.type) {
-        // 非类型页面, 无法比较
+        // 非同类型页面, 无法比较
         aProperty = typeMap[a.type]
         bProperty = typeMap[b.type]
-        // 跨页面比较时, 除了三种特殊情况外, 总是按照问题/想法/文章的顺序进行展示
+        // 跨页面类型比较时, 除了三种特殊情况外, 总是按照问题/想法/文章的顺序进行展示
         switch (orderWith) {
           case Consts_Task_Config.Const_Order_With_不排序:
             return 0
