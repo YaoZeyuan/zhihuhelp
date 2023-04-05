@@ -356,6 +356,10 @@ app.whenReady().then(() => {
     return res
   })
   ipcMain.handle('get-log-content', async (event) => {
+    // 确保日志文件存在
+    if (!fs.existsSync(PathConfig.runtimeLogUri)) {
+      fs.writeFileSync(PathConfig.runtimeLogUri, '')
+    }
     // 获取日志内容
     let content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
     if (!!content === false) {
