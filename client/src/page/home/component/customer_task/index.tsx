@@ -21,7 +21,7 @@ import { useSnapshot } from 'valtio'
 import { useState, useContext, useEffect } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Consts from './resource/const/index'
-import { createStatusStore } from './state'
+import { createStatusStore, Const_Default_FormValue } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import { Const_Default_Order_Item } from './component/order_item/state/index'
@@ -119,10 +119,10 @@ export default () => {
     let config = await window.electronAPI['get-common-config']()
     let initValue = Util.generateStatus(config)
 
-    form.setFieldValue('book-title', initValue.bookTitle)
+    form.setFieldValue('bookTitle', initValue.bookTitle)
     form.setFieldValue('taskItemList', initValue.taskItemList)
     form.setFieldValue('orderItemList', initValue.orderItemList)
-    form.setFieldValue('image-quilty', initValue.imageQuilty)
+    form.setFieldValue('imageQuilty', initValue.imageQuilty)
     form.setFieldValue('maxItemInBook', initValue.maxItemInBook)
     form.setFieldValue('comment', initValue.comment)
 
@@ -230,13 +230,7 @@ export default () => {
           onFinish={handleFormAction.asyncOnFinish}
           colon={false}
           initialValues={{
-            taskItemList: [],
-            imageQuilty: 'hd', // 图片质量
-            bookTitle: '', // 书名
-            comment: '', // 备注
-            maxItemInBook: 10000, // 自动分卷: 单本电子书中最大回答/想法/文章数量
-            orderItemList: [],
-            generateType: 'single',
+            ...Const_Default_FormValue,
           }}
           labelCol={{
             span: 4,

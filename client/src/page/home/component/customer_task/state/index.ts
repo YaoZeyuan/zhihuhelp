@@ -29,6 +29,16 @@ export type Type_FormValue = {
     "generateType": Types_Task_Config.Type_Generate_Type
 }
 
+export const Const_Default_FormValue: Type_FormValue = {
+    "taskItemList": [],
+    "imageQuilty": Consts_Task_Config.Const_Image_Quilty_高清,
+    "bookTitle": "",
+    "comment": "",
+    "maxItemInBook": Consts_Task_Config.Const_Max_Question_Or_Article_In_Book,
+    "orderItemList": [],
+    "generateType": Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节
+}
+
 /**
  * 创建store
  */
