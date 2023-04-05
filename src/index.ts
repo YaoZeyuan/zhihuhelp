@@ -35,6 +35,8 @@ let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
 
+const isMacOS = process.platform === 'darwin'
+
 async function asyncCreateWindow() {
   if (process.platform === 'darwin') {
     const template = [
@@ -125,22 +127,32 @@ async function asyncCreateWindow() {
     mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
 
-    // mac上载入url时必须明确指明协议, 否则无法载入
-    let jsRpcUri = "file://" + path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    if (isMacOS) {
+      // mac上载入url时必须明确指明协议, 否则无法载入
+      jsRpcUri = "file://" + jsRpcUri
+    }
     jsRpcWindow.loadURL(jsRpcUri)
     jsRpcWindow.webContents.openDevTools()
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
     // mac上载入url时必须明确指明协议, 否则无法载入
-    let webviewUri = "file://" + path.resolve(__dirname, 'client', 'index.html')
-    // mainWindow.loadFile(webviewUri)
-    // 针对macos的特殊hack, mac上只有这样mainWindow才能加载html
-    mainWindow.loadFile('./dist/client/index.html')
-    
+    let webviewUri = path.resolve(__dirname, 'client', 'index.html')
+    if (isMacOS) {
+      // 针对macos的特殊hack, mac上只有这样mainWindow才能加载html
+      mainWindow.loadFile('./dist/client/index.html')
+    } else {
+      mainWindow.loadFile(webviewUri)
+    }
+
     // mainWindow.webContents.openDevTools()
 
-    let jsRpcUri =  "file://" +  path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    if (isMacOS) {
+      // mac上载入url时必须明确指明协议, 否则无法载入
+      jsRpcUri = "file://" + jsRpcUri
+    }
     jsRpcWindow.loadURL(jsRpcUri)
     // jsRpcWindow.webContents.openDevTools()
   }
