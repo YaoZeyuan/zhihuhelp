@@ -398,6 +398,7 @@ export default () => {
                 menu={{
                   items: [
                     {
+                      key: '检查登录状态',
                       label: '检查登录状态',
                       onClick: async () => {
                         statusStore.loading.checkLogin = true
@@ -412,12 +413,14 @@ export default () => {
                       },
                     },
                     {
+                      key: '打开开发者工具',
                       label: '打开开发者工具',
                       onClick: async () => {
                         await window.electronAPI['open-devtools']()
                       },
                     },
                     {
+                      key: '注销登录',
                       label: '注销登录',
                       danger: true,
                       onClick: async () => {
