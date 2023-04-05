@@ -423,6 +423,13 @@ export default () => {
                       },
                     },
                     {
+                      key: '打开js-rpc窗口の开发者工具',
+                      label: '打开js-rpc窗口の开发者工具',
+                      onClick: async () => {
+                        await window.electronAPI['open-js-rpc-window-devtools']()
+                      },
+                    },
+                    {
                       key: '注销登录',
                       label: '注销登录',
                       danger: true,

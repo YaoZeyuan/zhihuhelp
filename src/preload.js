@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return res
   },
   ['clear-log-content']: async () => ipcRenderer.invoke('clear-log-content'),
+  ['open-js-rpc-window-devtools']: async () => ipcRenderer.invoke('open-js-rpc-window-devtools'),
 })

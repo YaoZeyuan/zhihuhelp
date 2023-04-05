@@ -9,6 +9,7 @@ export interface IElectronAPI {
     ['get-db-summary-info']: () => Promise<any>,
     ['get-log-content']: (...args) => Promise<any>,
     ['clear-log-content']: () => Promise<any>,
+    ['open-js-rpc-window-devtools']: () => Promise<any>,
     loadPreferences: () => Promise<void>,
 }
 

@@ -125,13 +125,15 @@ async function asyncCreateWindow() {
     mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    // mac上载入url时必须明确指明协议, 否则无法载入
+    let jsRpcUri = "file://" + path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     jsRpcWindow.webContents.openDevTools()
   } else {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
-    let webviewUri = path.resolve(__dirname, 'client', 'index.html')
+    // mac上载入url时必须明确指明协议, 否则无法载入
+    let webviewUri = "file://" + path.resolve(__dirname, 'client', 'index.html')
     mainWindow.loadFile(webviewUri)
     // mainWindow.webContents.openDevTools()
 
@@ -382,6 +384,12 @@ app.whenReady().then(() => {
   ipcMain.handle('open-devtools', async (event) => {
     // 打开调试面板
     mainWindow.webContents.openDevTools()
+    return true
+  })
+  ipcMain.handle('open-js-rpc-window-devtools', async (event) => {
+    // 打开jsRpcWindow调试面板
+    jsRpcWindow.show()
+    jsRpcWindow.webContents.openDevTools()
     return true
   })
 
