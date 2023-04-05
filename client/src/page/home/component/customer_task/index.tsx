@@ -116,7 +116,9 @@ export default () => {
 
   Ahooks.useMount(async () => {
     // 初始化时载入一次
-    let config = await window.electronAPI['get-common-config']()
+    let config = await window.electronAPI['get-common-config']().catch((err) => {
+      return { ...Const_Default_FormValue }
+    })
     let initValue = Util.generateStatus(config)
 
     form.setFieldValue('bookTitle', initValue.bookTitle)
