@@ -53,7 +53,7 @@
     },
     "mac": {
       "category": "zhihuhelp.app.category.type",
-      "target": "dmg",
+      "target": "7z",
       "icon": "src/public/icon/icon.png"
     },
     "nsis": {
