@@ -134,10 +134,13 @@ async function asyncCreateWindow() {
     // 构建出来后所有文件都位于dist目录中
     // mac上载入url时必须明确指明协议, 否则无法载入
     let webviewUri = "file://" + path.resolve(__dirname, 'client', 'index.html')
-    mainWindow.loadFile(webviewUri)
+    // mainWindow.loadFile(webviewUri)
+    // 针对macos的特殊hack, mac上只有这样mainWindow才能加载html
+    mainWindow.loadFile('./dist/client/index.html')
+    
     // mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    let jsRpcUri =  "file://" +  path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
     jsRpcWindow.loadURL(jsRpcUri)
     // jsRpcWindow.webContents.openDevTools()
   }
