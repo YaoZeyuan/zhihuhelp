@@ -50,9 +50,9 @@ export const Const_Display_By_Year = 'YYYY' as const
 export const Const_Display_By_Month = 'YYYY-MM' as const
 export const Const_Display_By_Day = 'YYYY-MM-DD' as const
 export const Const_Display_By_Hour = 'YYYY-MM-DD HH' as const
-export const Const_Display_By_Minute = 'YYYY-MM-DD HH:mm' as const
-export const Const_Display_By_Second = 'YYYY-MM-DD HH:mm:ss' as const
-export const Const_Display_By_Millsecond = 'YYYY-MM-DD HH:mm:ss.SSS' as const
+export const Const_Display_By_Minute = 'YYYY-MM-DD HH_mm' as const
+export const Const_Display_By_Second = 'YYYY-MM-DD HH_mm_ss' as const
+export const Const_Display_By_Millsecond = 'YYYY-MM-DD HH_mm_ss.SSS' as const
 
 export const Const_Display_By_Unit = {
   [Const_Unit_Year]: Const_Display_By_Year,
