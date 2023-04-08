@@ -331,9 +331,9 @@
     2.  命令使用说明详见代码
     3.  建议最好配置淘宝镜像, 以便加快 install 速度
         ```shell
-        npm config set registry https://registry.npm.taobao.org
-        npm config set disturl https://npm.taobao.org/dist
-        npm config set electron_mirror https://npm.taobao.org/mirrors/electron/
+        npm config set registry https://registry.npmmirror.com
+        npm config set disturl https://npmmirror.com/mirrors/node/
+        npm config set electron_mirror https://npmmirror.com/mirrors/electron/
         ```
     4.  如果 sharp 无法安装, 可以尝试使用`npm install`进行安装
 
