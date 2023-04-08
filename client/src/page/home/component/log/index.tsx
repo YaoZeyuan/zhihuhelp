@@ -87,7 +87,7 @@ export default () => {
                 await window.electronAPI['open-output-dir']()
               }}
             >
-              打开输出目录
+              打开电子书输出目录
             </Button>
             <Divider type="vertical"></Divider>
             <Button danger onClick={asyncClearLogList}>

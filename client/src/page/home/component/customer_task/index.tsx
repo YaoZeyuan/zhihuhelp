@@ -74,6 +74,10 @@ export default () => {
           title = title + '_' + bufTitle
         }
       }
+      // 限制最大长度
+      if (title.length > 100) {
+        title = title.slice(0, 100) + `_等${legalTaskItemList.length}项知乎内容合集`
+      }
       form.setFieldValue('bookTitle', title)
     }
   }, [JSON.stringify(legalTaskItemList)])
@@ -392,7 +396,7 @@ export default () => {
                 await window.electronAPI['open-output-dir']()
               }}
             >
-              打开输出目录
+              打开电子书输出目录
             </Button>
             <Divider type="vertical"></Divider>
             <Space wrap>
