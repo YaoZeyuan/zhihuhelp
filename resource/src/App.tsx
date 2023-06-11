@@ -6,7 +6,6 @@ import { CSSTransition } from 'react-transition-group'
 import axios from 'axios'
 import './App.less'
 import { List } from 'antd'
-import 'antd/dist/antd.css'
 
 export default class Base extends Component {
   state = {
@@ -19,17 +18,17 @@ export default class Base extends Component {
       detail: {
         windows: {
           version: 1.1,
-          url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD%20Setup%201.1.0.exe',
+          url: 'http://zhihuhelp.yaozeyuan.online/%E7%A8%B3%E9%83%A8%E8%90%BD%20Setup%201.1.0.exe',
         },
-        mac: { version: 1.1, url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
+        mac: { version: 1.1, url: 'http://zhihuhelp.yaozeyuan.online/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
       },
     },
     thankList: [{ reason: '*明明打赏10元', time: '2019-02-16 21:34' }],
   }
 
   async componentDidMount() {
-    let versionResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/version')
-    let thankListResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/thank_you/list')
+    let versionResponse = await axios.get('https://api.yaozeyuan.online/zhihuhelp/version')
+    let thankListResponse = await axios.get('https://api.yaozeyuan.online/zhihuhelp/thank_you_list')
     let config = versionResponse.data
     let thankList = thankListResponse.data
     this.setState({
