@@ -5,7 +5,7 @@
   "scripts": {
     "start": "npm run dev",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp -rf dist/* ../",
     "serve": "vite preview",
     "deploy": "git add ../* && git commit -m 'feat: 发布新代码' && git push",
     "publish": "npm run build && npm run deploy",
