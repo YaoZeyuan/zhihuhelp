@@ -6,11 +6,13 @@ export default defineConfig(({ command, mode }) => {
   let isProduction = mode === 'production'
   return {
     // 使用相对路径指定index.html中入口js地址. 本身属于hack, 对个人项目而言可以接受
-    base: './',
+    base: '/',
     plugins: [],
     server: {
+      host: "0.0.0.0",
       // 配置启动时打开的域名&端口
       port: 8080,
+
       fs: {
         strict: false,
       },
