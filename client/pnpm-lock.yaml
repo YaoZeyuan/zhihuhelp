@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@ant-design/icons':
     specifier: ^4.8.0
@@ -32,8 +36,8 @@ dependencies:
     specifier: ^6.6.1
     version: 6.6.1(react-dom@18.2.0)(react@18.2.0)
   semver:
-    specifier: ^7.3.5
-    version: 7.3.8
+    specifier: ^7.5.2
+    version: 7.5.2
   valtio:
     specifier: ^1.7.6
     version: 1.7.6(react@18.2.0)(vite@4.0.3)
@@ -1520,8 +1524,8 @@ packages:
     hasBin: true
     optional: true
 
-  /semver@7.3.8:
-    resolution: {integrity: sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==}
+  /semver@7.5.2:
+    resolution: {integrity: sha512-SoftuTROv/cRjCze/scjGyiDtcUyxw1rgYQSZY7XTmtR5hX+dm76iDbTH8TkLPHCQmlbQVSSbNZCPM2hb0knnQ==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
