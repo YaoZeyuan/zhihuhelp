@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@adonisjs/ace':
     specifier: ^11.3.1
@@ -27,7 +31,7 @@ dependencies:
     version: 2.2.1
   knex:
     specifier: ^2.1.0
-    version: 2.3.0(sqlite3@5.1.2)
+    version: 2.3.0(sqlite3@5.1.5)
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -65,8 +69,8 @@ dependencies:
     specifier: ^0.8.1
     version: 0.8.5
   sqlite3:
-    specifier: ^5.1.2
-    version: 5.1.2
+    specifier: ^5.1.5
+    version: 5.1.5
   tiny-async-pool:
     specifier: ^2.1.0
     version: 2.1.0
@@ -5227,7 +5231,7 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /knex@2.3.0(sqlite3@5.1.2):
+  /knex@2.3.0(sqlite3@5.1.5):
     resolution: {integrity: sha512-WMizPaq9wRMkfnwKXKXgBZeZFOSHGdtoSz5SaLAVNs3WRDfawt9O89T4XyH52PETxjV8/kRk0Yf+8WBEP/zbYw==}
     engines: {node: '>=12'}
     hasBin: true
@@ -5267,7 +5271,7 @@ packages:
       pg-connection-string: 2.5.0
       rechoir: 0.8.0
       resolve-from: 5.0.0
-      sqlite3: 5.1.2
+      sqlite3: 5.1.5
       tarn: 3.0.2
       tildify: 2.0.0
     transitivePeerDependencies:
@@ -6745,8 +6749,8 @@ packages:
     dev: true
     optional: true
 
-  /sqlite3@5.1.2:
-    resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
+  /sqlite3@5.1.5:
+    resolution: {integrity: sha512-7sP16i4wI+yKnGOO2q2ijze7EjQ9US+Vw7DYYwxfFtqNZDGgBcEw0oeDaDvUTq66uJOzVd/z6MkIg+c9erSJKg==}
     requiresBuild: true
     peerDependenciesMeta:
       node-gyp:
