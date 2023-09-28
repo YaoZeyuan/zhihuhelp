@@ -1,25 +1,19 @@
+import "reflect-metadata"
 import knex from 'knex'
-import CommonConfig from '~/src/config/common'
-/**  knex 方式 */
+import * as typeorm from 'typeorm'
+import * as sqljs from 'sql.js'
+import { Activity } from '~/src/database/entity/activity'
 
-const Knex = knex({
-  client: 'sqlite3',
-  connection: {
-    filename: CommonConfig.db_uri,
-  },
-  useNullAsDefault: true,
-  pool: {
-    max: 1, // 不能开多线程去访问同一个sqllite实例, 否则会报SQLITE_BUSY错误
-    min: 0,
-    // 由于存在资源池, 导致句柄不被释放, 程序不能退出
-    // 因此将最小句柄数设为0, 每100ms检查一次是否有超过120ms未被使用的资源
-    // 以便句柄的及时回收
-    // free resouces are destroyed after this many milliseconds
-    idleTimeoutMillis: 100,
-    // how often to check for idle resources to destroy
-    reapIntervalMillis: 150,
-  },
-  acquireConnectionTimeout: 60000,
+import CommonConfig from '~/src/config/common'
+
+import { DataSource } from "typeorm"
+
+const AppDataSource = new DataSource({
+  type: "sqljs",
+  entities: [Activity],
+  synchronize: true,
 })
 
-export default Knex
+AppDataSource.initialize()
+
+export default AppDataSource
