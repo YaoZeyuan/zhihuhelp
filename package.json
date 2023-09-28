@@ -83,8 +83,10 @@
     "semver": "^7.3.7",
     "sharp": "^0.30.7",
     "shelljs": "^0.8.1",
+    "sql.js": "^1.8.0",
     "sqlite3": "^5.1.2",
-    "tiny-async-pool": "^2.1.0"
+    "tiny-async-pool": "^2.1.0",
+    "typeorm": "^0.3.17"
   },
   "devDependencies": {
     "@adonisjs/application": "^5.2.5",
