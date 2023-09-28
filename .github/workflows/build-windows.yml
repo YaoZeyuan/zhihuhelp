@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     # branches:
-      # - master
+    # - master
     # Sequence of patterns matched against refs/tags
     tags:
-      - "*" # Push events to matching any tags
+      - '*' # Push events to matching any tags
 jobs:
   build:
     # 见 https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -19,22 +19,28 @@ jobs:
         node-version: ['18.12.1']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
         uses: myrotvorets/info-from-package-json-action@1.0.0
         id: get-version-from-package-json
       - name: Show version number
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
-      - run: cd ./client ; yarn ; cd ..
-      - run: yarn
-      - run: yarn build-without-sourcemap
-      - run: yarn buildgui
-      - run: yarn electron-builder
+      - run: cd ./client ; pnpm install --frozen-lockfile ; cd ..
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build-without-sourcemap
+      - run: pnpm buildgui
+      - run: pnpm electron-builder
         env:
           CI: true
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
