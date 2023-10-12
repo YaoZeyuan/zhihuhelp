@@ -1,12 +1,9 @@
 import React, { Component } from 'react'
-import logo from './zhihuhelp_logo_512x512.png'
+import logo from './static/zhihuhelp_logo_512x512.png'
 import svg_logo_window from './static/windows.svg'
 import svg_logo_mac from './static/mac.svg'
-import { CSSTransition } from 'react-transition-group'
 import axios from 'axios'
 import './App.less'
-import { List } from 'antd'
-import 'antd/dist/antd.css'
 
 export default class Base extends Component {
   state = {
@@ -92,36 +89,10 @@ export default class Base extends Component {
             <a className="tip" href="https://github.com/YaoZeyuan/zhihuhelp" target="_blank">
               使用指南
             </a>
-            <p className="tip" onClick={this.toggleThankList}>
-              致谢列表
-            </p>
             <a className="tip" href="https://github.com/YaoZeyuan/zhihuhelp/issues" target="_blank">
               功能建议
             </a>
           </div>
-          <CSSTransition in={this.state.showThankList} timeout={300} classNames="fade" unmountOnExit>
-            <div className="thank-list">
-              <List
-                itemLayout="horizontal"
-                dataSource={thankList}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: false,
-                }}
-                renderItem={(item) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={
-                        <p>
-                          {item.time} {item.reason}
-                        </p>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            </div>
-          </CSSTransition>
         </div>
         <a href="https://github.com/YaoZeyuan/zhihuhelp" className="fork-me-on-github" target="_blank">
           <img
