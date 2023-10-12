@@ -25,8 +25,8 @@ export default class Base extends Component {
   }
 
   async componentDidMount() {
-    let versionResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/version')
-    let thankListResponse = await axios.get('https://api.bookflaneur.cn/zhihuhelp/thank_you/list')
+    let versionResponse = await axios.get('https://api.yaozeyuan.online/zhihuhelp/version')
+    let thankListResponse = await axios.get('https://api.yaozeyuan.online/zhihuhelp/thank_you_list')
     let config = versionResponse.data
     let thankList = thankListResponse.data
     this.setState({
@@ -98,7 +98,7 @@ export default class Base extends Component {
           <img
             width="149px"
             height="149px"
-            src="https://github.blog/wp-content/uploads/2008/12/forkme_right_green_007200.png?resize=149%2C149"
+            src="https://cdn.jsdelivr.net/gh/YaoZeyuan/blog@master/source/static/img/fork_me_on_github_right_green.png"
             alt="Fork me on GitHub"
           />
         </a>
