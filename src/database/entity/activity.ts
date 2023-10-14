@@ -43,9 +43,8 @@ export class Activity {
         [Activity.VERB_MEMBER_CREATE_ARTICLE]: '发表文章',
     }
 
-
-    @PrimaryGeneratedColumn()
-    id!: number
+    @Column()
+    id!: string
 
     @Column()
     url_token!: string
