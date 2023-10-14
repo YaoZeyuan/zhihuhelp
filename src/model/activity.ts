@@ -1,14 +1,14 @@
 import Base from '~/src/model/base'
 import * as TypeActivity from '~/src/type/zhihu/activity'
 import lodash from 'lodash'
-import moment from 'moment'
+import dayjs from 'dayjs'
 import * as DATE_FORMAT from '~/src/constant/date_format'
 
 class Activity extends Base {
-  static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.Const_Display_By_Second)
+  static readonly ZHIHU_ACTIVITY_START_MONTH_AT = dayjs('2011-01-25 00:00:00', DATE_FORMAT.Const_Display_By_Second)
     .startOf(DATE_FORMAT.Const_Unit_Month)
     .unix() // 知乎活动开始时间
-  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = moment().endOf(DATE_FORMAT.Const_Unit_Month).unix() // 知乎活动结束时间
+  static readonly ZHIHU_ACTIVITY_END_MONTH_AT = dayjs().endOf(DATE_FORMAT.Const_Unit_Month).unix() // 知乎活动结束时间
 
   static readonly VERB_ANSWER_VOTE_UP = 'ANSWER_VOTE_UP' // 点赞
   static readonly VERB_MEMBER_FOLLOW_COLLECTION = 'MEMBER_FOLLOW_COLLECTION' // 关注收藏夹

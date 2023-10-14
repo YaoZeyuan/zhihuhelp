@@ -1,4 +1,4 @@
-import moment from 'moment'
+import dayjs from 'dayjs'
 class OPF {
   index = 0 // 生成id
 
@@ -7,7 +7,7 @@ class OPF {
   identifier = 'helloworld'
   language = 'zh-cn'
 
-  publishTime = moment().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+  publishTime = dayjs().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
   publisher = 'zhihuhelp'
 
   manifestItemList: string[] = []

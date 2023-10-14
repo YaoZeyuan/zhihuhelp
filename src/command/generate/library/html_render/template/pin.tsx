@@ -3,7 +3,7 @@ import * as TypePin from '~/src/type/zhihu/pin'
 import lodash from 'lodash'
 import CommonUtil from '~/src/library/util/common'
 import CommentCompontent from './comment'
-import moment from 'moment'
+import dayjs from 'dayjs'
 import * as DATE_FORMAT from '~/src/constant/date_format'
 
 export default ({ rawPinRecord }: { rawPinRecord: TypePin.Record }) => {
@@ -17,10 +17,10 @@ export default ({ rawPinRecord }: { rawPinRecord: TypePin.Record }) => {
   // 根据是否存在repin字段, 可以分为转发/非转发两种类型
   if (lodash.isEmpty(rawPinRecord.repin)) {
     let pinRecord = rawPinRecord as any as TypePin.DefaultRecord
-    title = `${moment.unix(pinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${pinRecord.excerpt_title}`
+    title = `${dayjs.unix(pinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${pinRecord.excerpt_title}`
   } else {
     let repinRecord = rawPinRecord as any as TypePin.RepinRecord
-    title = `${moment.unix(repinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${
+    title = `${dayjs.unix(repinRecord.created).format(DATE_FORMAT.Const_Display_By_Day)}:${
       repinRecord.excerpt_title
     }:${repinRecord.repin.excerpt_title}`
   }

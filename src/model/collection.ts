@@ -1,6 +1,6 @@
 import Base from '~/src/model/base'
 import * as TypeCollection from '~/src/type/zhihu/collection'
-import moment from 'moment'
+import dayjs from 'dayjs'
 
 type Type_Record = {
   record_type:
@@ -93,7 +93,7 @@ class Collection extends Base {
     let collectionRecord = rawCollectionRecord.content
     let collectionRecordAtStr = rawCollectionRecord.created
     // '2022-01-13T00:08:14+08:00'
-    let record_at = moment(collectionRecordAtStr, 'YYYY-MM-DDTHH:mm:ssZZ').clone().unix()
+    let record_at = dayjs(collectionRecordAtStr, 'YYYY-MM-DDTHH:mm:ssZZ').clone().unix()
     let record_type = collectionRecord.type
     let record_id = collectionRecord.id
 

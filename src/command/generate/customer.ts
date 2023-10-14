@@ -26,7 +26,7 @@ import * as Date_Format from '~/src/constant/date_format'
 import * as Package from './resource/library/package'
 
 import EpubGenerator from './library/epub_generator'
-import moment from 'moment'
+import dayjs from 'dayjs'
 import { ReactElement } from 'react'
 
 /**
@@ -661,7 +661,7 @@ class GenerateCustomer extends Base {
     let bookTitle = ''
     switch (unitItem.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
-        bookTitle = `问答混排_${moment().format(Date_Format.Const_Display_By_Second)}`
+        bookTitle = `问答混排_${dayjs().format(Date_Format.Const_Display_By_Second)}`
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         bookTitle = `收藏夹_${unitItem.info['title']}(${unitItem.info['id']})`
@@ -711,7 +711,7 @@ class GenerateCustomer extends Base {
         }
         break
       default:
-        bookTitle = `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`
+        bookTitle = `未识别任务_${dayjs().format(Date_Format.Const_Display_By_Second)}`
     }
     return CommonUtil.encodeFilename(bookTitle)
   }
@@ -895,9 +895,9 @@ class GenerateCustomer extends Base {
     switch (unit.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
         renderResult = HtmlRender.renderInfoPage({
-          title: `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`,
+          title: `混合类型_${dayjs().format(Date_Format.Const_Display_By_Second)}`,
         })
-        filename = `mix_type_${moment().format(Date_Format.Const_Display_By_Second)}`
+        filename = `mix_type_${dayjs().format(Date_Format.Const_Display_By_Second)}`
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         renderResult = HtmlRender.renderInfoPage({
@@ -975,15 +975,15 @@ class GenerateCustomer extends Base {
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}`,
               })
-              filename = `author_type_default_${moment().format(Date_Format.Const_Display_By_Second)}`
+              filename = `author_type_default_${dayjs().format(Date_Format.Const_Display_By_Second)}`
           }
         }
         break
       default:
         renderResult = HtmlRender.renderInfoPage({
-          title: `未识别任务_${moment().format(Date_Format.Const_Display_By_Second)}`,
+          title: `未识别任务_${dayjs().format(Date_Format.Const_Display_By_Second)}`,
         })
-        filename = `unknown_type_${moment().format(Date_Format.Const_Display_By_Second)}`
+        filename = `unknown_type_${dayjs().format(Date_Format.Const_Display_By_Second)}`
     }
     return {
       filename: filename,

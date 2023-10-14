@@ -6,8 +6,6 @@ import * as Types_Task_Config from '~/src/resource/type/task_config'
 import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
 
-import moment from 'moment'
-
 import './index.less'
 
 export const Const_Storage_Key = 'login_msk'
