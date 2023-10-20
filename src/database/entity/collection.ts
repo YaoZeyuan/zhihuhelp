@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
-export class AuthorAskQuestion {
+export class Collection {
   @Column()
   collection_id!: string
 
