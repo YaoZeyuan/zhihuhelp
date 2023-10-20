@@ -20,6 +20,9 @@ const AppDataSource = new DataSource({
   type: "sqljs",
   entities: [Activity, Answer, Article, Author, AuthorAskQuestion, Collection, Column, Pin, Topic],
   synchronize: true,
+  // 两者同时打开后, 可以自动保存数据库修改
+  // 见中文文档: https://github.com/typeorm/typeorm/blob/master/docs/zh_CN/connection-options.md#sqljs
+  "autoSave": true,
   "location": CommonConfig.db_uri
 })
 

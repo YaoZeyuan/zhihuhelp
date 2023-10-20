@@ -34,7 +34,8 @@
     // 避免对node_modules中的内容进行检测
     "skipLibCheck": true,
     // 启用修饰器, 以支持ace的新命令行参数声明方式
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
