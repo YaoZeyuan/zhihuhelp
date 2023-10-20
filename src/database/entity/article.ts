@@ -2,18 +2,18 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class Article {
-  @Column()
+  @Column("varchar", { nullable: false })
   article_id!: string
 
-  @Column()
+  @Column("varchar", { nullable: false })
   author_url_token!: string
 
-  @Column()
+  @Column("varchar", { nullable: false })
   author_id!: string
 
-  @Column()
-  column_id!: number
+  @Column("varchar", { nullable: false })
+  column_id!: string
 
-  @Column()
+  @Column("text", { nullable: false })
   raw_json!: string
 }

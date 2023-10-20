@@ -2,9 +2,9 @@ import { Column as DbColumn, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class Column {
-  @DbColumn()
+  @DbColumn("varchar", { nullable: false })
   column_id!: string
 
-  @DbColumn()
+  @DbColumn("text", { nullable: false })
   raw_json!: string
 }

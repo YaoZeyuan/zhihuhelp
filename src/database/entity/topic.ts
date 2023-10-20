@@ -2,10 +2,10 @@ import { Column, Entity } from "typeorm"
 
 @Entity()
 export class Topic {
-  @Column()
+  @Column("varchar", { nullable: false })
   topic_id!: string
 
-  @Column()
+  @Column("text", { nullable: false })
   raw_json!: string
 }
 

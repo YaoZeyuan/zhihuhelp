@@ -2,16 +2,16 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class Pin {
-  @Column()
+  @Column("varchar", { nullable: false })
   pin_id!: string
 
-  @Column()
+  @Column("varchar", { nullable: false })
   author_url_token!: string
 
-  @Column()
+  @Column("varchar", { nullable: false })
   author_id!: string
 
-  @Column()
+  @Column("text", { nullable: false })
   raw_json!: string
 }
 

@@ -43,14 +43,14 @@ export class Activity {
         [Activity.VERB_MEMBER_CREATE_ARTICLE]: '发表文章',
     }
 
-    @Column()
+    @Column("varchar", { nullable: false })
     id!: string
 
-    @Column()
+    @Column("varchar", { nullable: false })
     url_token!: string
 
-    @Column()
+    @Column("varchar", { nullable: false })
     verb!: TypeVerb
-    @Column()
+    @Column("text", { nullable: false })
     raw_json!: string
 }
