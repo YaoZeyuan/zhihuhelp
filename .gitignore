@@ -50,6 +50,7 @@ runtime.log
 #   配置文件
 .vscode
 .idea
+!.vscode/launch.json
 
 #   项目内置配置
 config.json
