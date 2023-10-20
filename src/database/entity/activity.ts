@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm"
 import dayjs from 'dayjs'
 import * as DATE_FORMAT from '~/src/constant/date_format'
 
@@ -42,8 +42,7 @@ export class Activity {
         [Activity.VERB_MEMBER_FOLLOW_ROUNDTABLE]: '关注圆桌',
         [Activity.VERB_MEMBER_CREATE_ARTICLE]: '发表文章',
     }
-
-    @Column("varchar", { nullable: false })
+    @PrimaryColumn("varchar", { nullable: false })
     id!: string
 
     @Column("varchar", { nullable: false })

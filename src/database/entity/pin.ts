@@ -1,8 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, PrimaryColumn } from "typeorm"
 
 @Entity()
 export class Pin {
-  @Column("varchar", { nullable: false })
+  @PrimaryColumn("varchar", { nullable: false })
   pin_id!: string
 
   @Column("varchar", { nullable: false })

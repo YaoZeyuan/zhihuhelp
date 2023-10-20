@@ -1,8 +1,8 @@
-import { Column as DbColumn, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column as DbColumn, Entity, PrimaryColumn } from "typeorm"
 
 @Entity()
 export class Column {
-  @DbColumn("varchar", { nullable: false })
+  @PrimaryColumn("varchar", { nullable: false })
   column_id!: string
 
   @DbColumn("text", { nullable: false })

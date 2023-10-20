@@ -2,6 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class AuthorAskQuestion {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
   @Column("varchar", { nullable: false })
   question_id!: string
 

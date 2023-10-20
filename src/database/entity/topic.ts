@@ -1,8 +1,8 @@
-import { Column, Entity } from "typeorm"
+import { Column, Entity, PrimaryColumn } from "typeorm"
 
 @Entity()
 export class Topic {
-  @Column("varchar", { nullable: false })
+  @PrimaryColumn("varchar", { nullable: false })
   topic_id!: string
 
   @Column("text", { nullable: false })
