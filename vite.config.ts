@@ -6,7 +6,7 @@ export default defineConfig({
     plugins: [react()],
     experimental: {
         renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
-            return `https://www.yaozeyuan.online/zhihuhelp/${filename}`
+            return `https://zhihuhelp.yaozeyuan.online/${filename}`
         }
     }
 })
