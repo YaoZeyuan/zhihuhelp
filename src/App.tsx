@@ -9,17 +9,20 @@ export default class Base extends Component {
   state = {
     showThankList: false,
     config: {
-      downloadUrl: 'https://github.com/YaoZeyuan/zhihuhelp#%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD',
-      releaseAt: '2019年02月16日',
-      releaseNote: '知乎助手1.0.0, 闪亮发布.',
-      version: 1.1,
-      detail: {
-        windows: {
-          version: 1.1,
-          url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD%20Setup%201.1.0.exe',
+      "downloadUrl": "https://www.yaozeyuan.online/zhihuhelp",
+      "releaseAt": "2023年4月8日",
+      "releaseNote": "知乎助手2.5.1版, 闪亮发布. Mac用户请解压7z包后, 将应用程序移至应用程序目录后再使用",
+      "version": "2.5.1",
+      "detail": {
+        "windows": {
+          "version": "2.5.1",
+          "url": "https://wwtd.lanzout.com/i8K1C0sgswch"
         },
-        mac: { version: 1.1, url: 'http://zhihuhelp.bookflaneur.cn/%E7%A8%B3%E9%83%A8%E8%90%BD-1.1.0.dmg' },
-      },
+        "mac": {
+          "version": "2.5.1",
+          "url": "https://wwtd.lanzout.com/iH4420sgssvc"
+        }
+      }
     },
     thankList: [{ reason: '*明明打赏10元', time: '2019-02-16 21:34' }],
   }
