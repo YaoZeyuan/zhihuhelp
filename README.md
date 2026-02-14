@@ -6,7 +6,7 @@
 
 ## 使用说明
 
-1.  [下载软件安装包](https://www.yaozeyuan.online/zhihuhelp), 双击安装
+1.  [下载软件安装包](https://zhihuhelp.yaozeyuan.online/), 双击安装
 2.  在`任务输入框`中输入待抓取的网址信息
 3.  点击`开始执行`按钮
 4.  执行完毕后会打开电子书所在文件夹, 使用**多看阅读**或 Win10 下双击使用 Edge 浏览器打开均可
@@ -16,7 +16,7 @@
         1.  `html`文件夹中为按回答分割的单个回答页面列表, `index.html`为目录页
         2.  `单文件版`文件夹中为整个文件, 可以使用浏览器打开后, 直接打印为 PDF 书籍
 6.  使用示例 =>
-    ![使用说明](http://ww1.sinaimg.cn/large/6671cfa8ly1g5w8r66ou7j21b90sijtj.jpg)
+    ![使用说明](https://mirror-4-web.bookflaneur.cn/http://ww1.sinaimg.cn/large/6671cfa8ly1g5w8r66ou7j21b90sijtj.jpg)
 
 # 注意事项
 
