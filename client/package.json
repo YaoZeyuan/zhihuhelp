@@ -29,6 +29,6 @@
     "rc-textarea": "^1.1.0",
     "shelljs": "^0.8.4",
     "typescript": "^4.9.4",
-    "vite": "^4.0.3"
+    "vite": "^4.0.5"
   }
 }
