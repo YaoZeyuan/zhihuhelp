@@ -18,7 +18,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.6.1",
-    "semver": "^7.3.5",
+    "semver": "^7.5.2",
     "valtio": "^1.7.6",
     "vite-plugin-commonjs-externals": "^0.1.1"
   },
