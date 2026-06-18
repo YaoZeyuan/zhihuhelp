@@ -27,6 +27,10 @@
     /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
     "paths": {
       "*": ["node_modules/*", "src/type/*"],
+      "@optique/core": ["node_modules/@optique/core/dist/index.d.ts"],
+      "@optique/core/*": ["node_modules/@optique/core/dist/*.d.ts"],
+      "@optique/run": ["node_modules/@optique/run/dist/index.d.ts"],
+      "@optique/run/*": ["node_modules/@optique/run/dist/*.d.ts"],
       "~/src/*": ["src/*"]
     },
     "allowSyntheticDefaultImports": true /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */,

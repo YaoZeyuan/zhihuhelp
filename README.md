@@ -275,9 +275,10 @@
     | ------ | ------------- |
     | `pnpm build` | 编译 `src` 到 `dist` |
     | `pnpm watch` | 监听并持续编译 |
-    | `pnpm ace Init:Env` | 初始化目录和数据库 |
-    | `pnpm ace Fetch:Customer` | 按 `config.json` 抓取数据 |
-    | `pnpm ace Generate:Customer` | 生成 HTML/EPUB |
+    | `pnpm zhihuhelp init --config config.json` | 初始化目录和数据库 |
+    | `pnpm zhihuhelp fetch --config config.json` | 按 `config.json` 抓取数据 |
+    | `pnpm zhihuhelp generate --config config.json` | 生成 HTML/EPUB |
+    | `pnpm zhihuhelp run --config config.json` | 执行初始化、抓取和生成完整链路 |
     | `pnpm startgui` | 启动 Vite 前端，端口 8080 |
     | `pnpm start` | 启动 Electron 调试界面 |
     | `pnpm dist` | 构建安装包 |
@@ -297,17 +298,18 @@
 
 1.  TypeScript 提供类型支持。
 2.  Electron 提供图形界面和登录知乎的 webview。
-3.  Ace 命令承接初始化、抓取和生成流程。
+3.  Optique CLI 解析命令行参数，application workflow 承接初始化、抓取和生成流程。
 4.  知乎接口数据先写入 SQLite，再由生成层输出 HTML 和 EPUB。
-5.  GUI 本质上是任务配置器和运行控制台，实际工作仍复用 Ace 命令。
+5.  GUI 本质上是任务配置器和运行控制台，实际工作复用 application workflow。
 
 ## 实现方式
 
-1.  初始化环境 => `pnpm ace Init:Env`
-2.  抓取指定内容 => `pnpm ace Fetch:Customer`
-3.  从数据库生成电子书 => `pnpm ace Generate:Customer`
-4.  GUI 点击开始任务后，会写入配置、更新 cookie，并依次执行以上命令。
-5.  详细目录说明、调试步骤和常见问题见 [doc/开发调试指南.md](doc/开发调试指南.md)。
+1.  初始化环境 => `pnpm zhihuhelp init --config config.json`
+2.  抓取指定内容 => `pnpm zhihuhelp fetch --config config.json`
+3.  从数据库生成电子书 => `pnpm zhihuhelp generate --config config.json`
+4.  完整链路 => `pnpm zhihuhelp run --config config.json`
+5.  GUI 点击开始任务后，会写入配置、更新 cookie，并调用同一套 application workflow。
+6.  详细目录说明、调试步骤和常见问题见 [doc/开发调试指南.md](doc/开发调试指南.md)。
 
 # 功能建议
 

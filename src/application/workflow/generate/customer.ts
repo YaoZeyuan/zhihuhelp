@@ -1,11 +1,9 @@
-import Base from '~/src/command/base'
-import * as Consts from './resource/const/index'
+import * as Consts from '~/src/command/generate/resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
-import TypeTaskConfig, { Type_Task_Config } from '~/src/type/task_config'
+import TypeTaskConfig from '~/src/type/task_config'
 import TypeAnswer from '~/src/type/zhihu/answer'
 import * as TypePin from '~/src/type/zhihu/pin'
 import TypeArticle from '~/src/type/zhihu/article'
-import PathConfig from '~/src/config/path'
 import MAuthor from '~/src/model/author'
 import MAuthorAskQuestion from '~/src/model/author_ask_question'
 import MActivity from '~/src/model/activity'
@@ -16,16 +14,15 @@ import MCollection from '~/src/model/collection'
 import MColumn from '~/src/model/column'
 import MPin from '~/src/model/pin'
 import lodash from 'lodash'
-import json5 from 'json5'
 import CommonUtil from "~/src/library/util/common"
+import Logger from '~/src/library/logger'
 
-import HtmlRender from './library/html_render'
-import fs from 'fs'
+import HtmlRender from '~/src/command/generate/library/html_render'
 import * as Date_Format from '~/src/constant/date_format'
 
-import * as Package from './resource/library/package'
+import * as Package from '~/src/command/generate/resource/library/package'
 
-import EpubGenerator from './library/epub_generator'
+import EpubGenerator from '~/src/command/generate/library/epub_generator'
 import moment from 'moment'
 import { ReactElement } from 'react'
 
@@ -61,16 +58,13 @@ type EpubResourcePackage = {
   pinList: TypePin.Record[]
 }
 
-class GenerateCustomer extends Base {
-  public static commandName = 'Generate:Customer'
-  public static description = `输出自定义电子书`
-
-  async execute(): Promise<any> {
-    this.log(`从${PathConfig.configUri}中读取配置文件`)
-    let fetchConfigJSON = fs.readFileSync(PathConfig.configUri).toString()
-    this.log('content =>', fetchConfigJSON)
-    let customerTaskConfig: TypeTaskConfig.Type_Task_Config = json5.parse(fetchConfigJSON)
-
+class GenerateWorkflow {
+  /**
+   * 根据已解析的任务配置从 SQLite 读取内容并输出 HTML/EPUB。
+   *
+   * 该 workflow 只编排生成流程；配置文件读取和 CLI 参数解析由 interface 层完成。
+   */
+  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config): Promise<void> {
     let generateConfig = customerTaskConfig.generateConfig
     let fetchTaskList = customerTaskConfig.fetchTaskList
 
@@ -104,6 +98,18 @@ class GenerateCustomer extends Base {
     }
     this.log(`所有电子书输出完毕`)
     // 全部完成后打开文件夹
+  }
+
+  private log(...argumentList: unknown[]): void {
+    let message = ''
+    for (const rawMessage of argumentList) {
+      if (lodash.isString(rawMessage) === false) {
+        message = message + JSON.stringify(rawMessage)
+      } else {
+        message = message + rawMessage
+      }
+    }
+    Logger.log(`[GenerateWorkflow] ` + message)
   }
 
   /**
@@ -1119,4 +1125,4 @@ class GenerateCustomer extends Base {
   }
 }
 
-export default GenerateCustomer
+export default GenerateWorkflow

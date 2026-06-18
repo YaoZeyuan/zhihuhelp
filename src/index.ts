@@ -4,7 +4,6 @@ import RequestConfig from '~/src/config/request'
 import PathConfig from '~/src/config/path'
 import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
-import { Ignitor } from '@adonisjs/core/build/standalone'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
 import * as Type_TaskConfig from '~/src/type/task_config'
@@ -12,18 +11,11 @@ import MSummary from '~/src/model/summary'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
-import JSON5 from 'json5'
+import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow'
+import { fromLegacyTaskConfig, toLegacyTaskConfig } from '~/src/domain/task/task_config'
+import { readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser'
 
 
-// 项目初始化时, 自动生成 .adonisrc.json 文件
-const adonisRcUri = path.resolve(__dirname, '.adonisrc.json')
-const adonisRcTemplateUri = path.resolve(__dirname, 'adonisrc.json')
-const adonisRcContent = fs.readFileSync(adonisRcTemplateUri).toString()
-const adonisRcConfig = JSON5.parse(adonisRcContent)
-fs.writeFileSync(adonisRcUri, JSON.stringify(adonisRcConfig, null, 2))
-
-const Const_Current_Path = path.resolve(__dirname)
-let ace = new Ignitor(Const_Current_Path).ace()
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
 let { app, BrowserWindow, ipcMain, session, shell } = Electron
@@ -178,19 +170,18 @@ async function asyncCreateWindow() {
   })
 }
 
-async function asyncUpdateCookie() {
+async function asyncUpdateCookie(): Promise<string> {
   let cookieContent = ''
   let cookieList = await mainWindow.webContents.session.cookies.get({})
   for (let cookie of cookieList) {
     cookieContent = `${cookie.name}=${cookie.value};${cookieContent}`
   }
-  // 将cookie更新到本地配置中
-  let config = CommonUtil.getConfig()
-  config.requestConfig.cookie = cookieContent
-  fs.writeFileSync(PathConfig.configUri, JSON.stringify(config, null, 4))
   Logger.log(`重新载入cookie配置`)
-  RequestConfig.reloadTaskConfig()
-  return config
+  RequestConfig.setRequestConfig({
+    ua: RequestConfig.ua,
+    cookie: cookieContent,
+  })
+  return cookieContent
 }
 
 // This method will be called when Electron has finished
@@ -223,8 +214,11 @@ app.whenReady().then(() => {
 
   // 获取任务配置
   ipcMain.handle('get-common-config', () => {
-    let config = CommonUtil.getConfig()
-    return config
+    try {
+      return toLegacyTaskConfig(readTaskConfig(PathConfig.configUri))
+    } catch {
+      return CommonUtil.getConfig()
+    }
   })
 
   // 启动任务
@@ -235,28 +229,17 @@ app.whenReady().then(() => {
     isRunning = true
     Logger.log('开始工作')
 
-    // 将配置写入本地
-    await asyncUpdateCookie()
-    let oldConfig = CommonUtil.getConfig()
-    console.log("oldConfig => ", oldConfig)
-    config.requestConfig.cookie = oldConfig.requestConfig.cookie
-    console.log("config => ", config)
-    config.requestConfig.ua = oldConfig.requestConfig.ua
-    CommonUtil.saveConfig(config)
+    // 将 GUI 配置转换为新 schema 并写入本地
+    const cookieContent = await asyncUpdateCookie()
+    config.requestConfig.cookie = cookieContent
+    RequestConfig.setRequestConfig(config.requestConfig)
+    writeTaskConfig(PathConfig.configUri, fromLegacyTaskConfig(config))
 
     Logger.log(`开始执行任务`)
 
-    // 此后操作均为异步操作, 无需等待
-
-    Logger.log(`初始化ace命令集`)
-    await ace.handle(['generate:manifest'])
-    Logger.log(`初始化运行环境`)
-    await ace.handle(['Init:Env'])
-
-    Logger.log(`开始抓取数据`)
-    await ace.handle(['Fetch:Customer'])
-    Logger.log(`开始生成电子书`)
-    await ace.handle(['Generate:Customer'])
+    await new RunTaskWorkflow().run({
+      configPath: PathConfig.configUri,
+    })
     Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
     // 输出打开文件夹
     shell.showItemInFolder(PathConfig.outputPath)
@@ -267,7 +250,19 @@ app.whenReady().then(() => {
 
 
   ipcMain.handle('get-task-default-title', async (event, { taskId, taskType }: { taskType: any, taskId: string }) => {
-    await asyncUpdateCookie()
+    const cookieContent = await asyncUpdateCookie()
+    try {
+      const config = readTaskConfig(PathConfig.configUri)
+      RequestConfig.setRequestConfig({
+        ua: config.request.ua,
+        cookie: cookieContent,
+      })
+    } catch {
+      RequestConfig.setRequestConfig({
+        ua: RequestConfig.ua,
+        cookie: cookieContent,
+      })
+    }
 
     let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
     return title

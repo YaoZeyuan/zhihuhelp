@@ -18,7 +18,7 @@ export default class CommonConfig {
   static readonly checkUpgradeUri = 'https://api.yaozeyuan.online/zhihuhelp/version'
 
   static readonly db_version = '1.0.2'
-  static readonly db_uri: string = path.resolve(__dirname, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
+  static db_uri: string = path.resolve(__dirname, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
 
   /**
    * 每次停止执行任务时长
@@ -36,4 +36,8 @@ export default class CommonConfig {
 
   // 软件版本号
   static version = getVersion()
+
+  static setDatabaseUri(databaseUri: string) {
+    CommonConfig.db_uri = path.resolve(databaseUri)
+  }
 }

@@ -11,4 +11,9 @@ export default class RequestConfig {
     this.ua = config.requestConfig.ua
     this.cookie = config.requestConfig.cookie
   }
+
+  static setRequestConfig(config: { ua: string; cookie: string }) {
+    this.ua = config.ua
+    this.cookie = config.cookie
+  }
 }

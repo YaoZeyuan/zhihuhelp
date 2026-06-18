@@ -45,6 +45,7 @@ build
 缓存文件/**/*
 #   运行日志
 runtime.log
+runtime.jsonl
 
 
 #   配置文件

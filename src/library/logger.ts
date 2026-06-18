@@ -4,6 +4,19 @@ import * as DATE_FORMAT from '~/src/constant/date_format'
 import PathConfig from '~/src/config/path'
 import fs from 'fs'
 
+export type StructuredLogEntry = {
+  runId?: string
+  stage?: 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
+  taskType?: string
+  entityType?: string
+  entityId?: string
+  jobId?: string
+  durationMs?: number
+  level: 'debug' | 'info' | 'warn' | 'error'
+  errorCode?: string
+  message: string
+}
+
 class Logger {
   private static formatArgument(...arg: any[]) {
     const triggerAt = moment().format(DATE_FORMAT.Const_Display_By_Millsecond)
@@ -24,6 +37,14 @@ class Logger {
     return
   }
 
+  private static pushJsonLogContentToFile(entry: StructuredLogEntry) {
+    const record = {
+      triggerAt: new Date().toISOString(),
+      ...entry,
+    }
+    fs.appendFileSync(PathConfig.runtimeJsonlUri, JSON.stringify(record) + '\n')
+  }
+
   static log(...arg: any[]) {
     let logContent = Logger.formatArgument(...arg)
     // 将日志存入Electron全局变量中
@@ -34,6 +55,15 @@ class Logger {
     let logContent = Logger.formatArgument(...arg)
     Logger.pushLogContentToFile(logContent)
     console.warn(logContent)
+  }
+
+  static event(entry: StructuredLogEntry) {
+    Logger.pushJsonLogContentToFile(entry)
+    if (entry.level === 'warn' || entry.level === 'error') {
+      Logger.warn(`[${entry.stage ?? 'runtime'}] ${entry.message}`)
+      return
+    }
+    Logger.log(`[${entry.stage ?? 'runtime'}] ${entry.message}`)
   }
 }
 
