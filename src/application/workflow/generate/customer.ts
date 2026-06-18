@@ -1,4 +1,4 @@
-import * as Consts from '~/src/command/generate/resource/const/index'
+import * as Consts from '~/src/application/workflow/generate/resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import TypeTaskConfig from '~/src/type/task_config'
 import TypeAnswer from '~/src/type/zhihu/answer'
@@ -17,12 +17,12 @@ import lodash from 'lodash'
 import CommonUtil from "~/src/library/util/common"
 import Logger from '~/src/library/logger'
 
-import HtmlRender from '~/src/command/generate/library/html_render'
+import HtmlRender from '~/src/application/workflow/generate/library/html_render'
 import * as Date_Format from '~/src/constant/date_format'
 
-import * as Package from '~/src/command/generate/resource/library/package'
+import * as Package from '~/src/application/workflow/generate/resource/library/package'
 
-import EpubGenerator from '~/src/command/generate/library/epub_generator'
+import EpubGenerator from '~/src/application/workflow/generate/library/epub_generator'
 import moment from 'moment'
 import { ReactElement } from 'react'
 
