@@ -9,6 +9,11 @@
   "main": "dist/index.js",
   "author": "姚泽源",
   "license": "MIT",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
+  },
   "scripts": {
     "startgui": "node client/script/start.js",
     "buildgui": "node client/script/build.js",

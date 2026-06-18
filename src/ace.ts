@@ -13,7 +13,7 @@ fs.writeFileSync(adonisRcUri, JSON.stringify(adonisRcConfig, null, 2))
 async function asyncRunner() {
     let currentPath = path.resolve(__dirname)
     let ace = new Ignitor(currentPath).ace()
-    // 需要先运行 yarn ace generate:manifest 以生成实际命令配置
+    // 需要先运行 pnpm ace generate:manifest 以生成实际命令配置
     await ace.handle(['generate:manifest'])
     // 初始化命令
     await ace.handle(['Init:Env'])

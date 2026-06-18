@@ -14,27 +14,29 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        # electron-23.2.1对应node版本为18.12.1
-        # 见https://releases.electronjs.org/
-        node-version: ['18.12.1']
+        node-version: ['24']
 
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
+      - name: Use pnpm 11
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.5.0 --activate
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
         uses: myrotvorets/info-from-package-json-action@1.0.0
         id: get-version-from-package-json
       - name: Show version number
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
-      - run: cd ./client ; yarn ; cd ..
-      - run: yarn
-      - run: yarn build-without-sourcemap
-      - run: yarn buildgui
-      - run: yarn electron-builder
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build-without-sourcemap
+      - run: pnpm buildgui
+      - run: pnpm electron-builder
         env:
           CI: true
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)

@@ -1,0 +1,9 @@
+packages:
+  - client
+allowBuilds:
+  core-js: true
+  electron: true
+  esbuild: true
+  lzma-native: true
+  sharp: true
+  sqlite3: true

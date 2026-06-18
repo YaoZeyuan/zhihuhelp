@@ -263,23 +263,27 @@
 
 # 开发说明
 
-1.  建议只开发命令版
-    1.  使用`npm run ace`启动
-2.  GUI 版需要为 Electron 编译 sqlite3, 非常麻烦, 不建议尝试
-    1.  编译指南: https://www.cnblogs.com/DonaHero/p/9809325.html
-    2.  流程
-        1.  Windows 用户
-            1.  安装 Python3, 第一步时勾选`添加Python到Path`, 如果未勾选, 可以重装一遍
-            2.  安装[VS 2022 社区版](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false)
-            3.  文件-新建项目-Visual C++ -> 选择 安装 vs2022 所需的 C++开发环境
-            4.  执行 `npm run rebuild-electron-with-sqlite3`, 编译完成 sqlite3 之后, 就可以启动 GUI 界面了
-        2.  Mac 用户
-            1.  我没有 mac 谢谢
-    3.  注意:
-        1.  打包时会向 dist 目录中复制一份 node_modules 目录, 导致 npm run 时优先从 dist 中获取 node_module 信息, 导致无法启动
-            1.  因此, 打包结束后需要将 dist 里的 node_modules 目录删掉, 以免影响后续开发工作
-3.  电子书封面分辨率为: 100 * 130(宽*高)
-4.  commit 信息规范 =>
+1.  开发环境使用 Node.js 24.x 和 pnpm 11.x。仓库已提供 `.node-version`、`.nvmrc`、`packageManager` 和 `pnpm-workspace.yaml`。
+2.  初次安装:
+    ```shell
+    corepack enable
+    corepack prepare pnpm@11.5.0 --activate
+    pnpm install
+    ```
+3.  常用开发命令:
+    | 命令 | 功能 |
+    | ------ | ------------- |
+    | `pnpm build` | 编译 `src` 到 `dist` |
+    | `pnpm watch` | 监听并持续编译 |
+    | `pnpm ace Init:Env` | 初始化目录和数据库 |
+    | `pnpm ace Fetch:Customer` | 按 `config.json` 抓取数据 |
+    | `pnpm ace Generate:Customer` | 生成 HTML/EPUB |
+    | `pnpm startgui` | 启动 Vite 前端，端口 8080 |
+    | `pnpm start` | 启动 Electron 调试界面 |
+    | `pnpm dist` | 构建安装包 |
+4.  更完整的新手开发文档见 [doc/开发调试指南.md](doc/开发调试指南.md)。
+5.  电子书封面分辨率为: 100 * 130(宽*高)
+6.  commit 信息规范 =>
     | 关键字 | 功能 |
     | ------ | ------------- |
     | feat | 添加新功能 |
@@ -291,51 +295,19 @@
 
 ## 基本思路
 
-1.  TypeScript 提供类型支持, 在编写代码时可以自动提示变量下的属性
-2.  Electron 提供图形界面, 利用 webview 标签直接登陆知乎
-3.  利用知乎接口抓取数据
-4.  ace/command 提供命令行支持
-5.  sqlite3 提供数据库支持
+1.  TypeScript 提供类型支持。
+2.  Electron 提供图形界面和登录知乎的 webview。
+3.  Ace 命令承接初始化、抓取和生成流程。
+4.  知乎接口数据先写入 SQLite，再由生成层输出 HTML 和 EPUB。
+5.  GUI 本质上是任务配置器和运行控制台，实际工作仍复用 Ace 命令。
 
 ## 实现方式
 
-1.  将电子书制作分为以下三步
-    1.  初始化环境 => 对应于`npm run ace Init:Env`命令
-    2.  抓取指定内容 => 对应于`npm run ace Fetch:XXX`系列命令, 目前支持`Column`/`Author`/`Activity`/`Collection`/`Topic`
-    3.  从数据库中获得数据, 生成指定内容电子书 => 对应于`npm run ace Generate:XXX`系列命令, 目前支持`Column`/`Author`/`Activity`/`Collection`/`Topic`
-    4.  因此, 实际任务流程就是根据用户输入 url, 生成对应命令配置, 不断执行命令即可
-2.  项目开发流程
-    1.  `npm run watch` 启动监控, 将`ts`自动编译为`js`文件
-    2.  `npm run startgui`, 启动前端界面(vue 项目, 基于 Element-UI 简单构建)
-    3.  修改`src/index.ts`, 将代码由
-        ```js
-        // 线上地址
-        mainWindow.loadFile('./gui/dist/index.html')
-        // 本地调试 & 打开控制台
-        // mainWindow.loadURL('http://127.0.0.1:8080')
-        // mainWindow.webContents.openDevTools()
-        ```
-        替换为
-        ```js
-        // 线上地址
-        // mainWindow.loadFile('./gui/dist/index.html')
-        // 本地调试 & 打开控制台
-        mainWindow.loadURL('http://127.0.0.1:8080')
-        mainWindow.webContents.openDevTools()
-        ```
-        使用本地页面进行调试
-    4.  执行`npm run start`, 启动 Electron
-        1.  前端点击`开始任务`按钮后, 将任务配置写入`task_config_list.json`, 再由 Electron 收集登陆后产生的知乎 cookie, 存入`config.json`文件中, 随后启动`Dispatch:Command`命令, 开始执行任务
-3.  注意事项
-    1.  Electron 需要编译 sqlite3 后才能启动, 不容易搞, 建议直接使用`npm run ace`命令行方式进行调试
-    2.  命令使用说明详见代码
-    3.  建议最好配置淘宝镜像, 以便加快 install 速度
-        ```shell
-        npm config set registry https://registry.npmmirror.com
-        npm config set disturl https://npmmirror.com/mirrors/node/
-        npm config set electron_mirror https://npmmirror.com/mirrors/electron/
-        ```
-    4.  如果 sharp 无法安装, 可以尝试使用`npm install`进行安装
+1.  初始化环境 => `pnpm ace Init:Env`
+2.  抓取指定内容 => `pnpm ace Fetch:Customer`
+3.  从数据库生成电子书 => `pnpm ace Generate:Customer`
+4.  GUI 点击开始任务后，会写入配置、更新 cookie，并依次执行以上命令。
+5.  详细目录说明、调试步骤和常见问题见 [doc/开发调试指南.md](doc/开发调试指南.md)。
 
 # 功能建议
 

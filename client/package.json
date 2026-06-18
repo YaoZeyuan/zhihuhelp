@@ -1,6 +1,11 @@
 {
   "name": "vite-project",
   "version": "0.0.0",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
+  },
   "scripts": {
     "start": "npm run dev",
     "dev": "vite",
