@@ -20,5 +20,3 @@ export default class RequestConfig {
     RequestConfig.cookie = config.cookie
   }
 }
-
-RequestConfig.ua = constUa
