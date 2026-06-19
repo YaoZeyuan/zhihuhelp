@@ -6,13 +6,12 @@ import CommonUtil from '~/src/library/util/common'
 import Logger from '~/src/library/logger'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
-import * as Type_TaskConfig from '~/src/type/task_config'
 import MSummary from '~/src/model/summary'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
 import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow'
-import { fromLegacyTaskConfig, toLegacyTaskConfig } from '~/src/domain/task/task_config'
+import { fromLegacyTaskConfig, TaskConfig } from '~/src/domain/task/task_config'
 import { readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser'
 
 
@@ -215,14 +214,14 @@ app.whenReady().then(() => {
   // 获取任务配置
   ipcMain.handle('get-common-config', () => {
     try {
-      return toLegacyTaskConfig(readTaskConfig(PathConfig.configUri))
+      return readTaskConfig(PathConfig.configUri)
     } catch {
-      return CommonUtil.getConfig()
+      return fromLegacyTaskConfig(CommonUtil.getConfig())
     }
   })
 
   // 启动任务
-  ipcMain.handle('start-customer-task', async (event, { config }: { config: Type_TaskConfig.Type_Task_Config }) => {
+  ipcMain.handle('start-customer-task', async (event, { config }: { config: TaskConfig }) => {
     if (isRunning) {
       return '目前尚有任务执行, 请稍后'
     }
@@ -231,9 +230,9 @@ app.whenReady().then(() => {
 
     // 将 GUI 配置转换为新 schema 并写入本地
     const cookieContent = await asyncUpdateCookie()
-    config.requestConfig.cookie = cookieContent
-    RequestConfig.setRequestConfig(config.requestConfig)
-    writeTaskConfig(PathConfig.configUri, fromLegacyTaskConfig(config))
+    config.request.cookie = cookieContent
+    RequestConfig.setRequestConfig(config.request)
+    writeTaskConfig(PathConfig.configUri, config)
 
     Logger.log(`开始执行任务`)
 

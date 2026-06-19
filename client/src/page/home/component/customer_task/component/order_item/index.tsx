@@ -47,7 +47,7 @@ export default ({
       <Row justify="start" align="middle" gutter={1}>
         <Col span={Consts.CONST_Order_Item_Width.排序指标}>
           <Select
-            dropdownMatchSelectWidth={false}
+            popupMatchSelectWidth={false}
             options={Consts.Const_Order_With_Option_List}
             defaultValue={Consts.Const_Default_Order_With}
             value={snap?.orderWith}

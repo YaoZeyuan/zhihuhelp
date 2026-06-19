@@ -52,7 +52,7 @@ export default ({
       <Row justify="start" align="middle" gutter={1}>
         <Col span={Consts.CONST_Task_Item_Width.任务类型}>
           <Select
-            dropdownMatchSelectWidth={false}
+            popupMatchSelectWidth={false}
             options={Consts.Const_Task_Type_Option_List}
             defaultValue={snap.type}
             value={snap.type}

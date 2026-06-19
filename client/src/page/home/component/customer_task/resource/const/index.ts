@@ -21,6 +21,7 @@ const Translate_Task_Type = {
 
 
 const Translate_Order_With = {
+    [ConstTaskConfig.Const_Order_With_不排序]: '不排序',
     [ConstTaskConfig.Const_Order_With_创建时间]: '创建时间',
     [ConstTaskConfig.Const_Order_With_更新时间]: '更新时间',
     [ConstTaskConfig.Const_Order_With_记录加入时间_末次值]: '记录加入时间_末次值',
@@ -30,6 +31,10 @@ const Translate_Order_With = {
 }
 
 export const Translate_Order_By_Type = {
+    [ConstTaskConfig.Const_Order_With_不排序]: {
+        [ConstTaskConfig.Const_Order_By_Asc]: '保持原始顺序',
+        [ConstTaskConfig.Const_Order_By_Desc]: '保持原始顺序',
+    },
     [ConstTaskConfig.Const_Order_With_创建时间]: {
         [ConstTaskConfig.Const_Order_By_Asc]: '最早的记录在最前',
         [ConstTaskConfig.Const_Order_By_Desc]: '最晚的记录在最前',

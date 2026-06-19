@@ -25,7 +25,8 @@ import { createStatusStore, Const_Default_FormValue } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import { Const_Default_Order_Item } from './component/order_item/state/index'
-import Util, { Type_Form_Config } from './library/util'
+import Util from './library/util'
+import TaskConfigAdapter, { Type_Form_Config } from './library/task_config_adapter'
 import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
@@ -124,7 +125,7 @@ export default () => {
     let config = await window.electronAPI['get-common-config']().catch((err) => {
       return { ...Const_Default_FormValue }
     })
-    let initValue = Util.generateStatus(config)
+    let initValue = TaskConfigAdapter.taskConfigToForm(config)
 
     form.setFieldValue('bookTitle', initValue.bookTitle)
     form.setFieldValue('taskItemList', initValue.taskItemList)
@@ -132,6 +133,8 @@ export default () => {
     form.setFieldValue('imageQuilty', initValue.imageQuilty)
     form.setFieldValue('maxItemInBook', initValue.maxItemInBook)
     form.setFieldValue('comment', initValue.comment)
+    form.setFieldValue('generateType', initValue.generateType)
+    form.setFieldValue('outputFormats', initValue.outputFormats)
 
     handleBatchTaskModal.syncToModalValue(initValue.taskItemList)
 
@@ -144,7 +147,7 @@ export default () => {
       statusStore.loading.startTask = true
       // 提交数据, 生成配置文件
       console.log('final config => ', JSON.stringify(values, null, 2))
-      const config = Util.generateTaskConfig(values)
+      const config = TaskConfigAdapter.formToTaskConfig(values)
       let isLogin = await handleFormAction.asyncCheckLogin()
       if (isLogin === false) {
         SimpleModal.warning({
@@ -189,8 +192,8 @@ export default () => {
   }
 
   const handleBatchTaskModal = {
-    syncToModalValue: (fetchTaskList: Type_Form_Config['taskItemList']) => {
-      const batchUrlListStr = fetchTaskList?.map((item) => item.rawInputText)?.join('\n') ?? ''
+    syncToModalValue: (taskItemList: Type_Form_Config['taskItemList']) => {
+      const batchUrlListStr = taskItemList?.map((item) => item.rawInputText)?.join('\n') ?? ''
       modalForm.setFieldValue('batchUrlListStr', batchUrlListStr)
     },
     syncToTaskList: (batchUrlListStr: string) => {
@@ -205,6 +208,7 @@ export default () => {
           rawInputText: url,
         })
         const taskItem: Type_Form_Config['taskItemList'][0] = {
+          comment: '',
           id: '',
           rawInputText: url,
           skipFetch: false,
@@ -284,7 +288,7 @@ export default () => {
               >
                 <Form form={modalForm}>
                   <Form.Item name="batchUrlListStr" label="任务列表">
-                    <Input.TextArea suffix={''} autoSize={{ minRows: 10 }} allowClear></Input.TextArea>
+                    <Input.TextArea {...({ autoSize: { minRows: 10 }, allowClear: true } as any)}></Input.TextArea>
                   </Form.Item>
                 </Form>
               </Modal>
@@ -349,6 +353,23 @@ export default () => {
             }}
           </Form.List>
           <Form.Item
+            name="generateType"
+            label="生成模式"
+            labelCol={{
+              span: 3,
+            }}
+          >
+            <Radio.Group buttonStyle="solid">
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_独立输出电子书}>独立成书</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节}>
+                按任务合并
+              </Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_内容打乱重排}>
+                打乱合并
+              </Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
             name="imageQuilty"
             label="图片质量"
             labelCol={{
@@ -360,6 +381,20 @@ export default () => {
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
               <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
             </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="outputFormats"
+            label="输出格式"
+            labelCol={{
+              span: 3,
+            }}
+          >
+            <Checkbox.Group
+              options={[
+                { label: 'HTML', value: Consts_Task_Config.Const_Output_Format_Html },
+                { label: 'EPUB', value: Consts_Task_Config.Const_Output_Format_Epub },
+              ]}
+            />
           </Form.Item>
           <Form.Item
             label="自动分卷"
@@ -383,7 +418,7 @@ export default () => {
             }}
             wrapperCol={{ span: 18 }}
           >
-            <TextArea suffix={''} allowClear />
+            <TextArea {...({ allowClear: true } as any)} />
           </Form.Item>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
             <Button type="primary" htmlType="submit" loading={statusSnap.loading.startTask}>

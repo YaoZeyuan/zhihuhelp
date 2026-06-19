@@ -27,6 +27,7 @@ export type Type_FormValue = {
     "maxItemInBook": Types_Task_Config.Type_Max_Item_In_Book // 自动分卷: 单本电子书中最大回答/想法/文章数量
     "orderItemList": Types_Task_Config.Type_Order_By_Config_List
     "generateType": Types_Task_Config.Type_Generate_Type
+    "outputFormats": Types_Task_Config.Type_Output_Format[]
 }
 
 export const Const_Default_FormValue: Type_FormValue = {
@@ -36,7 +37,8 @@ export const Const_Default_FormValue: Type_FormValue = {
     "comment": "",
     "maxItemInBook": Consts_Task_Config.Const_Max_Question_Or_Article_In_Book,
     "orderItemList": [],
-    "generateType": Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节
+    "generateType": Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节,
+    "outputFormats": [Consts_Task_Config.Const_Output_Format_Html, Consts_Task_Config.Const_Output_Format_Epub]
 }
 
 /**
