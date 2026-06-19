@@ -1,4 +1,5 @@
 export interface IElectronAPI {
+    ['get-debug-ipc-channel-list']: () => Promise<any>,
     ['get-task-default-title']: (...args) => Promise<any>,
     ['get-common-config']: () => Promise<any>,
     ['start-customer-task']: (...args) => Promise<any>,
@@ -9,6 +10,8 @@ export interface IElectronAPI {
     ['get-db-summary-info']: () => Promise<any>,
     ['get-log-content']: (...args) => Promise<any>,
     ['clear-log-content']: () => Promise<any>,
+    ['get-runtime-jsonl-content']: () => Promise<any>,
+    ['clear-runtime-jsonl-content']: () => Promise<any>,
     ['open-js-rpc-window-devtools']: () => Promise<any>,
     loadPreferences: () => Promise<void>,
 }

@@ -9,6 +9,7 @@ import DbExplorer from './component/db_explorer'
 import LogExplorer from './component/log'
 import CustomerTask from './component/customer_task'
 import Login from './component/login'
+import DebugPanel from './component/debug'
 
 import './index.less'
 
@@ -20,6 +21,7 @@ let Item = () => {
   let tabMap = {
     [Consts_Page.Const_Page_任务管理]: CustomerTask,
     [Consts_Page.Const_Page_运行日志]: LogExplorer,
+    [Consts_Page.Const_Page_调试面板]: DebugPanel,
     [Consts_Page.Const_Page_数据浏览]: DbExplorer,
     [Consts_Page.Const_Page_登录]: Login,
   }
@@ -27,6 +29,7 @@ let Item = () => {
   for (let key of [
     Consts_Page.Const_Page_任务管理,
     Consts_Page.Const_Page_运行日志,
+    Consts_Page.Const_Page_调试面板,
     Consts_Page.Const_Page_数据浏览,
     Consts_Page.Const_Page_登录,
   ]) {

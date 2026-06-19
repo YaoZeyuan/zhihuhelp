@@ -25,6 +25,66 @@ let mainWindow: Electron.BrowserWindow
 let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
+const mainProcessStartedAt = new Date().toISOString()
+const Const_Debug_Ipc_Channel_List = [
+  'get-debug-ipc-channel-list',
+  'open-output-dir',
+  'get-common-config',
+  'start-customer-task',
+  'get-task-default-title',
+  'get-db-summary-info',
+  'clear-all-session-storage',
+  'js-rpc-response',
+  'zhihu-http-get',
+  'get-log-content',
+  'clear-log-content',
+  'get-runtime-jsonl-content',
+  'clear-runtime-jsonl-content',
+  'open-devtools',
+  'open-js-rpc-window-devtools',
+]
+
+function createTraceId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function summarizeIpcResponse(response: unknown) {
+  if (Array.isArray(response)) {
+    return {
+      type: 'array',
+      length: response.length,
+    }
+  }
+  if (response && typeof response === 'object') {
+    const record = response as Record<string, unknown>
+    const data = record.data
+    return {
+      type: 'object',
+      keys: Object.keys(record).slice(0, 30),
+      dataType: Array.isArray(data) ? 'array' : typeof data,
+      dataLength: Array.isArray(data) ? data.length : undefined,
+    }
+  }
+  return {
+    type: typeof response,
+  }
+}
+
+function readTextLogFile(logUri: string) {
+  if (!fs.existsSync(logUri)) {
+    fs.writeFileSync(logUri, '')
+  }
+  let content = fs.readFileSync(logUri, 'utf-8')
+  if (!!content === false) {
+    content = ''
+  }
+  const logList = content?.split('\n') ?? []
+  if (logList.length > 5000) {
+    content = logList.slice(logList.length - 2000).join('\n')
+    fs.writeFileSync(logUri, content)
+  }
+  return content
+}
 
 const isMacOS = process.platform === 'darwin'
 
@@ -204,6 +264,14 @@ app.on('activate', function () {
 })
 
 app.whenReady().then(() => {
+  ipcMain.handle('get-debug-ipc-channel-list', async () => {
+    return {
+      pid: process.pid,
+      startedAt: mainProcessStartedAt,
+      channels: Const_Debug_Ipc_Channel_List,
+    }
+  })
+
   // 打开输出文件夹
   ipcMain.handle('open-output-dir', async () => {
     console.log("PathConfig.outputPath => ", PathConfig.outputPath)
@@ -354,41 +422,83 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('zhihu-http-get', async (event, { url, params }: { url: string; params: { [key: string]: any } }) => {
-    // 调用知乎的get请求
-    // console.log('rawUrl => ', url)
-    await asyncUpdateCookie()
-    let res = await http
-      .get(url, {
-        params: params,
+    const traceId = createTraceId('zhihu-http-get')
+    const startAt = Date.now()
+    Logger.event({
+      stage: 'ipc',
+      status: 'start',
+      level: 'info',
+      message: '收到 IPC 请求：zhihu-http-get',
+      details: {
+        traceId,
+        url,
+        paramsKeys: Object.keys(params ?? {}),
+      },
+    })
+    try {
+      await asyncUpdateCookie()
+      let res = await http
+        .get(url, {
+          params: params,
+        })
+        .catch((e) => {
+          Logger.event({
+            stage: 'ipc',
+            status: 'failure',
+            level: 'error',
+            message: '知乎 HTTP 请求失败：zhihu-http-get',
+            durationMs: Date.now() - startAt,
+            error: Logger.serializeError(e),
+            details: {
+              traceId,
+              url,
+            },
+          })
+          return {}
+        })
+      Logger.event({
+        stage: 'ipc',
+        status: 'success',
+        level: 'info',
+        message: 'IPC 请求完成：zhihu-http-get',
+        durationMs: Date.now() - startAt,
+        details: {
+          traceId,
+          url,
+          response: summarizeIpcResponse(res),
+        },
       })
-      .catch((e) => {
-        return {}
+      return res
+    } catch (error) {
+      Logger.event({
+        stage: 'ipc',
+        status: 'failure',
+        level: 'error',
+        message: 'IPC 请求异常：zhihu-http-get',
+        durationMs: Date.now() - startAt,
+        error: Logger.serializeError(error),
+        details: {
+          traceId,
+          url,
+        },
       })
-    return res
+      return {}
+    }
   })
   ipcMain.handle('get-log-content', async (event) => {
-    // 确保日志文件存在
-    if (!fs.existsSync(PathConfig.runtimeLogUri)) {
-      fs.writeFileSync(PathConfig.runtimeLogUri, '')
-    }
-    // 获取日志内容
-    let content = fs.readFileSync(PathConfig.runtimeLogUri, 'utf-8')
-    if (!!content === false) {
-      // 避免为undefined
-      content = ""
-    }
-    const logList = content?.split("\n") ?? []
-    if (logList.length > 5000) {
-      // 自动清理日志, 控制在2000条以下
-      content = logList.slice(logList.length - 2000).join("\n")
-      fs.writeFileSync(PathConfig.runtimeLogUri, content)
-    }
-    return content
+    return readTextLogFile(PathConfig.runtimeLogUri)
   })
   ipcMain.handle('clear-log-content', async (event) => {
     // 清理日志内容
     fs.writeFileSync(PathConfig.runtimeLogUri, '')
     return ""
+  })
+  ipcMain.handle('get-runtime-jsonl-content', async (event) => {
+    return readTextLogFile(PathConfig.runtimeJsonlUri)
+  })
+  ipcMain.handle('clear-runtime-jsonl-content', async (event) => {
+    fs.writeFileSync(PathConfig.runtimeJsonlUri, '')
+    return ''
   })
   ipcMain.handle('open-devtools', async (event) => {
     // 打开调试面板

@@ -6,7 +6,7 @@ import fs from 'fs'
 
 export type StructuredLogEntry = {
   runId?: string
-  stage?: 'cli' | 'config' | 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
+  stage?: 'cli' | 'config' | 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output' | 'ipc'
   status?: 'start' | 'progress' | 'success' | 'skip' | 'failure'
   taskType?: string
   entityType?: string

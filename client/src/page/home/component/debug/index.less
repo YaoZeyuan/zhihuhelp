@@ -1,0 +1,122 @@
+.debug-panel-6fce4b2 {
+  width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .debug-section {
+    background: #ffffff;
+    border: 1px solid rgba(5, 5, 5, 0.08);
+    border-radius: 6px;
+    padding: 14px;
+  }
+
+  .debug-section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .debug-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .debug-section-header .debug-section-title {
+    margin-bottom: 0;
+  }
+
+  .debug-custom-call {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(360px, 1fr) 88px;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .debug-log-panel {
+    margin-top: 12px;
+    border: 1px solid rgba(5, 5, 5, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .debug-risk-tip {
+    margin-top: 10px;
+    padding: 8px 10px;
+    color: #ad6800;
+    background: #fff7e6;
+    border: 1px solid #ffd591;
+    border-radius: 4px;
+  }
+
+  .ant-list-item {
+    padding: 0;
+  }
+
+  .debug-log-item {
+    width: 100%;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+  }
+
+  .debug-log-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .debug-log-message {
+    margin-top: 4px;
+  }
+
+  .debug-log-detail {
+    margin-top: 6px;
+
+    details {
+      margin-top: 4px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: #1677ff;
+    }
+
+    pre {
+      max-height: 240px;
+      overflow: auto;
+      margin: 6px 0 0;
+      padding: 8px;
+      border-radius: 4px;
+      background: #f5f5f5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  }
+
+  .debug-backend-log-line {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    width: 100%;
+    margin: 0;
+    padding: 2px 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    span {
+      color: rgba(0, 0, 0, 0.45);
+      user-select: none;
+    }
+  }
+}
+
+@media (max-width: 920px) {
+  .debug-panel-6fce4b2 {
+    .debug-custom-call {
+      grid-template-columns: 1fr;
+    }
+  }
+}

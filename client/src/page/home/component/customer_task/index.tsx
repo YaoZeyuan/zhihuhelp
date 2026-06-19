@@ -31,6 +31,7 @@ import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Ahooks from 'ahooks'
+import DebugLog from '~/src/library/debug_log'
 
 import './index.less'
 
@@ -150,6 +151,7 @@ export default () => {
       const config = TaskConfigAdapter.formToTaskConfig(values)
       let isLogin = await handleFormAction.asyncCheckLogin()
       if (isLogin === false) {
+        statusStore.loading.startTask = false
         SimpleModal.warning({
           title: '登录状态异常',
           content: '请先登录知乎账号后再启动任务',
@@ -169,8 +171,7 @@ export default () => {
       setCurrentTab(Consts_Page.Const_Page_运行日志)
     },
     asyncCheckLogin: async () => {
-      console.log('check login')
-      let res = await window.electronAPI['zhihu-http-get']({
+      const request = {
         url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
         params: {
           include:
@@ -181,11 +182,42 @@ export default () => {
           // 避免请求被缓存住
           random: Math.floor(Math.random() * 100000),
         },
-      })
-      console.log('res => ', res)
+      }
+      let res: any
+      try {
+        res = await DebugLog.invokeElectronApi<any>('zhihu-http-get', [request], {
+          message: '任务启动前检查知乎登录态',
+        })
+      } catch (error) {
+        DebugLog.append({
+          level: 'error',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查异常：IPC 调用失败',
+          request,
+          error,
+        })
+        return false
+      }
       if (res.data !== undefined) {
+        DebugLog.append({
+          level: 'success',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查通过：响应包含 data 字段',
+          request,
+          response: {
+            dataType: Array.isArray(res.data) ? 'array' : typeof res.data,
+            dataLength: Array.isArray(res.data) ? res.data.length : undefined,
+          },
+        })
         return true
       } else {
+        DebugLog.append({
+          level: 'warn',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查未通过：响应缺少 data 字段',
+          request,
+          response: res,
+        })
         return false
       }
     },

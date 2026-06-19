@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  ['get-debug-ipc-channel-list']: async () => ipcRenderer.invoke('get-debug-ipc-channel-list'),
   ['get-task-default-title']: async (...args) => ipcRenderer.invoke('get-task-default-title', ...args),
   ['get-common-config']: async () => ipcRenderer.invoke('get-common-config'),
   ['start-customer-task']: async (...args) => ipcRenderer.invoke('start-customer-task', ...args),
@@ -14,5 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return res
   },
   ['clear-log-content']: async () => ipcRenderer.invoke('clear-log-content'),
+  ['get-runtime-jsonl-content']: async () => ipcRenderer.invoke('get-runtime-jsonl-content'),
+  ['clear-runtime-jsonl-content']: async () => ipcRenderer.invoke('clear-runtime-jsonl-content'),
   ['open-js-rpc-window-devtools']: async () => ipcRenderer.invoke('open-js-rpc-window-devtools'),
 })
