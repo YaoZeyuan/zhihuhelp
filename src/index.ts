@@ -299,7 +299,6 @@ app.whenReady().then(() => {
     // 将 GUI 配置转换为新 schema 并写入本地
     const cookieContent = await asyncUpdateCookie()
     config.request.cookie = cookieContent
-    RequestConfig.setRequestConfig(config.request)
     writeTaskConfig(PathConfig.configUri, config)
 
     Logger.log(`开始执行任务`)
@@ -317,20 +316,7 @@ app.whenReady().then(() => {
 
 
   ipcMain.handle('get-task-default-title', async (event, { taskId, taskType }: { taskType: any, taskId: string }) => {
-    const cookieContent = await asyncUpdateCookie()
-    try {
-      const config = readTaskConfig(PathConfig.configUri)
-      RequestConfig.setRequestConfig({
-        ua: config.request.ua,
-        cookie: cookieContent,
-      })
-    } catch {
-      RequestConfig.setRequestConfig({
-        ua: RequestConfig.ua,
-        cookie: cookieContent,
-      })
-    }
-
+    await asyncUpdateCookie()
     let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
     return title
   })
