@@ -5,21 +5,18 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": false,
-    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "./" /* Base directory to resolve non-absolute module names. */,
     "rootDir": "./" /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      "*": ["node_modules/*"],
-      "~/*": ["*"]
+      "*": ["./node_modules/*"],
+      "~/*": ["./*"]
     }
   },
   "include": ["./src", "../src/renderer.d.ts"]
