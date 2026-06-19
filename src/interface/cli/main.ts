@@ -5,6 +5,7 @@ import { runSync } from '@optique/run'
 import CommonConfig from '~/src/config/common'
 import { cliParser } from '~/src/interface/cli/parser'
 import { dispatchCliCommand } from '~/src/interface/cli/command/dispatcher'
+import Logger from '~/src/library/logger'
 
 const program = defineProgram({
   parser: cliParser,
@@ -31,6 +32,13 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: Error) => {
+  Logger.event({
+    stage: 'cli',
+    status: 'failure',
+    level: 'error',
+    message: 'CLI 执行失败',
+    error: Logger.serializeError(error),
+  })
   console.error(error.stack || error.message)
   process.exit(1)
 })

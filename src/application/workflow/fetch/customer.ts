@@ -15,6 +15,7 @@ import BatchFetchPin from '~/src/api/batch/pin'
 import BatchFetchQuestion from '~/src/api/batch/question'
 import BatchFetchTopic from '~/src/api/batch/topic'
 import Logger from '~/src/library/logger'
+import { RunContext } from '~/src/shared/runtime/run_context'
 import lodash from 'lodash'
 
 type BatchFetcher = {
@@ -38,11 +39,25 @@ const authorActivityTaskTypeList = [
  * 现有 batch/model 模块承载，后续可继续下沉到 gateway/repository。
  */
 export default class FetchWorkflow {
-  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config): Promise<void> {
+  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config, context?: RunContext): Promise<void> {
     RequestConfig.setRequestConfig(customerTaskConfig.requestConfig)
+    this.event(context, {
+      status: 'start',
+      level: 'info',
+      message: '加载抓取配置',
+      details: this.summarizeFetchConfig(customerTaskConfig),
+    })
     this.log(`开始进行自定义抓取, 共有${customerTaskConfig.fetchTaskList.length}个任务`)
 
-    const taskListPackage = this.mergeTaskList(customerTaskConfig.fetchTaskList)
+    const taskListPackage = this.mergeTaskList(customerTaskConfig.fetchTaskList, context)
+    this.event(context, {
+      status: 'success',
+      level: 'info',
+      message: '抓取任务合并完成',
+      details: {
+        taskPackage: this.summarizeTaskPackage(taskListPackage),
+      },
+    })
     this.log(`抓取任务合并完毕, 最终结果为=>`, taskListPackage)
     this.log(`开始派发自定义任务=>`)
 
@@ -50,21 +65,97 @@ export default class FetchWorkflow {
       const targetIdList = [...taskListPackage[taskType].values()]
       const fetcher = this.createBatchFetcher(taskType)
       if (fetcher === undefined) {
+        this.event(context, {
+          status: 'skip',
+          level: 'warn',
+          message: '跳过不支持的抓取任务类型',
+          taskType,
+          details: {
+            taskType,
+            targetIdList,
+          },
+        })
         this.log(`不支持的任务类型:${taskType}, 自动跳过`)
         continue
       }
-      await fetcher.fetchListAndSaveToDb(targetIdList)
+      const startedAt = Date.now()
+      this.event(context, {
+        status: 'start',
+        level: 'info',
+        message: '开始执行批量抓取',
+        taskType,
+        details: {
+          taskType,
+          targetIdCount: targetIdList.length,
+          targetIdList,
+          fetcher: fetcher.constructor.name,
+        },
+      })
+      try {
+        await fetcher.fetchListAndSaveToDb(targetIdList)
+        this.event(context, {
+          status: 'success',
+          level: 'info',
+          message: '批量抓取完成',
+          taskType,
+          durationMs: Date.now() - startedAt,
+          details: {
+            taskType,
+            targetIdCount: targetIdList.length,
+            targetIdList,
+            fetcher: fetcher.constructor.name,
+          },
+        })
+      } catch (error) {
+        this.event(context, {
+          status: 'failure',
+          level: 'error',
+          message: '批量抓取失败',
+          taskType,
+          durationMs: Date.now() - startedAt,
+          error: Logger.serializeError(error),
+          details: {
+            taskType,
+            targetIdCount: targetIdList.length,
+            targetIdList,
+            fetcher: fetcher.constructor.name,
+          },
+        })
+        throw error
+      }
     }
 
+    this.event(context, {
+      status: 'success',
+      level: 'info',
+      message: '自定义抓取任务全部完成',
+      details: {
+        taskPackage: this.summarizeTaskPackage(taskListPackage),
+      },
+    })
     this.log(`自定义任务抓取完毕`)
   }
 
-  private mergeTaskList(fetchTaskList: TypeTaskConfig.Type_Fetch_Task_Config_Item[]): TaskPackage {
+  private mergeTaskList(fetchTaskList: TypeTaskConfig.Type_Fetch_Task_Config_Item[], context?: RunContext): TaskPackage {
     const taskListPackage: TaskPackage = {}
     this.log(`合并抓取任务`)
 
-    for (const fetchTaskConfig of fetchTaskList) {
+    for (const [index, fetchTaskConfig] of fetchTaskList.entries()) {
       if (fetchTaskConfig.skipFetch) {
+        this.event(context, {
+          status: 'skip',
+          level: 'info',
+          message: '配置要求跳过抓取任务',
+          taskType: fetchTaskConfig.type,
+          entityId: `${fetchTaskConfig.id}`,
+          details: {
+            index,
+            type: fetchTaskConfig.type,
+            id: `${fetchTaskConfig.id}`,
+            rawInputText: fetchTaskConfig.rawInputText,
+            comment: fetchTaskConfig.comment,
+          },
+        })
         continue
       }
       const taskType = fetchTaskConfig.type
@@ -74,6 +165,20 @@ export default class FetchWorkflow {
       }
 
       if (this.isSupportedTaskType(taskType) === false) {
+        this.event(context, {
+          status: 'skip',
+          level: 'warn',
+          message: '配置中存在不支持的抓取任务类型',
+          taskType,
+          entityId: targetId,
+          details: {
+            index,
+            type: fetchTaskConfig.type,
+            id: targetId,
+            rawInputText: fetchTaskConfig.rawInputText,
+            comment: fetchTaskConfig.comment,
+          },
+        })
         this.log(`不支持的任务类型:${fetchTaskConfig.type}, 自动跳过`)
         continue
       }
@@ -126,6 +231,60 @@ export default class FetchWorkflow {
       default:
         return undefined
     }
+  }
+
+  private event(
+    context: RunContext | undefined,
+    entry: {
+      status: 'start' | 'progress' | 'success' | 'skip' | 'failure'
+      level: 'debug' | 'info' | 'warn' | 'error'
+      message: string
+      taskType?: string
+      entityId?: string
+      durationMs?: number
+      error?: ReturnType<typeof Logger.serializeError>
+      details?: {
+        [key: string]: unknown
+      }
+    },
+  ): void {
+    Logger.event({
+      runId: context?.runId,
+      stage: 'fetch',
+      ...entry,
+    })
+  }
+
+  private summarizeFetchConfig(customerTaskConfig: TypeTaskConfig.Type_Task_Config): { [key: string]: unknown } {
+    return {
+      request: {
+        uaLength: customerTaskConfig.requestConfig.ua.length,
+        hasCookie: customerTaskConfig.requestConfig.cookie.trim().length > 0,
+        cookieLength: customerTaskConfig.requestConfig.cookie.length,
+      },
+      taskCount: customerTaskConfig.fetchTaskList.length,
+      enabledTaskCount: customerTaskConfig.fetchTaskList.filter((task) => task.skipFetch === false).length,
+      skippedTaskCount: customerTaskConfig.fetchTaskList.filter((task) => task.skipFetch).length,
+      tasks: customerTaskConfig.fetchTaskList.map((task, index) => ({
+        index,
+        type: task.type,
+        id: `${task.id}`,
+        rawInputText: task.rawInputText,
+        comment: task.comment,
+        skipFetch: task.skipFetch,
+      })),
+    }
+  }
+
+  private summarizeTaskPackage(taskListPackage: TaskPackage): { [key: string]: unknown }[] {
+    return Object.keys(taskListPackage).map((taskType) => {
+      const targetIdList = [...taskListPackage[taskType].values()]
+      return {
+        taskType,
+        targetIdCount: targetIdList.length,
+        targetIdList,
+      }
+    })
   }
 
   private log(...argumentList: unknown[]): void {

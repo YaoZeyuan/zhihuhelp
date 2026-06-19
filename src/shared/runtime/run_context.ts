@@ -3,7 +3,7 @@ import PathConfig from '~/src/config/path'
 import CommonConfig from '~/src/config/common'
 import Logger from '~/src/library/logger'
 
-export type RunStage = 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
+export type RunStage = 'cli' | 'config' | 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
 
 export type RunContextOptions = {
   configPath?: string
@@ -19,7 +19,7 @@ export type RunContext = {
 }
 
 /**
- * 创建一次 CLI/GUI 任务运行的上下文，并同步当前仍由旧模块读取的路径配置。
+ * 创建一次 CLI/GUI 任务运行上下文，并同步旧模块仍会读取的路径配置。
  */
 export function createRunContext(options: RunContextOptions): RunContext {
   const configPath = path.resolve(options.configPath ?? PathConfig.configUri)
@@ -33,9 +33,17 @@ export function createRunContext(options: RunContextOptions): RunContext {
   const runId = createRunId()
   Logger.event({
     runId,
-    stage: 'init',
+    stage: 'config',
+    status: 'success',
     level: 'info',
     message: '创建运行上下文',
+    details: {
+      configPath,
+      databasePath,
+      outputPath,
+      runtimeLogPath: PathConfig.runtimeLogUri,
+      runtimeJsonlPath: PathConfig.runtimeJsonlUri,
+    },
   })
 
   return {

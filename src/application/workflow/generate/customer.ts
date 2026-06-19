@@ -25,6 +25,7 @@ import * as Package from '~/src/application/workflow/generate/resource/library/p
 import EpubGenerator from '~/src/application/workflow/generate/library/epub_generator'
 import moment from 'moment'
 import { ReactElement } from 'react'
+import { RunContext } from '~/src/shared/runtime/run_context'
 
 /**
  * 生成html
@@ -59,14 +60,27 @@ type EpubResourcePackage = {
 }
 
 class GenerateWorkflow {
+  private context?: RunContext
+
   /**
    * 根据已解析的任务配置从 SQLite 读取内容并输出 HTML/EPUB。
    *
    * 该 workflow 只编排生成流程；配置文件读取和 CLI 参数解析由 interface 层完成。
    */
-  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config): Promise<void> {
+  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config, context?: RunContext): Promise<void> {
+    this.context = context
+    const startedAt = Date.now()
     let generateConfig = customerTaskConfig.generateConfig
     let fetchTaskList = customerTaskConfig.fetchTaskList
+    this.event({
+      status: 'start',
+      level: 'info',
+      message: '加载生成配置',
+      details: {
+        fetchTaskCount: fetchTaskList.length,
+        generateConfig: this.summarizeGenerateConfig(generateConfig),
+      },
+    })
 
     // 生成类型
     let imageQuilty = generateConfig.imageQuilty
@@ -79,25 +93,143 @@ class GenerateWorkflow {
 
     // 按配置拆分电子书
 
-    let epubColumnList = await this.asyncGetColumnPackage({ fetchTaskList, generateConfig })
+    try {
+      let epubColumnList = await this.asyncGetColumnPackage({ fetchTaskList, generateConfig })
 
-    // 针对每一个结果, 生成epub
-
-    // 处理html
-    // 下载图片
-    // 输出内容
-
-    for (let epubColumn of epubColumnList) {
-      let bookname = epubColumn.bookname
-      this.log(`输出电子书:${bookname}`)
-      await this.generateEpub({
-        epubColumn,
-        imageQuilty,
+      this.event({
+        status: 'success',
+        level: 'info',
+        message: '电子书分卷准备完成',
+        details: {
+          bookCount: epubColumnList.length,
+          books: epubColumnList.map((epubColumn) => this.summarizeEpubColumn(epubColumn)),
+        },
       })
-      this.log(`电子书:${bookname}输出完毕`)
+
+      // 针对每一个结果, 生成epub
+
+      // 处理html
+      // 下载图片
+      // 输出内容
+
+      for (let epubColumn of epubColumnList) {
+        let bookname = epubColumn.bookname
+        this.log(`输出电子书:${bookname}`)
+        await this.generateEpub({
+          epubColumn,
+          imageQuilty,
+        })
+        this.log(`电子书:${bookname}输出完毕`)
+      }
+      this.event({
+        status: 'success',
+        level: 'info',
+        message: '所有电子书输出完成',
+        durationMs: Date.now() - startedAt,
+        details: {
+          bookCount: epubColumnList.length,
+          books: epubColumnList.map((epubColumn) => this.summarizeEpubColumn(epubColumn)),
+        },
+      })
+      this.log(`所有电子书输出完毕`)
+      // 全部完成后打开文件夹
+    } catch (error) {
+      this.event({
+        status: 'failure',
+        level: 'error',
+        message: '生成 workflow 执行失败',
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        details: {
+          fetchTaskCount: fetchTaskList.length,
+          generateConfig: this.summarizeGenerateConfig(generateConfig),
+        },
+      })
+      throw error
     }
-    this.log(`所有电子书输出完毕`)
-    // 全部完成后打开文件夹
+  }
+
+  private event(entry: {
+    status: 'start' | 'progress' | 'success' | 'skip' | 'failure'
+    level: 'debug' | 'info' | 'warn' | 'error'
+    message: string
+    taskType?: string
+    entityId?: string
+    durationMs?: number
+    error?: ReturnType<typeof Logger.serializeError>
+    details?: {
+      [key: string]: unknown
+    }
+  }): void {
+    Logger.event({
+      runId: this.context?.runId,
+      stage: 'generate',
+      ...entry,
+    })
+  }
+
+  private summarizeGenerateConfig(
+    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig'],
+  ): { [key: string]: unknown } {
+    return {
+      bookTitle: generateConfig.bookTitle,
+      generateType: generateConfig.generateType,
+      imageQuilty: generateConfig.imageQuilty,
+      maxItemInBook: generateConfig.maxItemInBook,
+      orderByList: generateConfig.orderByList,
+      comment: generateConfig.comment,
+    }
+  }
+
+  private summarizeFetchTask(
+    fetchTask: TypeTaskConfig.Type_Fetch_Task_Config_Item,
+    index?: number,
+  ): { [key: string]: unknown } {
+    return {
+      index,
+      type: fetchTask.type,
+      id: `${fetchTask.id}`,
+      rawInputText: fetchTask.rawInputText,
+      comment: fetchTask.comment,
+      skipFetch: fetchTask.skipFetch,
+    }
+  }
+
+  private summarizeUnitPackage(unitPackage: Package.Type_Unit_Item): { [key: string]: unknown } {
+    return {
+      type: unitPackage.type,
+      pageCount: unitPackage.pageList.length,
+      itemCount: unitPackage.getItemCount(),
+      info: this.summarizeUnitInfo(unitPackage),
+    }
+  }
+
+  private summarizeUnitInfo(unitPackage: Package.Type_Unit_Item): { [key: string]: unknown } | undefined {
+    if (unitPackage.info === undefined) {
+      return undefined
+    }
+    const rawInfo = unitPackage.info as {
+      id?: string | number
+      name?: string
+      title?: string
+      url_token?: string
+    }
+    return {
+      id: rawInfo.id,
+      name: rawInfo.name,
+      title: rawInfo.title,
+      urlToken: rawInfo.url_token,
+    }
+  }
+
+  private summarizeEpubColumn(epubColumn: Package.Ebook_Column): { [key: string]: unknown } {
+    return {
+      bookname: epubColumn.bookname,
+      unitCount: epubColumn.unitList.length,
+      pageCount: epubColumn.unitList.reduce((sum, unit) => sum + unit.pageList.length, 0),
+      itemCount: epubColumn.unitList.reduce((sum, unit) => sum + unit.getItemCount(), 0),
+      units: epubColumn.unitList.map((unit) => this.summarizeUnitPackage(unit)),
+    }
   }
 
   private log(...argumentList: unknown[]): void {
@@ -123,6 +255,16 @@ class GenerateWorkflow {
     fetchTaskList: TypeTaskConfig.Type_Task_Config['fetchTaskList']
     generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
   }) {
+    const startedAt = Date.now()
+    this.event({
+      status: 'start',
+      level: 'info',
+      message: '开始整理生成数据包',
+      details: {
+        fetchTaskCount: fetchTaskList.length,
+        generateConfig: this.summarizeGenerateConfig(generateConfig),
+      },
+    })
     // 生成类型
     let generateType = generateConfig.generateType
     let bookname = generateConfig.bookTitle
@@ -137,8 +279,8 @@ class GenerateWorkflow {
     let mixUnitPackage = new Package.Unit_混合类型({
       pageList: [],
     })
-    for (let fetchTask of fetchTaskList) {
-      let unitPackage = await this.asyncGetUintPackageByFetchTask(fetchTask)
+    for (const [index, fetchTask] of fetchTaskList.entries()) {
+      let unitPackage = await this.asyncGetUintPackageByFetchTaskWithLog(fetchTask, index)
       if (unitPackage === undefined) {
         // 未查找到元素则直接跳过
         continue
@@ -225,7 +367,75 @@ class GenerateWorkflow {
         }
         break
     }
+    this.event({
+      status: 'success',
+      level: 'info',
+      message: '生成数据包整理完成',
+      durationMs: Date.now() - startedAt,
+      details: {
+        generateType,
+        sourceUnitCount: unitPackageList.length,
+        sourceUnits: unitPackageList.map((unitPackage) => this.summarizeUnitPackage(unitPackage)),
+        bookCount: epubRecordList.length,
+        books: epubRecordList.map((epubRecord) => this.summarizeEpubColumn(epubRecord)),
+      },
+    })
     return epubRecordList
+  }
+
+  private async asyncGetUintPackageByFetchTaskWithLog(
+    taskConfig: TypeTaskConfig.Type_Fetch_Task_Config_Item,
+    index: number,
+  ): Promise<Package.Type_Unit_Item | undefined> {
+    const startedAt = Date.now()
+    this.event({
+      status: 'start',
+      level: 'info',
+      message: '开始从数据库组装生成单元',
+      taskType: taskConfig.type,
+      entityId: `${taskConfig.id}`,
+      details: this.summarizeFetchTask(taskConfig, index),
+    })
+    try {
+      const unitPackage = await this.asyncGetUintPackageByFetchTask(taskConfig)
+      if (unitPackage === undefined) {
+        this.event({
+          status: 'skip',
+          level: 'warn',
+          message: '数据库中未找到可生成的数据，已跳过该任务',
+          taskType: taskConfig.type,
+          entityId: `${taskConfig.id}`,
+          durationMs: Date.now() - startedAt,
+          details: this.summarizeFetchTask(taskConfig, index),
+        })
+        return undefined
+      }
+      this.event({
+        status: 'success',
+        level: 'info',
+        message: '生成单元组装完成',
+        taskType: taskConfig.type,
+        entityId: `${taskConfig.id}`,
+        durationMs: Date.now() - startedAt,
+        details: {
+          task: this.summarizeFetchTask(taskConfig, index),
+          unitPackage: this.summarizeUnitPackage(unitPackage),
+        },
+      })
+      return unitPackage
+    } catch (error) {
+      this.event({
+        status: 'failure',
+        level: 'error',
+        message: '生成单元组装失败',
+        taskType: taskConfig.type,
+        entityId: `${taskConfig.id}`,
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        details: this.summarizeFetchTask(taskConfig, index),
+      })
+      throw error
+    }
   }
 
   /**
@@ -1068,60 +1278,126 @@ class GenerateWorkflow {
     imageQuilty: TypeTaskConfig.Type_Image_Quilty
     epubColumn: Package.Ebook_Column
   }) {
-    // 初始化资源, 重置所有静态类变量
+    const startedAt = Date.now()
+    this.event({
+      status: 'start',
+      level: 'info',
+      message: '开始生成单本电子书',
+      details: {
+        imageQuilty,
+        book: this.summarizeEpubColumn(epubColumn),
+      },
+    })
 
-    let epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname, imageQuilty })
+    let epubGenerator: EpubGenerator | undefined
+    try {
+      // 初始化资源, 重置所有静态类变量
+      epubGenerator = new EpubGenerator({ bookname: epubColumn.bookname, imageQuilty })
 
-    // 单独记录生成的元素, 以便输出成单页
-    let ele4SinglePageList: ReactElement[] = []
-    this.log(`生成问题html列表`)
-    let indexRecordList: Type_Index_Record[] = []
-    for (let unit of epubColumn.unitList) {
-      // 生成信息页
-      let { filename, title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
-      ele4SinglePageList.push(unitEle4SinglePage)
-      let uri = epubGenerator.addHtml({
-        filename,
-        title,
-        html,
-      })
-      let unitRecord: Type_Index_Record = {
-        title: title,
-        uri: uri,
-        pageList: [],
-      }
-      // 生成内容页
-      for (let page of unit.pageList) {
-        let { filename, title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
-        ele4SinglePageList.push(pageEle4SinglePage)
+      // 单独记录生成的元素, 以便输出成单页
+      let ele4SinglePageList: ReactElement[] = []
+      this.log(`生成问题html列表`)
+      let indexRecordList: Type_Index_Record[] = []
+      let htmlPageCount = 0
+      for (let unit of epubColumn.unitList) {
+        // 生成信息页
+        let { filename, title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
+        ele4SinglePageList.push(unitEle4SinglePage)
         let uri = epubGenerator.addHtml({
           filename,
           title,
           html,
         })
-        let pageRecord: Type_Index_Record['pageList'][number] = {
+        htmlPageCount++
+        let unitRecord: Type_Index_Record = {
           title: title,
           uri: uri,
+          pageList: [],
         }
-        unitRecord.pageList.push(pageRecord)
+        // 生成内容页
+        for (let page of unit.pageList) {
+          let { filename, title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
+          ele4SinglePageList.push(pageEle4SinglePage)
+          let uri = epubGenerator.addHtml({
+            filename,
+            title,
+            html,
+          })
+          htmlPageCount++
+          let pageRecord: Type_Index_Record['pageList'][number] = {
+            title: title,
+            uri: uri,
+          }
+          unitRecord.pageList.push(pageRecord)
+        }
+        indexRecordList.push(unitRecord)
       }
-      indexRecordList.push(unitRecord)
+      let indexPage = this.generateIndexHtml(indexRecordList)
+      epubGenerator.addIndexHtml({
+        filename: indexPage.filename,
+        title: indexPage.title,
+        html: indexPage.html,
+      })
+      htmlPageCount++
+
+      this.log(`生成单一html文件`)
+      let singlePageContent = this.generateSinglePageHtml(ele4SinglePageList)
+      epubGenerator.generateSinglePageHtml({ html: singlePageContent })
+
+      this.event({
+        status: 'progress',
+        level: 'info',
+        message: 'HTML 渲染完成，准备生成 EPUB 和输出文件',
+        details: {
+          bookname: epubColumn.bookname,
+          htmlPageCount,
+          singlePageElementCount: ele4SinglePageList.length,
+          imageCount: epubGenerator.imgUriPool.size,
+          epubCachePath: epubGenerator.epubCachePath,
+          htmlCachePath: epubGenerator.htmlCachePath,
+          epubOutputPath: epubGenerator.epubOutputPathUri,
+          htmlOutputPath: epubGenerator.htmlOutputPathUri,
+        },
+      })
+
+      // 生成电子书
+      await epubGenerator.asyncGenerateEpub()
+
+      this.event({
+        status: 'success',
+        level: 'info',
+        message: '单本电子书生成完成',
+        durationMs: Date.now() - startedAt,
+        details: {
+          bookname: epubColumn.bookname,
+          htmlPageCount,
+          singlePageElementCount: ele4SinglePageList.length,
+          imageCount: epubGenerator.imgUriPool.size,
+          epubCachePath: epubGenerator.epubCachePath,
+          htmlCachePath: epubGenerator.htmlCachePath,
+          epubOutputPath: epubGenerator.epubOutputPathUri,
+          htmlOutputPath: epubGenerator.htmlOutputPathUri,
+        },
+      })
+      this.log(`自定义电子书${epubColumn.bookname}生成完毕`)
+    } catch (error) {
+      this.event({
+        status: 'failure',
+        level: 'error',
+        message: '单本电子书生成失败',
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        details: {
+          imageQuilty,
+          book: this.summarizeEpubColumn(epubColumn),
+          epubCachePath: epubGenerator?.epubCachePath,
+          htmlCachePath: epubGenerator?.htmlCachePath,
+          epubOutputPath: epubGenerator?.epubOutputPathUri,
+          htmlOutputPath: epubGenerator?.htmlOutputPathUri,
+        },
+      })
+      throw error
     }
-    let indexPage = this.generateIndexHtml(indexRecordList)
-    let indexUri = epubGenerator.addIndexHtml({
-      filename: indexPage.filename,
-      title: indexPage.title,
-      html: indexPage.html,
-    })
-
-    this.log(`生成单一html文件`)
-    let singlePageContent = this.generateSinglePageHtml(ele4SinglePageList)
-    epubGenerator.generateSinglePageHtml({ html: singlePageContent })
-
-    // 生成电子书
-    await epubGenerator.asyncGenerateEpub()
-
-    this.log(`自定义电子书${epubColumn.bookname}生成完毕`)
   }
 }
 

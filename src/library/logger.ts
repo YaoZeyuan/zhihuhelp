@@ -6,7 +6,8 @@ import fs from 'fs'
 
 export type StructuredLogEntry = {
   runId?: string
-  stage?: 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
+  stage?: 'cli' | 'config' | 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
+  status?: 'start' | 'progress' | 'success' | 'skip' | 'failure'
   taskType?: string
   entityType?: string
   entityId?: string
@@ -14,7 +15,17 @@ export type StructuredLogEntry = {
   durationMs?: number
   level: 'debug' | 'info' | 'warn' | 'error'
   errorCode?: string
+  error?: SerializedError
+  details?: {
+    [key: string]: unknown
+  }
   message: string
+}
+
+export type SerializedError = {
+  name: string
+  message: string
+  stack?: string
 }
 
 class Logger {
@@ -33,7 +44,9 @@ class Logger {
   }
 
   private static pushLogContentToFile(logContent: string) {
-    fs.appendFileSync(PathConfig.runtimeLogUri, logContent + '\n')
+    fs.appendFileSync(PathConfig.runtimeLogUri, logContent + '\n', {
+      encoding: 'utf8',
+    })
     return
   }
 
@@ -42,7 +55,9 @@ class Logger {
       triggerAt: new Date().toISOString(),
       ...entry,
     }
-    fs.appendFileSync(PathConfig.runtimeJsonlUri, JSON.stringify(record) + '\n')
+    fs.appendFileSync(PathConfig.runtimeJsonlUri, JSON.stringify(record) + '\n', {
+      encoding: 'utf8',
+    })
   }
 
   static log(...arg: any[]) {
@@ -59,11 +74,39 @@ class Logger {
 
   static event(entry: StructuredLogEntry) {
     Logger.pushJsonLogContentToFile(entry)
+    const statusText = entry.status ? `/${entry.status}` : ''
+    const durationText = entry.durationMs === undefined ? '' : ` 耗时${entry.durationMs}ms`
+    const textMessage = `[${entry.stage ?? 'runtime'}${statusText}] ${entry.message}${durationText}`
     if (entry.level === 'warn' || entry.level === 'error') {
-      Logger.warn(`[${entry.stage ?? 'runtime'}] ${entry.message}`)
+      Logger.warn(textMessage)
       return
     }
-    Logger.log(`[${entry.stage ?? 'runtime'}] ${entry.message}`)
+    Logger.log(textMessage)
+  }
+
+  static serializeError(error: unknown): SerializedError {
+    if (error instanceof Error) {
+      return {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      }
+    }
+    return {
+      name: 'NonError',
+      message: Logger.stringifyUnknown(error),
+    }
+  }
+
+  private static stringifyUnknown(value: unknown): string {
+    if (lodash.isString(value)) {
+      return value
+    }
+    try {
+      return JSON.stringify(value)
+    } catch (error) {
+      return String(value)
+    }
   }
 }
 
