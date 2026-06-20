@@ -59,6 +59,43 @@ function getAgreeLabel(item: Types.DataType) {
   return '赞同'
 }
 
+function escapeHtmlAttribute(value: string) {
+  return value.replace(/"/g, '&quot;')
+}
+
+function getHtmlAttributeValue(htmlTag: string, attrName: string) {
+  const match = htmlTag.match(new RegExp(`${attrName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'))
+  return match?.[1] ?? match?.[2] ?? match?.[3] ?? ''
+}
+
+function isUsableImageSrc(src: string) {
+  const normalizedSrc = src.trim()
+  return normalizedSrc !== '' && /^data:/i.test(normalizedSrc) === false && normalizedSrc !== '#'
+}
+
+function normalizeZhihuContentHtml(contentHtml?: string) {
+  if (typeof contentHtml !== 'string' || contentHtml.trim() === '') {
+    return ''
+  }
+  return contentHtml.replace(/<img\b[^>]*>/gi, (imgTag) => {
+    const src = getHtmlAttributeValue(imgTag, 'src')
+    if (isUsableImageSrc(src)) {
+      return imgTag
+    }
+    const actualSrc =
+      getHtmlAttributeValue(imgTag, 'data-actualsrc') ||
+      getHtmlAttributeValue(imgTag, 'data-original') ||
+      getHtmlAttributeValue(imgTag, 'data-default-watermark-src')
+    if (actualSrc.trim() === '') {
+      return imgTag
+    }
+    if (src.trim() !== '') {
+      return imgTag.replace(/\ssrc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i, ` src="${escapeHtmlAttribute(actualSrc)}"`)
+    }
+    return imgTag.replace(/^<img\b/i, `<img src="${escapeHtmlAttribute(actualSrc)}"`)
+  })
+}
+
 export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
   let [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false)
@@ -211,14 +248,17 @@ export default () => {
           {renderAuthor(item)}
           {item.coverUrl && <img className="zhihu-card-cover" src={item.coverUrl} alt="" />}
           {item.contentHtml ? (
-            <div className="zhihu-card-content" dangerouslySetInnerHTML={{ __html: item.contentHtml }} />
+            <div
+              className="zhihu-card-content"
+              dangerouslySetInnerHTML={{ __html: normalizeZhihuContentHtml(item.contentHtml) }}
+            />
           ) : (
             <div className="zhihu-card-empty-content">{item.description || '暂无正文内容'}</div>
           )}
           {item.originContentHtml && (
             <div className="zhihu-card-origin-pin">
               <div className="origin-title">原想法</div>
-              <div dangerouslySetInnerHTML={{ __html: item.originContentHtml }} />
+              <div dangerouslySetInnerHTML={{ __html: normalizeZhihuContentHtml(item.originContentHtml) }} />
             </div>
           )}
           <div className="zhihu-card-meta">

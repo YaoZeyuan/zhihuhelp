@@ -368,6 +368,7 @@ app.on('activate', function () {
 app.whenReady().then(() => {
   ipcMain.handle('get-debug-ipc-channel-list', async () => {
     return {
+      isDebug,
       pid: process.pid,
       startedAt: mainProcessStartedAt,
       channels: Const_Debug_Ipc_Channel_List,

@@ -1,5 +1,5 @@
-import { Tabs, TabsProps } from 'antd'
-import React, { useState, useContext } from 'react'
+import { Switch, Tabs, TabsProps } from 'antd'
+import React, { useEffect, useState, useContext } from 'react'
 
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Types_Page from '~/src/resource/type/page'
@@ -15,10 +15,19 @@ import './index.less'
 
 const Const_Developer_Mode_Storage_Key = 'zhihuhelp_developer_mode'
 
+type Type_Debug_Info = {
+  isDebug?: boolean
+}
+
+function readStoredDeveloperMode() {
+  return window.localStorage.getItem(Const_Developer_Mode_Storage_Key) === 'true'
+}
+
 let Item = () => {
   let tabItemList: TabsProps[] = []
 
   let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
+  let [isDeveloperMode, setIsDeveloperMode] = useState<boolean>(readStoredDeveloperMode)
 
   let tabMap = {
     [Consts_Page.Const_Page_任务管理]: CustomerTask,
@@ -28,7 +37,6 @@ let Item = () => {
     [Consts_Page.Const_Page_登录]: Login,
   }
 
-  const isDeveloperMode = window.localStorage.getItem(Const_Developer_Mode_Storage_Key) === 'true'
   const pageKeyList: Types_Page.Type_Page_Url[] = [
     Consts_Page.Const_Page_任务管理,
     Consts_Page.Const_Page_运行日志,
@@ -38,6 +46,37 @@ let Item = () => {
 
   if (isDeveloperMode) {
     pageKeyList.splice(2, 0, Consts_Page.Const_Page_调试面板)
+  }
+
+  useEffect(() => {
+    let isUnmounted = false
+    const getDebugInfo = window.electronAPI?.['get-debug-ipc-channel-list']
+    if (!getDebugInfo) {
+      return () => {
+        isUnmounted = true
+      }
+    }
+    getDebugInfo()
+      .then((debugInfo: Type_Debug_Info) => {
+        if (!isUnmounted && debugInfo?.isDebug) {
+          setIsDeveloperMode(true)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      isUnmounted = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isDeveloperMode && currentTab === Consts_Page.Const_Page_调试面板) {
+      setCurrentTab(Consts_Page.Const_Page_任务管理)
+    }
+  }, [isDeveloperMode, currentTab, setCurrentTab])
+
+  const handleDeveloperModeChange = (checked: boolean) => {
+    setIsDeveloperMode(checked)
+    window.localStorage.setItem(Const_Developer_Mode_Storage_Key, String(checked))
   }
 
   for (let key of pageKeyList) {
@@ -54,6 +93,12 @@ let Item = () => {
         centered
         items={tabItemList}
         activeKey={currentTab}
+        tabBarExtraContent={
+          <div className="home-tab-extra">
+            <span>开发者模式</span>
+            <Switch size="small" checked={isDeveloperMode} onChange={handleDeveloperModeChange} />
+          </div>
+        }
         onChange={(e: Types_Page.Type_Page_Url) => {
           setCurrentTab(e)
         }}
