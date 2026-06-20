@@ -121,6 +121,7 @@ function asyncBuildOutputHistory() {
         return undefined
       }
       return {
+        orderIndex: index,
         id: `${event.triggerAt ?? index}-${details.bookname ?? details.title ?? event.message ?? index}`,
         createdAt: event.triggerAt,
         runId: event.runId,
@@ -149,7 +150,13 @@ function asyncBuildOutputHistory() {
       dedupeMap.set(key, item)
     }
   }
-  return [...dedupeMap.values()].slice(0, 50)
+  return [...dedupeMap.values()]
+    .sort((left: any, right: any) => right.orderIndex - left.orderIndex)
+    .slice(0, 50)
+    .map((item: any) => {
+      const { orderIndex, ...record } = item
+      return record
+    })
 }
 
 function openLocalPath(targetPath: string) {

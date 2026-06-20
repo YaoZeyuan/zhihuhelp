@@ -11,6 +11,7 @@ type Type_Log_Item = {
 }
 
 type Type_Runtime_Event = {
+  runId?: string
   triggerAt?: string
   stage?: string
   status?: string
@@ -41,7 +42,8 @@ type Type_Stage_Item = {
   message: string
 }
 
-const Const_Stage_Order = ['config', 'init', 'fetch', 'generate', 'output']
+const Const_Stage_Order = ['config', 'init', 'fetch', 'generate', 'output'] as const
+type Type_Run_Stage = typeof Const_Stage_Order[number]
 const Const_Stage_Title: Record<string, string> = {
   config: '配置',
   init: '初始化',
@@ -50,6 +52,14 @@ const Const_Stage_Title: Record<string, string> = {
   generate: '生成',
   render: '渲染',
   output: '输出',
+}
+
+const Const_Stage_Complete_Message: Record<Type_Run_Stage, string[]> = {
+  config: ['任务配置读取完成', '任务配置文件已存在', '任务配置文件不存在，已写入默认配置'],
+  init: ['初始化运行环境完成'],
+  fetch: ['抓取任务完成'],
+  generate: ['生成电子书完成'],
+  output: ['完整任务执行完毕', 'GUI 任务执行完毕'],
 }
 
 function parseRuntimeJsonl(content: string): Type_Runtime_Event[] {
@@ -65,6 +75,22 @@ function parseRuntimeJsonl(content: string): Type_Runtime_Event[] {
       }
     })
     .filter((item): item is Type_Runtime_Event => item !== undefined)
+}
+
+function isRunStage(stage?: string): stage is Type_Run_Stage {
+  return Const_Stage_Order.includes(stage as Type_Run_Stage)
+}
+
+function getLatestRunEventList(eventList: Type_Runtime_Event[]) {
+  const latestRunId = [...eventList].reverse().find((event) => typeof event.runId === 'string' && event.runId.trim() !== '')?.runId
+  if (latestRunId) {
+    return eventList.filter((event) => event.runId === latestRunId)
+  }
+  const latestConfigIndex = [...eventList].reverse().findIndex((event) => event.stage === 'config')
+  if (latestConfigIndex < 0) {
+    return eventList
+  }
+  return eventList.slice(eventList.length - 1 - latestConfigIndex)
 }
 
 function toStageStatus(status?: string): Type_Stage_Status {
@@ -99,28 +125,77 @@ function getStageColor(status: Type_Stage_Status) {
   return 'default'
 }
 
+function isStageCompleteEvent(event: Type_Runtime_Event) {
+  if (event.status !== 'success' || !isRunStage(event.stage)) {
+    return false
+  }
+  const completeMessageList = Const_Stage_Complete_Message[event.stage]
+  return completeMessageList.some((message) => event.message?.includes(message))
+}
+
 function buildStageList(eventList: Type_Runtime_Event[]): Type_Stage_Item[] {
-  const stageMap = new Map<string, Type_Stage_Item>()
+  const currentRunEventList = getLatestRunEventList(eventList).filter((event) => isRunStage(event.stage))
+  const stageEventMap = new Map<Type_Run_Stage, Type_Runtime_Event[]>()
   for (const stage of Const_Stage_Order) {
-    stageMap.set(stage, {
+    stageEventMap.set(stage, [])
+  }
+  for (const event of currentRunEventList) {
+    if (isRunStage(event.stage)) {
+      stageEventMap.get(event.stage)?.push(event)
+    }
+  }
+  const firstFailureStageIndex = Const_Stage_Order.findIndex((stage) => {
+    return stageEventMap.get(stage)?.some((event) => event.status === 'failure') === true
+  })
+  return Const_Stage_Order.map((stage, stageIndex) => {
+    const stageEventList = stageEventMap.get(stage) ?? []
+    const latestStageEvent = stageEventList[stageEventList.length - 1]
+    const completeEvent = [...stageEventList].reverse().find(isStageCompleteEvent)
+    const hasLaterStageEvent = Const_Stage_Order.slice(stageIndex + 1).some((nextStage) => {
+      return (stageEventMap.get(nextStage)?.length ?? 0) > 0
+    })
+    if (firstFailureStageIndex >= 0) {
+      if (stageIndex > firstFailureStageIndex) {
+        return {
+          stage,
+          title: Const_Stage_Title[stage],
+          status: 'waiting',
+          message: '等待开始',
+        }
+      }
+      if (stageIndex === firstFailureStageIndex) {
+        const failedEvent = [...stageEventList].reverse().find((event) => event.status === 'failure')
+        return {
+          stage,
+          title: Const_Stage_Title[stage],
+          status: 'failure',
+          message: failedEvent?.message ?? '执行失败',
+        }
+      }
+    }
+    if (completeEvent || hasLaterStageEvent) {
+      return {
+        stage,
+        title: Const_Stage_Title[stage],
+        status: 'success',
+        message: completeEvent?.message ?? latestStageEvent?.message ?? '已完成',
+      }
+    }
+    if (stageEventList.length > 0) {
+      return {
+        stage,
+        title: Const_Stage_Title[stage],
+        status: toStageStatus(latestStageEvent?.status) === 'skip' ? 'skip' : 'running',
+        message: latestStageEvent?.message ?? '执行中',
+      }
+    }
+    return {
       stage,
       title: Const_Stage_Title[stage],
       status: 'waiting',
       message: '等待开始',
-    })
-  }
-  for (const event of eventList) {
-    if (!event.stage || !stageMap.has(event.stage)) {
-      continue
     }
-    stageMap.set(event.stage, {
-      stage: event.stage,
-      title: Const_Stage_Title[event.stage] ?? event.stage,
-      status: toStageStatus(event.status),
-      message: event.message ?? '',
-    })
-  }
-  return [...stageMap.values()]
+  })
 }
 
 function formatHistoryTime(createdAt?: string) {
@@ -128,6 +203,30 @@ function formatHistoryTime(createdAt?: string) {
     return '-'
   }
   return new Date(createdAt).toLocaleString()
+}
+
+function getHistoryTimeValue(item: Type_Output_History_Item) {
+  if (!item.createdAt) {
+    return 0
+  }
+  const timestamp = Date.parse(item.createdAt)
+  return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+function sortOutputHistoryList(outputHistoryList: Type_Output_History_Item[]) {
+  return outputHistoryList
+    .map((item, index) => ({
+      item,
+      index,
+    }))
+    .sort((left, right) => {
+      const timeDiff = getHistoryTimeValue(right.item) - getHistoryTimeValue(left.item)
+      if (timeDiff !== 0) {
+        return timeDiff
+      }
+      return left.index - right.index
+    })
+    .map(({ item }) => item)
 }
 
 export default () => {
@@ -165,7 +264,7 @@ export default () => {
     setStageList(buildStageList(runtimeEventList))
     setLatestEvent(runtimeEventList[runtimeEventList.length - 1])
     setLatestError([...runtimeEventList].reverse().find((item) => item.level === 'error' || item.status === 'failure'))
-    setOutputHistoryList(Array.isArray(outputHistory) ? outputHistory : [])
+    setOutputHistoryList(Array.isArray(outputHistory) ? sortOutputHistoryList(outputHistory) : [])
     let containerEle = document.querySelector('.rc-virtual-list-holder')
     if (containerEle?.scrollTop !== undefined) {
       containerEle.scrollTop = containerEle.scrollHeight ?? 1000000000
