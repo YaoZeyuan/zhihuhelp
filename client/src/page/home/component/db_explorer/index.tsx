@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Empty, Pagination, Spin, Tag } from 'antd'
+import { Avatar, Button, Card, Empty, Pagination, Spin, Tag, message } from 'antd'
 import dayjs from 'dayjs'
 import { useState, useRef, useEffect } from 'react'
 import * as Consts from './resource/const/index'
@@ -100,6 +100,8 @@ export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
   let [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false)
   let [isRecordListLoading, setIsRecordListLoading] = useState<boolean>(false)
+  let [isJsonExporting, setIsJsonExporting] = useState<boolean>(false)
+  let [isJsonImporting, setIsJsonImporting] = useState<boolean>(false)
   let [selectedParent, setSelectedParent] = useState<Types.DataType | null>(null)
   let [selectedDetail, setSelectedDetail] = useState<Types.DataType | null>(null)
   let [pendingDetailPick, setPendingDetailPick] = useState<PendingDetailPick>(null)
@@ -172,6 +174,43 @@ export default () => {
       setPendingDetailPick(null)
       await handleRecordFunc.getBaseInfo()
       await handleRecordFunc.getRecordList()
+    },
+    exportCurrentFilterJson: async () => {
+      setIsJsonExporting(true)
+      try {
+        const result = await window.electronAPI['export-db-record-json']({
+          type: store.currentSelect.type,
+          parentId: selectedParent?.id,
+        })
+        if (result?.status === 'success') {
+          message.success(`导出成功：${result?.filePath ?? result?.exportPath}`)
+          return
+        }
+        message.error(result?.message ?? '导出 JSON 失败')
+      } catch (error: any) {
+        message.error(error?.message ?? '导出 JSON 失败')
+      } finally {
+        setIsJsonExporting(false)
+      }
+    },
+    importJson: async () => {
+      setIsJsonImporting(true)
+      try {
+        const result = await window.electronAPI['import-db-record-json']()
+        if (result?.status === 'canceled') {
+          return
+        }
+        if (result?.status === 'success') {
+          message.success(result?.message ?? '导入完成')
+          await handleRecordFunc.refreshAll()
+          return
+        }
+        message.error(result?.message ?? '导入 JSON 失败')
+      } catch (error: any) {
+        message.error(error?.message ?? '导入 JSON 失败')
+      } finally {
+        setIsJsonImporting(false)
+      }
     },
   }
   // 初始化时获取数据库数据
@@ -399,6 +438,14 @@ export default () => {
         style={{ width: '100%' }}
         extra={[
           <Button
+            key="import-json"
+            type="link"
+            loading={isJsonImporting}
+            onClick={handleRecordFunc.importJson}
+          >
+            导入 JSON
+          </Button>,
+          <Button
             key="refresh"
             type="link"
             onClick={async () => {
@@ -469,6 +516,13 @@ export default () => {
         extra={
           <div className="record-card-extra">
             {selectedParent && <Button onClick={handleRecordFunc.backToParentList}>返回{Const_Select_Type_Title[snap.currentSelect.type]}列表</Button>}
+            <Button
+              loading={isJsonExporting}
+              disabled={isRecordListLoading}
+              onClick={handleRecordFunc.exportCurrentFilterJson}
+            >
+              导出当前筛选
+            </Button>
             <span>共 {snap.currentSelect.info.total} 条</span>
           </div>
         }
