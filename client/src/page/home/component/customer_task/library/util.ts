@@ -3,6 +3,52 @@ import * as ConstTaskConfig from "~/src/resource/const/task_config"
 import querystring from 'query-string'
 
 export default class Util {
+    static createTaskItemFromRawInput({
+        rawInputText
+    }: {
+        rawInputText: string
+    }): TypeTaskConfig.Type_Fetch_Task_Config_Item {
+        const normalizedInput = rawInputText.trim()
+        const type = Util.detectTaskType({
+            rawInputText: normalizedInput
+        })
+        const id = Util.matchId({
+            taskType: type,
+            rawInputText: normalizedInput
+        })
+        return {
+            comment: '',
+            id,
+            rawInputText: normalizedInput,
+            skipFetch: false,
+            type,
+        }
+    }
+
+    static createTaskItemListFromText({
+        rawInputText
+    }: {
+        rawInputText: string
+    }): TypeTaskConfig.Type_Fetch_Task_Config_Item[] {
+        return rawInputText
+            .split('\n')
+            .map((item) => item.trim())
+            .filter((item) => item !== '')
+            .map((item) => Util.createTaskItemFromRawInput({
+                rawInputText: item
+            }))
+    }
+
+    static getTaskItemError(taskItem: Pick<TypeTaskConfig.Type_Fetch_Task_Config_Item, 'rawInputText' | 'id'>) {
+        if ((taskItem.rawInputText ?? '').trim() === '') {
+            return '请输入知乎链接'
+        }
+        if ((taskItem.id ?? '').trim() === '') {
+            return '未解析到任务 id，请检查链接是否为支持的知乎内容地址'
+        }
+        return ''
+    }
+
     static matchId({
         taskType,
         rawInputText
@@ -80,14 +126,17 @@ export default class Util {
         rawInputText: string
     }
     ) {
+        if (rawInputText.includes('/answer/')) {
+            return ConstTaskConfig.Const_Task_Type_回答
+        }
+        if (rawInputText.includes('zhuanlan.zhihu.com/p/')) {
+            return ConstTaskConfig.Const_Task_Type_文章
+        }
         if (rawInputText.includes('www.zhihu.com/people/')) {
             return ConstTaskConfig.Const_Task_Type_用户的所有回答
         }
         if (rawInputText.includes('www.zhihu.com/question/')) {
             return ConstTaskConfig.Const_Task_Type_问题
-        }
-        if (rawInputText.includes('/answer/')) {
-            return ConstTaskConfig.Const_Task_Type_回答
         }
         if (rawInputText.includes('/pin/')) {
             return ConstTaskConfig.Const_Task_Type_想法
@@ -97,9 +146,6 @@ export default class Util {
         }
         if (rawInputText.includes('/collection/')) {
             return ConstTaskConfig.Const_Task_Type_收藏夹
-        }
-        if (rawInputText.includes('/zhuanlan.zhihu.com/p/')) {
-            return ConstTaskConfig.Const_Task_Type_文章
         }
         if (rawInputText.includes('/zhuanlan.zhihu.com/')) {
             return ConstTaskConfig.Const_Task_Type_专栏

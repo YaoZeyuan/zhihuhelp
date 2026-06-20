@@ -13,6 +13,8 @@ import DebugPanel from './component/debug'
 
 import './index.less'
 
+const Const_Developer_Mode_Storage_Key = 'zhihuhelp_developer_mode'
+
 let Item = () => {
   let tabItemList: TabsProps[] = []
 
@@ -26,13 +28,19 @@ let Item = () => {
     [Consts_Page.Const_Page_登录]: Login,
   }
 
-  for (let key of [
+  const isDeveloperMode = window.localStorage.getItem(Const_Developer_Mode_Storage_Key) === 'true'
+  const pageKeyList: Types_Page.Type_Page_Url[] = [
     Consts_Page.Const_Page_任务管理,
     Consts_Page.Const_Page_运行日志,
-    Consts_Page.Const_Page_调试面板,
     Consts_Page.Const_Page_数据浏览,
     Consts_Page.Const_Page_登录,
-  ]) {
+  ]
+
+  if (isDeveloperMode) {
+    pageKeyList.splice(2, 0, Consts_Page.Const_Page_调试面板)
+  }
+
+  for (let key of pageKeyList) {
     tabItemList.push({
       label: Consts_Page.Const_Page_Title[key],
       key: key,

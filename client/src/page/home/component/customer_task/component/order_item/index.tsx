@@ -6,6 +6,8 @@ import * as Consts from '../../resource/const/index'
 import { useRef, useEffect } from 'react'
 
 const { Option } = Select
+const PlusIcon = PlusOutlined as any
+const MinusIcon = MinusOutlined as any
 
 export default ({
   value = {
@@ -78,7 +80,7 @@ export default ({
             <Button
               type="primary"
               size="small"
-              icon={<PlusOutlined />}
+              icon={<PlusIcon />}
               onClick={() => {
                 action.add({
                   ...Const_Default_Order_Item,
@@ -90,7 +92,7 @@ export default ({
               type="primary"
               danger
               size="small"
-              icon={<MinusOutlined />}
+              icon={<MinusIcon />}
               onClick={() => {
                 action.remove(fieldKey)
               }}

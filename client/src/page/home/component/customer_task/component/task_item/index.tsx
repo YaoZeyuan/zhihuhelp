@@ -7,6 +7,9 @@ import { useEffect, useRef } from 'react'
 
 import './index.less'
 
+const PlusIcon = PlusOutlined as any
+const MinusIcon = MinusOutlined as any
+
 export default ({
   value = {
     ...Const_Default_Task_Item,
@@ -92,7 +95,7 @@ export default ({
             <Button
               type="primary"
               size="small"
-              icon={<PlusOutlined />}
+              icon={<PlusIcon />}
               onClick={() => {
                 action.add({
                   ...Const_Default_Task_Item,
@@ -104,7 +107,7 @@ export default ({
               type="primary"
               danger
               size="small"
-              icon={<MinusOutlined />}
+              icon={<MinusIcon />}
               onClick={() => {
                 // console.log('remove task item index => ', fieldIndex)
                 action.remove(fieldIndex)

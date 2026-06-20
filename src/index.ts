@@ -291,27 +291,79 @@ app.whenReady().then(() => {
   // 启动任务
   ipcMain.handle('start-customer-task', async (event, { config }: { config: TaskConfig }) => {
     if (isRunning) {
-      return '目前尚有任务执行, 请稍后'
+      Logger.event({
+        stage: 'ipc',
+        status: 'skip',
+        level: 'warn',
+        message: '已有任务正在执行，忽略重复启动请求',
+      })
+      return {
+        status: 'running',
+        message: '目前尚有任务执行，请稍后',
+      }
     }
     isRunning = true
+    const startedAt = Date.now()
     Logger.log('开始工作')
-
-    // 将 GUI 配置转换为新 schema 并写入本地
-    const cookieContent = await asyncUpdateCookie()
-    config.request.cookie = cookieContent
-    writeTaskConfig(PathConfig.configUri, config)
-
-    Logger.log(`开始执行任务`)
-
-    await new RunTaskWorkflow().run({
-      configPath: PathConfig.configUri,
+    Logger.event({
+      stage: 'ipc',
+      status: 'start',
+      level: 'info',
+      message: 'GUI 任务启动请求已接收',
+      details: {
+        taskCount: config.tasks.length,
+        outputFormats: config.generate.outputFormats,
+      },
     })
-    Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
-    // 输出打开文件夹
-    shell.showItemInFolder(PathConfig.outputPath)
-    isRunning = false
 
-    return 'success'
+    try {
+      // 将 GUI 配置转换为新 schema 并写入本地
+      const cookieContent = await asyncUpdateCookie()
+      config.request.cookie = cookieContent
+      writeTaskConfig(PathConfig.configUri, config)
+
+      Logger.log(`开始执行任务`)
+
+      await new RunTaskWorkflow().run({
+        configPath: PathConfig.configUri,
+      })
+      Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
+      Logger.event({
+        stage: 'output',
+        status: 'success',
+        level: 'info',
+        message: 'GUI 任务执行完毕',
+        durationMs: Date.now() - startedAt,
+        details: {
+          outputPath: PathConfig.outputPath,
+          title: config.generate.title,
+          outputFormats: config.generate.outputFormats,
+        },
+      })
+      // 输出打开文件夹
+      shell.showItemInFolder(PathConfig.outputPath)
+
+      return {
+        status: 'success',
+        outputPath: PathConfig.outputPath,
+      }
+    } catch (error) {
+      Logger.event({
+        stage: 'output',
+        status: 'failure',
+        level: 'error',
+        message: 'GUI 任务执行失败',
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        details: {
+          outputPath: PathConfig.outputPath,
+          title: config.generate.title,
+        },
+      })
+      throw error
+    } finally {
+      isRunning = false
+    }
   })
 
 
