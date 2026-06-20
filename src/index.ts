@@ -7,6 +7,7 @@ import Logger from '~/src/library/logger'
 import * as FrontTools from '~/src/library/util/front_tools'
 import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
 import MSummary from '~/src/model/summary'
+import CacheJsonTransfer from '~/src/application/cache_transfer/json_transfer'
 import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
@@ -17,7 +18,7 @@ import { readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config
 
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
-let { app, BrowserWindow, ipcMain, session, shell } = Electron
+let { app, BrowserWindow, dialog, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow
@@ -34,6 +35,8 @@ const Const_Debug_Ipc_Channel_List = [
   'get-task-default-title',
   'get-db-summary-info',
   'get-db-record-list',
+  'export-db-record-json',
+  'import-db-record-json',
   'get-output-history',
   'export-diagnostic-info',
   'open-local-path',
@@ -501,6 +504,40 @@ app.whenReady().then(() => {
       pageSize,
       parentId,
     })
+  })
+
+  ipcMain.handle('export-db-record-json', async (event, {
+    type,
+    parentId,
+  }: {
+    type: any
+    parentId?: string
+  }) => {
+    const result = await CacheJsonTransfer.exportDbRecordJson({
+      type,
+      parentId,
+    })
+    shell.showItemInFolder(result.exportPath)
+    return result
+  })
+
+  ipcMain.handle('import-db-record-json', async () => {
+    const selectResult = await dialog.showOpenDialog(mainWindow, {
+      title: '导入缓存 JSON',
+      properties: ['openFile'],
+      filters: [
+        {
+          name: 'JSON',
+          extensions: ['json'],
+        },
+      ],
+    })
+    if (selectResult.canceled || selectResult.filePaths.length === 0) {
+      return {
+        status: 'canceled',
+      }
+    }
+    return CacheJsonTransfer.importDbRecordJson(selectResult.filePaths[0])
   })
 
   ipcMain.handle('get-output-history', async () => {

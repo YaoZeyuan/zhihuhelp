@@ -9,6 +9,8 @@ export interface IElectronAPI {
     ['clear-all-session-storage']: () => Promise<any>,
     ['get-db-summary-info']: () => Promise<any>,
     ['get-db-record-list']: (...args) => Promise<any>,
+    ['export-db-record-json']: (...args) => Promise<any>,
+    ['import-db-record-json']: () => Promise<any>,
     ['get-output-history']: () => Promise<any>,
     ['export-diagnostic-info']: () => Promise<any>,
     ['open-local-path']: (...args) => Promise<any>,
