@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ['open-devtools']: async () => ipcRenderer.invoke('open-devtools'),
   ['clear-all-session-storage']: async () => ipcRenderer.invoke('clear-all-session-storage'),
   ['get-db-summary-info']: async () => ipcRenderer.invoke('get-db-summary-info'),
+  ['get-db-record-list']: async (...args) => ipcRenderer.invoke('get-db-record-list', ...args),
   ['get-log-content']: async () => {
     const res = await ipcRenderer.invoke('get-log-content')
     return res

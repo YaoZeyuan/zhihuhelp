@@ -36,6 +36,7 @@ const Const_Channel_Option_List: Array<{ label: string; value: Type_Debug_Channe
   { label: '启动任务 start-customer-task', value: 'start-customer-task' },
   { label: '获取默认标题 get-task-default-title', value: 'get-task-default-title' },
   { label: '读取数据库摘要 get-db-summary-info', value: 'get-db-summary-info' },
+  { label: '读取数据库列表 get-db-record-list', value: 'get-db-record-list' },
   { label: '读取运行日志 get-log-content', value: 'get-log-content' },
   { label: '读取结构化日志 get-runtime-jsonl-content', value: 'get-runtime-jsonl-content' },
   { label: '清空运行日志 clear-log-content', value: 'clear-log-content' },
@@ -79,6 +80,13 @@ const Const_Default_Custom_Arg_Map: Record<Type_Debug_Channel, unknown[]> = {
     },
   ],
   'get-db-summary-info': [],
+  'get-db-record-list': [
+    {
+      type: 'author-answer',
+      pageNo: 0,
+      pageSize: 15,
+    },
+  ],
   'get-task-default-title': [{ taskType: 'answer', taskId: '' }],
   'get-log-content': [],
   'clear-log-content': [],

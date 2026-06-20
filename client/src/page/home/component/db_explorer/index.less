@@ -18,10 +18,22 @@
   width: 95vw;
 
   .summary-card {
+    margin-bottom: 16px;
+
+    .ant-card-grid {
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
     .active {
       color: #0958d9;
       background: #e6f4ff;
       border-color: #91caff;
     }
+  }
+
+  .record-list-card {
+    width: 100%;
+    margin-top: 16px;
   }
 }

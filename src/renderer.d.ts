@@ -8,6 +8,7 @@ export interface IElectronAPI {
     ['open-devtools']: () => Promise<any>,
     ['clear-all-session-storage']: () => Promise<any>,
     ['get-db-summary-info']: () => Promise<any>,
+    ['get-db-record-list']: (...args) => Promise<any>,
     ['get-log-content']: (...args) => Promise<any>,
     ['clear-log-content']: () => Promise<any>,
     ['get-runtime-jsonl-content']: () => Promise<any>,

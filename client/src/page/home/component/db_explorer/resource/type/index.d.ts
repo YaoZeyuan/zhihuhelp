@@ -6,6 +6,9 @@ export type Select_Type = typeof Consts.Current_Select_Type_专栏
     | typeof Consts.Current_Select_Type_用户的所有回答
     | typeof Consts.Current_Select_Type_话题
     | typeof Consts.Current_Select_Type_问题
+    | typeof Consts.Current_Select_Type_回答
+    | typeof Consts.Current_Select_Type_文章
+    | typeof Consts.Current_Select_Type_想法
 
 export type Status = {
     /**
@@ -74,5 +77,8 @@ export type FetchListRes = {
 
 export type DataType = {
     key: string;
+    id: string;
     name: string;
+    type: string;
+    description: string;
 }

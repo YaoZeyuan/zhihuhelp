@@ -33,6 +33,7 @@ const Const_Debug_Ipc_Channel_List = [
   'start-customer-task',
   'get-task-default-title',
   'get-db-summary-info',
+  'get-db-record-list',
   'clear-all-session-storage',
   'js-rpc-response',
   'zhihu-http-get',
@@ -379,6 +380,22 @@ app.whenReady().then(() => {
   ipcMain.handle('get-db-summary-info', async () => {
     const summary = await MSummary.asyncGetSummaryInfo()
     return summary
+  })
+
+  ipcMain.handle('get-db-record-list', async (event, {
+    type,
+    pageNo,
+    pageSize,
+  }: {
+    type: any
+    pageNo: number
+    pageSize: number
+  }) => {
+    return MSummary.asyncGetTabList({
+      type,
+      pageNo,
+      pageSize,
+    })
   })
 
 
