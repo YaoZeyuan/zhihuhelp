@@ -1,6 +1,6 @@
 import { Avatar, Button, Card, Empty, Pagination, Spin, Tag } from 'antd'
 import dayjs from 'dayjs'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
 import { createStore } from './state/index'
@@ -21,6 +21,11 @@ const Const_Select_Type_Title: Record<Types.Select_Type, string> = {
   [Consts.Current_Select_Type_收藏夹]: '收藏夹',
   [Consts.Current_Select_Type_话题]: '话题',
 }
+
+type PendingDetailPick = {
+  pageNo: number
+  position: 'first' | 'last'
+} | null
 
 function formatDate(timestamp?: number) {
   if (!timestamp) {
@@ -59,6 +64,8 @@ export default () => {
   let [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false)
   let [isRecordListLoading, setIsRecordListLoading] = useState<boolean>(false)
   let [selectedParent, setSelectedParent] = useState<Types.DataType | null>(null)
+  let [selectedDetail, setSelectedDetail] = useState<Types.DataType | null>(null)
+  let [pendingDetailPick, setPendingDetailPick] = useState<PendingDetailPick>(null)
 
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
   let refStore = useRef(createStore())
@@ -99,18 +106,33 @@ export default () => {
     },
     selectType: (type: Types.Select_Type) => {
       setSelectedParent(null)
+      setSelectedDetail(null)
+      setPendingDetailPick(null)
       store.currentSelect.type = type
       store.currentSelect.info.pageNo = 0
     },
     selectParent: (item: Types.DataType) => {
       setSelectedParent(item)
+      setSelectedDetail(null)
+      setPendingDetailPick(null)
       store.currentSelect.info.pageNo = 0
     },
     backToParentList: () => {
       setSelectedParent(null)
+      setSelectedDetail(null)
+      setPendingDetailPick(null)
       store.currentSelect.info.pageNo = 0
     },
+    selectDetail: (item: Types.DataType) => {
+      setSelectedDetail(item)
+    },
+    backToSummaryList: () => {
+      setSelectedDetail(null)
+      setPendingDetailPick(null)
+    },
     refreshAll: async () => {
+      setSelectedDetail(null)
+      setPendingDetailPick(null)
       await handleRecordFunc.getBaseInfo()
       await handleRecordFunc.getRecordList()
     },
@@ -126,6 +148,29 @@ export default () => {
   ])
 
   const recordList = [...snap.currentSelect.info.recordList]
+  const selectedDetailKey = selectedDetail?.key
+  const selectedDetailIndex = selectedDetailKey ? recordList.findIndex((item) => item.key === selectedDetailKey) : -1
+  const canSelectPrevDetail = selectedDetailIndex > 0
+  const canSelectNextDetail = selectedDetailIndex >= 0 && selectedDetailIndex < recordList.length - 1
+  const hasPrevDetailPage = snap.currentSelect.info.pageNo > 0
+  const hasNextDetailPage =
+    (snap.currentSelect.info.pageNo + 1) * snap.currentSelect.info.pageSize < snap.currentSelect.info.total
+  const canNavigatePrevDetail = canSelectPrevDetail || hasPrevDetailPage
+  const canNavigateNextDetail = canSelectNextDetail || hasNextDetailPage
+
+  useEffect(() => {
+    if (!pendingDetailPick || isRecordListLoading || snap.currentSelect.info.pageNo !== pendingDetailPick.pageNo) {
+      return
+    }
+    const nextDetail =
+      pendingDetailPick.position === 'first'
+        ? recordList.find(isRichRecord)
+        : [...recordList].reverse().find(isRichRecord)
+    if (nextDetail) {
+      setSelectedDetail(nextDetail)
+    }
+    setPendingDetailPick(null)
+  }, [pendingDetailPick, isRecordListLoading, snap.currentSelect.info.pageNo, snap.currentSelect.info.recordList])
 
   const renderAuthor = (item: Types.DataType) => {
     if (!item.author) {
@@ -194,6 +239,34 @@ export default () => {
     )
   }
 
+  const renderRichRecordSummary = (item: Types.DataType) => {
+    return (
+      <article
+        className={`zhihu-summary-card ${item.recordKind}`}
+        key={item.key}
+        onClick={() => handleRecordFunc.selectDetail(item)}
+      >
+        <div className="zhihu-summary-header">
+          <Tag color={item.recordKind === 'answer' ? 'blue' : item.recordKind === 'article' ? 'cyan' : 'gold'}>
+            {item.type}
+          </Tag>
+          <strong>{item.title || item.name}</strong>
+          <Button size="small">查看详情</Button>
+        </div>
+        {renderAuthor(item)}
+        {item.description && <div className="zhihu-summary-description">{item.description}</div>}
+        <div className="zhihu-card-meta compact">
+          <span>
+            {getAgreeLabel(item)}:{formatCount(item.voteupCount)}
+          </span>
+          <span>评论:{formatCount(item.commentCount)}</span>
+          <span>创建时间:{formatDate(item.createdAt)}</span>
+          <span>最后更新:{formatDate(item.updatedAt)}</span>
+        </div>
+      </article>
+    )
+  }
+
   const renderMetaRecord = (item: Types.DataType) => {
     const canDrilldown = isIndexType(snap.currentSelect.type) && selectedParent === null
     return (
@@ -228,7 +301,54 @@ export default () => {
     if (recordList.length === 0) {
       return <Empty description="当前分类暂无缓存记录" />
     }
-    return <div className="record-card-list">{recordList.map((item) => (isRichRecord(item) ? renderRichRecord(item) : renderMetaRecord(item)))}</div>
+    if (selectedDetail && isRichRecord(selectedDetail)) {
+      return (
+        <div className="record-detail-view">
+          <div className="record-detail-toolbar">
+            <Button onClick={handleRecordFunc.backToSummaryList}>返回摘要列表</Button>
+            <div className="record-detail-nav">
+              <Button
+                disabled={!canNavigatePrevDetail}
+                onClick={() => {
+                  if (canSelectPrevDetail) {
+                    handleRecordFunc.selectDetail(recordList[selectedDetailIndex - 1])
+                    return
+                  }
+                  if (hasPrevDetailPage) {
+                    const pageNo = store.currentSelect.info.pageNo - 1
+                    setIsRecordListLoading(true)
+                    setPendingDetailPick({ pageNo, position: 'last' })
+                    store.currentSelect.info.pageNo = pageNo
+                  }
+                }}
+              >
+                上一个
+              </Button>
+              <Button
+                type="primary"
+                disabled={!canNavigateNextDetail}
+                onClick={() => {
+                  if (canSelectNextDetail) {
+                    handleRecordFunc.selectDetail(recordList[selectedDetailIndex + 1])
+                    return
+                  }
+                  if (hasNextDetailPage) {
+                    const pageNo = store.currentSelect.info.pageNo + 1
+                    setIsRecordListLoading(true)
+                    setPendingDetailPick({ pageNo, position: 'first' })
+                    store.currentSelect.info.pageNo = pageNo
+                  }
+                }}
+              >
+                下一个
+              </Button>
+            </div>
+          </div>
+          {renderRichRecord(selectedDetail)}
+        </div>
+      )
+    }
+    return <div className="record-card-list">{recordList.map((item) => (isRichRecord(item) ? renderRichRecordSummary(item) : renderMetaRecord(item)))}</div>
   }
 
   return (
@@ -314,20 +434,24 @@ export default () => {
         }
       >
         {renderRecordList()}
-        <Pagination
-          className="record-pagination"
-          current={snap.currentSelect.info.pageNo + 1}
-          pageSize={snap.currentSelect.info.pageSize}
-          total={snap.currentSelect.info.total}
-          showSizeChanger
-          showQuickJumper
-          pageSizeOptions={[5, 10, 20]}
-          showTotal={(total: number) => `共 ${total} 条`}
-          onChange={(page: number, pageSize: number) => {
-            store.currentSelect.info.pageNo = page - 1
-            store.currentSelect.info.pageSize = pageSize
-          }}
-        />
+        {selectedDetail === null && (
+          <Pagination
+            className="record-pagination"
+            current={snap.currentSelect.info.pageNo + 1}
+            pageSize={snap.currentSelect.info.pageSize}
+            total={snap.currentSelect.info.total}
+            showSizeChanger
+            showQuickJumper
+            pageSizeOptions={[5, 10, 20]}
+            showTotal={(total: number) => `共 ${total} 条`}
+            onChange={(page: number, pageSize: number) => {
+              setSelectedDetail(null)
+              setPendingDetailPick(null)
+              store.currentSelect.info.pageNo = page - 1
+              store.currentSelect.info.pageSize = pageSize
+            }}
+          />
+        )}
       </Card>
     </div>
   )
