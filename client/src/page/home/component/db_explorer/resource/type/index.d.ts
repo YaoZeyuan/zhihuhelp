@@ -73,7 +73,10 @@ export type FetchListRes = {
     total: number,
     pageNo: number,
     pageSize: number,
+    parentId?: string,
 }
+
+export type DataRecordKind = 'answer' | 'article' | 'pin' | 'meta'
 
 export type DataType = {
     key: string;
@@ -81,4 +84,22 @@ export type DataType = {
     name: string;
     type: string;
     description: string;
+    recordKind: DataRecordKind;
+    title?: string;
+    subtitle?: string;
+    contentHtml?: string;
+    originContentHtml?: string;
+    sourceUrl?: string;
+    coverUrl?: string;
+    author?: {
+        id: string;
+        name: string;
+        headline: string;
+        avatarUrl: string;
+        url: string;
+    };
+    voteupCount?: number;
+    commentCount?: number;
+    createdAt?: number;
+    updatedAt?: number;
 }

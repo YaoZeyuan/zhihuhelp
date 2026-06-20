@@ -28,10 +28,10 @@ export const Default_Status: Types.Status = {
         "info": {
             total: 0,
             "pageNo": 0,
-            "pageSize": 15,
+            "pageSize": 5,
             "recordList": [],
         },
-        "type": Current_Select_Type_用户的所有回答
+        "type": Current_Select_Type_回答
     },
     "forceUpdate": 0,
     "recordList": []

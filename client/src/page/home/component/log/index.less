@@ -32,6 +32,44 @@
     }
   }
 
+  .output-history-card {
+    .empty-history {
+      color: rgba(0, 0, 0, 0.55);
+      padding: 8px 0;
+    }
+
+    .output-history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .output-history-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+
+      strong {
+        color: rgba(0, 0, 0, 0.88);
+        overflow-wrap: anywhere;
+      }
+
+      span {
+        color: rgba(0, 0, 0, 0.55);
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+    }
+  }
+
   .ant-list-item {
     padding: 0;
     pre {
@@ -58,6 +96,13 @@
     .runtime-status-card {
       .stage-list {
         grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+    }
+
+    .output-history-card {
+      .output-history-item {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   }

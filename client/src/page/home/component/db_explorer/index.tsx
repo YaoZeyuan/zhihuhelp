@@ -1,5 +1,5 @@
-import { Button, Card, Table, Tag } from 'antd'
-import { ColumnsType } from 'antd/lib/table'
+import { Avatar, Button, Card, Empty, Pagination, Spin, Tag } from 'antd'
+import dayjs from 'dayjs'
 import { useState, useRef } from 'react'
 import * as Consts from './resource/const/index'
 import * as Types from './resource/type/index'
@@ -22,10 +22,43 @@ const Const_Select_Type_Title: Record<Types.Select_Type, string> = {
   [Consts.Current_Select_Type_话题]: '话题',
 }
 
+function formatDate(timestamp?: number) {
+  if (!timestamp) {
+    return '-'
+  }
+  return dayjs.unix(timestamp).format('YYYY-MM-DD')
+}
+
+function formatCount(value?: number) {
+  return Number.isFinite(value) ? value : 0
+}
+
+function isRichRecord(item: Types.DataType) {
+  return item.recordKind === 'answer' || item.recordKind === 'article' || item.recordKind === 'pin'
+}
+
+function isIndexType(type: Types.Select_Type) {
+  return (
+    type === Consts.Current_Select_Type_问题 ||
+    type === Consts.Current_Select_Type_用户的所有回答 ||
+    type === Consts.Current_Select_Type_专栏 ||
+    type === Consts.Current_Select_Type_收藏夹 ||
+    type === Consts.Current_Select_Type_话题
+  )
+}
+
+function getAgreeLabel(item: Types.DataType) {
+  if (item.recordKind === 'pin') {
+    return '喜欢'
+  }
+  return '赞同'
+}
+
 export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
   let [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false)
   let [isRecordListLoading, setIsRecordListLoading] = useState<boolean>(false)
+  let [selectedParent, setSelectedParent] = useState<Types.DataType | null>(null)
 
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
   let refStore = useRef(createStore())
@@ -45,12 +78,14 @@ export default () => {
         type: store.currentSelect.type,
         pageNo: store.currentSelect.info.pageNo,
         pageSize: store.currentSelect.info.pageSize,
+        parentId: selectedParent?.id,
       }).catch(() => {
         return {
           recordList: [],
           total: 0,
           pageNo: store.currentSelect.info.pageNo,
           pageSize: store.currentSelect.info.pageSize,
+          parentId: selectedParent?.id,
         }
       })
       store.currentSelect.info = {
@@ -58,11 +93,21 @@ export default () => {
         total: info?.total ?? 0,
         pageNo: info?.pageNo ?? store.currentSelect.info.pageNo,
         pageSize: info?.pageSize ?? store.currentSelect.info.pageSize,
+        parentId: info?.parentId,
       }
       setIsRecordListLoading(false)
     },
     selectType: (type: Types.Select_Type) => {
+      setSelectedParent(null)
       store.currentSelect.type = type
+      store.currentSelect.info.pageNo = 0
+    },
+    selectParent: (item: Types.DataType) => {
+      setSelectedParent(item)
+      store.currentSelect.info.pageNo = 0
+    },
+    backToParentList: () => {
+      setSelectedParent(null)
       store.currentSelect.info.pageNo = 0
     },
     refreshAll: async () => {
@@ -76,33 +121,115 @@ export default () => {
     snap.currentSelect.type,
     snap.currentSelect.info.pageNo,
     snap.currentSelect.info.pageSize,
+    selectedParent?.id,
     forceUpdate,
   ])
 
-  const columns: ColumnsType<Types.DataType> = [
-    {
-      title: '类别',
-      dataIndex: 'type',
-      width: 100,
-      render: (value: string) => <Tag color="blue">{value}</Tag>,
-    },
-    {
-      title: '名称',
-      dataIndex: 'name',
-      ellipsis: true,
-    },
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 220,
-      ellipsis: true,
-    },
-    {
-      title: '说明',
-      dataIndex: 'description',
-      ellipsis: true,
-    },
-  ]
+  const recordList = [...snap.currentSelect.info.recordList]
+
+  const renderAuthor = (item: Types.DataType) => {
+    if (!item.author) {
+      return null
+    }
+    return (
+      <div className="zhihu-card-author">
+        <Avatar size={32} src={item.author.avatarUrl}>
+          {item.author.name.slice(0, 1)}
+        </Avatar>
+        <div className="zhihu-card-author-text">
+          {item.author.url ? (
+            <a href={item.author.url} target="_blank" rel="noreferrer">
+              {item.author.name}
+            </a>
+          ) : (
+            <span>{item.author.name}</span>
+          )}
+          {item.author.headline && <span>{item.author.headline}</span>}
+        </div>
+      </div>
+    )
+  }
+
+  const renderRichRecord = (item: Types.DataType) => {
+    return (
+      <article className={`zhihu-content-card ${item.recordKind}`} key={item.key}>
+        <div className="zhihu-card-title-band">
+          <div>
+            <Tag color={item.recordKind === 'answer' ? 'blue' : item.recordKind === 'article' ? 'cyan' : 'gold'}>
+              {item.type}
+            </Tag>
+            <h2>{item.title || item.name}</h2>
+          </div>
+          {item.subtitle && <p>{item.subtitle}</p>}
+        </div>
+        <div className="zhihu-card-body">
+          {renderAuthor(item)}
+          {item.coverUrl && <img className="zhihu-card-cover" src={item.coverUrl} alt="" />}
+          {item.contentHtml ? (
+            <div className="zhihu-card-content" dangerouslySetInnerHTML={{ __html: item.contentHtml }} />
+          ) : (
+            <div className="zhihu-card-empty-content">{item.description || '暂无正文内容'}</div>
+          )}
+          {item.originContentHtml && (
+            <div className="zhihu-card-origin-pin">
+              <div className="origin-title">原想法</div>
+              <div dangerouslySetInnerHTML={{ __html: item.originContentHtml }} />
+            </div>
+          )}
+          <div className="zhihu-card-meta">
+            <span>
+              {getAgreeLabel(item)}:{formatCount(item.voteupCount)}
+            </span>
+            <span>评论:{formatCount(item.commentCount)}</span>
+            <span>创建时间:{formatDate(item.createdAt)}</span>
+            <span>最后更新:{formatDate(item.updatedAt)}</span>
+            {item.sourceUrl && (
+              <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+                打开原文
+              </a>
+            )}
+          </div>
+        </div>
+      </article>
+    )
+  }
+
+  const renderMetaRecord = (item: Types.DataType) => {
+    const canDrilldown = isIndexType(snap.currentSelect.type) && selectedParent === null
+    return (
+      <article
+        className={`zhihu-meta-card ${canDrilldown ? 'clickable' : ''}`}
+        key={item.key}
+        onClick={() => {
+          if (canDrilldown) {
+            handleRecordFunc.selectParent(item)
+          }
+        }}
+      >
+        <div className="zhihu-meta-card-header">
+          <Tag>{item.type}</Tag>
+          <strong>{item.name}</strong>
+          <span>{item.id}</span>
+          {canDrilldown && <Button size="small">查看内容</Button>}
+        </div>
+        {item.description && <div className="zhihu-meta-card-description">{item.description}</div>}
+      </article>
+    )
+  }
+
+  const renderRecordList = () => {
+    if (isRecordListLoading) {
+      return (
+        <div className="record-loading">
+          <Spin />
+        </div>
+      )
+    }
+    if (recordList.length === 0) {
+      return <Empty description="当前分类暂无缓存记录" />
+    }
+    return <div className="record-card-list">{recordList.map((item) => (isRichRecord(item) ? renderRichRecord(item) : renderMetaRecord(item)))}</div>
+  }
 
   return (
     <div className="db_explorer_dawqxf">
@@ -123,18 +250,18 @@ export default () => {
           </Button>,
         ]}
       >
-        <Card title="基础数据" className="summary-card">
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_文章)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_文章 ? 'active' : ''}
-          >
-            文章: {snap.baseInfo.count.article}
-          </Card.Grid>
+        <Card title="核心内容" className="summary-card">
           <Card.Grid
             onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_回答)}
             className={snap.currentSelect.type === Consts.Current_Select_Type_回答 ? 'active' : ''}
           >
             回答: {snap.baseInfo.count.answer}
+          </Card.Grid>
+          <Card.Grid
+            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_文章)}
+            className={snap.currentSelect.type === Consts.Current_Select_Type_文章 ? 'active' : ''}
+          >
+            文章: {snap.baseInfo.count.article}
           </Card.Grid>
           <Card.Grid
             onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_想法)}
@@ -143,7 +270,7 @@ export default () => {
             想法: {snap.baseInfo.count.pin}
           </Card.Grid>
         </Card>
-        <Card title="汇总类别" className="summary-card">
+        <Card title="索引数据" className="summary-card">
           <Card.Grid
             onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_问题)}
             className={snap.currentSelect.type === Consts.Current_Select_Type_问题 ? 'active' : ''}
@@ -178,25 +305,27 @@ export default () => {
       </Card>
       <Card
         className="record-list-card"
-        title={`${Const_Select_Type_Title[snap.currentSelect.type]}列表`}
-        extra={<span>共 {snap.currentSelect.info.total} 条</span>}
+        title={selectedParent ? `${selectedParent.name} - 缓存内容` : `${Const_Select_Type_Title[snap.currentSelect.type]}缓存内容`}
+        extra={
+          <div className="record-card-extra">
+            {selectedParent && <Button onClick={handleRecordFunc.backToParentList}>返回{Const_Select_Type_Title[snap.currentSelect.type]}列表</Button>}
+            <span>共 {snap.currentSelect.info.total} 条</span>
+          </div>
+        }
       >
-        <Table
-          rowKey="key"
-          loading={isRecordListLoading}
-          columns={columns}
-          dataSource={[...snap.currentSelect.info.recordList]}
-          pagination={{
-            current: snap.currentSelect.info.pageNo + 1,
-            pageSize: snap.currentSelect.info.pageSize,
-            total: snap.currentSelect.info.total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total: number) => `共 ${total} 条`,
-            onChange: (page: number, pageSize: number) => {
-              store.currentSelect.info.pageNo = page - 1
-              store.currentSelect.info.pageSize = pageSize
-            },
+        {renderRecordList()}
+        <Pagination
+          className="record-pagination"
+          current={snap.currentSelect.info.pageNo + 1}
+          pageSize={snap.currentSelect.info.pageSize}
+          total={snap.currentSelect.info.total}
+          showSizeChanger
+          showQuickJumper
+          pageSizeOptions={[5, 10, 20]}
+          showTotal={(total: number) => `共 ${total} 条`}
+          onChange={(page: number, pageSize: number) => {
+            store.currentSelect.info.pageNo = page - 1
+            store.currentSelect.info.pageSize = pageSize
           }}
         />
       </Card>

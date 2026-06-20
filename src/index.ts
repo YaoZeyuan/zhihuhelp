@@ -34,6 +34,9 @@ const Const_Debug_Ipc_Channel_List = [
   'get-task-default-title',
   'get-db-summary-info',
   'get-db-record-list',
+  'get-output-history',
+  'export-diagnostic-info',
+  'open-local-path',
   'clear-all-session-storage',
   'js-rpc-response',
   'zhihu-http-get',
@@ -85,6 +88,97 @@ function readTextLogFile(logUri: string) {
     fs.writeFileSync(logUri, content)
   }
   return content
+}
+
+function readRuntimeEventList() {
+  const content = readTextLogFile(PathConfig.runtimeJsonlUri)
+  return content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '')
+    .map((line) => {
+      try {
+        return JSON.parse(line)
+      } catch {
+        return undefined
+      }
+    })
+    .filter((item) => item !== undefined)
+}
+
+function asyncBuildOutputHistory() {
+  const eventList = readRuntimeEventList()
+  const historyList = eventList
+    .map((event: any, index: number) => {
+      const details = event?.details ?? {}
+      const outputPath = details.outputPath
+      const htmlOutputPath = details.htmlOutputPath
+      const epubOutputPath = details.epubOutputPath
+      if (event?.status !== 'success') {
+        return undefined
+      }
+      if (outputPath === undefined && htmlOutputPath === undefined && epubOutputPath === undefined) {
+        return undefined
+      }
+      return {
+        id: `${event.triggerAt ?? index}-${details.bookname ?? details.title ?? event.message ?? index}`,
+        createdAt: event.triggerAt,
+        runId: event.runId,
+        stage: event.stage,
+        message: event.message,
+        title: details.bookname ?? details.title ?? event.message ?? '输出记录',
+        outputPath,
+        htmlOutputPath,
+        epubOutputPath,
+        outputFormats: details.outputFormats,
+      }
+    })
+    .filter((item) => item !== undefined)
+    .reverse()
+  const dedupeMap = new Map<string, unknown>()
+  for (const item of historyList) {
+    const record = item as any
+    const key = JSON.stringify({
+      title: record.title,
+      outputPath: record.outputPath,
+      htmlOutputPath: record.htmlOutputPath,
+      epubOutputPath: record.epubOutputPath,
+      createdAt: record.createdAt,
+    })
+    if (dedupeMap.has(key) === false) {
+      dedupeMap.set(key, item)
+    }
+  }
+  return [...dedupeMap.values()].slice(0, 50)
+}
+
+function openLocalPath(targetPath: string) {
+  if (typeof targetPath !== 'string' || targetPath.trim() === '') {
+    return false
+  }
+  const resolvedPath = path.resolve(targetPath)
+  if (fs.existsSync(resolvedPath) === false) {
+    shell.showItemInFolder(resolvedPath)
+    return false
+  }
+  const stat = fs.statSync(resolvedPath)
+  if (stat.isDirectory()) {
+    shell.openPath(resolvedPath)
+  } else {
+    shell.showItemInFolder(resolvedPath)
+  }
+  return true
+}
+
+function maskTaskConfigForDiagnostic(config: TaskConfig) {
+  return {
+    ...config,
+    request: {
+      uaLength: config.request.ua.length,
+      hasCookie: config.request.cookie.trim().length > 0,
+      cookieLength: config.request.cookie.length,
+    },
+  }
 }
 
 const isMacOS = process.platform === 'darwin'
@@ -386,16 +480,85 @@ app.whenReady().then(() => {
     type,
     pageNo,
     pageSize,
+    parentId,
   }: {
     type: any
     pageNo: number
     pageSize: number
+    parentId?: string
   }) => {
     return MSummary.asyncGetTabList({
       type,
       pageNo,
       pageSize,
+      parentId,
     })
+  })
+
+  ipcMain.handle('get-output-history', async () => {
+    return asyncBuildOutputHistory()
+  })
+
+  ipcMain.handle('open-local-path', async (event, { targetPath }: { targetPath: string }) => {
+    return openLocalPath(targetPath)
+  })
+
+  ipcMain.handle('export-diagnostic-info', async () => {
+    const diagnosticDir = path.resolve(PathConfig.outputPath, 'diagnostics')
+    if (fs.existsSync(PathConfig.outputPath) === false) {
+      fs.mkdirSync(PathConfig.outputPath)
+    }
+    if (fs.existsSync(diagnosticDir) === false) {
+      fs.mkdirSync(diagnosticDir)
+    }
+    let taskConfig: unknown = undefined
+    try {
+      taskConfig = maskTaskConfigForDiagnostic(readTaskConfig(PathConfig.configUri))
+    } catch (error) {
+      taskConfig = {
+        error: Logger.serializeError(error),
+      }
+    }
+    const databaseSummary = await MSummary.asyncGetSummaryInfo().catch((error) => {
+      return {
+        error: Logger.serializeError(error),
+      }
+    })
+    const packageJson = JSON.parse(fs.readFileSync(PathConfig.packageJsonUri, 'utf-8'))
+    const runtimeLogContent = readTextLogFile(PathConfig.runtimeLogUri)
+    const runtimeJsonlContent = readTextLogFile(PathConfig.runtimeJsonlUri)
+    const diagnosticInfo = {
+      createdAt: new Date().toISOString(),
+      app: {
+        name: packageJson.name,
+        version: packageJson.version,
+        electron: process.versions.electron,
+        node: process.versions.node,
+        platform: process.platform,
+        arch: process.arch,
+      },
+      paths: {
+        rootPath: PathConfig.rootPath,
+        configUri: PathConfig.configUri,
+        outputPath: PathConfig.outputPath,
+        htmlOutputPath: PathConfig.htmlOutputPath,
+        epubOutputPath: PathConfig.epubOutputPath,
+        runtimeLogUri: PathConfig.runtimeLogUri,
+        runtimeJsonlUri: PathConfig.runtimeJsonlUri,
+      },
+      databaseSummary,
+      taskConfig,
+      outputHistory: asyncBuildOutputHistory(),
+      runtimeLogTail: runtimeLogContent.split('\n').slice(-800).join('\n'),
+      runtimeJsonlTail: runtimeJsonlContent.split('\n').slice(-800).join('\n'),
+    }
+    const diagnosticPath = path.resolve(diagnosticDir, `diagnostic-${Date.now()}.json`)
+    fs.writeFileSync(diagnosticPath, JSON.stringify(diagnosticInfo, null, 2), 'utf-8')
+    shell.showItemInFolder(diagnosticPath)
+    return {
+      status: 'success',
+      diagnosticPath,
+    }
   })
 
 

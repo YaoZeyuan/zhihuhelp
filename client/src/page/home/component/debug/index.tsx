@@ -37,6 +37,9 @@ const Const_Channel_Option_List: Array<{ label: string; value: Type_Debug_Channe
   { label: '获取默认标题 get-task-default-title', value: 'get-task-default-title' },
   { label: '读取数据库摘要 get-db-summary-info', value: 'get-db-summary-info' },
   { label: '读取数据库列表 get-db-record-list', value: 'get-db-record-list' },
+  { label: '读取输出历史 get-output-history', value: 'get-output-history' },
+  { label: '导出诊断信息 export-diagnostic-info', value: 'export-diagnostic-info' },
+  { label: '打开本地路径 open-local-path', value: 'open-local-path' },
   { label: '读取运行日志 get-log-content', value: 'get-log-content' },
   { label: '读取结构化日志 get-runtime-jsonl-content', value: 'get-runtime-jsonl-content' },
   { label: '清空运行日志 clear-log-content', value: 'clear-log-content' },
@@ -84,9 +87,12 @@ const Const_Default_Custom_Arg_Map: Record<Type_Debug_Channel, unknown[]> = {
     {
       type: 'author-answer',
       pageNo: 0,
-      pageSize: 15,
+      pageSize: 5,
     },
   ],
+  'get-output-history': [],
+  'export-diagnostic-info': [],
+  'open-local-path': [{ targetPath: '' }],
   'get-task-default-title': [{ taskType: 'answer', taskId: '' }],
   'get-log-content': [],
   'clear-log-content': [],
@@ -103,6 +109,7 @@ const Const_Risk_Channel_Message_Map: Partial<Record<Type_Debug_Channel, string>
   'clear-all-session-storage': '会清空当前 Electron 会话缓存和登录态。',
   'clear-log-content': '会清空 runtime.log。',
   'clear-runtime-jsonl-content': '会清空 runtime.jsonl。',
+  'export-diagnostic-info': '会在输出目录写入诊断 JSON 文件，内容包含配置摘要、日志片段和数据库摘要。',
 }
 
 function stringifyJson(value: unknown) {

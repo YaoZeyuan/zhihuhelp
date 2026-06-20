@@ -21,6 +21,17 @@ type Type_Runtime_Event = {
   }
 }
 
+type Type_Output_History_Item = {
+  id: string
+  createdAt?: string
+  title?: string
+  message?: string
+  outputPath?: string
+  htmlOutputPath?: string
+  epubOutputPath?: string
+  outputFormats?: string[]
+}
+
 type Type_Stage_Status = 'waiting' | 'running' | 'success' | 'failure' | 'skip'
 
 type Type_Stage_Item = {
@@ -112,16 +123,25 @@ function buildStageList(eventList: Type_Runtime_Event[]): Type_Stage_Item[] {
   return [...stageMap.values()]
 }
 
+function formatHistoryTime(createdAt?: string) {
+  if (!createdAt) {
+    return '-'
+  }
+  return new Date(createdAt).toLocaleString()
+}
+
 export default () => {
   const [isAutoFresh, setIsAutoFresh] = useState<boolean>(true)
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const [stageList, setStageList] = useState<Type_Stage_Item[]>(buildStageList([]))
   const [latestError, setLatestError] = useState<Type_Runtime_Event | undefined>()
   const [latestEvent, setLatestEvent] = useState<Type_Runtime_Event | undefined>()
+  const [outputHistoryList, setOutputHistoryList] = useState<Type_Output_History_Item[]>([])
   const ContainerHeight = 768
   const asyncFetchLogList = async () => {
     let content = await window.electronAPI['get-log-content']()
     let runtimeJsonlContent = await window.electronAPI['get-runtime-jsonl-content']().catch(() => '')
+    const outputHistory = await window.electronAPI['get-output-history']?.().catch(() => [])
     // console.log('content', content)
     // 暴力避免content为空字符串
     if (typeof content?.split !== 'function') {
@@ -145,6 +165,7 @@ export default () => {
     setStageList(buildStageList(runtimeEventList))
     setLatestEvent(runtimeEventList[runtimeEventList.length - 1])
     setLatestError([...runtimeEventList].reverse().find((item) => item.level === 'error' || item.status === 'failure'))
+    setOutputHistoryList(Array.isArray(outputHistory) ? outputHistory : [])
     let containerEle = document.querySelector('.rc-virtual-list-holder')
     if (containerEle?.scrollTop !== undefined) {
       containerEle.scrollTop = containerEle.scrollHeight ?? 1000000000
@@ -154,6 +175,21 @@ export default () => {
     await window.electronAPI['clear-log-content']()
     await window.electronAPI['clear-runtime-jsonl-content']?.()
     await asyncFetchLogList()
+  }
+  const asyncExportDiagnosticInfo = async () => {
+    const result = await window.electronAPI['export-diagnostic-info']?.().catch(() => undefined)
+    if (result?.diagnosticPath) {
+      message.success(`诊断信息已导出：${result.diagnosticPath}`)
+      return
+    }
+    message.error('诊断信息导出失败')
+  }
+  const asyncOpenLocalPath = async (targetPath?: string) => {
+    if (!targetPath) {
+      message.warning('该记录没有可打开的路径')
+      return
+    }
+    await window.electronAPI['open-local-path']?.({ targetPath })
   }
   Ahooks.useInterval(async () => {
     if (isAutoFresh) {
@@ -192,6 +228,27 @@ export default () => {
           />
         )}
       </Card>
+      <Card
+        className="output-history-card"
+        title="输出历史"
+        extra={<Button onClick={asyncExportDiagnosticInfo}>导出诊断信息</Button>}
+      >
+        {outputHistoryList.length === 0 && <div className="empty-history">暂无输出历史，完成一次生成任务后会显示在这里。</div>}
+        {outputHistoryList.slice(0, 8).map((item) => (
+          <div className="output-history-item" key={item.id}>
+            <div className="output-history-main">
+              <strong>{item.title}</strong>
+              <span>{formatHistoryTime(item.createdAt)}</span>
+              <span>{item.message}</span>
+            </div>
+            <Space wrap>
+              {item.htmlOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.htmlOutputPath)}>打开 HTML</Button>}
+              {item.epubOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.epubOutputPath)}>打开 EPUB</Button>}
+              {item.outputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.outputPath)}>打开输出目录</Button>}
+            </Space>
+          </div>
+        ))}
+      </Card>
       <Card title="原始日志">
         <List>
           <VirtualList data={logList} height={ContainerHeight} itemHeight={20} itemKey="lineNo">
@@ -227,6 +284,8 @@ export default () => {
             >
               打开电子书输出目录
             </Button>
+            <Divider type="vertical"></Divider>
+            <Button onClick={asyncExportDiagnosticInfo}>导出诊断信息</Button>
             <Divider type="vertical"></Divider>
             <Button danger onClick={asyncClearLogList}>
               清空日志

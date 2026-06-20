@@ -36,4 +36,236 @@
     width: 100%;
     margin-top: 16px;
   }
+
+  .record-card-extra {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .record-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+
+  .record-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .record-pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .zhihu-content-card {
+    overflow: hidden;
+    border: 1px solid rgba(5, 5, 5, 0.08);
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .zhihu-card-title-band {
+    padding: 26px 32px;
+    background: #428ece;
+    color: #ffffff;
+
+    > div {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    h2 {
+      flex: 1;
+      margin: 0;
+      padding: 10px 14px;
+      background: #3982c6;
+      color: #ffffff;
+      font-size: 22px;
+      line-height: 1.45;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    p {
+      margin: 12px 0 0 46px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .zhihu-card-body {
+    padding: 24px 32px 22px;
+  }
+
+  .zhihu-card-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .zhihu-card-author-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    a,
+    > span:first-child {
+      color: #1f2329;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    > span:last-child {
+      color: rgba(0, 0, 0, 0.55);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .zhihu-card-cover {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin: 0 auto 20px;
+    border-radius: 4px;
+    object-fit: contain;
+  }
+
+  .zhihu-card-content,
+  .zhihu-card-origin-pin {
+    color: #1f2329;
+    font-size: 16px;
+    line-height: 1.78;
+    overflow-wrap: anywhere;
+
+    p,
+    blockquote,
+    ul,
+    ol {
+      margin: 14px 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+    }
+
+    blockquote {
+      padding: 10px 14px;
+      color: rgba(0, 0, 0, 0.68);
+      background: #f7f8fa;
+      border-left: 4px solid #d8dadf;
+    }
+
+    a {
+      color: #1677ff;
+      text-decoration: none;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 16px auto;
+      border-radius: 4px;
+    }
+
+    figure {
+      margin: 16px 0;
+    }
+
+    code,
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .zhihu-card-origin-pin {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: #fcf8e3;
+    border: 1px solid #faebcc;
+    border-radius: 4px;
+  }
+
+  .origin-title {
+    margin-bottom: 8px;
+    color: #8a6d3b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .zhihu-card-empty-content {
+    padding: 18px;
+    color: rgba(0, 0, 0, 0.55);
+    background: #f7f8fa;
+    border-radius: 4px;
+  }
+
+  .zhihu-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 22px;
+    padding-top: 14px;
+    color: rgba(0, 0, 0, 0.58);
+    font-size: 13px;
+    border-top: 1px solid rgba(5, 5, 5, 0.08);
+
+    a {
+      color: #1677ff;
+    }
+  }
+
+  .zhihu-meta-card {
+    padding: 16px 18px;
+    border: 1px solid rgba(5, 5, 5, 0.08);
+    border-radius: 6px;
+    background: #ffffff;
+
+    &.clickable {
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        border-color: #91caff;
+        box-shadow: 0 4px 14px rgba(22, 119, 255, 0.12);
+      }
+    }
+  }
+
+  .zhihu-meta-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    strong {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    span {
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+    }
+  }
+
+  .zhihu-meta-card-description {
+    margin-top: 10px;
+    color: rgba(0, 0, 0, 0.68);
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
 }

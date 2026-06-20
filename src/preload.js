@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ['clear-all-session-storage']: async () => ipcRenderer.invoke('clear-all-session-storage'),
   ['get-db-summary-info']: async () => ipcRenderer.invoke('get-db-summary-info'),
   ['get-db-record-list']: async (...args) => ipcRenderer.invoke('get-db-record-list', ...args),
+  ['get-output-history']: async () => ipcRenderer.invoke('get-output-history'),
+  ['export-diagnostic-info']: async () => ipcRenderer.invoke('export-diagnostic-info'),
+  ['open-local-path']: async (payload = {}) => ipcRenderer.invoke('open-local-path', payload),
   ['get-log-content']: async () => {
     const res = await ipcRenderer.invoke('get-log-content')
     return res
