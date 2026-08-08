@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "article",
+  "sourceUrl": "https://zhuanlan.zhihu.com/p/2044554555665428776",
+  "capturedAt": "2026-08-08T16:11:05.659Z",
+  "checksum": "d54dc9b30f071a5cdcb9faed627a49b5dfde6e0e866a6a39e532a6713b2f02e2",
+  "data": {
+    "id": "2044554555665428776",
+    "title": "从PDB到ΔG°绝对结合自由能—— Dock-MD-FEP3",
+    "type": "article",
+    "created": 1780241750,
+    "updated": 1781020207,
+    "author": {
+      "id": "f10cc140e5514e7f91aa98fd8b7b1b7b",
+      "url_token": "[REDACTED]",
+      "name": "ABChemD"
+    }
+  }
+}

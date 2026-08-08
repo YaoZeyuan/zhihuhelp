@@ -15,9 +15,10 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "rootDir": "./" /* Base directory to resolve non-absolute module names. */,
+    "rootDir": "../" /* Shared logging contract lives in the repository src directory. */,
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./*"],
+      "@shared/*": ["../src/shared/*"]
     }
   },
   "include": ["./src", "../src/renderer.d.ts"]

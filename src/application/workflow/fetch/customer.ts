@@ -1,4 +1,4 @@
-import * as TypeTaskConfig from '~/src/type/task_config'
+﻿import * as TypeTaskConfig from '~/src/type/task_config'
 import * as ConstTaskConfig from '~/src/constant/task_config'
 import RequestConfig from '~/src/config/request'
 import BatchFetchAnswer from '~/src/api/batch/answer'
@@ -14,12 +14,26 @@ import BatchFetchColumn from '~/src/api/batch/column'
 import BatchFetchPin from '~/src/api/batch/pin'
 import BatchFetchQuestion from '~/src/api/batch/question'
 import BatchFetchTopic from '~/src/api/batch/topic'
+import { BatchFetchError } from '~/src/api/batch/base'
 import Logger from '~/src/library/logger'
 import { RunContext } from '~/src/shared/runtime/run_context'
 import lodash from 'lodash'
+import {
+  LogEventCode,
+  LogLevel,
+  LogStage,
+  LogStatus,
+  StructuredLogEntry,
+} from '~/src/shared/logging/log_contract'
+import {
+  createPartialOutcome,
+  createSuccessOutcome,
+  ExecutionOutcome,
+  hasFatalExecutionFailure,
+} from '~/src/shared/runtime/execution_outcome'
 
 type BatchFetcher = {
-  fetchListAndSaveToDb(idList: string[]): Promise<void>
+  fetchListAndSaveToDb(idList: string[]): Promise<ExecutionOutcome>
 }
 
 type TaskPackage = {
@@ -39,11 +53,15 @@ const authorActivityTaskTypeList = [
  * 现有 batch/model 模块承载，后续可继续下沉到 gateway/repository。
  */
 export default class FetchWorkflow {
-  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config, context?: RunContext): Promise<void> {
+  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config, context?: RunContext): Promise<ExecutionOutcome> {
+    let successCount = 0
+    const failureList: ExecutionOutcome['failures'] = []
+    const planJobId = 'fetch-plan'
     RequestConfig.setRequestConfig(customerTaskConfig.requestConfig)
     this.event(context, {
-      status: 'start',
-      level: 'info',
+      jobId: planJobId,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
       message: '加载抓取配置',
       details: this.summarizeFetchConfig(customerTaskConfig),
     })
@@ -51,8 +69,9 @@ export default class FetchWorkflow {
 
     const taskListPackage = this.mergeTaskList(customerTaskConfig.fetchTaskList, context)
     this.event(context, {
-      status: 'success',
-      level: 'info',
+      jobId: planJobId,
+      status: LogStatus.SUCCESS,
+      level: LogLevel.INFO,
       message: '抓取任务合并完成',
       details: {
         taskPackage: this.summarizeTaskPackage(taskListPackage),
@@ -66,8 +85,8 @@ export default class FetchWorkflow {
       const fetcher = this.createBatchFetcher(taskType)
       if (fetcher === undefined) {
         this.event(context, {
-          status: 'skip',
-          level: 'warn',
+          status: LogStatus.SKIP,
+          level: LogLevel.WARN,
           message: '跳过不支持的抓取任务类型',
           taskType,
           details: {
@@ -79,9 +98,11 @@ export default class FetchWorkflow {
         continue
       }
       const startedAt = Date.now()
+      const taskJobId = `fetch-type-${taskType}`
       this.event(context, {
-        status: 'start',
-        level: 'info',
+        jobId: taskJobId,
+        status: LogStatus.START,
+        level: LogLevel.INFO,
         message: '开始执行批量抓取',
         taskType,
         details: {
@@ -92,11 +113,18 @@ export default class FetchWorkflow {
         },
       })
       try {
-        await fetcher.fetchListAndSaveToDb(targetIdList)
+        const outcome = await fetcher.fetchListAndSaveToDb(targetIdList)
+        successCount += outcome.successCount
+        failureList.push(...outcome.failures.map((failure) => ({ ...failure, taskType })))
         this.event(context, {
-          status: 'success',
-          level: 'info',
-          message: '批量抓取完成',
+          jobId: taskJobId,
+          eventCode:
+            outcome.status === LogStatus.PARTIAL_SUCCESS
+              ? LogEventCode.FETCH_PARTIAL_SUCCESS
+              : LogEventCode.FETCH_SUCCESS,
+          status: outcome.status,
+          level: outcome.status === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
+          message: outcome.status === LogStatus.PARTIAL_SUCCESS ? '批量抓取部分完成' : '批量抓取完成',
           taskType,
           durationMs: Date.now() - startedAt,
           details: {
@@ -104,12 +132,36 @@ export default class FetchWorkflow {
             targetIdCount: targetIdList.length,
             targetIdList,
             fetcher: fetcher.constructor.name,
+            successCount: outcome.successCount,
+            failureCount: outcome.failureCount,
+            failures: outcome.failures,
           },
         })
       } catch (error) {
+        if (error instanceof BatchFetchError && hasFatalExecutionFailure(error.outcome.failures) === false) {
+          failureList.push(...error.outcome.failures.map((failure) => ({ ...failure, taskType })))
+          this.event(context, {
+            jobId: taskJobId,
+            eventCode: LogEventCode.FETCH_PARTIAL_SUCCESS,
+            status: LogStatus.PARTIAL_SUCCESS,
+            level: LogLevel.WARN,
+            message: '当前任务类型没有成功实体，继续处理其他任务类型',
+            taskType,
+            durationMs: Date.now() - startedAt,
+            details: {
+              taskType,
+              targetIdCount: targetIdList.length,
+              successCount: error.outcome.successCount,
+              failureCount: error.outcome.failureCount,
+              failures: error.outcome.failures,
+            },
+          })
+          continue
+        }
         this.event(context, {
-          status: 'failure',
-          level: 'error',
+          jobId: taskJobId,
+          status: LogStatus.FAILURE,
+          level: LogLevel.ERROR,
           message: '批量抓取失败',
           taskType,
           durationMs: Date.now() - startedAt,
@@ -125,15 +177,26 @@ export default class FetchWorkflow {
       }
     }
 
+    const finalOutcome =
+      failureList.length > 0
+        ? createPartialOutcome(successCount, failureList)
+        : createSuccessOutcome(successCount)
+    if (hasFatalExecutionFailure(finalOutcome.failures)) {
+      throw new BatchFetchError('FetchWorkflow', finalOutcome)
+    }
     this.event(context, {
-      status: 'success',
-      level: 'info',
-      message: '自定义抓取任务全部完成',
+      status: LogStatus.PROGRESS,
+      level: finalOutcome.status === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
+      message: finalOutcome.status === LogStatus.PARTIAL_SUCCESS ? '自定义抓取任务部分完成' : '自定义抓取任务全部完成',
       details: {
         taskPackage: this.summarizeTaskPackage(taskListPackage),
+        successCount: finalOutcome.successCount,
+        failureCount: finalOutcome.failureCount,
+        failures: finalOutcome.failures,
       },
     })
     this.log(`自定义任务抓取完毕`)
+    return finalOutcome
   }
 
   private mergeTaskList(fetchTaskList: TypeTaskConfig.Type_Fetch_Task_Config_Item[], context?: RunContext): TaskPackage {
@@ -143,8 +206,8 @@ export default class FetchWorkflow {
     for (const [index, fetchTaskConfig] of fetchTaskList.entries()) {
       if (fetchTaskConfig.skipFetch) {
         this.event(context, {
-          status: 'skip',
-          level: 'info',
+          status: LogStatus.SKIP,
+          level: LogLevel.INFO,
           message: '配置要求跳过抓取任务',
           taskType: fetchTaskConfig.type,
           entityId: `${fetchTaskConfig.id}`,
@@ -166,8 +229,8 @@ export default class FetchWorkflow {
 
       if (this.isSupportedTaskType(taskType) === false) {
         this.event(context, {
-          status: 'skip',
-          level: 'warn',
+          status: LogStatus.SKIP,
+          level: LogLevel.WARN,
           message: '配置中存在不支持的抓取任务类型',
           taskType,
           entityId: targetId,
@@ -235,22 +298,12 @@ export default class FetchWorkflow {
 
   private event(
     context: RunContext | undefined,
-    entry: {
-      status: 'start' | 'progress' | 'success' | 'skip' | 'failure'
-      level: 'debug' | 'info' | 'warn' | 'error'
-      message: string
-      taskType?: string
-      entityId?: string
-      durationMs?: number
-      error?: ReturnType<typeof Logger.serializeError>
-      details?: {
-        [key: string]: unknown
-      }
-    },
+    entry: Omit<StructuredLogEntry, 'runId' | 'traceId' | 'stage'>,
   ): void {
     Logger.event({
       runId: context?.runId,
-      stage: 'fetch',
+      traceId: context?.traceId,
+      stage: LogStage.FETCH,
       ...entry,
     })
   }

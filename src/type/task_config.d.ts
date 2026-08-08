@@ -91,6 +91,7 @@ export type Type_Task_Config = {
     maxItemInBook: Type_Max_Item_In_Book // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: Type_Order_By_Config_List
     generateType: Type_Generate_Type
+    outputFormats?: ('html' | 'epub')[]
   }
   requestConfig: {
     ua:

@@ -35,6 +35,7 @@ import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Ahooks from 'ahooks'
 import DebugLog from '~/src/library/debug_log'
+import { isAuthenticatedZhihuProfile } from './library/login_check'
 
 import './index.less'
 
@@ -44,6 +45,22 @@ const DownIcon = DownOutlined as any
 export const Const_Storage_Key = 'login_msk'
 
 type Type_Login_Status = 'unknown' | 'checking' | 'success' | 'failure'
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message
+  }
+  return String(error)
+}
+
+function createDefaultFormValue(): Type_Form_Config {
+  return {
+    ...Const_Default_FormValue,
+    taskItemList: [...Const_Default_FormValue.taskItemList],
+    orderItemList: [...Const_Default_FormValue.orderItemList],
+    outputFormats: [...Const_Default_FormValue.outputFormats],
+  }
+}
 
 const Const_Login_Status_Text: Record<Type_Login_Status, string> = {
   unknown: '尚未检测登录状态',
@@ -71,6 +88,7 @@ export default () => {
   let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
   let [loginStatus, setLoginStatus] = useState<Type_Login_Status>('unknown')
   let [quickTaskInput, setQuickTaskInput] = useState<string>('')
+  let [configLoadError, setConfigLoadError] = useState<string | null>(null)
   // 用于生成计数key, 解决批量导入任务后, 组件不更新的问题
   let [batchTaskUpdateCounter, setBatchTaskUpdateCounter] = useState<number>(0)
 
@@ -94,10 +112,12 @@ export default () => {
     if (autoGenerateTitle) {
       let title = ''
       for (const config of legalTaskItemList) {
-        const bufTitle = await window.electronAPI['get-task-default-title']({
-          taskType: config.type,
-          taskId: config.id,
-        })
+        const bufTitle = await DebugLog.invokeElectronApi<string>('get-task-default-title', [
+          {
+            taskType: config.type,
+            taskId: config.id,
+          },
+        ])
         if (title === '') {
           title = bufTitle
         } else {
@@ -151,10 +171,16 @@ export default () => {
 
   Ahooks.useMount(async () => {
     // 初始化时载入一次
-    let config = await window.electronAPI['get-common-config']().catch((err) => {
-      return { ...Const_Default_FormValue }
-    })
-    let initValue = TaskConfigAdapter.taskConfigToForm(config)
+    let initValue = createDefaultFormValue()
+    try {
+      const config = await DebugLog.invokeElectronApi<any>('get-common-config')
+      initValue = TaskConfigAdapter.taskConfigToForm(config)
+      setConfigLoadError(null)
+    } catch (error) {
+      const errorMessage = `任务配置加载失败：${getErrorMessage(error)}。当前已载入安全默认值，请修复 config.json 后重新打开页面。`
+      setConfigLoadError(errorMessage)
+      message.error(errorMessage)
+    }
 
     form.setFieldValue('bookTitle', initValue.bookTitle)
     form.setFieldValue('taskItemList', initValue.taskItemList)
@@ -175,6 +201,16 @@ export default () => {
   const handleFormAction = {
     asyncOnFinish: async (values: any) => {
       statusStore.loading.startTask = true
+      if (statusStore.initComplete === false) {
+        statusStore.loading.startTask = false
+        message.error('任务配置仍在加载，请稍后再试')
+        return
+      }
+      if (configLoadError !== null) {
+        statusStore.loading.startTask = false
+        message.error('任务配置尚不可用，请修复 config.json 后重新打开页面')
+        return
+      }
       // 提交数据, 生成配置文件
       console.log('final config => ', JSON.stringify(values, null, 2))
       const config = TaskConfigAdapter.formToTaskConfig(values)
@@ -203,23 +239,23 @@ export default () => {
         return
       }
       setLoginStatus('success')
-      statusStore.loading.startTask = false
-
-      // 直接派发任务即可
-      window.electronAPI['start-customer-task']({
-        config: config,
-      })
       setCurrentTab(Consts_Page.Const_Page_运行日志)
+      try {
+        await DebugLog.invokeElectronApi('start-customer-task', [
+          {
+            config: config,
+          },
+        ])
+      } catch {
+        message.error('任务启动或执行失败，请在运行日志中查看诊断信息')
+      } finally {
+        statusStore.loading.startTask = false
+      }
     },
     asyncCheckLogin: async () => {
       const request = {
-        url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
+        url: 'https://www.zhihu.com/api/v4/me',
         params: {
-          include:
-            'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
-          offset: 0,
-          limit: 20,
-          sort_by: 'created',
           // 避免请求被缓存住
           random: Math.floor(Math.random() * 100000),
         },
@@ -240,16 +276,16 @@ export default () => {
         })
         return false
       }
-      if (res.data !== undefined) {
+      if (isAuthenticatedZhihuProfile(res)) {
         setLoginStatus('success')
         DebugLog.append({
           level: 'success',
           channel: 'asyncCheckLogin',
-          message: '知乎登录态检查通过：响应包含 data 字段',
+          message: '知乎登录态检查通过：当前用户响应包含稳定身份字段',
           request,
           response: {
-            dataType: Array.isArray(res.data) ? 'array' : typeof res.data,
-            dataLength: Array.isArray(res.data) ? res.data.length : undefined,
+            hasId: typeof res.id === 'string' && res.id.trim() !== '',
+            hasUrlToken: typeof res.url_token === 'string' && res.url_token.trim() !== '',
           },
         })
         return true
@@ -258,7 +294,7 @@ export default () => {
         DebugLog.append({
           level: 'warn',
           channel: 'asyncCheckLogin',
-          message: '知乎登录态检查未通过：响应缺少 data 字段',
+          message: '知乎登录态检查未通过：响应缺少 id/url_token 身份字段',
           request,
           response: res,
         })
@@ -344,6 +380,15 @@ export default () => {
           }}
           labelAlign="left"
         >
+          {configLoadError !== null && (
+            <Alert
+              className="config-load-error-alert"
+              type="error"
+              showIcon
+              title="任务配置不可用"
+              description={configLoadError}
+            />
+          )}
           <Card className="quick-start-card" size="small">
             <div className="quick-start-steps">
               <div className="step-item active">1. 登录知乎</div>
@@ -603,14 +648,19 @@ export default () => {
           </Form.Item>
           </details>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
-            <Button type="primary" htmlType="submit" loading={statusSnap.loading.startTask}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={statusSnap.loading.startTask}
+              disabled={statusSnap.initComplete === false || configLoadError !== null}
+            >
               开始
             </Button>
             <Divider orientation="vertical"></Divider>
             <Button
               htmlType="button"
               onClick={async () => {
-                await window.electronAPI['open-output-dir']()
+                await DebugLog.invokeElectronApi('open-output-dir')
               }}
             >
               打开电子书输出目录
@@ -640,7 +690,7 @@ export default () => {
                       label: '注销登录',
                       danger: true,
                       onClick: async () => {
-                        await window.electronAPI['clear-all-session-storage']()
+                        await DebugLog.invokeElectronApi('clear-all-session-storage')
                         SimpleModal.warning({
                           title: '注销成功',
                           content: '请重新登录知乎账号',

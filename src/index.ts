@@ -1,4 +1,4 @@
-// Modules to control application life and create native browser window
+﻿// Modules to control application life and create native browser window
 import Electron, { Menu } from 'electron'
 import RequestConfig from '~/src/config/request'
 import PathConfig from '~/src/config/path'
@@ -12,12 +12,34 @@ import http from '~/src/library/http'
 import fs from 'fs'
 import path from 'path'
 import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow'
-import { fromLegacyTaskConfig, TaskConfig } from '~/src/domain/task/task_config'
-import { readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser'
+import { TaskConfig, TaskType, taskTypeList } from '~/src/domain/task/task_config'
+import { parseTaskConfig, readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser'
+import {
+  LOG_SCHEMA_VERSION,
+  LogEventCode,
+  LogLevel,
+  LogSource,
+  LogStage,
+  LogStatus,
+  StructuredLogRecord,
+} from '~/src/shared/logging/log_contract'
+import { buildOutputHistory, parseJsonlRecords } from '~/src/shared/logging/output_history'
+import { sanitizeDiagnosticLogTail } from '~/src/shared/logging/diagnostic'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context'
+import { isPathInsideRoot } from '~/src/shared/path/safe_output_path'
+import { createRunId } from '~/src/shared/runtime/run_context'
+import {
+  parseDbRecordExportPayload,
+  parseDbRecordListPayload,
+  parseOpenLocalPathPayload,
+} from '~/src/shared/ipc/payload'
+import { assertIpcResponseSucceeded } from '~/src/shared/ipc/result'
 
 
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
+Logger.setDebugMode(isDebug)
 let { app, BrowserWindow, dialog, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -26,6 +48,7 @@ let mainWindow: Electron.BrowserWindow
 let jsRpcWindow: Electron.BrowserWindow
 
 let isRunning = false
+let activeRunId: string | undefined
 const mainProcessStartedAt = new Date().toISOString()
 const Const_Debug_Ipc_Channel_List = [
   'get-debug-ipc-channel-list',
@@ -47,9 +70,62 @@ const Const_Debug_Ipc_Channel_List = [
   'clear-log-content',
   'get-runtime-jsonl-content',
   'clear-runtime-jsonl-content',
+  'append-frontend-log-batch',
   'open-devtools',
   'open-js-rpc-window-devtools',
 ]
+
+type IpcTraceMetadata = {
+  __zhihuhelpTraceId?: unknown
+}
+
+function resolveIpcTraceId(prefix: string, metadata?: IpcTraceMetadata) {
+  const traceId = metadata?.__zhihuhelpTraceId
+  if (typeof traceId === 'string' && traceId.trim() !== '' && traceId.length <= 160) {
+    return traceId
+  }
+  return createTraceId(prefix)
+}
+
+function validateFrontendLogBatch(payload: unknown): StructuredLogRecord[] {
+  if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '前端日志 payload 必须是对象')
+  }
+  const records = (payload as { records?: unknown }).records
+  if (Array.isArray(records) === false || records.length === 0 || records.length > 20) {
+    throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '前端日志批次必须包含 1 到 20 条记录')
+  }
+  const validLevelSet = new Set<string>(Object.values(LogLevel))
+  const validStageSet = new Set<string>(Object.values(LogStage))
+  const validStatusSet = new Set<string>(Object.values(LogStatus))
+  for (const record of records) {
+    if (record === null || typeof record !== 'object' || Array.isArray(record)) {
+      throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '前端日志记录必须是对象')
+    }
+    const item = record as Partial<StructuredLogRecord>
+    if (
+      item.schemaVersion !== LOG_SCHEMA_VERSION ||
+      item.source !== LogSource.FRONTEND ||
+      typeof item.triggerAt !== 'string' ||
+      Number.isNaN(Date.parse(item.triggerAt)) ||
+      typeof item.eventCode !== 'string' ||
+      item.eventCode.trim() === '' ||
+      item.eventCode.length > 160 ||
+      typeof item.message !== 'string' ||
+      item.message.length > 64 * 1024 ||
+      typeof item.level !== 'string' ||
+      validLevelSet.has(item.level) === false ||
+      (item.stage !== undefined && validStageSet.has(item.stage) === false) ||
+      (item.status !== undefined && validStatusSet.has(item.status) === false)
+    ) {
+      throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '前端日志记录不符合 schema')
+    }
+    if (Buffer.byteLength(JSON.stringify(item), 'utf8') > 64 * 1024) {
+      throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '前端单条日志超过 64 KiB')
+    }
+  }
+  return records as StructuredLogRecord[]
+}
 
 function createTraceId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -77,107 +153,88 @@ function summarizeIpcResponse(response: unknown) {
   }
 }
 
-function readTextLogFile(logUri: string) {
-  if (!fs.existsSync(logUri)) {
-    fs.writeFileSync(logUri, '')
-  }
-  let content = fs.readFileSync(logUri, 'utf-8')
-  if (!!content === false) {
-    content = ''
-  }
-  const logList = content?.split('\n') ?? []
-  if (logList.length > 5000) {
-    content = logList.slice(logList.length - 2000).join('\n')
-    fs.writeFileSync(logUri, content)
-  }
-  return content
+function readRuntimeEventList() {
+  return parseJsonlRecords(Logger.readRecentLogContent('runtime-jsonl'))
 }
 
-function readRuntimeEventList() {
-  const content = readTextLogFile(PathConfig.runtimeJsonlUri)
-  return content
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line !== '')
-    .map((line) => {
-      try {
-        return JSON.parse(line)
-      } catch {
-        return undefined
-      }
+async function runLoggedIpc<T>(
+  channel: string,
+  metadata: IpcTraceMetadata | undefined,
+  action: () => Promise<T> | T,
+): Promise<T> {
+  const traceId = resolveIpcTraceId(channel, metadata)
+  const jobId = `ipc-${channel}-${traceId}`
+  const startedAt = Date.now()
+  return runWithLogCorrelation({ traceId, jobId }, async () => {
+    Logger.event({
+      eventCode: LogEventCode.IPC_REQUEST_START,
+      stage: LogStage.IPC,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
+      message: `收到 IPC 请求：${channel}`,
+      details: { channel },
     })
-    .filter((item) => item !== undefined)
+    try {
+      const response = assertIpcResponseSucceeded(await action(), channel)
+      const isPartialSuccess = response !== null
+        && typeof response === 'object'
+        && (response as { status?: unknown }).status === LogStatus.PARTIAL_SUCCESS
+      const status = isPartialSuccess ? LogStatus.PARTIAL_SUCCESS : LogStatus.SUCCESS
+      Logger.event({
+        eventCode: isPartialSuccess
+          ? LogEventCode.IPC_REQUEST_PARTIAL_SUCCESS
+          : LogEventCode.IPC_REQUEST_SUCCESS,
+        stage: LogStage.IPC,
+        status,
+        level: isPartialSuccess ? LogLevel.WARN : LogLevel.INFO,
+        durationMs: Date.now() - startedAt,
+        message: isPartialSuccess ? `IPC 请求部分完成：${channel}` : `IPC 请求完成：${channel}`,
+        details: {
+          channel,
+          response: summarizeIpcResponse(response),
+        },
+      })
+      return response
+    } catch (error) {
+      Logger.event({
+        eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+        stage: LogStage.IPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        message: `IPC 请求失败：${channel}`,
+        details: { channel },
+      })
+      throw error
+    }
+  })
 }
 
 function asyncBuildOutputHistory() {
-  const eventList = readRuntimeEventList()
-  const historyList = eventList
-    .map((event: any, index: number) => {
-      const details = event?.details ?? {}
-      const outputPath = details.outputPath
-      const htmlOutputPath = details.htmlOutputPath
-      const epubOutputPath = details.epubOutputPath
-      if (event?.status !== 'success') {
-        return undefined
-      }
-      if (outputPath === undefined && htmlOutputPath === undefined && epubOutputPath === undefined) {
-        return undefined
-      }
-      return {
-        orderIndex: index,
-        id: `${event.triggerAt ?? index}-${details.bookname ?? details.title ?? event.message ?? index}`,
-        createdAt: event.triggerAt,
-        runId: event.runId,
-        stage: event.stage,
-        message: event.message,
-        title: details.bookname ?? details.title ?? event.message ?? '输出记录',
-        outputPath,
-        htmlOutputPath,
-        epubOutputPath,
-        outputFormats: details.outputFormats,
-      }
-    })
-    .filter((item) => item !== undefined)
-    .reverse()
-  const dedupeMap = new Map<string, unknown>()
-  for (const item of historyList) {
-    const record = item as any
-    const key = JSON.stringify({
-      title: record.title,
-      outputPath: record.outputPath,
-      htmlOutputPath: record.htmlOutputPath,
-      epubOutputPath: record.epubOutputPath,
-      createdAt: record.createdAt,
-    })
-    if (dedupeMap.has(key) === false) {
-      dedupeMap.set(key, item)
-    }
-  }
-  return [...dedupeMap.values()]
-    .sort((left: any, right: any) => right.orderIndex - left.orderIndex)
-    .slice(0, 50)
-    .map((item: any) => {
-      const { orderIndex, ...record } = item
-      return record
-    })
+  return buildOutputHistory(readRuntimeEventList())
 }
 
-function openLocalPath(targetPath: string) {
+async function openLocalPath(targetPath: string): Promise<boolean> {
   if (typeof targetPath !== 'string' || targetPath.trim() === '') {
     return false
   }
   const resolvedPath = path.resolve(targetPath)
-  if (fs.existsSync(resolvedPath) === false) {
-    shell.showItemInFolder(resolvedPath)
+  if (isPathInsideRoot(PathConfig.outputPath, resolvedPath) === false || fs.existsSync(resolvedPath) === false) {
     return false
   }
-  const stat = fs.statSync(resolvedPath)
-  if (stat.isDirectory()) {
-    shell.openPath(resolvedPath)
-  } else {
+  try {
+    const stat = fs.statSync(resolvedPath)
+    if (stat.isDirectory()) {
+      const errorMessage = await shell.openPath(resolvedPath)
+      return errorMessage === ''
+    }
     shell.showItemInFolder(resolvedPath)
+    return true
+  } catch (error) {
+    Logger.warn('打开本地输出路径失败', error)
+    return false
   }
-  return true
 }
 
 function maskTaskConfigForDiagnostic(config: TaskConfig) {
@@ -353,6 +410,28 @@ async function asyncUpdateCookie(): Promise<string> {
 // Some APIs can only be used after this event occurs.
 app.on('ready', asyncCreateWindow)
 
+process.on('uncaughtExceptionMonitor', (error) => {
+  Logger.event({
+    eventCode: LogEventCode.APP_ERROR,
+    stage: LogStage.APP,
+    status: LogStatus.FAILURE,
+    level: LogLevel.ERROR,
+    message: '主进程发生未捕获异常',
+    error: Logger.serializeError(error),
+  })
+})
+
+process.on('unhandledRejection', (reason) => {
+  Logger.event({
+    eventCode: LogEventCode.APP_ERROR,
+    stage: LogStage.APP,
+    status: LogStatus.FAILURE,
+    level: LogLevel.ERROR,
+    message: '主进程发生未处理 Promise rejection',
+    error: Logger.serializeError(reason),
+  })
+})
+
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
@@ -369,60 +448,145 @@ app.on('activate', function () {
 })
 
 app.whenReady().then(() => {
-  ipcMain.handle('get-debug-ipc-channel-list', async () => {
-    return {
+  Logger.event({
+    eventCode: LogEventCode.APP_START,
+    stage: LogStage.APP,
+    status: LogStatus.SUCCESS,
+    level: LogLevel.INFO,
+    message: 'Electron 主进程已就绪',
+    details: {
+      isDebug,
+      pid: process.pid,
+      startedAt: mainProcessStartedAt,
+    },
+  })
+  ipcMain.handle('get-debug-ipc-channel-list', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('get-debug-ipc-channel-list', metadata, () => ({
       isDebug,
       pid: process.pid,
       startedAt: mainProcessStartedAt,
       channels: Const_Debug_Ipc_Channel_List,
-    }
+    }))
   })
 
   // 打开输出文件夹
-  ipcMain.handle('open-output-dir', async () => {
-    console.log("PathConfig.outputPath => ", PathConfig.outputPath)
-    shell.showItemInFolder(PathConfig.outputPath)
-    return
+  ipcMain.handle('open-output-dir', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('open-output-dir', metadata, async () => {
+      const errorMessage = await shell.openPath(PathConfig.outputPath)
+      if (errorMessage !== '') {
+        throw new Error(`输出目录打开失败: ${errorMessage}`)
+      }
+      return true
+    })
   })
 
   // 获取任务配置
-  ipcMain.handle('get-common-config', () => {
+  ipcMain.handle('get-common-config', (event, metadata?: IpcTraceMetadata) => {
+    const traceId = resolveIpcTraceId('get-common-config', metadata)
+    const startedAt = Date.now()
+    Logger.event({
+      traceId,
+      eventCode: LogEventCode.CONFIG_READ_START,
+      stage: LogStage.CONFIG,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
+      message: '开始读取任务配置',
+    })
     try {
-      return readTaskConfig(PathConfig.configUri)
-    } catch {
-      return fromLegacyTaskConfig(CommonUtil.getConfig())
+      const config = readTaskConfig(PathConfig.configUri)
+      Logger.event({
+        traceId,
+        eventCode: LogEventCode.CONFIG_READ_SUCCESS,
+        stage: LogStage.CONFIG,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.INFO,
+        durationMs: Date.now() - startedAt,
+        message: '任务配置读取完成',
+      })
+      return config
+    } catch (error) {
+      Logger.event({
+        traceId,
+        eventCode: LogEventCode.CONFIG_READ_FAILURE,
+        stage: LogStage.CONFIG,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        message: '任务配置读取失败；旧 schema 不会自动迁移',
+      })
+      throw error
     }
   })
 
   // 启动任务
-  ipcMain.handle('start-customer-task', async (event, { config }: { config: TaskConfig }) => {
-    if (isRunning) {
+  ipcMain.handle('start-customer-task', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
+    const traceId = resolveIpcTraceId('start-customer-task', metadata)
+    const ipcJobId = `ipc-start-customer-task-${traceId}`
+    const startedAt = Date.now()
+    const logRequestStart = (runId?: string, details?: Record<string, unknown>) => {
       Logger.event({
-        stage: 'ipc',
-        status: 'skip',
-        level: 'warn',
+        traceId,
+        runId,
+        jobId: ipcJobId,
+        eventCode: LogEventCode.IPC_REQUEST_START,
+        stage: LogStage.IPC,
+        status: LogStatus.START,
+        level: LogLevel.INFO,
+        message: 'GUI 任务启动请求已接收',
+        details,
+      })
+    }
+    let config: TaskConfig
+    try {
+      if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+        throw new Error('start-customer-task payload 必须是对象')
+      }
+      config = parseTaskConfig((payload as { config?: unknown }).config)
+    } catch (error) {
+      logRequestStart(undefined, { payloadValid: false })
+      Logger.event({
+        traceId,
+        jobId: ipcJobId,
+        eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+        stage: LogStage.IPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
+        errorCode: AppErrorCode.LOG_PAYLOAD_INVALID,
+        error: Logger.serializeError(error),
+        durationMs: Date.now() - startedAt,
+        message: 'GUI 任务启动请求参数无效',
+      })
+      throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, 'GUI 任务配置不符合当前 schema', error)
+    }
+    if (isRunning) {
+      logRequestStart(activeRunId, { ignored: true, reason: 'already-running' })
+      Logger.event({
+        traceId,
+        runId: activeRunId,
+        jobId: ipcJobId,
+        eventCode: LogEventCode.IPC_REQUEST_SUCCESS,
+        stage: LogStage.IPC,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.WARN,
+        durationMs: Date.now() - startedAt,
         message: '已有任务正在执行，忽略重复启动请求',
+        details: { ignored: true, reason: 'already-running' },
       })
       return {
         status: 'running',
         message: '目前尚有任务执行，请稍后',
       }
     }
-    isRunning = true
-    const startedAt = Date.now()
-    Logger.log('开始工作')
-    Logger.event({
-      stage: 'ipc',
-      status: 'start',
-      level: 'info',
-      message: 'GUI 任务启动请求已接收',
-      details: {
-        taskCount: config.tasks.length,
-        outputFormats: config.generate.outputFormats,
-      },
+    const runId = createRunId()
+    activeRunId = runId
+    logRequestStart(runId, {
+      taskCount: config.tasks.length,
+      outputFormats: config.generate.outputFormats,
     })
-
+    isRunning = true
     try {
+      Logger.log('开始工作')
       // 将 GUI 配置转换为新 schema 并写入本地
       const cookieContent = await asyncUpdateCookie()
       config.request.cookie = cookieContent
@@ -430,15 +594,25 @@ app.whenReady().then(() => {
 
       Logger.log(`开始执行任务`)
 
-      await new RunTaskWorkflow().run({
+      const context = await new RunTaskWorkflow().run({
         configPath: PathConfig.configUri,
+        traceId,
+        runId,
+        trigger: 'gui',
       })
       Logger.log(`所有任务执行完毕, 打开电子书文件夹 => `, PathConfig.outputPath)
       Logger.event({
-        stage: 'output',
-        status: 'success',
-        level: 'info',
-        message: 'GUI 任务执行完毕',
+        traceId,
+        runId,
+        jobId: ipcJobId,
+        eventCode:
+          context.outcomeStatus === LogStatus.PARTIAL_SUCCESS
+            ? LogEventCode.IPC_REQUEST_PARTIAL_SUCCESS
+            : LogEventCode.IPC_REQUEST_SUCCESS,
+        stage: LogStage.IPC,
+        status: context.outcomeStatus,
+        level: context.outcomeStatus === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
+        message: context.outcomeStatus === LogStatus.PARTIAL_SUCCESS ? 'GUI 任务部分完成' : 'GUI 任务执行完毕',
         durationMs: Date.now() - startedAt,
         details: {
           outputPath: PathConfig.outputPath,
@@ -446,109 +620,205 @@ app.whenReady().then(() => {
           outputFormats: config.generate.outputFormats,
         },
       })
-      // 输出打开文件夹
-      shell.showItemInFolder(PathConfig.outputPath)
+      // 打开文件夹属于独立的系统 shell 操作，失败不能反转已经完成的任务终态。
+      const openJobId = `open-output-${Date.now()}`
+      Logger.event({
+        traceId,
+        runId: context.runId,
+        jobId: openJobId,
+        stage: LogStage.OUTPUT,
+        status: LogStatus.START,
+        level: LogLevel.INFO,
+        message: '开始请求系统打开输出目录',
+        details: { outputPath: PathConfig.outputPath },
+      })
+      try {
+        const openErrorMessage = await shell.openPath(PathConfig.outputPath)
+        if (openErrorMessage !== '') {
+          throw new Error(openErrorMessage)
+        }
+        Logger.event({
+          traceId,
+          runId: context.runId,
+          jobId: openJobId,
+          eventCode: LogEventCode.OUTPUT_OPENED,
+          stage: LogStage.OUTPUT,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          message: '已请求系统打开输出目录',
+          details: { outputPath: PathConfig.outputPath },
+        })
+      } catch (error) {
+        Logger.event({
+          traceId,
+          runId: context.runId,
+          jobId: openJobId,
+          eventCode: LogEventCode.OUTPUT_FAILURE,
+          stage: LogStage.OUTPUT,
+          status: LogStatus.FAILURE,
+          level: LogLevel.WARN,
+          error: Logger.serializeError(error),
+          message: '系统未能打开输出目录，任务产物仍已生成',
+          details: { outputPath: PathConfig.outputPath },
+        })
+      }
 
       return {
-        status: 'success',
+        status: context.outcomeStatus,
+        runId: context.runId,
         outputPath: PathConfig.outputPath,
       }
     } catch (error) {
       Logger.event({
-        stage: 'output',
-        status: 'failure',
-        level: 'error',
+        traceId,
+        runId,
+        jobId: ipcJobId,
+        eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+        stage: LogStage.IPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
         message: 'GUI 任务执行失败',
         durationMs: Date.now() - startedAt,
         error: Logger.serializeError(error),
         details: {
           outputPath: PathConfig.outputPath,
-          title: config.generate.title,
+          title: config?.generate.title,
         },
       })
       throw error
     } finally {
       isRunning = false
+      if (activeRunId === runId) {
+        activeRunId = undefined
+      }
     }
   })
 
 
-  ipcMain.handle('get-task-default-title', async (event, { taskId, taskType }: { taskType: any, taskId: string }) => {
-    await asyncUpdateCookie()
-    let title = await FrontTools.asyncGetTaskDefaultTitle(taskType, taskId)
-    return title
+  ipcMain.handle('get-task-default-title', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
+    const traceId = resolveIpcTraceId('get-task-default-title', metadata)
+    return runWithLogCorrelation({ traceId }, async () => {
+      const startedAt = Date.now()
+      Logger.event({
+        traceId,
+        eventCode: LogEventCode.IPC_REQUEST_START,
+        stage: LogStage.IPC,
+        status: LogStatus.START,
+        level: LogLevel.INFO,
+        message: '开始读取任务默认标题',
+      })
+      try {
+        if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+          throw new Error('get-task-default-title payload 必须是对象')
+        }
+        const { taskId, taskType } = payload as { taskType?: unknown; taskId?: unknown }
+        if (
+          typeof taskId !== 'string'
+          || taskId.trim() === ''
+          || typeof taskType !== 'string'
+          || taskTypeList.includes(taskType as TaskType) === false
+        ) {
+          throw new Error('taskId/taskType 无效')
+        }
+        await asyncUpdateCookie()
+        const title = await FrontTools.asyncGetTaskDefaultTitle(taskType as TaskType, taskId)
+        Logger.event({
+          traceId,
+          eventCode: LogEventCode.IPC_REQUEST_SUCCESS,
+          stage: LogStage.IPC,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          durationMs: Date.now() - startedAt,
+          message: '任务默认标题读取完成',
+        })
+        return title
+      } catch (error) {
+        Logger.event({
+          traceId,
+          eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+          stage: LogStage.IPC,
+          status: LogStatus.FAILURE,
+          level: LogLevel.ERROR,
+          durationMs: Date.now() - startedAt,
+          error: Logger.serializeError(error),
+          message: '任务默认标题读取失败',
+        })
+        throw error
+      }
+    })
   })
 
   /**
    * 获取数据库内的汇总信息
    */
-  ipcMain.handle('get-db-summary-info', async () => {
-    const summary = await MSummary.asyncGetSummaryInfo()
-    return summary
+  ipcMain.handle('get-db-summary-info', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('get-db-summary-info', metadata, () => MSummary.asyncGetSummaryInfo())
   })
 
-  ipcMain.handle('get-db-record-list', async (event, {
-    type,
-    pageNo,
-    pageSize,
-    parentId,
-  }: {
-    type: any
-    pageNo: number
-    pageSize: number
-    parentId?: string
-  }) => {
-    return MSummary.asyncGetTabList({
-      type,
-      pageNo,
-      pageSize,
-      parentId,
+  ipcMain.handle('get-db-record-list', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('get-db-record-list', metadata, () => {
+      const { type, pageNo, pageSize, parentId } = parseDbRecordListPayload(payload)
+      return MSummary.asyncGetTabList({
+        type: type as Parameters<typeof MSummary.asyncGetTabList>[0]['type'],
+        pageNo,
+        pageSize,
+        parentId,
+      })
     })
   })
 
-  ipcMain.handle('export-db-record-json', async (event, {
-    type,
-    parentId,
-  }: {
-    type: any
-    parentId?: string
-  }) => {
-    const result = await CacheJsonTransfer.exportDbRecordJson({
-      type,
-      parentId,
+  ipcMain.handle('export-db-record-json', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('export-db-record-json', metadata, async () => {
+      const { type, parentId } = parseDbRecordExportPayload(payload)
+      const result = await CacheJsonTransfer.exportDbRecordJson({
+        type: type as Parameters<typeof CacheJsonTransfer.exportDbRecordJson>[0]['type'],
+        parentId,
+      })
+      shell.showItemInFolder(result.exportPath)
+      return result
     })
-    shell.showItemInFolder(result.exportPath)
-    return result
   })
 
-  ipcMain.handle('import-db-record-json', async () => {
-    const selectResult = await dialog.showOpenDialog(mainWindow, {
-      title: '导入缓存 JSON',
-      properties: ['openFile'],
-      filters: [
-        {
-          name: 'JSON',
-          extensions: ['json'],
-        },
-      ],
-    })
-    if (selectResult.canceled || selectResult.filePaths.length === 0) {
-      return {
-        status: 'canceled',
+  ipcMain.handle('import-db-record-json', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('import-db-record-json', metadata, async () => {
+      const selectResult = await dialog.showOpenDialog(mainWindow, {
+        title: '导入缓存 JSON',
+        properties: ['openFile'],
+        filters: [
+          {
+            name: 'JSON',
+            extensions: ['json'],
+          },
+        ],
+      })
+      if (selectResult.canceled || selectResult.filePaths.length === 0) {
+        return {
+          status: 'canceled',
+        }
       }
-    }
-    return CacheJsonTransfer.importDbRecordJson(selectResult.filePaths[0])
+      return CacheJsonTransfer.importDbRecordJson(selectResult.filePaths[0])
+    })
   })
 
-  ipcMain.handle('get-output-history', async () => {
+  ipcMain.handle('get-output-history', async (event, metadata?: IpcTraceMetadata) => {
+    // The log panel polls this passive channel; recording the read would make
+    // merely opening the panel generate an endless stream of new logs.
     return asyncBuildOutputHistory()
   })
 
-  ipcMain.handle('open-local-path', async (event, { targetPath }: { targetPath: string }) => {
-    return openLocalPath(targetPath)
+  ipcMain.handle('open-local-path', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('open-local-path', metadata, async () => {
+      const targetPath = parseOpenLocalPathPayload(payload)
+      const opened = await openLocalPath(targetPath)
+      if (opened === false) {
+        throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '路径不存在、超出输出目录或系统无法打开')
+      }
+      return true
+    })
   })
 
-  ipcMain.handle('export-diagnostic-info', async () => {
+  ipcMain.handle('export-diagnostic-info', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('export-diagnostic-info', metadata, async () => {
     const diagnosticDir = path.resolve(PathConfig.outputPath, 'diagnostics')
     if (fs.existsSync(PathConfig.outputPath) === false) {
       fs.mkdirSync(PathConfig.outputPath)
@@ -570,8 +840,9 @@ app.whenReady().then(() => {
       }
     })
     const packageJson = JSON.parse(fs.readFileSync(PathConfig.packageJsonUri, 'utf-8'))
-    const runtimeLogContent = readTextLogFile(PathConfig.runtimeLogUri)
-    const runtimeJsonlContent = readTextLogFile(PathConfig.runtimeJsonlUri)
+    const runtimeLogContent = Logger.readRecentLogContent('runtime-text')
+    const runtimeJsonlContent = Logger.readRecentLogContent('runtime-jsonl')
+    const frontendRuntimeJsonlContent = Logger.readRecentLogContent('frontend-jsonl')
     const diagnosticInfo = {
       createdAt: new Date().toISOString(),
       app: {
@@ -590,30 +861,35 @@ app.whenReady().then(() => {
         epubOutputPath: PathConfig.epubOutputPath,
         runtimeLogUri: PathConfig.runtimeLogUri,
         runtimeJsonlUri: PathConfig.runtimeJsonlUri,
+        frontendRuntimeJsonlUri: PathConfig.frontendRuntimeJsonlUri,
+        logPath: PathConfig.logPath,
       },
       databaseSummary,
       taskConfig,
       outputHistory: asyncBuildOutputHistory(),
-      runtimeLogTail: runtimeLogContent.split('\n').slice(-800).join('\n'),
-      runtimeJsonlTail: runtimeJsonlContent.split('\n').slice(-800).join('\n'),
+      runtimeLogTail: sanitizeDiagnosticLogTail(runtimeLogContent),
+      runtimeJsonlTail: sanitizeDiagnosticLogTail(runtimeJsonlContent),
+      frontendRuntimeJsonlTail: sanitizeDiagnosticLogTail(frontendRuntimeJsonlContent),
     }
     const diagnosticPath = path.resolve(diagnosticDir, `diagnostic-${Date.now()}.json`)
     fs.writeFileSync(diagnosticPath, JSON.stringify(diagnosticInfo, null, 2), 'utf-8')
     shell.showItemInFolder(diagnosticPath)
     return {
-      status: 'success',
+      status: LogStatus.SUCCESS,
       diagnosticPath,
     }
+    })
   })
 
 
   // 清空所有登录信息
-  ipcMain.handle('clear-all-session-storage', async () => {
-    await session.defaultSession.clearCache()
-    await session.defaultSession.clearStorageData()
-    await session.defaultSession.clearHostResolverCache()
-
-    return true
+  ipcMain.handle('clear-all-session-storage', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('clear-all-session-storage', metadata, async () => {
+      await session.defaultSession.clearCache()
+      await session.defaultSession.clearStorageData()
+      await session.defaultSession.clearHostResolverCache()
+      return true
+    })
   })
 
 
@@ -626,21 +902,45 @@ app.whenReady().then(() => {
       method: string
       paramList: any[]
       reslove: (value: any) => void
+      reject: (error: unknown) => void
+      timeoutId: ReturnType<typeof setTimeout>
+      traceId: string
+      startedAt: number
     }
   >()
   let totalTaskCounter = 0
 
-  async function asyncJsRpcTriggerFunc({ method, paramList }: { method: string; paramList: any[] }) {
+  async function asyncJsRpcTriggerFunc({ method, paramList, traceId: inputTraceId }: { method: string; paramList: any[]; traceId?: string }) {
     totalTaskCounter++
     let id = `task-${totalTaskCounter}-${Math.random()}`
-    let task = new Promise((reslove) => {
+    const traceId = inputTraceId ?? createTraceId('js-rpc')
+    const startedAt = Date.now()
+    Logger.event({
+      traceId,
+      jobId: id,
+      eventCode: LogEventCode.RPC_SIGN_START,
+      stage: LogStage.RPC,
+      status: LogStatus.START,
+      level: LogLevel.DEBUG,
+      message: '开始执行签名 RPC',
+      details: { method },
+    })
+    let task = new Promise((reslove, reject) => {
       jsRpcWindow.webContents.send(method, paramList, id)
+      const timeoutId = setTimeout(() => {
+        taskMap.delete(id)
+        reject(new ApplicationError(AppErrorCode.SIGNATURE_FAILED, '签名 RPC 执行超时'))
+      }, 30 * 1000)
       taskMap.set(id, {
         method,
         paramList,
         reslove: (value: any) => {
           reslove(value)
         },
+        reject,
+        timeoutId,
+        traceId,
+        startedAt,
       })
     })
     if (isDebug) {
@@ -656,7 +956,35 @@ app.whenReady().then(() => {
       //   )}`,
       // )
     }
-    let result = await task
+    let result
+    try {
+      result = await task
+      Logger.event({
+        traceId,
+        jobId: id,
+        eventCode: LogEventCode.RPC_SIGN_SUCCESS,
+        stage: LogStage.RPC,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.DEBUG,
+        message: '签名 RPC 执行完成',
+        durationMs: Date.now() - startedAt,
+        details: { method },
+      })
+    } catch (error) {
+      Logger.event({
+        traceId,
+        jobId: id,
+        eventCode: LogEventCode.RPC_SIGN_FAILURE,
+        stage: LogStage.RPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
+        message: '签名 RPC 执行失败',
+        durationMs: Date.now() - startedAt,
+        error: Logger.serializeError(error),
+        details: { method },
+      })
+      throw error
+    }
     if (isDebug) {
       // Logger.log(`id:${id}的js-rpc请求完成`)
     }
@@ -675,7 +1003,11 @@ app.whenReady().then(() => {
   ipcMain.handle('js-rpc-response', async (event, { id, value }) => {
     // console.log('receive js-rpc-response => ', { id, value })
     if (taskMap.has(id)) {
-      taskMap.get(id)?.reslove(value)
+      const task = taskMap.get(id)
+      if (task !== undefined) {
+        clearTimeout(task.timeoutId)
+        task.reslove(value)
+      }
       taskMap.delete(id)
     } else {
       Logger.log(`未找到${id}对应的任务`)
@@ -684,49 +1016,43 @@ app.whenReady().then(() => {
     return true
   })
 
-  ipcMain.handle('zhihu-http-get', async (event, { url, params }: { url: string; params: { [key: string]: any } }) => {
-    const traceId = createTraceId('zhihu-http-get')
+  ipcMain.handle('zhihu-http-get', async (
+    event,
+    { url, params }: { url: string; params: { [key: string]: any } },
+    metadata?: IpcTraceMetadata,
+  ) => {
+    const traceId = resolveIpcTraceId('zhihu-http-get', metadata)
     const startAt = Date.now()
     Logger.event({
-      stage: 'ipc',
-      status: 'start',
-      level: 'info',
+      traceId,
+      eventCode: LogEventCode.IPC_REQUEST_START,
+      stage: LogStage.IPC,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
       message: '收到 IPC 请求：zhihu-http-get',
       details: {
-        traceId,
         url,
         paramsKeys: Object.keys(params ?? {}),
       },
     })
     try {
       await asyncUpdateCookie()
-      let res = await http
-        .get(url, {
+      const res = await http.get(
+        url,
+        {
           params: params,
-        })
-        .catch((e) => {
-          Logger.event({
-            stage: 'ipc',
-            status: 'failure',
-            level: 'error',
-            message: '知乎 HTTP 请求失败：zhihu-http-get',
-            durationMs: Date.now() - startAt,
-            error: Logger.serializeError(e),
-            details: {
-              traceId,
-              url,
-            },
-          })
-          return {}
-        })
+        },
+        { traceId },
+      )
       Logger.event({
-        stage: 'ipc',
-        status: 'success',
-        level: 'info',
+        traceId,
+        eventCode: LogEventCode.IPC_REQUEST_SUCCESS,
+        stage: LogStage.IPC,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.INFO,
         message: 'IPC 请求完成：zhihu-http-get',
         durationMs: Date.now() - startAt,
         details: {
-          traceId,
           url,
           response: summarizeIpcResponse(res),
         },
@@ -734,45 +1060,70 @@ app.whenReady().then(() => {
       return res
     } catch (error) {
       Logger.event({
-        stage: 'ipc',
-        status: 'failure',
-        level: 'error',
+        traceId,
+        eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+        stage: LogStage.IPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
         message: 'IPC 请求异常：zhihu-http-get',
         durationMs: Date.now() - startAt,
         error: Logger.serializeError(error),
         details: {
-          traceId,
           url,
         },
       })
-      return {}
+      throw error
     }
   })
-  ipcMain.handle('get-log-content', async (event) => {
-    return readTextLogFile(PathConfig.runtimeLogUri)
+  ipcMain.handle('append-frontend-log-batch', async (event, payload: unknown) => {
+    try {
+      const recordList = validateFrontendLogBatch(payload)
+      return {
+        acceptedCount: Logger.appendFrontendRecords(recordList),
+      }
+    } catch (error) {
+      Logger.event({
+        eventCode: LogEventCode.IPC_FRONTEND_LOG_REJECTED,
+        stage: LogStage.IPC,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
+        errorCode: AppErrorCode.LOG_PAYLOAD_INVALID,
+        message: '拒绝非法前端日志批次',
+        error: Logger.serializeError(error),
+      })
+      throw error
+    }
   })
-  ipcMain.handle('clear-log-content', async (event) => {
-    // 清理日志内容
-    fs.writeFileSync(PathConfig.runtimeLogUri, '')
-    return ""
+  ipcMain.handle('get-log-content', async (event, metadata?: IpcTraceMetadata) => {
+    return Logger.readRecentLogContent('runtime-text', 5000)
   })
-  ipcMain.handle('get-runtime-jsonl-content', async (event) => {
-    return readTextLogFile(PathConfig.runtimeJsonlUri)
+  ipcMain.handle('clear-log-content', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('clear-log-content', metadata, () => {
+      Logger.clearLogFiles('runtime-text')
+      return ''
+    })
   })
-  ipcMain.handle('clear-runtime-jsonl-content', async (event) => {
-    fs.writeFileSync(PathConfig.runtimeJsonlUri, '')
-    return ''
+  ipcMain.handle('get-runtime-jsonl-content', async (event, metadata?: IpcTraceMetadata) => {
+    return Logger.readRecentLogContent('runtime-jsonl', 5000)
   })
-  ipcMain.handle('open-devtools', async (event) => {
-    // 打开调试面板
-    mainWindow.webContents.openDevTools()
-    return true
+  ipcMain.handle('clear-runtime-jsonl-content', async (event, metadata?: IpcTraceMetadata) => {
+    // Clear first, then record the clear operation itself so the new log still
+    // contains a complete start/terminal pair.
+    Logger.clearLogFiles('runtime-jsonl')
+    return runLoggedIpc('clear-runtime-jsonl-content', metadata, () => '')
   })
-  ipcMain.handle('open-js-rpc-window-devtools', async (event) => {
-    // 打开jsRpcWindow调试面板
-    jsRpcWindow.show()
-    jsRpcWindow.webContents.openDevTools()
-    return true
+  ipcMain.handle('open-devtools', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('open-devtools', metadata, () => {
+      mainWindow.webContents.openDevTools()
+      return true
+    })
+  })
+  ipcMain.handle('open-js-rpc-window-devtools', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('open-js-rpc-window-devtools', metadata, () => {
+      jsRpcWindow.show()
+      jsRpcWindow.webContents.openDevTools()
+      return true
+    })
   })
 
 

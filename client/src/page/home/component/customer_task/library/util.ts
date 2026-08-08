@@ -101,7 +101,9 @@ export default class Util {
                 break
             case ConstTaskConfig.Const_Task_Type_专栏:
                 // https://zhuanlan.zhihu.com/advancing-react
-                rawId = rawContent.split('zhuanlan.zhihu.com/')?.[1] ?? ''
+                rawId = rawContent.includes('www.zhihu.com/column/')
+                    ? rawContent.split('www.zhihu.com/column/')?.[1] ?? ''
+                    : rawContent.split('zhuanlan.zhihu.com/')?.[1] ?? ''
                 id = rawId.split('/')?.[0] ?? ''
                 break
             case ConstTaskConfig.Const_Task_Type_文章:
@@ -147,7 +149,7 @@ export default class Util {
         if (rawInputText.includes('/collection/')) {
             return ConstTaskConfig.Const_Task_Type_收藏夹
         }
-        if (rawInputText.includes('/zhuanlan.zhihu.com/')) {
+        if (rawInputText.includes('www.zhihu.com/column/') || rawInputText.includes('zhuanlan.zhihu.com/')) {
             return ConstTaskConfig.Const_Task_Type_专栏
         }
 

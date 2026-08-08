@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "pin",
+  "sourceUrl": "https://www.zhihu.com/pin/2067239959539487399",
+  "capturedAt": "2026-08-08T16:11:06.182Z",
+  "checksum": "df021d86a2c4cd5bdd336295e8183a50f5d0b6d5bfb32cbee2fb5a6de60b1447",
+  "data": {
+    "id": "2067239959539487399",
+    "type": "pin",
+    "created": 1785648789,
+    "updated": 1785652146,
+    "author": {
+      "id": "d127d540d194cf37387ebd4ea250ff6a",
+      "url_token": "[REDACTED]",
+      "name": "金旭亮"
+    }
+  }
+}

@@ -4,13 +4,13 @@ import url from 'url'
 import lodash from 'lodash'
 import fs from 'fs'
 import path from 'path'
-import shelljs from 'shelljs'
 import PathConfig from '~/src/config/path'
 import CommonUtil from '~/src/library/util/common'
 import logger from '~/src/library/logger'
 import Epub from '~/src/library/epub'
 import * as Type_TaskConfig from '~/src/type/task_config'
 import sharp from 'sharp'
+import { resolveOutputChildPath, sanitizeOutputFilename } from '~/src/shared/path/safe_output_path'
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
 const Const_Zhihu_Img_CDN_List = [
@@ -104,13 +104,14 @@ class ImgItem {
 
 class EpubGenerator {
   bookname = ''
+  outputBasename = ''
   epub: Epub
   imageQuilty: Type_TaskConfig.Type_Image_Quilty = 'hd'
 
   imgUriPool: Map<TypeSrc2Download, ImgItem> = new Map()
 
   get epubCachePath() {
-    return path.resolve(PathConfig.epubCachePath, this.bookname)
+    return resolveOutputChildPath(PathConfig.epubCachePath, this.outputBasename)
   }
 
   get epubOutputPath() {
@@ -118,11 +119,11 @@ class EpubGenerator {
   }
 
   get epubOutputPathUri() {
-    return path.resolve(this.epubOutputPath, this.bookname + '.epub')
+    return resolveOutputChildPath(this.epubOutputPath, this.outputBasename + '.epub')
   }
 
   get htmlCachePath() {
-    return path.resolve(PathConfig.htmlCachePath, this.bookname)
+    return resolveOutputChildPath(PathConfig.htmlCachePath, this.outputBasename)
   }
   get htmlCacheHtmlPath() {
     return path.resolve(this.htmlCachePath, 'html')
@@ -142,7 +143,7 @@ class EpubGenerator {
   }
 
   get htmlOutputPathUri() {
-    return path.resolve(this.htmlOutputPath, this.bookname)
+    return resolveOutputChildPath(this.htmlOutputPath, this.outputBasename)
   }
 
   /**
@@ -163,40 +164,41 @@ class EpubGenerator {
 
   constructor({ bookname, imageQuilty }: { bookname: string; imageQuilty: Type_TaskConfig.Type_Image_Quilty }) {
     this.bookname = bookname
+    this.outputBasename = sanitizeOutputFilename(bookname)
     this.imageQuilty = imageQuilty
     // 必须要先处理静态资源, 否则创建出的Epub缓存目录会被删除
     this.initStaticRecource()
 
     // 然后创建epub目录
-    this.epub = new Epub(bookname, this.epubCachePath)
+    this.epub = new Epub(bookname, this.epubCachePath, this.outputBasename)
   }
 
   // 初始化静态资源(电子书 & html目录)
   private initStaticRecource() {
     this.log(`删除旧目录`)
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
-    shelljs.rm('-rf', this.epubCachePath)
+    fs.rmSync(this.epubCachePath, { recursive: true, force: true })
     this.log(`旧epub缓存目录删除完毕`)
     this.log(`删除旧epub输出资源目录:${this.epubOutputPathUri}`)
-    shelljs.rm('-rf', this.epubOutputPathUri)
+    fs.rmSync(this.epubOutputPathUri, { force: true })
     this.log(`旧epub输出目录删除完毕`)
     this.log(`删除旧html资源目录:${this.htmlCachePath}`)
-    shelljs.rm('-rf', this.htmlCachePath)
+    fs.rmSync(this.htmlCachePath, { recursive: true, force: true })
     this.log(`旧html资源目录删除完毕`)
     this.log(`删除旧html输出目录:${this.htmlOutputPathUri}`)
-    shelljs.rm('-rf', this.htmlOutputPathUri)
+    fs.rmSync(this.htmlOutputPathUri, { recursive: true, force: true })
     this.log(`旧html输出目录删除完毕`)
 
     this.log(`创建电子书:${this.bookname}对应文件夹`)
-    shelljs.mkdir('-p', this.epubCachePath)
-    shelljs.mkdir('-p', this.epubOutputPath)
+    fs.mkdirSync(this.epubCachePath, { recursive: true })
+    fs.mkdirSync(this.epubOutputPath, { recursive: true })
 
-    shelljs.mkdir('-p', this.htmlCachePath)
-    shelljs.mkdir('-p', this.htmlCacheSingleHtmlPath)
-    shelljs.mkdir('-p', this.htmlCacheHtmlPath)
-    shelljs.mkdir('-p', this.htmlCacheCssPath)
-    shelljs.mkdir('-p', this.htmlCacheImgPath)
-    shelljs.mkdir('-p', this.htmlOutputPath)
+    fs.mkdirSync(this.htmlCachePath, { recursive: true })
+    fs.mkdirSync(this.htmlCacheSingleHtmlPath, { recursive: true })
+    fs.mkdirSync(this.htmlCacheHtmlPath, { recursive: true })
+    fs.mkdirSync(this.htmlCacheCssPath, { recursive: true })
+    fs.mkdirSync(this.htmlCacheImgPath, { recursive: true })
+    fs.mkdirSync(this.htmlOutputPath, { recursive: true })
     this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
   }
 
@@ -344,7 +346,7 @@ class EpubGenerator {
   generateSinglePageHtml({ html }: { html: string }) {
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
-    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.bookname}.html`), processContent)
+    fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.outputBasename}.html`), processContent)
     return processContent
   }
 
@@ -407,6 +409,9 @@ class EpubGenerator {
 
       // 下载完成后, 将图片转为png格式
       if (imgItem.isLatexImg) {
+        if (fs.existsSync(imgItem.downloadCacheUri) === false) {
+          continue
+        }
         if (fs.existsSync(imgItem.fileCacheUri)) {
           this.log(`[第${index}张图片]-0-将第${index}/${this.imgUriPool.size}张Latex图片已转换,自动跳过`)
           continue
@@ -458,8 +463,9 @@ class EpubGenerator {
     this.log(`[第${index}张图片]-4-第${index}/${this.imgUriPool.size}张图片储存完毕`)
   }
 
-  copyImgToCache(imgBookCachePath: string) {
+  copyImgToCache(imgBookCachePath: string): string[] {
     let index = 0
+    const missingImageList: string[] = []
     for (let imgItem of this.imgUriPool.values()) {
       index++
       // 避免文件名不存在的情况
@@ -469,14 +475,16 @@ class EpubGenerator {
       let imgToUri = path.resolve(imgBookCachePath, imgItem.realFilename)
       if (fs.existsSync(imgItem.fileCacheUri)) {
         fs.copyFileSync(imgItem.fileCacheUri, imgToUri)
+        this.epub.addImage(imgToUri)
         this.log(`第${index}/${this.imgUriPool.size}张图片复制完毕`)
       } else {
+        missingImageList.push(imgItem.realFilename)
         this.log(`第${index}/${this.imgUriPool.size}张图片不存在, 自动跳过`)
         this.log(`src => ${imgItem.fileCacheUri}`)
       }
-      this.epub.addImage(imgToUri)
     }
     this.log(`全部图片复制完毕`)
+    return missingImageList
   }
 
   copyStaticResource() {
@@ -488,7 +496,7 @@ class EpubGenerator {
       this.epub.addCss(copyToUri)
     }
     // 图片资源
-    for (let filename of ['cover.jpg', 'kanshan.png']) {
+    for (let filename of ['kanshan.png']) {
       let copyFromUri = path.resolve(PathConfig.resourcePath, 'image', filename)
       let copyToUri = path.resolve(this.htmlCacheImgPath, filename)
       fs.copyFileSync(copyFromUri, copyToUri)
@@ -502,34 +510,61 @@ class EpubGenerator {
     this.epub.addCoverImage(coverCopyToUri)
   }
 
-  async asyncGenerateEpub() {
+  private copyDirectorySync(sourcePath: string, targetPath: string) {
+    fs.mkdirSync(targetPath, { recursive: true })
+    for (const directoryEntry of fs.readdirSync(sourcePath, { withFileTypes: true })) {
+      const sourceEntryPath = path.resolve(sourcePath, directoryEntry.name)
+      const targetEntryPath = path.resolve(targetPath, directoryEntry.name)
+      if (directoryEntry.isDirectory()) {
+        this.copyDirectorySync(sourceEntryPath, targetEntryPath)
+        continue
+      }
+      if (directoryEntry.isFile()) {
+        fs.copyFileSync(sourceEntryPath, targetEntryPath)
+      }
+    }
+  }
+
+  async asyncGenerateEpub(outputFormats: ('html' | 'epub')[] = ['html', 'epub']) {
     this.log(`内容列表预处理完毕, 准备下载图片`)
     // 下载图片
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)
     await this.downloadImg()
     this.log(`图片下载完毕`)
     this.log(`将图片从图片池复制到电子书文件夹中`)
-    this.copyImgToCache(this.htmlCacheImgPath)
+    const missingImageList = this.copyImgToCache(this.htmlCacheImgPath)
     this.log(`图片复制完毕`)
 
     this.log(`复制静态资源`)
     this.copyStaticResource()
     this.log(`静态资源完毕`)
 
-    this.log(`生成电子书`)
-    await this.epub.asyncGenerate()
-    this.log(`电子书生成完毕`)
+    if (outputFormats.includes('epub')) {
+      this.log(`生成电子书`)
+      await this.epub.asyncGenerate()
+      this.log(`电子书生成完毕`)
+    }
 
     this.log(`将生成文件复制到目标文件夹`)
-    this.log(`复制epub电子书`)
-    fs.copyFileSync(
-      path.resolve(this.epubCachePath, this.bookname + '.epub'),
-      path.resolve(this.epubOutputPath, this.bookname + '.epub'),
-    )
-    this.log(`epub电子书复制完毕`)
-    this.log(`复制网页`)
-    shelljs.cp('-r', path.resolve(this.htmlCachePath), path.resolve(this.htmlOutputPath))
-    this.log(`网页复制完毕`)
+    if (outputFormats.includes('epub')) {
+      this.log(`复制epub电子书`)
+      fs.copyFileSync(
+        path.resolve(this.epubCachePath, this.outputBasename + '.epub'),
+        this.epubOutputPathUri,
+      )
+      this.log(`epub电子书复制完毕`)
+    }
+    if (outputFormats.includes('html')) {
+      this.log(`复制网页`)
+      // Node 24 在 Windows 上对包含非 ASCII 字符的目标路径执行 fs.cpSync
+      // 可能直接结束进程；显式遍历还能让复制失败以普通异常向上抛出。
+      this.copyDirectorySync(this.htmlCachePath, this.htmlOutputPathUri)
+      this.log(`网页复制完毕`)
+    }
+    return {
+      missingImageCount: missingImageList.length,
+      missingImageList: missingImageList.slice(0, 20),
+    }
   }
 
   /**

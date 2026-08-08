@@ -1,40 +1,59 @@
-process.env.NODE_ENV = 'production'
+const childProcess = require('node:child_process')
+const fs = require('node:fs')
+const path = require('node:path')
 
-let shell = require('shelljs')
-let path = require('path')
-let fs = require('fs')
+const clientBasePath = path.resolve(__dirname, '..')
+const sourcePath = path.resolve(clientBasePath, 'dist')
+const targetPath = path.resolve(clientBasePath, '..', 'dist', 'client')
+const corepackCliPath = path.resolve(path.dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'corepack.js')
 
-let clientBasePath = path.resolve(__dirname, '..')
-// 静态资源整体打包输出到 dist/client/dist 下
-let generatePath = path.resolve(clientBasePath, 'dist')
-let targetPath = path.resolve(clientBasePath, '..', 'dist', 'client')
-shell.cd(clientBasePath)
-
-// 清理旧资源
-let distPath = path.resolve(clientBasePath, 'dist')
-console.log(`清空旧构建结果 => ${distPath}`)
-if (typeof distPath !== 'string' || distPath.length < 3) {
-  console.warn('distPath/mapPath长度过短，自动退出')
-  shell.exit(10004)
+function assertPathInside(rootPath, target, label) {
+  const relativePath = path.relative(path.resolve(rootPath), path.resolve(target))
+  if (
+    relativePath === ''
+    || relativePath === '..'
+    || relativePath.startsWith(`..${path.sep}`)
+    || path.isAbsolute(relativePath)
+  ) {
+    throw new Error(`${label}超出允许目录: ${target}`)
+  }
 }
-shell.rm('-rf', distPath)
-console.log('旧构建结果清理完毕')
 
-// 构建新项目
-console.log('开始构建新项目')
-let buildResult = shell.exec('npm run build')
-if (buildResult.code !== 0) {
-  shell.exit(buildResult.code)
+function copyDirectorySync(source, target) {
+  fs.mkdirSync(target, { recursive: true })
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    const sourceEntry = path.resolve(source, entry.name)
+    const targetEntry = path.resolve(target, entry.name)
+    if (entry.isDirectory()) {
+      copyDirectorySync(sourceEntry, targetEntry)
+    } else if (entry.isFile()) {
+      fs.copyFileSync(sourceEntry, targetEntry)
+    }
+  }
 }
-console.log('静态资源构建完毕')
 
-// 复制静态资源到electron项目中
-console.log(`删除旧静态资源目录 => ${targetPath}`)
-shell.rm('-rf', targetPath)
-console.log(`创建新资源目录 => ${targetPath}`)
-shell.mkdir('-p', targetPath)
-console.log(`复制文件 ${generatePath} => ${targetPath}`)
-// 不复制dist本身这一层目录, 使最终结果更容易理解
-fs.cpSync(generatePath, targetPath, { recursive: true })
-// shell.mv(generatePath, targetPath)
-console.log(`构建完成`)
+assertPathInside(clientBasePath, sourcePath, '前端构建目录')
+assertPathInside(path.resolve(clientBasePath, '..', 'dist'), targetPath, 'Electron 静态资源目录')
+if (fs.existsSync(corepackCliPath) === false) {
+  throw new Error(`找不到当前 Node.js 自带的 Corepack: ${corepackCliPath}`)
+}
+
+console.log(`清空旧构建结果 => ${sourcePath}`)
+fs.rmSync(sourcePath, { recursive: true, force: true })
+
+console.log('开始构建前端项目')
+const buildResult = childProcess.spawnSync(process.execPath, [corepackCliPath, 'pnpm', 'run', 'build'], {
+  cwd: clientBasePath,
+  stdio: 'inherit',
+})
+if (buildResult.error) {
+  throw buildResult.error
+}
+if (buildResult.status !== 0) {
+  process.exit(buildResult.status ?? 1)
+}
+
+console.log(`复制前端构建结果 ${sourcePath} => ${targetPath}`)
+fs.rmSync(targetPath, { recursive: true, force: true })
+copyDirectorySync(sourcePath, targetPath)
+console.log('前端构建完成')

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "column",
+  "sourceUrl": "https://www.zhihu.com/column/c_144661311",
+  "capturedAt": "2026-08-08T16:11:10.228Z",
+  "checksum": "783826b5bb8dde3989e1bb3834c668d0f8560d3870141477c51d48c3cc23a7c7",
+  "data": {
+    "entity": {
+      "id": "c_144661311",
+      "title": "计算机专业技术自学指南",
+      "type": "column",
+      "author": {
+        "id": "d127d540d194cf37387ebd4ea250ff6a",
+        "url_token": "[REDACTED]",
+        "name": "金旭亮"
+      }
+    },
+    "pages": [
+      {
+        "sourceName": "column-c_144661311",
+        "sourceType": "column",
+        "sourceId": "c_144661311",
+        "offset": 0,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": 465194015,
+            "type": "article",
+            "title": "“转进如风”的“并发式”软件技术学习方法"
+          }
+        ]
+      }
+    ]
+  }
+}

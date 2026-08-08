@@ -6,15 +6,25 @@ import BatchFetchAnswer from '~/src/api/batch/answer'
 import BatchFetchPin from '~/src/api/batch/pin'
 import BatchFetchArticle from '~/src/api/batch/article'
 import Logger from '~/src/library/logger'
+import { mergeExecutionOutcomes } from '~/src/shared/runtime/execution_outcome'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
 
 class BatchFetchCollection extends Base {
   async fetch(id: string) {
     this.log(`开始抓取收藏夹${id}内的回答`)
     this.log(`获取收藏夹信息`)
     const collectionInfo = await CollectionApi.asyncGetCollectionInfo(id)
-    await MCollection.asyncReplaceCollectionInfo(collectionInfo)
-    let answerCount = collectionInfo.answer_count
-    this.log(`话题${collectionInfo.title}(${collectionInfo.id})信息获取完毕, 共有回答${answerCount}个`)
+    this.assertEntityRecord(collectionInfo, 'collection', id)
+    const hasItemCount = collectionInfo.item_count !== undefined && collectionInfo.item_count !== null
+    const itemCount = assertZhihuNonNegativeIntegerCount(
+      hasItemCount ? collectionInfo.item_count : collectionInfo.answer_count,
+      `collection ${id}.${hasItemCount ? 'item_count' : 'answer_count'}`,
+    )
+    if (hasItemCount === false) {
+      Logger.warn(`收藏夹${id}缺少 item_count，兼容使用 answer_count=${collectionInfo.answer_count}`)
+    }
+    await this.persist('collection', id, () => MCollection.asyncReplaceCollectionInfo(collectionInfo))
+    this.log(`收藏夹${collectionInfo.title}(${collectionInfo.id})信息获取完毕, 共有内容${itemCount}个`)
 
     let answerIdList: string[] = []
     let pinIdList: string[] = []
@@ -23,12 +33,14 @@ class BatchFetchCollection extends Base {
     let batchFetchPin = new BatchFetchPin()
     let batchFetchArticle = new BatchFetchArticle()
     this.log(`开始抓取收藏列表`)
-    for (let offset = 0; offset < answerCount; offset = offset + this.fetchLimit) {
+    for (let offset = 0; offset < itemCount; offset = offset + this.fetchLimit) {
       let asyncTaskFunc = async () => {
         // 先拿到AnswerExcerpt, 然后再去获取回答详情
         let itemList = await CollectionApi.asyncGetItemList(id, offset, this.fetchLimit)
         for (let item of itemList) {
-          await MCollection.asyncReplaceCollectionRecord(id, item)
+          await this.persist('collection_record', `${id}:${item.content.id}`, () =>
+            MCollection.asyncReplaceCollectionRecord(id, item),
+          )
           switch (item.content.type) {
             case "answer":
               answerIdList.push(item.content.id)
@@ -55,12 +67,13 @@ class BatchFetchCollection extends Base {
     // 然后需要抓取涉及的回答/想法/文章
 
     this.log(`开始抓取收藏夹${collectionInfo.title}(${collectionInfo.id})的下所有回答详情,共${answerIdList.length}条`)
-    await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
+    const answerOutcome = await this.collectNestedBatchOutcome(() => batchFetchAnswer.fetchListAndSaveToDb(answerIdList))
     this.log(`开始抓取收藏夹${collectionInfo.title}(${collectionInfo.id})的下所有想法详情,共${pinIdList.length}条`)
-    await batchFetchPin.fetchListAndSaveToDb(pinIdList)
+    const pinOutcome = await this.collectNestedBatchOutcome(() => batchFetchPin.fetchListAndSaveToDb(pinIdList))
     this.log(`开始抓取收藏夹${collectionInfo.title}(${collectionInfo.id})的下所有文章详情,共${articleIdList.length}条`)
-    await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
+    const articleOutcome = await this.collectNestedBatchOutcome(() => batchFetchArticle.fetchListAndSaveToDb(articleIdList))
     this.log(`收藏夹${collectionInfo.title}(${collectionInfo.id})下所有详情抓取完毕`)
+    return mergeExecutionOutcomes([answerOutcome, pinOutcome, articleOutcome])
   }
 }
 

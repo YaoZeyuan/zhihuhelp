@@ -15,18 +15,9 @@ class Pin extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('author_url_token', authorUrlToken)
-      .catch(() => {
-        return []
-      })
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = record?.raw_json
-      let pinRecord
-      try {
-        pinRecord = JSON.parse(pinRecordJson)
-      } catch {
-        pinRecord = {}
-      }
+      let pinRecord = this.parseEntityRawJson<TypePin.Record>(record?.raw_json, record?.pin_id ?? 'unknown')
       if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
@@ -43,18 +34,11 @@ class Pin extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('pin_id', '=', pinId)
-      .catch(() => {
-        return []
-      })
-    let pinRecordJson = recordList?.[0]?.raw_json
-    let pinRecord: TypePin.Record
-    try {
-      pinRecord = JSON.parse(pinRecordJson)
-    } catch {
-      pinRecord = {} as any
+    let pinRecord = recordList?.[0]
+    if (pinRecord === undefined) {
+      return {} as TypePin.Record
     }
-
-    return pinRecord
+    return this.parseEntityRawJson<TypePin.Record>(pinRecord.raw_json, pinId)
   }
 
   /**
@@ -64,18 +48,10 @@ class Pin extends Base {
   static async asyncGetPinList(pinIdList: string[]): Promise<TypePin.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('pin_id', pinIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch(() => {
-      return []
-    })
+    let recordList = await this.rawClient.raw(sql, [])
     let pinRecordList = []
     for (let record of recordList) {
-      let pinRecordJson = record?.raw_json
-      let pinRecord
-      try {
-        pinRecord = JSON.parse(pinRecordJson)
-      } catch {
-        pinRecord = {}
-      }
+      let pinRecord = this.parseEntityRawJson<TypePin.Record>(record?.raw_json, record?.pin_id ?? 'unknown')
       if (lodash.isEmpty(pinRecord) === false) {
         pinRecordList.push(pinRecord)
       }
@@ -110,12 +86,9 @@ class Pin extends Base {
    * @returns 
    */
   static async asyncGetPinCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("pin_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

@@ -13,7 +13,7 @@ type Type_Log_Line_Item = {
 
 type Type_Log_Source = 'frontend' | 'runtime' | 'jsonl'
 
-type Type_Debug_Channel = Exclude<keyof Window['electronAPI'], 'loadPreferences'>
+type Type_Debug_Channel = Exclude<keyof Window['electronAPI'], 'loadPreferences' | 'append-frontend-log-batch'>
 
 const Const_Container_Height = 460
 

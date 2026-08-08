@@ -98,6 +98,7 @@ export function toLegacyTaskConfig(config: TaskConfig): LegacyTaskConfig.Type_Ta
       maxItemInBook: config.generate.maxItemsPerBook,
       orderByList: config.generate.orderBy,
       generateType: config.generate.mode,
+      outputFormats: [...config.generate.outputFormats],
     },
     requestConfig: {
       ua: config.request.ua,
@@ -125,7 +126,7 @@ export function fromLegacyTaskConfig(config: LegacyTaskConfig.Type_Task_Config):
       imageQuality: config.generateConfig.imageQuilty,
       maxItemsPerBook: config.generateConfig.maxItemInBook,
       orderBy: config.generateConfig.orderByList,
-      outputFormats: ['html', 'epub'],
+      outputFormats: config.generateConfig.outputFormats ?? ['html', 'epub'],
       comment: config.generateConfig.comment,
     },
   }

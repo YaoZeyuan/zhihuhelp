@@ -1,4 +1,4 @@
-import * as Consts from '~/src/application/workflow/generate/resource/const/index'
+﻿import * as Consts from '~/src/application/workflow/generate/resource/const/index'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import TypeTaskConfig from '~/src/type/task_config'
 import TypeAnswer from '~/src/type/zhihu/answer'
@@ -26,6 +26,8 @@ import EpubGenerator from '~/src/application/workflow/generate/library/epub_gene
 import moment from 'moment'
 import { ReactElement } from 'react'
 import { RunContext } from '~/src/shared/runtime/run_context'
+import { LogEventCode, LogLevel, LogStage, LogStatus, StructuredLogEntry } from '~/src/shared/logging/log_contract'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
 
 /**
  * 生成html
@@ -61,20 +63,29 @@ type EpubResourcePackage = {
 
 class GenerateWorkflow {
   private context?: RunContext
+  private missingGenerateTaskList: { taskType: string; entityId: string }[] = []
+  private hasPartialGenerateOutcome = false
 
   /**
    * 根据已解析的任务配置从 SQLite 读取内容并输出 HTML/EPUB。
    *
    * 该 workflow 只编排生成流程；配置文件读取和 CLI 参数解析由 interface 层完成。
    */
-  async execute(customerTaskConfig: TypeTaskConfig.Type_Task_Config, context?: RunContext): Promise<void> {
+  async execute(
+    customerTaskConfig: TypeTaskConfig.Type_Task_Config,
+    context?: RunContext,
+  ): Promise<typeof LogStatus.SUCCESS | typeof LogStatus.PARTIAL_SUCCESS> {
     this.context = context
+    this.missingGenerateTaskList = []
+    this.hasPartialGenerateOutcome = false
     const startedAt = Date.now()
+    const executeJobId = 'generate-execute'
     let generateConfig = customerTaskConfig.generateConfig
     let fetchTaskList = customerTaskConfig.fetchTaskList
     this.event({
-      status: 'start',
-      level: 'info',
+      jobId: executeJobId,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
       message: '加载生成配置',
       details: {
         fetchTaskCount: fetchTaskList.length,
@@ -84,6 +95,7 @@ class GenerateWorkflow {
 
     // 生成类型
     let imageQuilty = generateConfig.imageQuilty
+    const outputFormats = generateConfig.outputFormats ?? ['html', 'epub']
 
     // 根据生成类型, 制定最终结果数据集
 
@@ -96,13 +108,32 @@ class GenerateWorkflow {
     try {
       let epubColumnList = await this.asyncGetColumnPackage({ fetchTaskList, generateConfig })
 
+      if (
+        fetchTaskList.length > 0
+        && this.missingGenerateTaskList.length >= fetchTaskList.length
+      ) {
+        throw new ApplicationError(
+          AppErrorCode.BATCH_FAILED,
+          `没有可生成的数据，${this.missingGenerateTaskList.length} 个任务未在数据库中找到实体`,
+        )
+      }
+      if (this.missingGenerateTaskList.length > 0 && this.context) {
+        this.hasPartialGenerateOutcome = true
+        this.context.outcomeStatus = LogStatus.PARTIAL_SUCCESS
+      } else if (this.missingGenerateTaskList.length > 0) {
+        this.hasPartialGenerateOutcome = true
+      }
+
       this.event({
-        status: 'success',
-        level: 'info',
+        jobId: executeJobId,
+        status: LogStatus.PROGRESS,
+        level: LogLevel.INFO,
         message: '电子书分卷准备完成',
         details: {
           bookCount: epubColumnList.length,
           books: epubColumnList.map((epubColumn) => this.summarizeEpubColumn(epubColumn)),
+          missingTaskCount: this.missingGenerateTaskList.length,
+          missingTasks: this.missingGenerateTaskList,
         },
       })
 
@@ -118,13 +149,18 @@ class GenerateWorkflow {
         await this.generateEpub({
           epubColumn,
           imageQuilty,
+          outputFormats,
         })
         this.log(`电子书:${bookname}输出完毕`)
       }
+      const executeStatus = this.hasPartialGenerateOutcome
+        ? LogStatus.PARTIAL_SUCCESS
+        : LogStatus.SUCCESS
       this.event({
-        status: 'success',
-        level: 'info',
-        message: '所有电子书输出完成',
+        jobId: executeJobId,
+        status: executeStatus,
+        level: executeStatus === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
+        message: executeStatus === LogStatus.PARTIAL_SUCCESS ? '所有电子书已输出，部分资源缺失' : '所有电子书输出完成',
         durationMs: Date.now() - startedAt,
         details: {
           bookCount: epubColumnList.length,
@@ -132,11 +168,13 @@ class GenerateWorkflow {
         },
       })
       this.log(`所有电子书输出完毕`)
+      return executeStatus
       // 全部完成后打开文件夹
     } catch (error) {
       this.event({
-        status: 'failure',
-        level: 'error',
+        jobId: executeJobId,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
         message: '生成 workflow 执行失败',
         durationMs: Date.now() - startedAt,
         error: Logger.serializeError(error),
@@ -149,22 +187,13 @@ class GenerateWorkflow {
     }
   }
 
-  private event(entry: {
-    status: 'start' | 'progress' | 'success' | 'skip' | 'failure'
-    level: 'debug' | 'info' | 'warn' | 'error'
-    message: string
-    taskType?: string
-    entityId?: string
-    durationMs?: number
-    error?: ReturnType<typeof Logger.serializeError>
-    details?: {
-      [key: string]: unknown
-    }
-  }): void {
+  private event(entry: Omit<StructuredLogEntry, 'runId' | 'traceId'>): void {
+    const { stage = LogStage.GENERATE, ...event } = entry
     Logger.event({
+      traceId: this.context?.traceId,
       runId: this.context?.runId,
-      stage: 'generate',
-      ...entry,
+      stage,
+      ...event,
     })
   }
 
@@ -257,8 +286,8 @@ class GenerateWorkflow {
   }) {
     const startedAt = Date.now()
     this.event({
-      status: 'start',
-      level: 'info',
+      status: LogStatus.PROGRESS,
+      level: LogLevel.INFO,
       message: '开始整理生成数据包',
       details: {
         fetchTaskCount: fetchTaskList.length,
@@ -368,8 +397,8 @@ class GenerateWorkflow {
         break
     }
     this.event({
-      status: 'success',
-      level: 'info',
+      status: LogStatus.PROGRESS,
+      level: LogLevel.INFO,
       message: '生成数据包整理完成',
       durationMs: Date.now() - startedAt,
       details: {
@@ -388,9 +417,11 @@ class GenerateWorkflow {
     index: number,
   ): Promise<Package.Type_Unit_Item | undefined> {
     const startedAt = Date.now()
+    const jobId = `generate-unit-${index}-${taskConfig.type}-${taskConfig.id}`
     this.event({
-      status: 'start',
-      level: 'info',
+      jobId,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
       message: '开始从数据库组装生成单元',
       taskType: taskConfig.type,
       entityId: `${taskConfig.id}`,
@@ -399,9 +430,14 @@ class GenerateWorkflow {
     try {
       const unitPackage = await this.asyncGetUintPackageByFetchTask(taskConfig)
       if (unitPackage === undefined) {
+        this.missingGenerateTaskList.push({
+          taskType: taskConfig.type,
+          entityId: `${taskConfig.id}`,
+        })
         this.event({
-          status: 'skip',
-          level: 'warn',
+          jobId,
+          status: LogStatus.PARTIAL_SUCCESS,
+          level: LogLevel.WARN,
           message: '数据库中未找到可生成的数据，已跳过该任务',
           taskType: taskConfig.type,
           entityId: `${taskConfig.id}`,
@@ -411,8 +447,9 @@ class GenerateWorkflow {
         return undefined
       }
       this.event({
-        status: 'success',
-        level: 'info',
+        jobId,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.INFO,
         message: '生成单元组装完成',
         taskType: taskConfig.type,
         entityId: `${taskConfig.id}`,
@@ -425,8 +462,9 @@ class GenerateWorkflow {
       return unitPackage
     } catch (error) {
       this.event({
-        status: 'failure',
-        level: 'error',
+        jobId,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
         message: '生成单元组装失败',
         taskType: taskConfig.type,
         entityId: `${taskConfig.id}`,
@@ -947,6 +985,9 @@ class GenerateWorkflow {
     booktitle: string
     generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']
   }): Package.Ebook_Column[] {
+    if (generateConfig.maxItemInBook <= 0) {
+      throw new Error(`maxItemInBook 必须大于 0`)
+    }
     let totalItemCount = 0
     for (let unitItem of unitItemList) {
       totalItemCount = totalItemCount + unitItem.getItemCount()
@@ -968,32 +1009,33 @@ class GenerateWorkflow {
     let epubItemList: Package.Ebook_Column[] = []
     for (let currentBookColumnIndex = 1; processUnitList.length > 0; currentBookColumnIndex++) {
       // 总卷数确定, 从前往后加即可
-      let bookname = `${booktitle}_${currentBookColumnIndex}/${totalColumnCount}卷`
+      let bookname = `${booktitle}_${currentBookColumnIndex}-of-${totalColumnCount}卷`
 
       let currentUnitList: Package.Type_Unit_Item[] = []
       let currentItemCount = 0
       // 取出第一个unit
-      let nextUnit = processUnitList.shift() as Package.Type_Unit_Item
+      let nextUnit = processUnitList.shift()
       if (nextUnit === undefined) {
         continue
       }
 
-      while (currentItemCount + nextUnit.getItemCount() < generateConfig.maxItemInBook) {
+      while (nextUnit !== undefined && currentItemCount + nextUnit.getItemCount() <= generateConfig.maxItemInBook) {
         currentUnitList.push(nextUnit)
-        nextUnit = processUnitList.shift() as Package.Type_Unit_Item
-        if (nextUnit === undefined) {
-          break
-        }
+        currentItemCount = currentItemCount + nextUnit.getItemCount()
+        nextUnit = processUnitList.shift()
       }
       // 判断nextUnit的情况
       // 若nextUnit为undefined, 说明所有数据均已取出, 可以正常构建epub代码
       // 若不为undefined, 说明currentPageCount + nextUnit的值超过了阈值, 需要对nextUnit进行拆分
-      if (nextUnit === undefined) {
+      if (nextUnit === undefined || currentItemCount >= generateConfig.maxItemInBook) {
         let epubItem = new Package.Ebook_Column({
           bookname: bookname,
           unitList: currentUnitList,
         })
         epubItemList.push(epubItem)
+        if (nextUnit !== undefined) {
+          processUnitList.unshift(nextUnit)
+        }
       } else {
         // 对unit进行拆分
         let legalUnit: Package.Type_Unit_Item
@@ -1274,17 +1316,24 @@ class GenerateWorkflow {
   async generateEpub({
     imageQuilty,
     epubColumn,
+    outputFormats,
   }: {
     imageQuilty: TypeTaskConfig.Type_Image_Quilty
     epubColumn: Package.Ebook_Column
+    outputFormats: ('html' | 'epub')[]
   }) {
     const startedAt = Date.now()
+    const jobId = `generate-book-${++this.generateJobCounter}`
     this.event({
-      status: 'start',
-      level: 'info',
+      jobId,
+      eventCode: LogEventCode.OUTPUT_START,
+      stage: LogStage.OUTPUT,
+      status: LogStatus.START,
+      level: LogLevel.INFO,
       message: '开始生成单本电子书',
       details: {
         imageQuilty,
+        outputFormats,
         book: this.summarizeEpubColumn(epubColumn),
       },
     })
@@ -1345,8 +1394,11 @@ class GenerateWorkflow {
       epubGenerator.generateSinglePageHtml({ html: singlePageContent })
 
       this.event({
-        status: 'progress',
-        level: 'info',
+        jobId,
+        eventCode: LogEventCode.OUTPUT_PROGRESS,
+        stage: LogStage.OUTPUT,
+        status: LogStatus.PROGRESS,
+        level: LogLevel.INFO,
         message: 'HTML 渲染完成，准备生成 EPUB 和输出文件',
         details: {
           bookname: epubColumn.bookname,
@@ -1361,12 +1413,30 @@ class GenerateWorkflow {
       })
 
       // 生成电子书
-      await epubGenerator.asyncGenerateEpub()
+      const generateResult = await epubGenerator.asyncGenerateEpub(outputFormats)
+      const outputStatus = generateResult.missingImageCount > 0
+        ? LogStatus.PARTIAL_SUCCESS
+        : LogStatus.SUCCESS
+      if (outputStatus === LogStatus.PARTIAL_SUCCESS && this.context) {
+        this.hasPartialGenerateOutcome = true
+        this.context.outcomeStatus = LogStatus.PARTIAL_SUCCESS
+      } else if (outputStatus === LogStatus.PARTIAL_SUCCESS) {
+        this.hasPartialGenerateOutcome = true
+      }
+
+      const outputDetails = {
+        outputFormats,
+        epubOutputPath: outputFormats.includes('epub') ? epubGenerator.epubOutputPathUri : undefined,
+        htmlOutputPath: outputFormats.includes('html') ? epubGenerator.htmlOutputPathUri : undefined,
+      }
 
       this.event({
-        status: 'success',
-        level: 'info',
-        message: '单本电子书生成完成',
+        jobId,
+        eventCode: LogEventCode.OUTPUT_CREATED,
+        stage: LogStage.OUTPUT,
+        status: outputStatus,
+        level: outputStatus === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
+        message: outputStatus === LogStatus.PARTIAL_SUCCESS ? '单本电子书生成完成，但部分图片缺失' : '单本电子书生成完成',
         durationMs: Date.now() - startedAt,
         details: {
           bookname: epubColumn.bookname,
@@ -1375,20 +1445,23 @@ class GenerateWorkflow {
           imageCount: epubGenerator.imgUriPool.size,
           epubCachePath: epubGenerator.epubCachePath,
           htmlCachePath: epubGenerator.htmlCachePath,
-          epubOutputPath: epubGenerator.epubOutputPathUri,
-          htmlOutputPath: epubGenerator.htmlOutputPathUri,
+          ...generateResult,
+          ...outputDetails,
         },
       })
       this.log(`自定义电子书${epubColumn.bookname}生成完毕`)
     } catch (error) {
       this.event({
-        status: 'failure',
-        level: 'error',
+        jobId,
+        stage: LogStage.OUTPUT,
+        status: LogStatus.FAILURE,
+        level: LogLevel.ERROR,
         message: '单本电子书生成失败',
         durationMs: Date.now() - startedAt,
         error: Logger.serializeError(error),
         details: {
           imageQuilty,
+          outputFormats,
           book: this.summarizeEpubColumn(epubColumn),
           epubCachePath: epubGenerator?.epubCachePath,
           htmlCachePath: epubGenerator?.htmlCachePath,
@@ -1399,6 +1472,8 @@ class GenerateWorkflow {
       throw error
     }
   }
+
+  private generateJobCounter = 0
 }
 
 export default GenerateWorkflow

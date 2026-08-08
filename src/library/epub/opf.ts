@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { escapeXmlAttribute, escapeXmlText, getImageMediaType } from './xml'
 class OPF {
   index = 0 // 生成id
 
@@ -17,21 +18,21 @@ class OPF {
     return `<?xml version='1.0' encoding='utf-8'?>
 <package xmlns="http://www.idpf.org/2007/opf"
          version="3.0"
-         xml:lang="${this.language}"
+         xml:lang="${escapeXmlAttribute(this.language)}"
          unique-identifier="pub-id">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-        <dc:title id="title">${this.title}</dc:title>
+        <dc:title id="title">${escapeXmlText(this.title)}</dc:title>
 
-        <dc:creator id="creator">${this.creator}</dc:creator>
+        <dc:creator id="creator">${escapeXmlText(this.creator)}</dc:creator>
 
-        <dc:identifier id="pub-id">${this.identifier}</dc:identifier>
+        <dc:identifier id="pub-id">${escapeXmlText(this.identifier)}</dc:identifier>
         <meta refines="#pub-id" property="identifier-type" scheme="xsd:string">15</meta>
 
-        <dc:language>${this.language}</dc:language>
+        <dc:language>${escapeXmlText(this.language)}</dc:language>
 
-        <meta property="dcterms:modified">${this.publishTime}</meta>
+        <meta property="dcterms:modified">${escapeXmlText(this.publishTime)}</meta>
 
-        <dc:publisher>${this.publisher}</dc:publisher>
+        <dc:publisher>${escapeXmlText(this.publisher)}</dc:publisher>
 
         <meta content="cover-image" name="cover"/>
     </metadata>
@@ -64,7 +65,7 @@ class OPF {
   addIndexHtml(filename: string) {
     this.index = this.index + 1
     this.manifestItemList.unshift(
-      ` <item href="html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`,
+      ` <item href="html/${escapeXmlAttribute(filename)}" id="index_${this.index}" media-type="application/xhtml+xml" />`,
     )
     this.spineItemList.unshift(` <itemref idref="index_${this.index}"  linear="no"/>`)
   }
@@ -72,26 +73,29 @@ class OPF {
   addHtml(filename: string) {
     this.index = this.index + 1
     this.manifestItemList.push(
-      ` <item href="html/${filename}" id="index_${this.index}" media-type="application/xhtml+xml" />`,
+      ` <item href="html/${escapeXmlAttribute(filename)}" id="index_${this.index}" media-type="application/xhtml+xml" />`,
     )
     this.spineItemList.push(` <itemref idref="index_${this.index}" />`)
   }
 
   addCss(filename: string) {
     this.index = this.index + 1
-    this.manifestItemList.push(` <item href="css/${filename}" id="index_${this.index}" media-type="text/css" />`)
+    this.manifestItemList.push(` <item href="css/${escapeXmlAttribute(filename)}" id="index_${this.index}" media-type="text/css" />`)
   }
 
   addCoverImage(filename: string) {
     this.index = this.index + 1
     // metadata中已经将封面图id写死为了cover-image, 这里直接加上就行
-    this.manifestItemList.push(` <item href="image/${filename}" id="cover-image" media-type="text/jpeg" />`)
+    this.manifestItemList.push(
+      ` <item href="image/${escapeXmlAttribute(filename)}" id="cover-image" media-type="${getImageMediaType(filename)}" />`,
+    )
   }
 
   addImage(filename: string) {
     this.index = this.index + 1
-    // 图片类型统一写成 media-type="text/jpeg", 应该没事
-    this.manifestItemList.push(` <item href="image/${filename}" id="index_${this.index}" media-type="text/jpeg" />`)
+    this.manifestItemList.push(
+      ` <item href="image/${escapeXmlAttribute(filename)}" id="index_${this.index}" media-type="${getImageMediaType(filename)}" />`,
+    )
   }
 }
 

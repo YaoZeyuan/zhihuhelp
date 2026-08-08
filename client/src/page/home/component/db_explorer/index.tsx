@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Empty, Pagination, Spin, Tag, message } from 'antd'
+import { Alert, Avatar, Button, Card, Empty, Pagination, Spin, Tag, message } from 'antd'
 import dayjs from 'dayjs'
 import { useState, useRef, useEffect } from 'react'
 import * as Consts from './resource/const/index'
@@ -6,6 +6,7 @@ import * as Types from './resource/type/index'
 import { createStore } from './state/index'
 import { useSnapshot } from 'valtio'
 import * as Ahooks from 'ahooks'
+import DebugLog from '~/src/library/debug_log'
 
 import './index.less'
 
@@ -99,7 +100,9 @@ function normalizeZhihuContentHtml(contentHtml?: string) {
 export default () => {
   let [forceUpdate, setForceUpdate] = useState<number>(0)
   let [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false)
+  let [summaryError, setSummaryError] = useState<string | null>(null)
   let [isRecordListLoading, setIsRecordListLoading] = useState<boolean>(false)
+  let [recordListError, setRecordListError] = useState<string | null>(null)
   let [isJsonExporting, setIsJsonExporting] = useState<boolean>(false)
   let [isJsonImporting, setIsJsonImporting] = useState<boolean>(false)
   let [selectedParent, setSelectedParent] = useState<Types.DataType | null>(null)
@@ -114,34 +117,55 @@ export default () => {
   const handleRecordFunc = {
     getBaseInfo: async () => {
       setIsSummaryLoading(true)
-      let summaryInfo = await window.electronAPI['get-db-summary-info']()
-      store.baseInfo.count = summaryInfo
-      setIsSummaryLoading(false)
+      setSummaryError(null)
+      try {
+        const summaryInfo = await DebugLog.invokeElectronApi<any>('get-db-summary-info')
+        store.baseInfo.count = summaryInfo
+      } catch (error) {
+        const errorMessage = error instanceof Error && error.message.trim() !== ''
+          ? error.message
+          : String(error)
+        setSummaryError(`数据库汇总加载失败：${errorMessage}`)
+        message.error('数据库汇总加载失败，请稍后重试')
+      } finally {
+        setIsSummaryLoading(false)
+      }
     },
     getRecordList: async () => {
       setIsRecordListLoading(true)
-      const info = await window.electronAPI['get-db-record-list']({
-        type: store.currentSelect.type,
-        pageNo: store.currentSelect.info.pageNo,
-        pageSize: store.currentSelect.info.pageSize,
-        parentId: selectedParent?.id,
-      }).catch(() => {
-        return {
+      setRecordListError(null)
+      try {
+        const info = await DebugLog.invokeElectronApi<any>('get-db-record-list', [
+          {
+            type: store.currentSelect.type,
+            pageNo: store.currentSelect.info.pageNo,
+            pageSize: store.currentSelect.info.pageSize,
+            parentId: selectedParent?.id,
+          },
+        ])
+        store.currentSelect.info = {
+          recordList: info?.recordList ?? [],
+          total: info?.total ?? 0,
+          pageNo: info?.pageNo ?? store.currentSelect.info.pageNo,
+          pageSize: info?.pageSize ?? store.currentSelect.info.pageSize,
+          parentId: info?.parentId,
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error && error.message.trim() !== ''
+          ? error.message
+          : String(error)
+        setRecordListError(`缓存记录加载失败：${errorMessage}`)
+        store.currentSelect.info = {
           recordList: [],
           total: 0,
           pageNo: store.currentSelect.info.pageNo,
           pageSize: store.currentSelect.info.pageSize,
           parentId: selectedParent?.id,
         }
-      })
-      store.currentSelect.info = {
-        recordList: info?.recordList ?? [],
-        total: info?.total ?? 0,
-        pageNo: info?.pageNo ?? store.currentSelect.info.pageNo,
-        pageSize: info?.pageSize ?? store.currentSelect.info.pageSize,
-        parentId: info?.parentId,
+        message.error('缓存记录加载失败，请稍后重试')
+      } finally {
+        setIsRecordListLoading(false)
       }
-      setIsRecordListLoading(false)
     },
     selectType: (type: Types.Select_Type) => {
       setSelectedParent(null)
@@ -178,10 +202,12 @@ export default () => {
     exportCurrentFilterJson: async () => {
       setIsJsonExporting(true)
       try {
-        const result = await window.electronAPI['export-db-record-json']({
-          type: store.currentSelect.type,
-          parentId: selectedParent?.id,
-        })
+        const result = await DebugLog.invokeElectronApi<any>('export-db-record-json', [
+          {
+            type: store.currentSelect.type,
+            parentId: selectedParent?.id,
+          },
+        ])
         if (result?.status === 'success') {
           message.success(`导出成功：${result?.filePath ?? result?.exportPath}`)
           return
@@ -196,12 +222,17 @@ export default () => {
     importJson: async () => {
       setIsJsonImporting(true)
       try {
-        const result = await window.electronAPI['import-db-record-json']()
+        const result = await DebugLog.invokeElectronApi<any>('import-db-record-json')
         if (result?.status === 'canceled') {
           return
         }
         if (result?.status === 'success') {
           message.success(result?.message ?? '导入完成')
+          await handleRecordFunc.refreshAll()
+          return
+        }
+        if (result?.status === 'partial_success') {
+          message.warning(result?.message ?? '导入部分完成')
           await handleRecordFunc.refreshAll()
           return
         }
@@ -377,6 +408,14 @@ export default () => {
         </div>
       )
     }
+    if (recordListError !== null) {
+      return (
+        <div className="record-error-state">
+          <Alert type="error" showIcon title="无法读取缓存记录" description={recordListError} />
+          <Empty description="暂无可用缓存记录" />
+        </div>
+      )
+    }
     if (recordList.length === 0) {
       return <Empty description="当前分类暂无缓存记录" />
     }
@@ -457,58 +496,67 @@ export default () => {
           </Button>,
         ]}
       >
-        <Card title="核心内容" className="summary-card">
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_回答)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_回答 ? 'active' : ''}
-          >
-            回答: {snap.baseInfo.count.answer}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_文章)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_文章 ? 'active' : ''}
-          >
-            文章: {snap.baseInfo.count.article}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_想法)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_想法 ? 'active' : ''}
-          >
-            想法: {snap.baseInfo.count.pin}
-          </Card.Grid>
-        </Card>
-        <Card title="索引数据" className="summary-card">
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_问题)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_问题 ? 'active' : ''}
-          >
-            提问: {snap.baseInfo.count.question}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_用户的所有回答)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_用户的所有回答 ? 'active' : ''}
-          >
-            用户: {snap.baseInfo.count.author}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_专栏)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_专栏 ? 'active' : ''}
-          >
-            专栏: {snap.baseInfo.count.column}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_收藏夹)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_收藏夹 ? 'active' : ''}
-          >
-            收藏夹: {snap.baseInfo.count.collection}
-          </Card.Grid>
-          <Card.Grid
-            onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_话题)}
-            className={snap.currentSelect.type === Consts.Current_Select_Type_话题 ? 'active' : ''}
-          >
-            话题: {snap.baseInfo.count.topic}
-          </Card.Grid>
-        </Card>
+        {summaryError !== null ? (
+          <div className="summary-error-state">
+            <Alert type="error" showIcon title="无法读取数据库汇总" description={summaryError} />
+            <Empty description="暂无可用数据库汇总" />
+          </div>
+        ) : (
+          <>
+            <Card title="核心内容" className="summary-card">
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_回答)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_回答 ? 'active' : ''}
+              >
+                回答: {snap.baseInfo.count.answer}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_文章)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_文章 ? 'active' : ''}
+              >
+                文章: {snap.baseInfo.count.article}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_想法)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_想法 ? 'active' : ''}
+              >
+                想法: {snap.baseInfo.count.pin}
+              </Card.Grid>
+            </Card>
+            <Card title="索引数据" className="summary-card">
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_问题)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_问题 ? 'active' : ''}
+              >
+                提问: {snap.baseInfo.count.question}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_用户的所有回答)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_用户的所有回答 ? 'active' : ''}
+              >
+                用户: {snap.baseInfo.count.author}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_专栏)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_专栏 ? 'active' : ''}
+              >
+                专栏: {snap.baseInfo.count.column}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_收藏夹)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_收藏夹 ? 'active' : ''}
+              >
+                收藏夹: {snap.baseInfo.count.collection}
+              </Card.Grid>
+              <Card.Grid
+                onClick={() => handleRecordFunc.selectType(Consts.Current_Select_Type_话题)}
+                className={snap.currentSelect.type === Consts.Current_Select_Type_话题 ? 'active' : ''}
+              >
+                话题: {snap.baseInfo.count.topic}
+              </Card.Grid>
+            </Card>
+          </>
+        )}
       </Card>
       <Card
         className="record-list-card"

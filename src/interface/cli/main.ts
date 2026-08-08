@@ -6,6 +6,7 @@ import CommonConfig from '~/src/config/common'
 import { cliParser } from '~/src/interface/cli/parser'
 import { dispatchCliCommand } from '~/src/interface/cli/command/dispatcher'
 import Logger from '~/src/library/logger'
+import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract'
 
 const program = defineProgram({
   parser: cliParser,
@@ -33,9 +34,10 @@ async function main(): Promise<void> {
 
 main().catch((error: Error) => {
   Logger.event({
-    stage: 'cli',
-    status: 'failure',
-    level: 'error',
+    eventCode: LogEventCode.WORKFLOW_FAILURE,
+    stage: LogStage.CLI,
+    status: LogStatus.FAILURE,
+    level: LogLevel.ERROR,
     message: 'CLI 执行失败',
     error: Logger.serializeError(error),
   })

@@ -1,9 +1,11 @@
 import { Switch, Tabs, TabsProps } from 'antd'
 import React, { useEffect, useState, useContext } from 'react'
+import { LogEventCode, LogStage, LogStatus } from '@shared/logging/log_contract'
 
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Types_Page from '~/src/resource/type/page'
 import * as Context from '~/src/page/home/resource/context'
+import DebugLog from '~/src/library/debug_log'
 
 import DbExplorer from './component/db_explorer'
 import LogExplorer from './component/log'
@@ -56,7 +58,7 @@ let Item = () => {
         isUnmounted = true
       }
     }
-    getDebugInfo()
+    DebugLog.invokeElectronApi<Type_Debug_Info>('get-debug-ipc-channel-list')
       .then((debugInfo: Type_Debug_Info) => {
         if (!isUnmounted && debugInfo?.isDebug) {
           setIsDeveloperMode(true)
@@ -100,7 +102,20 @@ let Item = () => {
           </div>
         }
         onChange={(e) => {
-          setCurrentTab(e as Types_Page.Type_Page_Url)
+          const nextTab = e as Types_Page.Type_Page_Url
+          DebugLog.append({
+            level: 'info',
+            channel: 'navigation',
+            eventCode: LogEventCode.FRONTEND_ROUTE_CHANGE,
+            stage: LogStage.FRONTEND,
+            status: LogStatus.SUCCESS,
+            message: '切换前端页面',
+            details: {
+              from: currentTab,
+              to: nextTab,
+            },
+          })
+          setCurrentTab(nextTab)
         }}
       ></Tabs>
     </div>

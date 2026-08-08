@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "error",
+  "sourceUrl": "fixture://collection/not-found",
+  "capturedAt": "2026-08-08T00:00:00.000Z",
+  "checksum": "cd5cb07aafea4fff8b940a188f1502183c143e8f28200fb696e449e570273814",
+  "data": {
+    "kind": "not_found",
+    "entityType": "collection",
+    "status": 404
+  }
+}

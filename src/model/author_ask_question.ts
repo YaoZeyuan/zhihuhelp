@@ -14,9 +14,6 @@ class AuthorAskQuestion extends Base {
       .select(`question_id`)
       .from(this.TABLE_NAME)
       .where('author_url_token', '=', urlToken)
-      .catch(() => {
-        return []
-      })
 
     let questionIdList = []
     for (let record of recordList) {

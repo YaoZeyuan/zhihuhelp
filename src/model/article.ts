@@ -15,17 +15,11 @@ class Article extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('article_id', '=', articleId)
-      .catch(() => {
-        return []
-      })
-    let articleJson = recordList?.[0]?.raw_json
-    let article
-    try {
-      article = JSON.parse(articleJson)
-    } catch {
-      article = {}
+    let articleRecord = recordList?.[0]
+    if (articleRecord === undefined) {
+      return {} as TypeArticle.Record
     }
-    return article
+    return this.parseEntityRawJson<TypeArticle.Record>(articleRecord.raw_json, articleId)
   }
 
   /**
@@ -37,19 +31,10 @@ class Article extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('author_url_token', '=', authorUrlToken)
-      .catch(() => {
-        return []
-      })
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -66,19 +51,10 @@ class Article extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('column_id', '=', columnId)
-      .catch(() => {
-        return []
-      })
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -93,19 +69,11 @@ class Article extends Base {
   static async asyncGetArticleList(articleIdList: string[]): Promise<TypeArticle.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('article_id', articleIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch(() => {
-      return []
-    })
+    let recordList = await this.rawClient.raw(sql, [])
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -139,12 +107,9 @@ class Article extends Base {
    * @returns 
    */
   static async asyncGetArticleCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("article_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

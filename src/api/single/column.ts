@@ -1,6 +1,7 @@
 import Base from '~/src/api/single/base'
 import TypeColumn from '~/src/type/zhihu/column'
 import TypeArticleExcerpt from '~/src/type/zhihu/article_excerpt'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation'
 
 class Column extends Base {
   /**
@@ -34,7 +35,7 @@ class Column extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const articleExcerptList = record?.data ?? []
+    const articleExcerptList = assertZhihuPaginatedData<TypeArticleExcerpt.Record>(record, 'column.articles')
     return articleExcerptList
   }
 }

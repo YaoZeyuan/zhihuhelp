@@ -5,6 +5,7 @@ import * as Type_TaskConfig from '~/src/type/task_config'
 import * as Const_TaskConfig from '~/src/constant/task_config'
 import AsyncPool from 'tiny-async-pool'
 import md5 from 'md5'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
 
 type Type_Asnyc_Task_Runner = (...paramList: any[]) => Promise<any>
 
@@ -35,6 +36,30 @@ type Type_Task_Pool = {
   taskList: Type_Task_Config[],
   currentTaskNo: number,
 }
+
+export type TaskFailure = {
+  uuid: string
+  taskLoopNo: number
+  taskNo: number
+  error: ReturnType<typeof logger.serializeError>
+}
+
+export type TaskDispatchSummary = {
+  totalCount: number
+  successCount: number
+  failureCount: number
+  failures: TaskFailure[]
+}
+
+export class TaskExecutionError extends Error {
+  readonly summary: TaskDispatchSummary
+
+  constructor(summary: TaskDispatchSummary) {
+    super(`任务池执行失败: ${summary.failureCount}/${summary.totalCount} 个任务失败`)
+    this.name = 'TaskExecutionError'
+    this.summary = summary
+  }
+}
 const getDefaultTaskPool = (): Type_Task_Pool => {
   return {
     taskList: [],
@@ -43,15 +68,15 @@ const getDefaultTaskPool = (): Type_Task_Pool => {
 }
 
 // 每计数x次后, 重置任务
-class TaskManager {
-  private maxTaskRunner = 10
+export class TaskManager {
+  private maxTaskRunner: number
 
   private currentTaskLoopNo = 0
 
   private globalDispatchTaskCounter = 0
 
   // 任务超时时间, 走内部配置即可, 不需要全局配置
-  private readonly Const_Task_Timeout_ms = 20 * 1000
+  private readonly Const_Task_Timeout_ms: number
 
   /**
    * 按label添加任务队列
@@ -66,9 +91,23 @@ class TaskManager {
   /**
    * 任务保护配置
    */
-  private protectConfig = {
-    perTask2Protect: 10,
-    protectMs: 10 * 1000,
+  private protectConfig: {
+    perTask2Protect: number
+    protectMs: number
+  }
+
+  constructor(options: {
+    maxTaskRunner?: number
+    taskTimeoutMs?: number
+    perTask2Protect?: number
+    protectMs?: number
+  } = {}) {
+    this.maxTaskRunner = options.maxTaskRunner ?? 10
+    this.Const_Task_Timeout_ms = options.taskTimeoutMs ?? 20 * 1000
+    this.protectConfig = {
+      perTask2Protect: options.perTask2Protect ?? 10,
+      protectMs: options.protectMs ?? 10 * 1000,
+    }
   }
 
   // 添加任务
@@ -115,7 +154,7 @@ class TaskManager {
 
     logger.log(`开始执行第${taskLoopNo}轮任务`)
     logger.log(`[第${taskLoopNo}轮任务1/2]执行无需等待的任务`)
-    await this.dispatchTask({
+    const directSummary = await this.dispatchTask({
       taskPool: directTaskPool,
       needProtect: false,
       needTTL: needTTL
@@ -123,14 +162,23 @@ class TaskManager {
     logger.log(`[第${taskLoopNo}轮任务1/2]所有无需等待的任务执行完毕`)
 
     logger.log(`[第${taskLoopNo}轮任务2/2]执行需间隔中断的任务`)
-    await this.dispatchTask({
+    const protectedSummary = await this.dispatchTask({
       taskPool: taskWithProtectPool,
       needProtect: true,
       needTTL: needTTL
     })
     logger.log(`[第${taskLoopNo}轮任务2/2]所有需间隔中断的任务执行完毕`)
     logger.log(`[第${taskLoopNo}轮任务]所有任务执行完毕`)
-    return true
+    const summary: TaskDispatchSummary = {
+      totalCount: directSummary.totalCount + protectedSummary.totalCount,
+      successCount: directSummary.successCount + protectedSummary.successCount,
+      failureCount: directSummary.failureCount + protectedSummary.failureCount,
+      failures: [...directSummary.failures, ...protectedSummary.failures],
+    }
+    if (summary.failureCount > 0) {
+      throw new TaskExecutionError(summary)
+    }
+    return summary
   }
 
   private async dispatchTask({
@@ -149,36 +197,48 @@ class TaskManager {
     let taskFailedCounter = 0
     let taskRunningCounter = 0
     let taskTotalCounter = taskPool.taskList.length
+    const failureList: TaskFailure[] = []
 
     let taskPromiseList = AsyncPool(this.maxTaskRunner, taskPool.taskList, async (asyncRunnerConfig) => {
-      let asyncRunner = async () => {
-        taskRunningCounter++
+      taskRunningCounter++
+      let timeoutId: ReturnType<typeof setTimeout> | undefined
+      try {
         logger.log(`[uuid:${asyncRunnerConfig.uuid}]开始执行第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务, 当前任务执行情况:待执行${taskTotalCounter - taskCompleteCounter - taskFailedCounter}个, 执行中${taskRunningCounter}个, 已完成${taskCompleteCounter}个, 已失败${taskFailedCounter}个`)
         asyncRunnerConfig.state = "running"
-        await asyncRunnerConfig.asyncTask()
+        const taskPromise = asyncRunnerConfig.asyncTask()
+        if (needTTL) {
+          await Promise.race([
+            taskPromise,
+            new Promise<never>((resolve, reject) => {
+              timeoutId = setTimeout(
+                () => reject(new ApplicationError(AppErrorCode.TASK_TIMEOUT, `任务执行超时`)),
+                this.Const_Task_Timeout_ms,
+              )
+            }),
+          ])
+        } else {
+          await taskPromise
+        }
         logger.log(`[uuid:${asyncRunnerConfig.uuid}]第${asyncRunnerConfig.taskLoopNo}轮第${asyncRunnerConfig.taskNo}个任务执行完毕`)
         taskCompleteCounter++
-      }
-      await Promise.race(
-        [
-          asyncRunner(),
-          new Promise((reslove, reject) => {
-            if (needTTL) {
-              // 只在需要设置超时时间时启用
-              setTimeout(() => {
-                taskFailedCounter++
-                reject(new Error(`任务执行超时`))
-              }, this.Const_Task_Timeout_ms)
-            }
-          })
-        ]
-      ).then(() => {
         asyncRunnerConfig.state = "success"
-      }).catch(() => {
+      } catch (error) {
+        taskFailedCounter++
         asyncRunnerConfig.state = "fail"
-      }).finally(() => {
+        const failure: TaskFailure = {
+          uuid: asyncRunnerConfig.uuid,
+          taskLoopNo: asyncRunnerConfig.taskLoopNo,
+          taskNo: asyncRunnerConfig.taskNo,
+          error: logger.serializeError(error),
+        }
+        failureList.push(failure)
+        logger.warn(`[uuid:${asyncRunnerConfig.uuid}]任务执行失败`, failure)
+      } finally {
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId)
+        }
         taskRunningCounter--
-      })
+      }
     })
 
 
@@ -192,7 +252,12 @@ class TaskManager {
       }
     }
     logger.log(`所有任务执行完毕`)
-    return true
+    return {
+      totalCount: taskTotalCounter,
+      successCount: taskCompleteCounter,
+      failureCount: taskFailedCounter,
+      failures: failureList,
+    }
   }
 }
 
@@ -227,10 +292,9 @@ export default class CommonUtil {
      */
     needTTL: boolean
   }) {
-    await this.taskManager.asyncWaitAllTaskComplete({
+    return this.taskManager.asyncWaitAllTaskComplete({
       needTTL
     })
-    return
   }
 
   /**

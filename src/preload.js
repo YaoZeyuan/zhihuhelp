@@ -1,27 +1,27 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
+const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args)
+
 contextBridge.exposeInMainWorld('electronAPI', {
-  ['get-debug-ipc-channel-list']: async () => ipcRenderer.invoke('get-debug-ipc-channel-list'),
-  ['get-task-default-title']: async (...args) => ipcRenderer.invoke('get-task-default-title', ...args),
-  ['get-common-config']: async () => ipcRenderer.invoke('get-common-config'),
-  ['start-customer-task']: async (...args) => ipcRenderer.invoke('start-customer-task', ...args),
-  ['zhihu-http-get']: async (...args) => ipcRenderer.invoke('zhihu-http-get', ...args),
-  ['open-output-dir']: async () => ipcRenderer.invoke('open-output-dir'),
-  ['open-devtools']: async () => ipcRenderer.invoke('open-devtools'),
-  ['clear-all-session-storage']: async () => ipcRenderer.invoke('clear-all-session-storage'),
-  ['get-db-summary-info']: async () => ipcRenderer.invoke('get-db-summary-info'),
-  ['get-db-record-list']: async (...args) => ipcRenderer.invoke('get-db-record-list', ...args),
-  ['export-db-record-json']: async (...args) => ipcRenderer.invoke('export-db-record-json', ...args),
-  ['import-db-record-json']: async () => ipcRenderer.invoke('import-db-record-json'),
-  ['get-output-history']: async () => ipcRenderer.invoke('get-output-history'),
-  ['export-diagnostic-info']: async () => ipcRenderer.invoke('export-diagnostic-info'),
-  ['open-local-path']: async (payload = {}) => ipcRenderer.invoke('open-local-path', payload),
-  ['get-log-content']: async () => {
-    const res = await ipcRenderer.invoke('get-log-content')
-    return res
-  },
-  ['clear-log-content']: async () => ipcRenderer.invoke('clear-log-content'),
-  ['get-runtime-jsonl-content']: async () => ipcRenderer.invoke('get-runtime-jsonl-content'),
-  ['clear-runtime-jsonl-content']: async () => ipcRenderer.invoke('clear-runtime-jsonl-content'),
-  ['open-js-rpc-window-devtools']: async () => ipcRenderer.invoke('open-js-rpc-window-devtools'),
+  ['get-debug-ipc-channel-list']: async (...args) => invoke('get-debug-ipc-channel-list', ...args),
+  ['get-task-default-title']: async (...args) => invoke('get-task-default-title', ...args),
+  ['get-common-config']: async (...args) => invoke('get-common-config', ...args),
+  ['start-customer-task']: async (...args) => invoke('start-customer-task', ...args),
+  ['zhihu-http-get']: async (...args) => invoke('zhihu-http-get', ...args),
+  ['open-output-dir']: async (...args) => invoke('open-output-dir', ...args),
+  ['open-devtools']: async (...args) => invoke('open-devtools', ...args),
+  ['clear-all-session-storage']: async (...args) => invoke('clear-all-session-storage', ...args),
+  ['get-db-summary-info']: async (...args) => invoke('get-db-summary-info', ...args),
+  ['get-db-record-list']: async (...args) => invoke('get-db-record-list', ...args),
+  ['export-db-record-json']: async (...args) => invoke('export-db-record-json', ...args),
+  ['import-db-record-json']: async (...args) => invoke('import-db-record-json', ...args),
+  ['get-output-history']: async (...args) => invoke('get-output-history', ...args),
+  ['export-diagnostic-info']: async (...args) => invoke('export-diagnostic-info', ...args),
+  ['open-local-path']: async (...args) => invoke('open-local-path', ...args),
+  ['get-log-content']: async (...args) => invoke('get-log-content', ...args),
+  ['clear-log-content']: async (...args) => invoke('clear-log-content', ...args),
+  ['get-runtime-jsonl-content']: async (...args) => invoke('get-runtime-jsonl-content', ...args),
+  ['clear-runtime-jsonl-content']: async (...args) => invoke('clear-runtime-jsonl-content', ...args),
+  ['open-js-rpc-window-devtools']: async (...args) => invoke('open-js-rpc-window-devtools', ...args),
+  ['append-frontend-log-batch']: async (payload = {}) => invoke('append-frontend-log-batch', payload),
 })

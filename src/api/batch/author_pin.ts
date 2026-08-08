@@ -5,17 +5,19 @@ import BatchFetchPin from '~/src/api/batch/pin'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
 import CommonConfig from '~/src/config/common'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
 
 class BatchFetchAuthorPin extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的数据`)
     this.log(`获取用户信息`)
     const authorInfo = await AuthorApi.asyncGetAutherInfo(urlToken)
-    await MAuthor.asyncReplaceAuthor(authorInfo)
+    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id', 'url_token'])
+    await this.persist('author', urlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
     this.log(`用户信息获取完毕`)
     const name = authorInfo.name
     const authorId = authorInfo.id
-    const pinCount = authorInfo.pins_count
+    const pinCount = assertZhihuNonNegativeIntegerCount(authorInfo.pins_count, `author ${urlToken}.pins_count`)
     this.log(`用户${name}(${urlToken})共发布了${pinCount}个想法`)
     this.log(`开始抓取想法列表`)
     let batchFetchPin = new BatchFetchPin()
@@ -39,8 +41,9 @@ class BatchFetchAuthorPin extends Base {
       needTTL: true
     })
     this.log(`开始抓取用户${name}(${urlToken})的所有想法详情记录,共${pinIdList.length}条`)
-    await batchFetchPin.fetchListAndSaveToDb(pinIdList)
+    const outcome = await batchFetchPin.fetchListAndSaveToDb(pinIdList)
     this.log(`用户${name}(${urlToken})的想法列表抓取完毕`)
+    return outcome
   }
 }
 

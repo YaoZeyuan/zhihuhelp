@@ -1,3 +1,5 @@
+import type { StructuredLogRecord } from './shared/logging/log_contract'
+
 export interface IElectronAPI {
     ['get-debug-ipc-channel-list']: () => Promise<any>,
     ['get-task-default-title']: (...args) => Promise<any>,
@@ -19,6 +21,7 @@ export interface IElectronAPI {
     ['get-runtime-jsonl-content']: () => Promise<any>,
     ['clear-runtime-jsonl-content']: () => Promise<any>,
     ['open-js-rpc-window-devtools']: () => Promise<any>,
+    ['append-frontend-log-batch']: (payload: { records: StructuredLogRecord[] }) => Promise<any>,
     loadPreferences: () => Promise<void>,
 }
 

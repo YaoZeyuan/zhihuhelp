@@ -17,7 +17,9 @@ tmp
 public/css/main.css
 
 # Coverage reports
-coverage
+coverage/
+.test-artifacts/
+tests/.artifacts/
 
 # API keys and secrets
 .env
@@ -46,6 +48,7 @@ build
 #   运行日志
 runtime.log
 runtime.jsonl
+log/
 
 
 #   配置文件

@@ -15,18 +15,11 @@ class Answer extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('answer_id', '=', answerId)
-      .catch(() => {
-        return []
-      })
-    let answerRecordJson = recordList[0]?.raw_json
-    let answerRecord: TypeAnswer.Record
-    try {
-      answerRecord = JSON.parse(answerRecordJson)
-    } catch {
-      answerRecord = {} as any
+    let answerRecord = recordList[0]
+    if (answerRecord === undefined) {
+      return {} as TypeAnswer.Record
     }
-
-    return answerRecord
+    return this.parseEntityRawJson<TypeAnswer.Record>(answerRecord.raw_json, answerId)
   }
 
   /**
@@ -36,19 +29,10 @@ class Answer extends Base {
   static async asyncGetAnswerList(answerIdList: string[]): Promise<TypeAnswer.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('answer_id', answerIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch((e: any) => {
-      console.log('error =>', e)
-      return []
-    })
+    let recordList = await this.rawClient.raw(sql, [])
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = record?.raw_json
-      let answerRecord
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {}
-      }
+      let answerRecord = this.parseEntityRawJson<TypeAnswer.Record>(record?.raw_json, record?.answer_id ?? 'unknown')
       if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
@@ -64,18 +48,10 @@ class Answer extends Base {
   static async asyncGetAnswerListByQuestionIdList(questionIdList: string[]): Promise<TypeAnswer.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('question_id', questionIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch(() => {
-      return []
-    })
+    let recordList = await this.rawClient.raw(sql, [])
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = record?.raw_json
-      let answerRecord
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {}
-      }
+      let answerRecord = this.parseEntityRawJson<TypeAnswer.Record>(record?.raw_json, record?.answer_id ?? 'unknown')
       if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
@@ -93,18 +69,9 @@ class Answer extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('author_url_token', '=', authorUrlToken)
-      .catch(() => {
-        return []
-      })
     let answerRecordList = []
     for (let record of recordList) {
-      let answerRecordJson = record?.raw_json
-      let answerRecord
-      try {
-        answerRecord = JSON.parse(answerRecordJson)
-      } catch {
-        answerRecord = {}
-      }
+      let answerRecord = this.parseEntityRawJson<TypeAnswer.Record>(record?.raw_json, record?.answer_id ?? 'unknown')
       if (lodash.isEmpty(answerRecord) === false) {
         answerRecordList.push(answerRecord)
       }
@@ -141,12 +108,9 @@ class Answer extends Base {
    * @returns 
    */
   static async asyncGetAnswerCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("answer_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }
@@ -156,12 +120,9 @@ class Answer extends Base {
    * @returns 
    */
   static async asyncGetQuestionCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("question_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

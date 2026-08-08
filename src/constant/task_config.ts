@@ -68,6 +68,7 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
     maxItemInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
+    outputFormats: ['html', 'epub'],
   },
   requestConfig: {
     cookie: Const_Default_Cookie,

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "question",
+  "sourceUrl": "https://www.zhihu.com/question/1955952667529545081",
+  "capturedAt": "2026-08-08T16:11:04.462Z",
+  "checksum": "372e394c25553f5c621f61b7cd11faddef77cca1f3e198f21d5ba8a2230484ee",
+  "data": {
+    "entity": {
+      "id": "1955952667529545081",
+      "title": "认知水平高的人有什么特征？",
+      "type": "question",
+      "answer_count": 703
+    },
+    "pages": [
+      {
+        "sourceName": "question-1955952667529545081",
+        "sourceType": "question",
+        "sourceId": "1955952667529545081",
+        "offset": 0,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": "2022805507631588305",
+            "type": "answer"
+          }
+        ]
+      }
+    ]
+  }
+}

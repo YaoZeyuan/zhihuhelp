@@ -6,6 +6,7 @@ import CommonConfig from '~/src/config/common'
 import CommonUtil from '~/src/library/util/common'
 import Base from '~/src/model/base'
 import * as TaskConsts from '~/src/constant/task_config'
+import { LogStatus } from '~/src/shared/logging/log_contract'
 
 const Const_Export_Schema = 'zhihuhelp.cache-export.v1'
 const Const_Max_Error_Count = 20
@@ -104,15 +105,8 @@ type ImportCounter = {
   errors: string[]
 }
 
-function parseRawJson(rawJson: unknown): any {
-  if (typeof rawJson !== 'string') {
-    return rawJson ?? {}
-  }
-  try {
-    return JSON.parse(rawJson)
-  } catch {
-    return {}
-  }
+function parseRawJson(rawJson: unknown, tableName: string, entityId: string | number): any {
+  return Base.parseEntityRawJson(rawJson, entityId, tableName)
 }
 
 function stringifyRawJson(raw: unknown) {
@@ -186,12 +180,31 @@ function addImportError(counter: ImportCounter, message: string) {
   }
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && Array.isArray(value) === false
+}
+
+function describePortableItem(value: unknown, fallback: string): string {
+  if (isPlainRecord(value) === false) {
+    return fallback
+  }
+  const kind = typeof value.kind === 'string' ? value.kind : 'unknown'
+  const id = typeof value.id === 'string' || typeof value.id === 'number' ? String(value.id) : 'unknown'
+  return `${kind}:${id}`
+}
+
+function hasPortableDbColumns(value: unknown): value is { db: { columns: Record<string, unknown> } } {
+  return isPlainRecord(value)
+    && isPlainRecord(value.db)
+    && isPlainRecord(value.db.columns)
+}
+
 async function existsInTable(tableName: string, where: Record<string, string | number>) {
   const query = Base.db.select(Object.keys(where)).from(tableName)
   for (const [key, value] of Object.entries(where)) {
     query.where(key, '=', value)
   }
-  const recordList = await query.limit(1).catch(() => [])
+  const recordList = await query.limit(1)
   return recordList.length > 0
 }
 
@@ -269,7 +282,7 @@ export default class CacheJsonTransfer {
       }
     }
 
-    const versionCheck = CacheJsonTransfer.validateImportVersion(payload)
+    const versionCheck = CacheJsonTransfer.validateImportPayload(payload)
     if (versionCheck.status === 'failure') {
       return {
         status: 'failure',
@@ -279,25 +292,37 @@ export default class CacheJsonTransfer {
       }
     }
 
-    for (const index of payload.indexes ?? []) {
+    for (const index of payload.indexes) {
       await CacheJsonTransfer.importIndex(index, counter)
     }
-    for (const record of payload.records ?? []) {
+    for (const record of payload.records) {
       await CacheJsonTransfer.importRecord(record, counter)
     }
-    for (const relation of payload.relations ?? []) {
+    for (const relation of payload.relations) {
       await CacheJsonTransfer.importRelation(relation, counter)
     }
 
+    if (counter.skipped > 0) {
+      const completed = counter.imported + counter.replaced
+      return {
+        status: completed > 0 ? LogStatus.PARTIAL_SUCCESS : LogStatus.FAILURE,
+        filePath,
+        message: completed > 0
+          ? `导入部分完成：新增 ${counter.imported} 条，覆盖 ${counter.replaced} 条，跳过 ${counter.skipped} 条。`
+          : `导入失败：没有可写入的记录，跳过 ${counter.skipped} 条。`,
+        ...counter,
+      }
+    }
+
     return {
-      status: 'success',
+      status: LogStatus.SUCCESS,
       filePath,
       message: `导入完成：新增 ${counter.imported} 条，覆盖 ${counter.replaced} 条，跳过 ${counter.skipped} 条。`,
       ...counter,
     }
   }
 
-  private static validateImportVersion(payload: any) {
+  private static validateImportPayload(payload: any) {
     if (payload?.schema !== Const_Export_Schema) {
       return {
         status: 'failure' as const,
@@ -322,6 +347,16 @@ export default class CacheJsonTransfer {
       return {
         status: 'failure' as const,
         message: `该 JSON 由知乎助手 ${exportVersion} 导出，当前知乎助手版本为 ${currentVersion}，不支持导入。请下载 ${exportVersion} 或更高版本的知乎助手后再导入。`,
+      }
+    }
+    if (
+      Array.isArray(payload.records) === false
+      || Array.isArray(payload.indexes) === false
+      || Array.isArray(payload.relations) === false
+    ) {
+      return {
+        status: 'failure' as const,
+        message: 'JSON 缺少有效的 records、indexes 或 relations 数组，无法导入。',
       }
     }
     return {
@@ -529,7 +564,6 @@ export default class CacheJsonTransfer {
         .select(['answer_id', 'question_id', 'author_url_token', 'author_id', 'raw_json'])
         .from('Answer')
         .whereIn('answer_id', answerIdList)
-        .catch(() => [])
       const records = answerRecordList.map(CacheJsonTransfer.formatAnswerRecord)
       const topicIndex = await CacheJsonTransfer.getTopicIndex(parentId)
       const title = toDisplayText(topicIndex?.display?.name, parentId)
@@ -610,11 +644,11 @@ export default class CacheJsonTransfer {
     for (const [key, value] of Object.entries(where)) {
       query.where(key, '=', value)
     }
-    return query.catch(() => [])
+    return query
   }
 
   private static async selectIndexRows(tableName: string, columns: string[]) {
-    return Base.db.select(columns).from(tableName).catch(() => [])
+    return Base.db.select(columns).from(tableName)
   }
 
   private static async selectCollectionRelationRows(collectionId: string) {
@@ -622,7 +656,6 @@ export default class CacheJsonTransfer {
       .select(['collection_id', 'record_type', 'record_id', 'record_at', 'raw_json'])
       .from('Collection_Record')
       .where('collection_id', '=', collectionId)
-      .catch(() => [])
   }
 
   private static async selectTopicRelationRows(topicId: string) {
@@ -630,11 +663,10 @@ export default class CacheJsonTransfer {
       .select(['topic_id', 'answer_id'])
       .from('Topic_Answer')
       .where('topic_id', '=', topicId)
-      .catch(() => [])
   }
 
   private static formatAnswerRecord(record: any): PortableRecord {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Answer', record.answer_id ?? 'unknown')
     const id = String(record.answer_id ?? raw?.id ?? '')
     const title = toDisplayText(raw?.question?.title, `回答 ${id}`)
     return {
@@ -663,7 +695,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatArticleRecord(record: any): PortableRecord {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Article', record.article_id ?? 'unknown')
     const id = String(record.article_id ?? raw?.id ?? '')
     const title = toDisplayText(raw?.title, `文章 ${id}`)
     return {
@@ -693,7 +725,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatPinRecord(record: any): PortableRecord {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Pin', record.pin_id ?? 'unknown')
     const id = String(record.pin_id ?? raw?.id ?? '')
     const title = toDisplayText(limitText(raw?.excerpt_title, 80), `想法 ${id}`)
     return {
@@ -721,7 +753,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatAuthorIndex(record: any): PortableIndex {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Author', record.url_token ?? record.id ?? 'unknown')
     const id = String(record.url_token ?? raw?.url_token ?? raw?.id ?? '')
     return {
       kind: 'author',
@@ -743,7 +775,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatColumnIndex(record: any): PortableIndex {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Column', record.column_id ?? 'unknown')
     const id = String(record.column_id ?? raw?.id ?? '')
     return {
       kind: 'column',
@@ -762,7 +794,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatCollectionIndex(record: any): PortableIndex {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Collection', record.collection_id ?? 'unknown')
     const id = String(record.collection_id ?? raw?.id ?? '')
     return {
       kind: 'collection',
@@ -781,7 +813,7 @@ export default class CacheJsonTransfer {
   }
 
   private static formatTopicIndex(record: any): PortableIndex {
-    const raw = parseRawJson(record.raw_json)
+    const raw = parseRawJson(record.raw_json, 'Topic', record.topic_id ?? 'unknown')
     const id = String(record.topic_id ?? raw?.id ?? '')
     return {
       kind: 'topic',
@@ -800,7 +832,9 @@ export default class CacheJsonTransfer {
   }
 
   private static createQuestionIndexFromAnswerRecord(record: any, fallbackId = ''): PortableIndex | undefined {
-    const raw = parseRawJson(record?.raw_json)
+    const raw = record === undefined
+      ? {}
+      : parseRawJson(record.raw_json, 'Answer', record.answer_id ?? record.question_id ?? fallbackId ?? 'unknown')
     const question = raw?.question
     const id = String(question?.id ?? record?.question_id ?? fallbackId)
     if (id === '') {
@@ -827,7 +861,6 @@ export default class CacheJsonTransfer {
       .select(['question_id', 'raw_json'])
       .from('Answer')
       .groupBy('question_id')
-      .catch(() => [])
     return recordList
       .map((record: any) => CacheJsonTransfer.createQuestionIndexFromAnswerRecord(record))
       .filter((item: PortableIndex | undefined): item is PortableIndex => item !== undefined)
@@ -970,7 +1003,11 @@ export default class CacheJsonTransfer {
         recordId,
         recordAt: Number(record.record_at ?? 0),
       },
-      raw: parseRawJson(record.raw_json),
+      raw: parseRawJson(
+        record.raw_json,
+        'Collection_Record',
+        `${collectionId}:${recordType}:${recordId}`,
+      ),
     }
   }
 
@@ -1008,7 +1045,6 @@ export default class CacheJsonTransfer {
         .select(['answer_id', 'question_id', 'author_url_token', 'author_id', 'raw_json'])
         .from('Answer')
         .whereIn('answer_id', answerIdList)
-        .catch(() => [])
       records.push(...rows.map(CacheJsonTransfer.formatAnswerRecord))
     }
     if (articleIdList.length > 0) {
@@ -1016,7 +1052,6 @@ export default class CacheJsonTransfer {
         .select(['article_id', 'author_url_token', 'author_id', 'column_id', 'raw_json'])
         .from('Article')
         .whereIn('article_id', articleIdList)
-        .catch(() => [])
       records.push(...rows.map(CacheJsonTransfer.formatArticleRecord))
     }
     if (pinIdList.length > 0) {
@@ -1024,7 +1059,6 @@ export default class CacheJsonTransfer {
         .select(['pin_id', 'author_url_token', 'author_id', 'raw_json'])
         .from('Pin')
         .whereIn('pin_id', pinIdList)
-        .catch(() => [])
       records.push(...rows.map(CacheJsonTransfer.formatPinRecord))
     }
     return records
@@ -1200,9 +1234,17 @@ export default class CacheJsonTransfer {
   }
 
   private static async importIndex(index: PortableIndex, counter: ImportCounter) {
+    const label = describePortableItem(index, 'unknown-index')
+    if (hasPortableDbColumns(index) === false || isPlainRecord(index.raw) === false) {
+      addImportError(counter, `索引 ${label} 结构无效，raw 和 db.columns 必须是对象。`)
+      return
+    }
     try {
       const importData = CacheJsonTransfer.buildIndexImportData(index)
       if (!importData) {
+        if (index.kind !== 'question') {
+          addImportError(counter, `索引 ${label} 缺少必要字段，已跳过。`)
+        }
         return
       }
       await replaceIntoWithCounter(
@@ -1212,15 +1254,20 @@ export default class CacheJsonTransfer {
         importData.data,
       )
     } catch (error: any) {
-      addImportError(counter, `索引 ${index.kind}:${index.id} 导入失败：${error?.message ?? error}`)
+      addImportError(counter, `索引 ${label} 导入失败：${error?.message ?? error}`)
     }
   }
 
   private static async importRecord(record: PortableRecord, counter: ImportCounter) {
+    const label = describePortableItem(record, 'unknown-record')
+    if (hasPortableDbColumns(record) === false || isPlainRecord(record.raw) === false) {
+      addImportError(counter, `记录 ${label} 结构无效，raw 和 db.columns 必须是对象。`)
+      return
+    }
     try {
       const importData = CacheJsonTransfer.buildRecordImportData(record)
       if (!importData) {
-        addImportError(counter, `记录 ${record.kind}:${record.id} 缺少必要字段，已跳过。`)
+        addImportError(counter, `记录 ${label} 缺少必要字段，已跳过。`)
         return
       }
       await replaceIntoWithCounter(
@@ -1230,15 +1277,24 @@ export default class CacheJsonTransfer {
         importData.data,
       )
     } catch (error: any) {
-      addImportError(counter, `记录 ${record.kind}:${record.id} 导入失败：${error?.message ?? error}`)
+      addImportError(counter, `记录 ${label} 导入失败：${error?.message ?? error}`)
     }
   }
 
   private static async importRelation(relation: PortableRelation, counter: ImportCounter) {
+    const label = describePortableItem(relation, 'unknown-relation')
+    const requiresRawObject = isPlainRecord(relation) && relation.kind === 'collection-record'
+    if (
+      hasPortableDbColumns(relation) === false
+      || (requiresRawObject && isPlainRecord(relation.raw) === false)
+    ) {
+      addImportError(counter, `关系 ${label} 结构无效，db.columns 或 raw 不是对象。`)
+      return
+    }
     try {
       const importData = CacheJsonTransfer.buildRelationImportData(relation)
       if (!importData) {
-        addImportError(counter, `关系 ${relation.kind}:${relation.id} 缺少必要字段，已跳过。`)
+        addImportError(counter, `关系 ${label} 缺少必要字段，已跳过。`)
         return
       }
       await replaceIntoWithCounter(
@@ -1248,7 +1304,7 @@ export default class CacheJsonTransfer {
         importData.data,
       )
     } catch (error: any) {
-      addImportError(counter, `关系 ${relation.kind}:${relation.id} 导入失败：${error?.message ?? error}`)
+      addImportError(counter, `关系 ${label} 导入失败：${error?.message ?? error}`)
     }
   }
 }

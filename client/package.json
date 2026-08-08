@@ -16,7 +16,6 @@
     "@ant-design/icons": "^6.3.2",
     "ahooks": "^3.9.7",
     "antd": "^6.5.4",
-    "builtin-modules": "^5.3.0",
     "dayjs": "^1.11.21",
     "query-string": "^9.5.0",
     "rc-virtual-list": "^3.19.2",
@@ -24,16 +23,13 @@
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
     "semver": "^7.8.5",
-    "valtio": "^2.3.2",
-    "vite-plugin-commonjs-externals": "^0.1.4"
+    "valtio": "^2.3.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "babel-preset-react-app": "^10.1.0",
     "less": "^4.8.1",
     "rc-textarea": "^1.10.2",
-    "shelljs": "^0.10.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.1"
   }

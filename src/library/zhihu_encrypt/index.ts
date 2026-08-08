@@ -1,9 +1,12 @@
 import md5 from 'md5'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
 
 // 需要从index.ts中获得js-rpc函数
-let bridgeFunc: ({ method, paramList }: { method: string; paramList: any[] }) => any
+type BridgeInput = { method: string; paramList: any[]; traceId?: string }
+type BridgeFunc = (input: BridgeInput) => Promise<unknown>
+let bridgeFunc: BridgeFunc | undefined
 
-export function setBridgeFunc(bridge: any) {
+export function setBridgeFunc(bridge: BridgeFunc) {
   bridgeFunc = bridge
 }
 
@@ -25,8 +28,9 @@ async function asyncGet_X_Zse_96(param: {
    * header中cookie的d_c0字段, 包括双引号
    */
   cookie_d_c0: string | ''
+  traceId?: string
 }) {
-  let { url, cookie_d_c0 } = param
+  let { url, cookie_d_c0, traceId } = param
 
   // 生成完整url
   var info = [
@@ -36,6 +40,9 @@ async function asyncGet_X_Zse_96(param: {
   ].join('+')
   var step1 = md5(info)
   // console.log('ipcRenderer step1 => ', step1, JSON.stringify({ url, cookie_d_c0, info }))
+  if (bridgeFunc === undefined) {
+    throw new ApplicationError(AppErrorCode.SIGNATURE_FAILED, '知乎签名运行时尚未就绪')
+  }
   let signature = await bridgeFunc({
     method: 'encrypt-string',
     paramList: [
@@ -43,6 +50,7 @@ async function asyncGet_X_Zse_96(param: {
         inputString: step1,
       },
     ],
+    traceId,
   })
   // console.log('signature => ', signature)
   //   var signature = result //zhihuEncrypt(step1)

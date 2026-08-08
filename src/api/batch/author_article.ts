@@ -4,16 +4,18 @@ import BatchFetchArticle from '~/src/api/batch/article'
 import Base from '~/src/api/batch/base'
 import CommonUtil from '~/src/library/util/common'
 import CommonConfig from '~/src/config/common'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
 
 class BatchFetchAuthorArticle extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的数据`)
     this.log(`获取用户信息`)
     const authorInfo = await AuthorApi.asyncGetAutherInfo(urlToken)
-    await MAuthor.asyncReplaceAuthor(authorInfo)
+    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id', 'url_token'])
+    await this.persist('author', urlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
     this.log(`用户信息获取完毕`)
     const name = authorInfo.name
-    const articleCount = authorInfo.articles_count
+    const articleCount = assertZhihuNonNegativeIntegerCount(authorInfo.articles_count, `author ${urlToken}.articles_count`)
     this.log(`用户${name}(${urlToken})共发布了${articleCount}篇文章`)
     this.log(`开始抓取文章列表`)
     let batchFetchArticle = new BatchFetchArticle()
@@ -36,8 +38,9 @@ class BatchFetchAuthorArticle extends Base {
       needTTL: true
     })
     this.log(`开始抓取用户${name}(${urlToken})的所有文章详情,共${articleIdList.length}篇`)
-    await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
+    const outcome = await batchFetchArticle.fetchListAndSaveToDb(articleIdList)
     this.log(`用户${name}(${urlToken})的文章列表抓取完毕`)
+    return outcome
   }
 }
 

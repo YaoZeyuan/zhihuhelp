@@ -1,10 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import shelljs from 'shelljs'
 import logger from '~/src/library/logger'
 import AdmZip from 'adm-zip'
 import OPF from './opf'
 import TOC from './toc'
+
+const ZIP_METHOD_STORED = 0
 
 class Epub {
   opf = new OPF()
@@ -39,9 +40,9 @@ class Epub {
     return path.resolve(this.epubContentCachePath, 'image')
   }
 
-  constructor(bookname: string, basePath: string) {
+  constructor(bookname: string, basePath: string, outputBasename = bookname) {
     this.basePath = basePath
-    this.bookname = bookname
+    this.bookname = outputBasename
 
     this.opf.creator = this.creator
     this.toc.creator = this.creator
@@ -53,13 +54,13 @@ class Epub {
   }
 
   initPath() {
-    shelljs.mkdir('-p', this.epubCachePath)
-    shelljs.mkdir('-p', this.epubContentCachePath)
-    shelljs.mkdir('-p', this.epubCacheCssPath)
-    shelljs.mkdir('-p', this.epubCacheHtmlPath)
-    shelljs.mkdir('-p', this.epubCacheImagePath)
+    fs.mkdirSync(this.epubCachePath, { recursive: true })
+    fs.mkdirSync(this.epubContentCachePath, { recursive: true })
+    fs.mkdirSync(this.epubCacheCssPath, { recursive: true })
+    fs.mkdirSync(this.epubCacheHtmlPath, { recursive: true })
+    fs.mkdirSync(this.epubCacheImagePath, { recursive: true })
 
-    shelljs.mkdir('-p', path.resolve(this.epubCachePath, 'META-INF'))
+    fs.mkdirSync(path.resolve(this.epubCachePath, 'META-INF'), { recursive: true })
 
     // 静态资源
     fs.copyFileSync(
@@ -124,10 +125,12 @@ class Epub {
     let epubUri = path.resolve(this.epubCachePath, this.bookname + '.epub')
     logger.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
 
-    zip.addFile(
+    const mimetypeEntry = zip.addFile(
       'mimetype',
       fs.readFileSync(path.resolve(this.epubCachePath, 'mimetype'))
     )
+    // EPUB requires the first entry to be the uncompressed `mimetype` file.
+    mimetypeEntry.header.method = ZIP_METHOD_STORED
     await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'META-INF'), {
       "zipPath": 'META-INF'
     })
@@ -140,11 +143,7 @@ class Epub {
   }
 
   private CopyFileSyncSafe(fromUri: string, toUri: string) {
-    if (fs.existsSync(fromUri) === false) {
-      return
-    }
     fs.copyFileSync(fromUri, toUri)
-    return
   }
 }
 

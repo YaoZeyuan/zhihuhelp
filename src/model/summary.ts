@@ -59,15 +59,12 @@ export type Select_Type = typeof Consts.Const_Task_Type_专栏
  */
 
 export default class Summary extends Base {
-    private static parseRawJson(rawJson: unknown): any {
-        if (typeof rawJson !== 'string') {
-            return rawJson ?? {}
-        }
-        try {
-            return JSON.parse(rawJson)
-        } catch {
-            return {}
-        }
+    private static parseRawJson(
+        rawJson: unknown,
+        entityId: string | number = 'unknown',
+        tableName = 'summary',
+    ): any {
+        return this.parseEntityRawJson(rawJson, entityId, tableName)
     }
 
     private static stripHtml(content: unknown): string {
@@ -190,11 +187,8 @@ export default class Summary extends Base {
             .orderBy('question_id', 'desc')
             .limit(pageSize)
             .offset(pageNo * pageSize)
-            .catch(() => {
-                return []
-            })
         return recordList.map((record: any) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.question_id, MAnswer.TABLE_NAME)
             return Summary.formatRecord({
                 id: record.question_id,
                 name: raw?.question?.title,
@@ -206,7 +200,7 @@ export default class Summary extends Base {
 
     private static formatAnswerRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.answer_id, MAnswer.TABLE_NAME)
             const title = String(raw?.question?.title ?? `回答 ${record.answer_id}`)
             const contentHtml = typeof raw?.content === 'string' ? raw.content : ''
             return Summary.formatRecord({
@@ -230,7 +224,7 @@ export default class Summary extends Base {
 
     private static formatArticleRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.article_id, MArticle.TABLE_NAME)
             const title = String(raw?.title ?? `文章 ${record.article_id}`)
             const contentHtml = typeof raw?.content === 'string' ? raw.content : ''
             return Summary.formatRecord({
@@ -255,7 +249,7 @@ export default class Summary extends Base {
 
     private static formatPinRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.pin_id, MPin.TABLE_NAME)
             const contentHtml = Summary.buildPinContentHtml(raw)
             const originContentHtml = Summary.buildPinContentHtml(raw?.repin)
             const title = Summary.limitText(raw?.excerpt_title, 80) || `想法 ${record.pin_id}`
@@ -280,7 +274,7 @@ export default class Summary extends Base {
 
     private static formatAuthorRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.url_token, MAuthor.TABLE_NAME)
             return Summary.formatRecord({
                 id: record.url_token,
                 name: raw?.name,
@@ -292,7 +286,7 @@ export default class Summary extends Base {
 
     private static formatColumnRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.column_id, MColumn.TABLE_NAME)
             return Summary.formatRecord({
                 id: record.column_id,
                 name: raw?.title ?? raw?.name,
@@ -304,7 +298,7 @@ export default class Summary extends Base {
 
     private static formatCollectionRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.collection_id, MCollection.TABLE_NAME)
             return Summary.formatRecord({
                 id: record.collection_id,
                 name: raw?.title,
@@ -316,7 +310,7 @@ export default class Summary extends Base {
 
     private static formatTopicRecordList(recordList: any[]): DataType[] {
         return recordList.map((record) => {
-            const raw = Summary.parseRawJson(record.raw_json)
+            const raw = Summary.parseRawJson(record.raw_json, record.topic_id, MTopic.TABLE_NAME)
             return Summary.formatRecord({
                 id: record.topic_id,
                 name: raw?.name,
@@ -340,10 +334,7 @@ export default class Summary extends Base {
         const count = await Base.db
             .countDistinct(`${countColumn} as count`)
             .from(tableName)
-            .where(whereColumn, '=', whereValue)
-            .catch(() => {
-                return []
-            }) as { count: number }[]
+            .where(whereColumn, '=', whereValue) as { count: number }[]
         return count?.[0]?.count ?? 0
     }
 
@@ -363,9 +354,6 @@ export default class Summary extends Base {
             .orderBy('answer_id', 'desc')
             .limit(pageSize)
             .offset(pageNo * pageSize)
-            .catch(() => {
-                return []
-            })
         const total = await Summary.asyncCountWhere({
             tableName: MAnswer.TABLE_NAME,
             countColumn: 'answer_id',
@@ -394,17 +382,14 @@ export default class Summary extends Base {
             .select(MAnswer.TABLE_COLUMN)
             .from(MAnswer.TABLE_NAME)
             .where('author_url_token', '=', authorUrlToken)
-            .catch(() => [])
         const articleRecordList = await MArticle.db
             .select(MArticle.TABLE_COLUMN)
             .from(MArticle.TABLE_NAME)
             .where('author_url_token', '=', authorUrlToken)
-            .catch(() => [])
         const pinRecordList = await MPin.db
             .select(MPin.TABLE_COLUMN)
             .from(MPin.TABLE_NAME)
             .where('author_url_token', '=', authorUrlToken)
-            .catch(() => [])
         const mixedRecordList = [
             ...Summary.formatAnswerRecordList(answerRecordList),
             ...Summary.formatArticleRecordList(articleRecordList),
@@ -435,9 +420,6 @@ export default class Summary extends Base {
             .orderBy('article_id', 'desc')
             .limit(pageSize)
             .offset(pageNo * pageSize)
-            .catch(() => {
-                return []
-            })
         const total = await Summary.asyncCountWhere({
             tableName: MArticle.TABLE_NAME,
             countColumn: 'article_id',
@@ -468,7 +450,6 @@ export default class Summary extends Base {
             .select(MAnswer.TABLE_COLUMN)
             .from(MAnswer.TABLE_NAME)
             .whereIn('answer_id', pageAnswerIdList)
-            .catch(() => [])
         return {
             recordList: Summary.formatAnswerRecordList(recordList),
             total: answerIdList.length,
@@ -494,7 +475,6 @@ export default class Summary extends Base {
             .orderBy('record_at', 'desc')
             .limit(pageSize)
             .offset(pageNo * pageSize)
-            .catch(() => [])
         const total = await Summary.asyncCountWhere({
             tableName: MCollection.COLLECTION_RECORD_TABLE_NAME,
             countColumn: 'record_id',
@@ -508,11 +488,10 @@ export default class Summary extends Base {
                     .select(MAnswer.TABLE_COLUMN)
                     .from(MAnswer.TABLE_NAME)
                     .where('answer_id', '=', collectionRecord.record_id)
-                    .catch(() => [])
                 recordList.push(...Summary.formatAnswerRecordList(dbRecordList.length > 0 ? dbRecordList : [{
                     answer_id: collectionRecord.record_id,
-                    question_id: Summary.parseRawJson(collectionRecord.raw_json)?.question?.id ?? '',
-                    author_url_token: Summary.parseRawJson(collectionRecord.raw_json)?.author?.url_token ?? '',
+                    question_id: Summary.parseRawJson(collectionRecord.raw_json, collectionRecord.record_id, MCollection.COLLECTION_RECORD_TABLE_NAME)?.question?.id ?? '',
+                    author_url_token: Summary.parseRawJson(collectionRecord.raw_json, collectionRecord.record_id, MCollection.COLLECTION_RECORD_TABLE_NAME)?.author?.url_token ?? '',
                     raw_json: collectionRecord.raw_json,
                 }]))
             }
@@ -521,10 +500,9 @@ export default class Summary extends Base {
                     .select(MArticle.TABLE_COLUMN)
                     .from(MArticle.TABLE_NAME)
                     .where('article_id', '=', collectionRecord.record_id)
-                    .catch(() => [])
                 recordList.push(...Summary.formatArticleRecordList(dbRecordList.length > 0 ? dbRecordList : [{
                     article_id: collectionRecord.record_id,
-                    column_id: Summary.parseRawJson(collectionRecord.raw_json)?.column?.id ?? '',
+                    column_id: Summary.parseRawJson(collectionRecord.raw_json, collectionRecord.record_id, MCollection.COLLECTION_RECORD_TABLE_NAME)?.column?.id ?? '',
                     raw_json: collectionRecord.raw_json,
                 }]))
             }
@@ -533,10 +511,9 @@ export default class Summary extends Base {
                     .select(MPin.TABLE_COLUMN)
                     .from(MPin.TABLE_NAME)
                     .where('pin_id', '=', collectionRecord.record_id)
-                    .catch(() => [])
                 recordList.push(...Summary.formatPinRecordList(dbRecordList.length > 0 ? dbRecordList : [{
                     pin_id: collectionRecord.record_id,
-                    author_url_token: Summary.parseRawJson(collectionRecord.raw_json)?.author?.url_token ?? '',
+                    author_url_token: Summary.parseRawJson(collectionRecord.raw_json, collectionRecord.record_id, MCollection.COLLECTION_RECORD_TABLE_NAME)?.author?.url_token ?? '',
                     raw_json: collectionRecord.raw_json,
                 }]))
             }

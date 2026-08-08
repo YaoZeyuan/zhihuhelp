@@ -8,30 +8,36 @@ import * as DATE_FORMAT from '~/src/constant/date_format'
 import CommonUtil from '~/src/library/util/common'
 import BatchFetchAnswer from '~/src/api/batch/answer'
 import BatchFetchQuestion from '~/src/api/batch/question'
-import BatchFetchColumn from '~/src/api/batch/column'
 import BatchFetchArticle from './article'
 import CommonConfig from '~/src/config/common'
-import lodash from 'lodash'
+import { createSuccessOutcome, mergeExecutionOutcomes } from '~/src/shared/runtime/execution_outcome'
 
 class BatchFetchAuthorActivity extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的历史活动`)
     this.log(`获取用户信息`)
     const authorInfo = await AuthorApi.asyncGetAutherInfo(urlToken)
-    await MAuthor.asyncReplaceAuthor(authorInfo)
+    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id', 'url_token'])
+    await this.persist('author', urlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
     this.log(`用户信息获取完毕`)
     const name = authorInfo.name
     this.log(`开始抓取用户行为列表`)
     let startAt = MActivity.ZHIHU_ACTIVITY_START_MONTH_AT
     this.log(`检查用户${name}(${urlToken})最后一次活跃时间`)
     let endAt = await ActivityApi.asyncGetAutherLastActivityAt(urlToken)
+    if (endAt === 0) {
+      this.log(`用户${name}(${urlToken})没有活动记录`)
+      return createSuccessOutcome(0)
+    }
     this.log(`用户${name}(${urlToken})最后一次活跃于${moment.unix(endAt).format(DATE_FORMAT.Const_Display_By_Second)}`)
 
     this.log(`检查用户${name}(${urlToken})首次活跃时间`)
     let loopCounter = 0
+    let hasActivityInSupportedRange = false
     for (let checkAt = startAt; checkAt <= endAt;) {
       let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(urlToken, checkAt)
       if (hasActivityAfterAt) {
+        hasActivityInSupportedRange = true
         this.log(
           `经检查, 用户${name}(${urlToken})在${moment
             .unix(checkAt)
@@ -55,6 +61,10 @@ class BatchFetchAuthorActivity extends Base {
         this.log(`第${loopCounter}次抓取, 休眠${CommonConfig.protect_To_Wait_ms / 1000}s, 保护知乎服务器`)
         await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
       }
+    }
+    if (hasActivityInSupportedRange === false) {
+      this.log(`用户${name}(${urlToken})在支持的时间范围内没有活动记录`)
+      return createSuccessOutcome(0)
     }
     this.log(
       `用户活动时间范围为${moment.unix(startAt).format(DATE_FORMAT.Const_Display_By_Second)} ~ ${moment
@@ -80,7 +90,9 @@ class BatchFetchAuthorActivity extends Base {
     this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
     let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdList(urlToken, MActivity.VERB_ANSWER_VOTE_UP)
     let batchFetchAnswer = new BatchFetchAnswer()
-    await batchFetchAnswer.fetchListAndSaveToDb(allAgreeAnswerIdList)
+    const answerOutcome = await this.collectNestedBatchOutcome(() =>
+      batchFetchAnswer.fetchListAndSaveToDb(allAgreeAnswerIdList),
+    )
     this.log(`用户${name}(${urlToken})赞同过的所有回答抓取完毕`)
     this.log(`抓取用户${name}(${urlToken})赞同过的所有文章`)
     let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdList(
@@ -88,7 +100,9 @@ class BatchFetchAuthorActivity extends Base {
       MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
     )
     let batchFetchArticle = new BatchFetchArticle()
-    await batchFetchArticle.fetchListAndSaveToDb(allAgreeArticleIdList)
+    const articleOutcome = await this.collectNestedBatchOutcome(() =>
+      batchFetchArticle.fetchListAndSaveToDb(allAgreeArticleIdList),
+    )
     this.log(`用户${name}(${urlToken})赞同过的所有文章抓取完毕`)
     this.log(`抓取用户${name}(${urlToken})关注过的所有问题`)
     let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdList(
@@ -96,8 +110,11 @@ class BatchFetchAuthorActivity extends Base {
       MActivity.VERB_QUESTION_FOLLOW,
     )
     let batchFetchQuestion = new BatchFetchQuestion()
-    await batchFetchQuestion.fetchListAndSaveToDb(allFollowQustionIdList)
+    const questionOutcome = await this.collectNestedBatchOutcome(() =>
+      batchFetchQuestion.fetchListAndSaveToDb(allFollowQustionIdList),
+    )
     this.log(`用户${name}(${urlToken})关注过的所有问题抓取完毕`)
+    return mergeExecutionOutcomes([answerOutcome, articleOutcome, questionOutcome])
   }
 
   /**
@@ -111,33 +128,31 @@ class BatchFetchAuthorActivity extends Base {
       .unix(endAt)
       .format(DATE_FORMAT.Const_Display_By_Day)}`
     this.log(`抓取时间范围为:${rangeString}内的记录`)
+    let loopCounter = 0
     for (let fetchAt = endAt; startAt <= fetchAt && fetchAt <= endAt;) {
-      let asyncTaskFunc = async () => {
-        this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
-        let activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
-        if (activityList.length === 0) {
-          // 没有这段时间的记录或者接口调用失败, 自动往前挪一天
-          fetchAt = fetchAt - 86400
-          return
-        }
-        for (let activityRecord of activityList) {
-          // 更新时间(id是毫秒值)
-          fetchAt = Number.parseInt(`${activityRecord.id / 1000}`)
-          if (lodash.isNumber(fetchAt) === false) {
-            fetchAt = 0
+      const currentFetchAt = fetchAt
+      this.log(`[${rangeString}]抓取${moment.unix(fetchAt).format(DATE_FORMAT.Const_Display_By_Second)}的记录`)
+      const activityList = await ActivityApi.asyncGetAutherActivityList(urlToken, fetchAt)
+      if (activityList.length === 0) {
+        // 空窗口向前移动一天；请求失败会由 HTTP 层直接抛出。
+        fetchAt = currentFetchAt - 86400
+      } else {
+        let oldestActivityAt = currentFetchAt
+        for (const activityRecord of activityList) {
+          const activityAt = Number(activityRecord.id) / 1000
+          if (Number.isFinite(activityAt)) {
+            oldestActivityAt = Math.min(oldestActivityAt, Math.floor(activityAt))
           }
-          await MActivity.asyncReplaceActivity(activityRecord)
+          await this.persist('activity', `${activityRecord.id}`, () => MActivity.asyncReplaceActivity(activityRecord))
         }
+        // API 游标是包含式的，至少回退一秒以避免重复页导致死循环。
+        fetchAt = oldestActivityAt < currentFetchAt ? oldestActivityAt - 1 : currentFetchAt - 86400
       }
-      // 通过统一的任务中心执行
-      CommonUtil.addAsyncTaskFunc({
-        asyncTaskFunc,
-        needProtect: true,
-      })
+      loopCounter++
+      if (loopCounter % CommonConfig.protect_Loop_Count === 0) {
+        await CommonUtil.asyncSleep(CommonConfig.protect_To_Wait_ms)
+      }
     }
-    await CommonUtil.asyncWaitAllTaskComplete({
-      needTTL: true
-    })
     this.log(`[${rangeString}]${rangeString}期间的记录抓取完毕`)
   }
 }
