@@ -33,14 +33,12 @@ export default ({
 
   useEffect(() => {
     if (value?.rawInputText !== snap.rawInputText || value.type !== snap.type) {
-      console.log('value发生变更, 更新内部状态')
       store.rawInputText = value!.rawInputText
       store.type = value!.type
     }
   }, [value])
 
   useEffect(() => {
-    console.log('snap发生变更, 通知外部', snap)
     // 当id和type发生变更时, 通知外部组件
     onChange({
       type: snap.type,
@@ -102,7 +100,7 @@ export default ({
                 })
               }}
             ></Button>
-            <Divider type="vertical" />
+            <Divider orientation="vertical" />
             <Button
               type="primary"
               danger

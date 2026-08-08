@@ -30,14 +30,12 @@ export default ({
   let snap = useSnapshot(store)
   useEffect(() => {
     if (value !== undefined) {
-      console.log('value发生变更, 更新内部状态')
       store.orderBy = value!.orderBy
       store.orderWith = value!.orderWith
     }
   }, [value])
 
   useEffect(() => {
-    console.log('snap发生变更, 通知外部', snap)
     onChange({
       orderBy: snap.orderBy,
       orderWith: snap.orderWith,
@@ -54,7 +52,6 @@ export default ({
             defaultValue={Consts.Const_Default_Order_With}
             value={snap?.orderWith}
             onChange={(value: typeof store.orderWith) => {
-              console.log('orderWith发生变更', value)
               store.orderWith = value
             }}
           ></Select>
@@ -87,7 +84,7 @@ export default ({
                 })
               }}
             ></Button>
-            <Divider type="vertical" />
+            <Divider orientation="vertical" />
             <Button
               type="primary"
               danger

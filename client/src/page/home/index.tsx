@@ -83,7 +83,7 @@ let Item = () => {
     tabItemList.push({
       label: Consts_Page.Const_Page_Title[key],
       key: key,
-      children: tabMap[key](),
+      children: React.createElement(tabMap[key]),
     })
   }
 

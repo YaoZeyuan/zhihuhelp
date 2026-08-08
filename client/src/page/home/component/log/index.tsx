@@ -322,7 +322,7 @@ export default () => {
             className="latest-error"
             type="error"
             showIcon
-            message="最近错误"
+            title="最近错误"
             description={latestError.error?.message ?? latestError.message}
           />
         )}
@@ -373,7 +373,7 @@ export default () => {
           </Col>
           <Col offset={6}>
             <Button onClick={asyncFetchLogList}>刷新日志</Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Button
               type="primary"
               htmlType="button"
@@ -383,9 +383,9 @@ export default () => {
             >
               打开电子书输出目录
             </Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Button onClick={asyncExportDiagnosticInfo}>导出诊断信息</Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Button danger onClick={asyncClearLogList}>
               清空日志
             </Button>

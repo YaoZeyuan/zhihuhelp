@@ -125,8 +125,9 @@ function stringifyJson(value: unknown) {
   }
 }
 
-function buildLineList(content: string): Type_Log_Line_Item[] {
-  return (content || '').split('\n').map((item, index) => ({
+function buildLineList(content: unknown): Type_Log_Line_Item[] {
+  const normalizedContent = typeof content === 'string' ? content : content == null ? '' : stringifyJson(content)
+  return normalizedContent.split('\n').map((item, index) => ({
     lineNo: index + 1,
     content: item,
   }))

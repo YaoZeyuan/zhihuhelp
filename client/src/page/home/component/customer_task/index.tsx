@@ -355,7 +355,7 @@ export default () => {
               className="login-status-alert"
               type={Const_Login_Status_Alert_Type[loginStatus]}
               showIcon
-              message={Const_Login_Status_Text[loginStatus]}
+              title={Const_Login_Status_Text[loginStatus]}
               action={
                 <Space>
                   <Button
@@ -437,6 +437,7 @@ export default () => {
               <Modal
                 title="批量输入"
                 open={isModalShow}
+                forceRender
                 onOk={handleBatchTaskModal.onOk}
                 onCancel={handleBatchTaskModal.onCancel}
               >
@@ -462,12 +463,11 @@ export default () => {
           </Form.Item>
           <Form.List name="taskItemList">
             {(fields, operation) => {
-              return fields.map((field) => {
+              return fields.map(({ key, ...field }) => {
                 return (
-                  <Form.Item {...field} noStyle>
+                  <Form.Item key={`${batchTaskUpdateCounter}-${key}`} {...field} noStyle>
                     <TaskItem
                       // 每次导入批量数据后, 都强制刷新TaskItem组件, 重建Input组件, 以避免旧defaultValue无法更新的问题
-                      key={`${batchTaskUpdateCounter}-${field.key}`}
                       fieldIndex={field.name}
                       action={{
                         remove: (index: number) => {
@@ -486,7 +486,7 @@ export default () => {
               className="task-error-alert"
               type="warning"
               showIcon
-              message="部分链接暂未识别成功"
+              title="部分链接暂未识别成功"
               description={
                 <div>
                   {invalidTaskItemList.map((item) => (
@@ -545,11 +545,11 @@ export default () => {
           </Form.Item>
           <Form.List name="orderItemList">
             {(fields, operation) => {
-              return fields.map((field) => {
+              return fields.map(({ key, ...field }) => {
                 return (
-                  <Form.Item {...field} noStyle>
+                  <Form.Item key={key} {...field} noStyle>
                     <OrderItem
-                      fieldKey={field.key}
+                      fieldKey={key}
                       action={{
                         remove: operation.remove,
                         add: operation.add,
@@ -606,7 +606,7 @@ export default () => {
             <Button type="primary" htmlType="submit" loading={statusSnap.loading.startTask}>
               开始
             </Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Button
               htmlType="button"
               onClick={async () => {
@@ -615,10 +615,9 @@ export default () => {
             >
               打开电子书输出目录
             </Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Space wrap>
-              <Dropdown.Button
-                loading={statusSnap.loading.checkLogin}
+              <Dropdown
                 menu={{
                   items: [
                     {
@@ -655,10 +654,11 @@ export default () => {
                   ],
                   onClick: () => {},
                 }}
-                icon={<DownIcon />}
               >
-                账户菜单
-              </Dropdown.Button>
+                <Button loading={statusSnap.loading.checkLogin} icon={<DownIcon />}>
+                  账户菜单
+                </Button>
+              </Dropdown>
             </Space>
           </Form.Item>
         </Form>
