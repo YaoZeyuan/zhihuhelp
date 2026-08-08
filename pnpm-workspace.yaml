@@ -3,6 +3,7 @@ packages:
 allowBuilds:
   core-js: true
   electron: true
+  electron-winstaller: true
   esbuild: true
   lzma-native: true
   sharp: true
