@@ -830,7 +830,7 @@ export default class CacheJsonTransfer {
       .catch(() => [])
     return recordList
       .map((record: any) => CacheJsonTransfer.createQuestionIndexFromAnswerRecord(record))
-      .filter((item): item is PortableIndex => item !== undefined)
+      .filter((item: PortableIndex | undefined): item is PortableIndex => item !== undefined)
   }
 
   private static collectIndexesFromRecords(records: PortableRecord[]) {
@@ -1205,7 +1205,12 @@ export default class CacheJsonTransfer {
       if (!importData) {
         return
       }
-      await replaceIntoWithCounter(counter, importData.tableName, importData.primaryKey, importData.data)
+      await replaceIntoWithCounter(
+        counter,
+        importData.tableName,
+        importData.primaryKey as unknown as Record<string, string | number>,
+        importData.data,
+      )
     } catch (error: any) {
       addImportError(counter, `索引 ${index.kind}:${index.id} 导入失败：${error?.message ?? error}`)
     }
@@ -1218,7 +1223,12 @@ export default class CacheJsonTransfer {
         addImportError(counter, `记录 ${record.kind}:${record.id} 缺少必要字段，已跳过。`)
         return
       }
-      await replaceIntoWithCounter(counter, importData.tableName, importData.primaryKey, importData.data)
+      await replaceIntoWithCounter(
+        counter,
+        importData.tableName,
+        importData.primaryKey as unknown as Record<string, string | number>,
+        importData.data,
+      )
     } catch (error: any) {
       addImportError(counter, `记录 ${record.kind}:${record.id} 导入失败：${error?.message ?? error}`)
     }
@@ -1231,7 +1241,12 @@ export default class CacheJsonTransfer {
         addImportError(counter, `关系 ${relation.kind}:${relation.id} 缺少必要字段，已跳过。`)
         return
       }
-      await replaceIntoWithCounter(counter, importData.tableName, importData.primaryKey, importData.data)
+      await replaceIntoWithCounter(
+        counter,
+        importData.tableName,
+        importData.primaryKey as unknown as Record<string, string | number>,
+        importData.data,
+      )
     } catch (error: any) {
       addImportError(counter, `关系 ${relation.kind}:${relation.id} 导入失败：${error?.message ?? error}`)
     }

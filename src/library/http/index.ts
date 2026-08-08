@@ -6,7 +6,7 @@ import asyncGetZhihuEncrypt from '~/src/library/zhihu_encrypt/index'
 import querystring from 'querystring'
 import lodash from 'lodash'
 import URL from 'url'
-import LruCache from "lru-cache"
+import { LRUCache } from 'lru-cache'
 import md5 from 'md5'
 
 const Const_Headers_x_zse_93 = '101_3_3.0'
@@ -21,7 +21,7 @@ const httpInstance = axios.create({
   },
 })
 
-let lruCache = new LruCache({ max: 10000, ttl: 1000 * 3600 })
+let lruCache = new LRUCache({ max: 10000, ttl: 1000 * 3600 })
 
 export function fixedEncodeURIComponent(str: string) {
   // 不需要对*进行转码

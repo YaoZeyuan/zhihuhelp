@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'production'
 
 let shell = require('shelljs')
 let path = require('path')
+let fs = require('fs')
 
 let clientBasePath = path.resolve(__dirname, '..')
 // 静态资源整体打包输出到 dist/client/dist 下
@@ -21,7 +22,10 @@ console.log('旧构建结果清理完毕')
 
 // 构建新项目
 console.log('开始构建新项目')
-shell.exec('npm run build')
+let buildResult = shell.exec('npm run build')
+if (buildResult.code !== 0) {
+  shell.exit(buildResult.code)
+}
 console.log('静态资源构建完毕')
 
 // 复制静态资源到electron项目中
@@ -31,6 +35,6 @@ console.log(`创建新资源目录 => ${targetPath}`)
 shell.mkdir('-p', targetPath)
 console.log(`复制文件 ${generatePath} => ${targetPath}`)
 // 不复制dist本身这一层目录, 使最终结果更容易理解
-shell.cp('-rf', generatePath + '/*', targetPath)
+fs.cpSync(generatePath, targetPath, { recursive: true })
 // shell.mv(generatePath, targetPath)
 console.log(`构建完成`)

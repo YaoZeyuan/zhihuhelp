@@ -90,6 +90,8 @@ const Const_Default_Custom_Arg_Map: Record<Type_Debug_Channel, unknown[]> = {
       pageSize: 5,
     },
   ],
+  'export-db-record-json': [],
+  'import-db-record-json': [],
   'get-output-history': [],
   'export-diagnostic-info': [],
   'open-local-path': [{ targetPath: '' }],

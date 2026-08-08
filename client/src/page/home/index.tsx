@@ -24,7 +24,7 @@ function readStoredDeveloperMode() {
 }
 
 let Item = () => {
-  let tabItemList: TabsProps[] = []
+  let tabItemList: NonNullable<TabsProps['items']> = []
 
   let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
   let [isDeveloperMode, setIsDeveloperMode] = useState<boolean>(readStoredDeveloperMode)
@@ -99,8 +99,8 @@ let Item = () => {
             <Switch size="small" checked={isDeveloperMode} onChange={handleDeveloperModeChange} />
           </div>
         }
-        onChange={(e: Types_Page.Type_Page_Url) => {
-          setCurrentTab(e)
+        onChange={(e) => {
+          setCurrentTab(e as Types_Page.Type_Page_Url)
         }}
       ></Tabs>
     </div>

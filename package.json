@@ -20,7 +20,7 @@
   "scripts": {
     "startgui": "node client/script/start.js",
     "buildgui": "node client/script/build.js",
-    "start": "electron dist/index.js  --zhihuhelp-debug",
+    "start": "electron dist/index.js --zhihuhelp-debug",
     "zhihuhelp": "node dist/interface/cli/main.js",
     "watch": "babel src --copy-files --watch --out-dir dist  --verbose --source-maps --extensions \".ts,.tsx,.js,.jsx\"",
     "build": "babel src --copy-files -d dist --verbose  --source-maps --extensions \".ts,.tsx,.js,.jsx\" ",
@@ -99,6 +99,7 @@
     "@babel/core": "^8.0.1",
     "@babel/plugin-proposal-decorators": "^8.0.2",
     "@babel/plugin-syntax-flow": "^8.0.1",
+    "@babel/plugin-transform-class-properties": "^8.0.1",
     "@babel/plugin-transform-react-jsx": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
