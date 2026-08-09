@@ -488,7 +488,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle('open-upgrade-page', async (event, metadata?: IpcTraceMetadata) => {
     return runLoggedIpc('open-upgrade-page', metadata, async () => {
-      await shell.openExternal('https://zhihuhelp.yaozeyuan.online/')
+      const defaultHomePage = 'https://zhihuhelp.yaozeyuan.online/'
+      const checkRes = await checkUpgrade().catch(e => {
+        return {
+          downloadUrl: defaultHomePage
+        }
+      })
+      const upgradeUrl = checkRes?.downloadUrl || defaultHomePage
+      await shell.openExternal(upgradeUrl)
       return true
     })
   })
