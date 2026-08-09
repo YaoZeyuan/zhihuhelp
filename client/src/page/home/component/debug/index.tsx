@@ -1,4 +1,4 @@
-import { Button, Checkbox, Divider, Input, List, Radio, Select, Space, Tag, message } from 'antd'
+import { Button, Checkbox, Divider, Input, Radio, Select, Space, Tag, message } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import VirtualList from 'rc-virtual-list'
 import * as Ahooks from 'ahooks'
@@ -301,10 +301,10 @@ export default () => {
   const renderFrontendLogList = () => {
     const reversedLogList = [...frontendLogList].reverse()
     return (
-      <List>
+      <div className="debug-virtual-list" role="list">
         <VirtualList data={reversedLogList} height={Const_Container_Height} itemHeight={88} itemKey="id">
           {(item: Type_Debug_Log_Item) => (
-            <List.Item key={item.id}>
+            <div className="debug-virtual-list-item" role="listitem" key={item.id}>
               <div className="debug-log-item">
                 <div className="debug-log-title">
                   <Tag color={getLevelColor(item.level)}>{item.level}</Tag>
@@ -334,27 +334,27 @@ export default () => {
                   )}
                 </div>
               </div>
-            </List.Item>
+            </div>
           )}
         </VirtualList>
-      </List>
+      </div>
     )
   }
 
   const renderTextLogList = (logList: Type_Log_Line_Item[]) => {
     return (
-      <List>
+      <div className="debug-virtual-list" role="list">
         <VirtualList data={logList} height={Const_Container_Height} itemHeight={22} itemKey="lineNo">
           {(item: Type_Log_Line_Item) => (
-            <List.Item key={item.lineNo}>
+            <div className="debug-virtual-list-item" role="listitem" key={item.lineNo}>
               <pre className="debug-backend-log-line">
                 <span>{item.lineNo}</span>
                 {item.content}
               </pre>
-            </List.Item>
+            </div>
           )}
         </VirtualList>
-      </List>
+      </div>
     )
   }
 
