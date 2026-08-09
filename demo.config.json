@@ -1,6 +1,29 @@
 {
-    "request": {
-        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
-        "cookie": ""
+  "request": {
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+    "cookie": ""
+  },
+  "tasks": [
+    {
+      "type": "question",
+      "id": "330437383",
+      "rawInputText": "https://www.zhihu.com/question/330437383",
+      "comment": "示例问题",
+      "skipFetch": false
     }
+  ],
+  "generate": {
+    "title": "知乎助手示例电子书",
+    "mode": "merge_by_task",
+    "imageQuality": "none",
+    "maxItemsPerBook": 10000,
+    "orderBy": [
+      {
+        "orderBy": "desc",
+        "orderWith": "createAt"
+      }
+    ],
+    "outputFormats": ["html", "epub"],
+    "comment": "新 schema 示例"
+  }
 }

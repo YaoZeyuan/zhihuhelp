@@ -1,4 +1,5 @@
-import Knex from '~/src/library/knex'
+import Knex from '~/src/library/knex.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 class Base {
   static TABLE_NAME = ``
@@ -39,6 +40,72 @@ class Base {
   }
 
   /**
+   * Parse an entity snapshot read from SQLite.
+   *
+   * A missing row is handled by each caller before invoking this method. Once
+   * a row exists, however, raw_json must contain a JSON object; otherwise the
+   * persisted data is corrupt and generation must fail with a useful
+   * diagnostic instead of silently treating the entity as absent.
+   */
+  static parseEntityRawJson<T>(
+    rawJson: unknown,
+    entityId: string | number,
+    tableName = this.TABLE_NAME,
+  ): T {
+    const message = `Invalid raw_json in table "${tableName}" for entity "${String(entityId)}"`
+    if (typeof rawJson !== 'string') {
+      throw new ApplicationError(
+        AppErrorCode.PERSIST_DATA_INVALID,
+        message,
+        new TypeError('raw_json must be a string'),
+      )
+    }
+
+    try {
+      const parsed = JSON.parse(rawJson)
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new TypeError('raw_json must contain a JSON object')
+      }
+      return parsed as T
+    } catch (error) {
+      if (error instanceof ApplicationError) {
+        throw error
+      }
+      throw new ApplicationError(AppErrorCode.PERSIST_DATA_INVALID, message, error)
+    }
+  }
+
+  static resolveEntityId(record: Record<string, unknown>): string {
+    const candidateList = [
+      this.PRIMARY_KEY,
+      'answer_id',
+      'article_id',
+      'pin_id',
+      'collection_id',
+      'column_id',
+      'topic_id',
+      'record_id',
+      'id',
+      'url_token',
+    ].filter(Boolean)
+    for (const candidate of candidateList) {
+      const value = record[candidate]
+      if (value !== undefined && value !== null && value !== '') {
+        return String(value)
+      }
+    }
+    return 'unknown'
+  }
+
+  static assertValidRawJsonRows(recordList: Record<string, unknown>[], tableName = this.TABLE_NAME): void {
+    for (const record of recordList) {
+      if (Object.prototype.hasOwnProperty.call(record, 'raw_json')) {
+        this.parseEntityRawJson(record.raw_json, this.resolveEntityId(record), tableName)
+      }
+    }
+  }
+
+  /**
    * 获取记录列表
    * @param param0 
    * @returns 
@@ -52,9 +119,7 @@ class Base {
       .from(this.TABLE_NAME)
       .limit(pageSize)
       .offset(pageNo * pageSize)
-      .catch(() => {
-        return []
-      })
+    this.assertValidRawJsonRows(recordList)
     return recordList
   }
 }

@@ -4,65 +4,96 @@ on:
   workflow_dispatch:
   push:
     # branches:
-      # - master
+    # - master
     # Sequence of patterns matched against refs/tags
     tags:
-      - "*" # Push events to matching any tags
+      - '*' # Push events to matching any tags
+
+permissions:
+  contents: write
+
 jobs:
   build:
     # 见 https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: macos-latest
     strategy:
       matrix:
-        # electron-23.2.1对应node版本为18.12.1
-        # 见https://releases.electronjs.org/
-        node-version: ['18.12.1']
+        node-version: ['24']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Use pnpm 11
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.5.0 --activate
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
-        uses: myrotvorets/info-from-package-json-action@1.0.0
         id: get-version-from-package-json
+        run: node scripts/release/write-package-version-output.cjs
       - name: Show version number
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
+      - name: Create corresponding source bundle
+        run: >-
+          node scripts/release/create-corresponding-source.cjs
+          --output-dir "${{ runner.temp }}/zhihuhelp-source"
       # mac需要提前安装vips, 否则无法启动sharp构建
       # - run: brew install vips
-      - run: cd ./client && yarn && cd ..
-      - run: yarn
-       # 只安装intel版的sharp库即可, m1上可以运行intel的代码
-      - run: npm install --platform=darwin --arch=x64 sharp 
+      - run: pnpm install --frozen-lockfile
+      # 只重建 sharp 即可
+      - run: pnpm rebuild sharp
       # 尝试解决mac上无法构建的问题
-      # - run: npm install --platform=darwin --arch=x64 sharp
-      # - run: npm rebuild --platform=darwin --arch=arm64 sharp
+      # - run: pnpm rebuild sharp
       # - run: electron-builder install-app-deps
-      # - run: yarn postinstall-4-mac
-      - run: yarn build-without-sourcemap
-      - run: yarn buildgui
-      - run: yarn electron-builder
+      # - run: pnpm postinstall-4-mac
+      - name: Verify pinned Pandoc runtime input
+        run: node scripts/release/create-corresponding-source.cjs --verify-installed
+      - run: pnpm build-without-sourcemap
+      - name: Stage distribution license files
+        run: node scripts/release/create-corresponding-source.cjs --stage-license-files dist/licenses
+      - run: pnpm buildgui
+      - run: pnpm electron-builder --publish never
         env:
           CI: true
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-      - name: Create Release
-        id: create_release
-        uses: monkeyWie/create-release@master
+      - name: Verify packaged Pandoc runtime
+        run: node scripts/release/create-corresponding-source.cjs --verify-packaged release
+      - name: Prepare release binary
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: mac-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
-          release_name: mac-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
-          draft: true
-          prerelease: true
-      - name: Upload Release normal mac
-        uses: actions/upload-release-asset@v1.0.1
+          PACKAGE_VERSION: ${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_BINARY: ${{ runner.temp }}/mac-zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}.7z
+        run: >-
+          cp "release/知乎助手-${PACKAGE_VERSION}-mac.7z" "${RELEASE_BINARY}"
+      - name: Create draft release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./release/知乎助手-${{ steps.get-version-from-package-json.outputs.packageVersion }}-mac.7z
-          asset_name: mac-zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}.7z
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: mac-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_TITLE: mac-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_NOTES: Corresponding source is attached beside the binary for license compliance.
+        run: >-
+          gh release create "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}"
+          --target "${GITHUB_SHA}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
+          --draft --prerelease
+      - name: Upload corresponding source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: mac-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          SOURCE_BUNDLE: ${{ runner.temp }}/zhihuhelp-source/zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}-corresponding-source.tar.gz
+        run: >-
+          gh release upload "${RELEASE_TAG}" "${SOURCE_BUNDLE}" --repo "${GITHUB_REPOSITORY}"
+      - name: Upload corresponding source checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: mac-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          SOURCE_CHECKSUM: ${{ runner.temp }}/zhihuhelp-source/zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}-corresponding-source.tar.gz.sha256
+        run: >-
+          gh release upload "${RELEASE_TAG}" "${SOURCE_CHECKSUM}" --repo "${GITHUB_REPOSITORY}"
+      - name: Upload macOS binary after source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: mac-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_BINARY: ${{ runner.temp }}/mac-zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}.7z
+        run: >-
+          gh release upload "${RELEASE_TAG}" "${RELEASE_BINARY}" --repo "${GITHUB_REPOSITORY}"

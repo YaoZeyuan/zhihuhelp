@@ -1,8 +1,8 @@
-import QuestionApi from '~/src/api/single/question'
-import lodash from 'lodash'
-import BatchFetchAnswer from '~/src/api/batch/answer'
-import Base from '~/src/api/batch/base'
-import CommonUtil from '~/src/library/util/common'
+import QuestionApi from '~/src/api/single/question.js'
+import BatchFetchAnswer from '~/src/api/batch/answer.js'
+import Base from '~/src/api/batch/base.js'
+import CommonUtil from '~/src/library/util/common.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchQuestion extends Base {
   /**
@@ -12,12 +12,9 @@ class BatchFetchQuestion extends Base {
   async fetch(questionId: string) {
     this.log(`准备抓取问题${questionId}`)
     let question = await QuestionApi.asyncGetQuestionInfo(questionId)
-    if (lodash.isEmpty(question)) {
-      this.log(`问题${questionId}抓取失败`)
-      return
-    }
+    this.assertEntityRecord(question, 'question', questionId)
     let title = question.title
-    let answerCount = question.answer_count
+    let answerCount = assertZhihuNonNegativeIntegerCount(question.answer_count, `question ${questionId}.answer_count`)
     this.log(`问题:${title}(${questionId})信息抓取成功`)
     // question的信息不需要存入数据库, 直接使用answer进行保存即可
     // this.log(`问题:${title}(${questionId})信息成功存入数据库`)
@@ -43,8 +40,9 @@ class BatchFetchQuestion extends Base {
     })
     // 然后集中获取相关回答内容
     let batchFetchAnswer = new BatchFetchAnswer()
-    await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
+    const outcome = await batchFetchAnswer.fetchListAndSaveToDb(answerIdList)
     this.log(`问题${title}(${questionId})下全部回答抓取完毕`)
+    return outcome
   }
 }
 

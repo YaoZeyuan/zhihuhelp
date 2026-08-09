@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "author",
+  "sourceUrl": "https://www.zhihu.com/people/jin-xu-liang",
+  "capturedAt": "2026-08-08T16:11:02.421Z",
+  "checksum": "2f38b726201eea7562a59368836819a0d982090a696511ec5358277c1c5ed36e",
+  "data": {
+    "entity": {
+      "id": "d127d540d194cf37387ebd4ea250ff6a",
+      "url_token": "[REDACTED]",
+      "name": "金旭亮",
+      "type": "people",
+      "is_org": false
+    },
+    "pages": [
+      {
+        "sourceName": "author-jin-xu-liang",
+        "sourceType": "author",
+        "sourceId": "jin-xu-liang",
+        "offset": 0,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": "2055977144904373470",
+            "type": "answer"
+          }
+        ]
+      }
+    ]
+  }
+}

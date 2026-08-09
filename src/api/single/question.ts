@@ -1,6 +1,7 @@
-import Base from '~/src/api/single/base'
-import * as TypeQuestion from '~/src/type/zhihu/question'
-import TypeAnswer from '~/src/type/zhihu/answer'
+import Base from '~/src/api/single/base.js'
+import * as TypeQuestion from '~/src/type/zhihu/question.js'
+import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
 
 class Question extends Base {
   /**
@@ -25,7 +26,7 @@ class Question extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = record?.data ?? []
+    const answerList = assertZhihuPaginatedData<TypeAnswer.Record>(record, 'question.answers')
     return answerList
   }
 

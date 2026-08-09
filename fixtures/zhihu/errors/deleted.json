@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "error",
+  "sourceUrl": "fixture://author/deleted",
+  "capturedAt": "2026-08-08T00:00:00.000Z",
+  "checksum": "a40b71e21f53695a5cd24380f34f0c044a954300abda70547a187439fcd649c1",
+  "data": {
+    "kind": "deleted",
+    "entityType": "author",
+    "status": 410
+  }
+}

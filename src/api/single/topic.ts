@@ -1,6 +1,7 @@
-import Base from '~/src/api/single/base'
-import * as TypeTopic from '~/src/type/zhihu/topic'
-import TypeAnswer from '~/src/type/zhihu/answer'
+import Base from '~/src/api/single/base.js'
+import * as TypeTopic from '~/src/type/zhihu/topic.js'
+import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
 
 class Topic extends Base {
   /**
@@ -22,7 +23,7 @@ class Topic extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const rawTopicAnswerList = record?.data ?? []
+    const rawTopicAnswerList = assertZhihuPaginatedData<{ target: TypeAnswer.Record }>(record, 'topic.feeds')
     let answerList = []
     for (let rawTopicAnswer of rawTopicAnswerList) {
       answerList.push(rawTopicAnswer.target)

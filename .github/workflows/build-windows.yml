@@ -4,56 +4,94 @@ on:
   workflow_dispatch:
   push:
     # branches:
-      # - master
+    # - master
     # Sequence of patterns matched against refs/tags
     tags:
-      - "*" # Push events to matching any tags
+      - '*' # Push events to matching any tags
+
+permissions:
+  contents: write
+
 jobs:
   build:
     # 见 https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: windows-latest
     strategy:
       matrix:
-        # electron-23.2.1对应node版本为18.12.1
-        # 见https://releases.electronjs.org/
-        node-version: ['18.12.1']
+        node-version: ['24']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Use pnpm 11
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.5.0 --activate
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
-        uses: myrotvorets/info-from-package-json-action@1.0.0
         id: get-version-from-package-json
+        run: node scripts/release/write-package-version-output.cjs
       - name: Show version number
         run: echo "current version is ${{ steps.get-version-from-package-json.outputs.packageVersion }}"
-      - run: cd ./client ; yarn ; cd ..
-      - run: yarn
-      - run: yarn build-without-sourcemap
-      - run: yarn buildgui
-      - run: yarn electron-builder
+      - name: Create corresponding source bundle
+        run: >-
+          node scripts/release/create-corresponding-source.cjs
+          --output-dir "${{ runner.temp }}/zhihuhelp-source"
+      - run: pnpm install --frozen-lockfile
+      - name: Verify pinned Pandoc runtime input
+        run: node scripts/release/create-corresponding-source.cjs --verify-installed
+      - run: pnpm build-without-sourcemap
+      - name: Stage distribution license files
+        run: node scripts/release/create-corresponding-source.cjs --stage-license-files dist/licenses
+      - run: pnpm buildgui
+      - run: pnpm electron-builder --publish never
         env:
           CI: true
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # 在setting中配置自定义环境变量, 参考[此处](https://help.github.com/cn/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-      - name: Create Release
-        id: create_release
-        uses: monkeyWie/create-release@master
+      - name: Verify packaged Pandoc runtime
+        run: node scripts/release/create-corresponding-source.cjs --verify-packaged release
+      - name: Prepare release binary
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: win-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
-          release_name: windows-${{ steps.get-version-from-package-json.outputs.packageVersion  }}
-          draft: true
-          prerelease: true
-      - name: Upload Release normal windows
-        uses: actions/upload-release-asset@v1.0.1
+          PACKAGE_VERSION: ${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_BINARY: ${{ runner.temp }}/windows-zhihuhelp-win64-${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
+        shell: pwsh
+        run: |
+          $sourcePath = Join-Path $PWD "release/知乎助手 Setup $env:PACKAGE_VERSION.exe"
+          if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+            throw "Release binary is missing: $sourcePath"
+          }
+          Copy-Item -LiteralPath $sourcePath -Destination $env:RELEASE_BINARY
+      - name: Create draft release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./release/知乎助手 Setup ${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
-          asset_name: windows-zhihuhelp-win64-${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: win-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_TITLE: windows-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_NOTES: Corresponding source is attached beside the binary for license compliance.
+        shell: pwsh
+        run: >-
+          gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY
+          --target $env:GITHUB_SHA --title $env:RELEASE_TITLE --notes $env:RELEASE_NOTES
+          --draft --prerelease
+      - name: Upload corresponding source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: win-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          SOURCE_BUNDLE: ${{ runner.temp }}/zhihuhelp-source/zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}-corresponding-source.tar.gz
+        shell: pwsh
+        run: gh release upload $env:RELEASE_TAG $env:SOURCE_BUNDLE --repo $env:GITHUB_REPOSITORY
+      - name: Upload corresponding source checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: win-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          SOURCE_CHECKSUM: ${{ runner.temp }}/zhihuhelp-source/zhihuhelp-${{ steps.get-version-from-package-json.outputs.packageVersion }}-corresponding-source.tar.gz.sha256
+        shell: pwsh
+        run: gh release upload $env:RELEASE_TAG $env:SOURCE_CHECKSUM --repo $env:GITHUB_REPOSITORY
+      - name: Upload Windows binary after source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: win-${{ steps.get-version-from-package-json.outputs.packageVersion }}
+          RELEASE_BINARY: ${{ runner.temp }}/windows-zhihuhelp-win64-${{ steps.get-version-from-package-json.outputs.packageVersion }}.exe
+        shell: pwsh
+        run: gh release upload $env:RELEASE_TAG $env:RELEASE_BINARY --repo $env:GITHUB_REPOSITORY

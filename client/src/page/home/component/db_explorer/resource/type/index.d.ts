@@ -6,6 +6,9 @@ export type Select_Type = typeof Consts.Current_Select_Type_专栏
     | typeof Consts.Current_Select_Type_用户的所有回答
     | typeof Consts.Current_Select_Type_话题
     | typeof Consts.Current_Select_Type_问题
+    | typeof Consts.Current_Select_Type_回答
+    | typeof Consts.Current_Select_Type_文章
+    | typeof Consts.Current_Select_Type_想法
 
 export type Status = {
     /**
@@ -70,9 +73,33 @@ export type FetchListRes = {
     total: number,
     pageNo: number,
     pageSize: number,
+    parentId?: string,
 }
+
+export type DataRecordKind = 'answer' | 'article' | 'pin' | 'meta'
 
 export type DataType = {
     key: string;
+    id: string;
     name: string;
+    type: string;
+    description: string;
+    recordKind: DataRecordKind;
+    title?: string;
+    subtitle?: string;
+    contentHtml?: string;
+    originContentHtml?: string;
+    sourceUrl?: string;
+    coverUrl?: string;
+    author?: {
+        id: string;
+        name: string;
+        headline: string;
+        avatarUrl: string;
+        url: string;
+    };
+    voteupCount?: number;
+    commentCount?: number;
+    createdAt?: number;
+    updatedAt?: number;
 }

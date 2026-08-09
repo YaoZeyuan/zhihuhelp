@@ -1,6 +1,26 @@
-import Base from '~/src/api/single/base'
-import TypeActivity from '~/src/type/zhihu/activity'
+import Base from '~/src/api/single/base.js'
+import type * as TypeActivity from '~/src/type/zhihu/activity.js'
 import dayjs from 'dayjs'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
+
+function assertBooleanPagingIsEnd(payload: unknown): boolean {
+  const paging = payload !== null && typeof payload === 'object' && Array.isArray(payload) === false
+    ? (payload as Record<string, unknown>).paging
+    : undefined
+  const isEnd = paging !== null && typeof paging === 'object' && Array.isArray(paging) === false
+    ? (paging as Record<string, unknown>).is_end
+    : undefined
+
+  if (typeof isEnd !== 'boolean') {
+    throw new ApplicationError(
+      AppErrorCode.PAGINATION_RESPONSE_INVALID,
+      'author.activities pagination response is missing a boolean paging.is_end',
+    )
+  }
+
+  return isEnd
+}
 
 class Activity extends Base {
   /**
@@ -25,7 +45,8 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const activityList = record?.data ?? []
+    const activityList = assertZhihuPaginatedData<TypeActivity.Record>(record, 'author.activities')
+    assertBooleanPagingIsEnd(record)
     return activityList
   }
 
@@ -44,8 +65,8 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const hasActivity = record?.paging?.is_end ?? false
-    return hasActivity === false
+    assertZhihuPaginatedData<TypeActivity.Record>(record, 'author.activities')
+    return assertBooleanPagingIsEnd(record) === false
   }
 
   /**
@@ -63,10 +84,12 @@ class Activity extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    let lastActivityMsAt = record?.data?.[0]?.id ?? 0
+    const activityList = assertZhihuPaginatedData<TypeActivity.Record>(record, 'author.activities')
+    assertBooleanPagingIsEnd(record)
+    let lastActivityMsAt = activityList[0]?.id ?? 0
     let lastActivityAt = lastActivityMsAt / 1000 // 取到的id是毫秒值, 因此需要除以1000
     if (lastActivityAt <= 0) {
-      lastActivityAt = now
+      return 0
     }
     return lastActivityAt
   }

@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import * as TypeCollection from '~/src/type/zhihu/collection'
+import Base from '~/src/model/base.js'
+import * as TypeCollection from '~/src/type/zhihu/collection.js'
 import moment from 'moment'
 
 type Type_Record = {
@@ -39,17 +39,11 @@ class Collection extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('collection_id', '=', collectionId)
-      .catch(() => {
-        return []
-      })
-    let collectionInfoJson = recordList?.[0]?.['raw_json']
-    let collectionInfo
-    try {
-      collectionInfo = JSON.parse(collectionInfoJson)
-    } catch {
-      collectionInfo = {}
+    let collectionRecord = recordList?.[0]
+    if (collectionRecord === undefined) {
+      return {} as TypeCollection.Info
     }
-    return collectionInfo
+    return this.parseEntityRawJson<TypeCollection.Info>(collectionRecord.raw_json, collectionId)
   }
 
   /**
@@ -61,9 +55,14 @@ class Collection extends Base {
       .select(this.COLLECTION_RECORD_TABLE_COLUMN)
       .from(this.COLLECTION_RECORD_TABLE_NAME)
       .where('collection_id', '=', collectionId)
-      .catch(() => {
-        return []
-      })
+
+    for (const record of recordList) {
+      this.parseEntityRawJson(
+        record.raw_json,
+        record.record_id ?? `${collectionId}:unknown`,
+        this.COLLECTION_RECORD_TABLE_NAME,
+      )
+    }
 
     return recordList
   }
@@ -117,12 +116,9 @@ class Collection extends Base {
    * @returns 
    */
   static async asyncGetCollectionCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("collection_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

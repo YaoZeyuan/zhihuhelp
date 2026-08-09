@@ -6,6 +6,9 @@ export const Current_Select_Type_收藏夹 = TaskConfig_Consts.Const_Task_Type_�
 export const Current_Select_Type_话题 = TaskConfig_Consts.Const_Task_Type_话题
 export const Current_Select_Type_问题 = TaskConfig_Consts.Const_Task_Type_问题
 export const Current_Select_Type_用户的所有回答 = TaskConfig_Consts.Const_Task_Type_用户的所有回答
+export const Current_Select_Type_回答 = TaskConfig_Consts.Const_Task_Type_回答
+export const Current_Select_Type_文章 = TaskConfig_Consts.Const_Task_Type_文章
+export const Current_Select_Type_想法 = TaskConfig_Consts.Const_Task_Type_想法
 
 export const Default_Status: Types.Status = {
     "baseInfo": {
@@ -25,10 +28,10 @@ export const Default_Status: Types.Status = {
         "info": {
             total: 0,
             "pageNo": 0,
-            "pageSize": 15,
+            "pageSize": 5,
             "recordList": [],
         },
-        "type": Current_Select_Type_用户的所有回答
+        "type": Current_Select_Type_回答
     },
     "forceUpdate": 0,
     "recordList": []

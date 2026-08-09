@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/zhihu/author'
+import Base from '~/src/model/base.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
 
 class Author extends Base {
   static TABLE_NAME = `Author`
@@ -14,17 +14,11 @@ class Author extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
-      .catch(() => {
-        return []
-      })
-    let authorInfoJson = recordList?.[0]?.raw_json
-    let authorInfo
-    try {
-      authorInfo = JSON.parse(authorInfoJson)
-    } catch {
-      authorInfo = {}
+    let authorRecord = recordList?.[0]
+    if (authorRecord === undefined) {
+      return {} as TypeAuthor.Record
     }
-    return authorInfo
+    return this.parseEntityRawJson<TypeAuthor.Record>(authorRecord.raw_json, urlToken)
   }
 
   /**
@@ -48,12 +42,9 @@ class Author extends Base {
    * @returns 
    */
   static async asyncGetAuthorCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("url_token as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

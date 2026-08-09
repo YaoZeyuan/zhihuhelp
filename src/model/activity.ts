@@ -1,8 +1,8 @@
-import Base from '~/src/model/base'
-import * as TypeActivity from '~/src/type/zhihu/activity'
+import Base from '~/src/model/base.js'
+import * as TypeActivity from '~/src/type/zhihu/activity.js'
 import lodash from 'lodash'
 import moment from 'moment'
-import * as DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format.js'
 
 class Activity extends Base {
   static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.Const_Display_By_Second)
@@ -49,19 +49,10 @@ class Activity extends Base {
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
       .where('verb', '=', verbType)
-      .catch(() => {
-        return []
-      })
 
     let activityTargetIdList = []
     for (let record of recordList) {
-      let activityRecordJson = record?.raw_json
-      let activityRecord: TypeActivity.Record
-      try {
-        activityRecord = JSON.parse(activityRecordJson)
-      } catch {
-        activityRecord = {} as any
-      }
+      let activityRecord = this.parseEntityRawJson<TypeActivity.Record>(record?.raw_json, record?.id ?? 'unknown')
       if (lodash.isEmpty(activityRecord) === false) {
         activityTargetIdList.push(`${activityRecord.target.id}`)
       }
@@ -84,21 +75,12 @@ class Activity extends Base {
       .from(this.TABLE_NAME)
       .where('url_token', '=', urlToken)
       .where('verb', '=', verbType)
-      .catch(() => {
-        return []
-      })
 
     let actionRecord: {
       [targetId: string]: number
     } = {}
     for (let record of recordList) {
-      let activityRecordJson = record?.raw_json
-      let activityRecord: TypeActivity.Record
-      try {
-        activityRecord = JSON.parse(activityRecordJson)
-      } catch {
-        continue
-      }
+      let activityRecord = this.parseEntityRawJson<TypeActivity.Record>(record?.raw_json, record?.id ?? 'unknown')
       let targetId = `${activityRecord.target.id}`
       let actionAt = activityRecord?.created_time ?? 0
       actionRecord[targetId] = actionAt

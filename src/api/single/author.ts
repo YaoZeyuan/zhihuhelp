@@ -1,5 +1,9 @@
-import Base from '~/src/api/single/base'
-import TypeAuthor from '~/src/type/zhihu/author'
+import Base from '~/src/api/single/base.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
+import {
+  assertZhihuNonNegativeIntegerCount,
+  assertZhihuPaginatedData,
+} from '~/src/shared/error/zhihu_response_validation.js'
 
 class Author extends Base {
   /**
@@ -38,6 +42,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
+    const answerList = assertZhihuPaginatedData<{ author?: Partial<TypeAuthor.Record> }>(record, 'author.answers')
 
     let templateInfo = {
       id: '3d198a56310c02c4a83efb9f4a4c027e',
@@ -150,15 +155,18 @@ class Author extends Base {
     }
 
     // 利用模板伪造一份用户信息
-    let rawAnswerUserInfo = record?.data?.[0]?.author ?? {}
+    let rawAnswerUserInfo = answerList[0]?.author ?? {}
 
-    let answerUserInfo: TypeAuthor.Record = {
+    let answerUserInfo = {
       ...templateInfo,
       ...rawAnswerUserInfo,
-    }
+    } as unknown as TypeAuthor.Record
 
     // 只提供核心数据
-    answerUserInfo.answer_count = record?.paging?.totals ?? 0
+    answerUserInfo.answer_count = assertZhihuNonNegativeIntegerCount(
+      record?.paging?.totals,
+      'author.answers.paging.totals',
+    )
 
     return answerUserInfo
   }
@@ -187,7 +195,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = record?.data ?? []
+    const answerList = assertZhihuPaginatedData<TypeAuthor.Answer>(record, 'author.answers')
     return answerList
   }
 
@@ -210,7 +218,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const questionList = record?.data ?? []
+    const questionList = assertZhihuPaginatedData<TypeAuthor.Question>(record, 'author.questions')
     return questionList
   }
 
@@ -233,7 +241,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const pinList = record?.data ?? []
+    const pinList = assertZhihuPaginatedData<TypeAuthor.Pin>(record, 'author.pins')
     return pinList
   }
 
@@ -256,7 +264,7 @@ class Author extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const articleList = record?.data ?? []
+    const articleList = assertZhihuPaginatedData<TypeAuthor.Article>(record, 'author.articles')
     return articleList
   }
 }

@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/zhihu/author'
+import Base from '~/src/model/base.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
 
 class AuthorAskQuestion extends Base {
   static TABLE_NAME = `Author_Ask_Question`
@@ -14,9 +14,6 @@ class AuthorAskQuestion extends Base {
       .select(`question_id`)
       .from(this.TABLE_NAME)
       .where('author_url_token', '=', urlToken)
-      .catch(() => {
-        return []
-      })
 
     let questionIdList = []
     for (let record of recordList) {

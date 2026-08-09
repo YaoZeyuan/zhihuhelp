@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import TypeColumn from '~/src/type/zhihu/column'
+import Base from '~/src/model/base.js'
+import type * as TypeColumn from '~/src/type/zhihu/column.js'
 
 class Column extends Base {
   static TABLE_NAME = `Column`
@@ -14,17 +14,11 @@ class Column extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('column_id', '=', columnId)
-      .catch(() => {
-        return []
-      })
-    let columnInfoJson = recordList?.[0]?.raw_json
-    let columnInfo
-    try {
-      columnInfo = JSON.parse(columnInfoJson)
-    } catch {
-      columnInfo = {}
+    let columnRecord = recordList?.[0]
+    if (columnRecord === undefined) {
+      return {} as TypeColumn.Record
     }
-    return columnInfo
+    return this.parseEntityRawJson<TypeColumn.Record>(columnRecord.raw_json, columnId)
   }
 
   /**
@@ -46,12 +40,9 @@ class Column extends Base {
    * @returns 
    */
   static async asyncGetColumnCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("column_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }
