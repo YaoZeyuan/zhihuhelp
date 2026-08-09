@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { parseReleaseInfo, VERSION_ENDPOINT, type ReleaseInfo } from './release'
+import { Analytics } from '@vercel/analytics/vue'
 
 const release = ref<ReleaseInfo>()
 const loading = ref(true)
@@ -38,6 +39,7 @@ onBeforeUnmount(() => controller?.abort())
 </script>
 
 <template>
+  <Analytics></Analytics>
   <section class="download-release" aria-labelledby="download-release-title">
     <div class="download-release-heading">
       <p class="download-release-kicker"></p>

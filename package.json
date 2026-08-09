@@ -92,6 +92,7 @@
     "@optique/core": "^1.2.0",
     "@optique/run": "^1.2.0",
     "@types/tiny-async-pool": "^2.0.3",
+    "@vercel/analytics": "^2.0.1",
     "adm-zip": "^0.6.0",
     "axios": "^1.19.0",
     "core-js": "^3.50.0",
@@ -111,7 +112,8 @@
     "semver": "^7.8.5",
     "sharp": "^0.35.3",
     "sqlite3": "^6.0.1",
-    "tiny-async-pool": "^2.1.0"
+    "tiny-async-pool": "^2.1.0",
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^8.0.4",
