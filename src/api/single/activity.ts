@@ -1,8 +1,8 @@
-import Base from '~/src/api/single/base'
-import TypeActivity from '~/src/type/zhihu/activity'
+import Base from '~/src/api/single/base.js'
+import type * as TypeActivity from '~/src/type/zhihu/activity.js'
 import dayjs from 'dayjs'
-import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 function assertBooleanPagingIsEnd(payload: unknown): boolean {
   const paging = payload !== null && typeof payload === 'object' && Array.isArray(payload) === false

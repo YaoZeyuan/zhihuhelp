@@ -1,5 +1,5 @@
 import knex, { Knex as KnexType } from 'knex'
-import CommonConfig from '~/src/config/common'
+import CommonConfig from '~/src/config/common.js'
 
 let activeClient: KnexType | undefined
 let activeDatabaseUri = ''

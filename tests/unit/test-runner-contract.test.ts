@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 type TestSource = {
@@ -41,6 +42,35 @@ const manifest = {
     { name: 'offline-error', sourceType: 'answer', online: false },
   ],
 }
+
+describe('CommonJS runner ESM loading contract', () => {
+  const electronRunnerSource = readFileSync(
+    new URL('../../scripts/tests/electron-online-runner.cjs', import.meta.url),
+    'utf8',
+  )
+  const screenshotRunnerSource = readFileSync(
+    new URL('../../scripts/docs/prepare-output-screenshot.cjs', import.meta.url),
+    'utf8',
+  )
+
+  it('loads ESM dist modules through file URLs and native dynamic import', () => {
+    for (const source of [electronRunnerSource, screenshotRunnerSource]) {
+      expect(source).toContain("require('node:url')")
+      expect(source).toContain('pathToFileURL(')
+      expect(source).toContain('return import(moduleUrl)')
+    }
+
+    expect(electronRunnerSource).not.toContain("require(path.join(rootPath, 'dist'")
+    expect(screenshotRunnerSource).not.toContain("require('../../dist")
+  })
+
+  it('keeps the Electron runner in CommonJS and targets the CommonJS sandboxed preload', () => {
+    expect(electronRunnerSource).toContain("require('electron')")
+    expect(electronRunnerSource).toContain("'preload.cjs'")
+    expect(electronRunnerSource).toContain('async function initializeRuntimeContract()')
+    expect(electronRunnerSource).toContain('async function loadApi(sourceType)')
+  })
+})
 
 describe('Electron test runner result contract', () => {
   it('selects one normal source per type online and all enabled sources during fixture refresh', () => {

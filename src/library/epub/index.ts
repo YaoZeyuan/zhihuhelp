@@ -1,11 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-import logger from '~/src/library/logger'
+import { fileURLToPath } from 'node:url'
+import logger from '~/src/library/logger.js'
 import AdmZip from 'adm-zip'
-import OPF from './opf'
-import TOC from './toc'
+import OPF from './opf.js'
+import TOC from './toc.js'
 
 const ZIP_METHOD_STORED = 0
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 
 class Epub {
   opf = new OPF()
@@ -18,7 +20,7 @@ class Epub {
   creator = 'zhihuhelp' // 创建者, 直接写死
 
   get currentPath() {
-    return path.resolve(__dirname)
+    return path.resolve(moduleDirectory)
   }
   get resourcePath() {
     return path.resolve(this.currentPath, 'resource')

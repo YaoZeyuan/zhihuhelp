@@ -1,6 +1,6 @@
-import Base from '~/src/model/base'
-import * as TypeTopic from '~/src/type/zhihu/topic'
-import * as TypeAnswer from '~/src/type/zhihu/answer'
+import Base from '~/src/model/base.js'
+import * as TypeTopic from '~/src/type/zhihu/topic.js'
+import * as TypeAnswer from '~/src/type/zhihu/answer.js'
 
 class Topic extends Base {
   static TABLE_NAME = `Topic`

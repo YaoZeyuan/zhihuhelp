@@ -71,7 +71,10 @@ export type Type_Generate_Type =
 
 export type Type_Image_Quilty = Type_Image_Quilty_高清 | Type_Image_Quilty_原图 | Type_Image_Quilty_无图
 export type Type_Task_Type = Type_Author_Collection_Type | Type_Item_Collection_Type
-export type Type_Output_Format = 'html' | 'epub'
+export type Type_Output_Format =
+  | typeof Consts.Const_Output_Format_Html
+  | typeof Consts.Const_Output_Format_Markdown
+  | typeof Consts.Const_Output_Format_Epub
 
 export type Type_Order_By_Config = {
   orderBy: Type_Order_By

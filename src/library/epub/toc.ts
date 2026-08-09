@@ -1,4 +1,4 @@
-import { escapeXmlAttribute, escapeXmlText } from './xml'
+import { escapeXmlAttribute, escapeXmlText } from './xml.js'
 
 class TOC {
   index = 0 // 生成id

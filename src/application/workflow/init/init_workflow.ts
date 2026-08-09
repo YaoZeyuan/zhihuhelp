@@ -1,14 +1,17 @@
-﻿import knex from '~/src/library/knex'
+﻿import knex from '~/src/library/knex.js'
 import fs from 'fs'
 import path from 'path'
-import http from '~/src/library/http'
-import CommonConfig from '~/src/config/common'
-import PathConfig from '~/src/config/path'
+import { fileURLToPath } from 'node:url'
+import http from '~/src/library/http/index.js'
+import CommonConfig from '~/src/config/common.js'
+import PathConfig from '~/src/config/path.js'
 import semver from 'semver'
-import Logger from '~/src/library/logger'
-import { RunContext } from '~/src/shared/runtime/run_context'
-import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import Logger from '~/src/library/logger.js'
+import { RunContext } from '~/src/shared/runtime/run_context.js'
+import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
+
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 
 type RemoteVersion = {
   downloadUrl?: string
@@ -262,7 +265,7 @@ export default class InitWorkflow {
   private async initializeDatabase(context: RunContext): Promise<void> {
     const startedAt = Date.now()
     const jobId = 'init-database-schema'
-    const schemaPath = path.resolve(__dirname, '../../../infrastructure/sqlite/schema/init.sql')
+    const schemaPath = path.resolve(moduleDirectory, '../../../infrastructure/sqlite/schema/init.sql')
     Logger.event({
       runId: context.runId,
       jobId,

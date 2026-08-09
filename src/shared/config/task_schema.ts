@@ -29,8 +29,13 @@ export const Const_Image_Quilty_无图 = 'none' as const
 export const imageQualityList = [Const_Image_Quilty_高清, Const_Image_Quilty_原图, Const_Image_Quilty_无图] as const
 
 export const Const_Output_Format_Html = 'html' as const
+export const Const_Output_Format_Markdown = 'markdown' as const
 export const Const_Output_Format_Epub = 'epub' as const
-export const outputFormatList = [Const_Output_Format_Html, Const_Output_Format_Epub] as const
+export const outputFormatList = [
+  Const_Output_Format_Html,
+  Const_Output_Format_Markdown,
+  Const_Output_Format_Epub,
+] as const
 
 export type TaskType = typeof taskTypeList[number]
 export type GenerateMode = typeof generateModeList[number]

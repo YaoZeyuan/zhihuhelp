@@ -1,8 +1,8 @@
 import React from 'react'
-import TypeArticle from '~/src/type/zhihu/article'
+import type * as TypeArticle from '~/src/type/zhihu/article.js'
 import lodash from 'lodash'
-import CommonUtil from '~/src/library/util/common'
-import CommentCompontent from './comment'
+import CommonUtil from '~/src/library/util/common.js'
+import CommentCompontent from './comment.js'
 
 export default ({ articleRecord }: { articleRecord: TypeArticle.Record }) => {
   if (lodash.isEmpty(articleRecord)) {

@@ -6,7 +6,7 @@
         "targets": {
           "node": "24.0"
         },
-        "modules": "commonjs"
+        "modules": false
       }
     ],
     ["@babel/preset-react"],

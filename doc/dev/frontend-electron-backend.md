@@ -9,6 +9,8 @@ description: Electron 窗口、前端状态、IPC 边界与后端服务的职责
 
 GUI 是本地任务控制台。React renderer 负责展示和交互；preload 只暴露白名单方法；Electron 主进程负责窗口、session、IPC、文件系统和 workflow 入口；application、API 与 model 层负责业务执行。前端不得直接读取文件、访问 SQLite 或携带 Cookie 请求知乎。
 
+Electron main、CLI 和后端业务模块使用原生 ESM。两个 sandbox preload 由 Electron 按 CommonJS 规则加载，因此明确命名为 `src/preload.cjs` 与 `src/public/js-rpc/preload.cjs`；它们是安全边界，不是让业务代码继续混用 CommonJS 的入口。需要 CommonJS 宿主的构建、测试辅助脚本同样使用 `.cjs` 后缀。
+
 ## Electron 启动与窗口关系图（2/7）
 
 ```mermaid
@@ -18,7 +20,7 @@ flowchart TD
   Create --> MainWindow["主 BrowserWindow"]
   Create --> RpcWindow["js-rpc BrowserWindow"]
 
-  MainWindow --> MainPreload["src/preload.js"]
+  MainWindow --> MainPreload["src/preload.cjs"]
   MainPreload --> API["window.electronAPI 白名单"]
   MainWindow --> UI["Vite 开发页或 dist/client/index.html"]
   UI --> API
@@ -33,7 +35,7 @@ flowchart TD
   Workflow --> HTTP["知乎 HTTP 请求"]
   HTTP --> Bridge["asyncJsRpcTriggerFunc"]
   Bridge --> RpcWindow
-  RpcWindow --> RpcPreload["src/public/js-rpc/preload.js"]
+  RpcWindow --> RpcPreload["src/public/js-rpc/preload.cjs"]
   RpcPreload --> Signer["签名 renderer"]
   Signer --> Response["js-rpc-response"]
   Response --> Register
@@ -83,6 +85,7 @@ flowchart LR
 6. 普通业务 IPC 由 `DebugLog.invokeElectronApi` 在末参数附加 `{ __zhihuhelpTraceId }`，主进程沿用该值；日志读取轮询和 `append-frontend-log-batch` 自身走 silent/passive 路径。
 7. 任务配置读取失败或返回非法 schema 时，任务页保留安全默认表单、显示“任务配置不可用”错误，并禁用启动按钮，不能以默认值继续覆盖 `config.json`。
 8. 数据库摘要和记录列表分别维护 loading、failure 与真实空数据状态；SQLite/解析/IPC 异常显示错误 Alert 和“暂无可用”占位，不得伪装成“当前分类没有记录”。
+9. 任务页不展示输出格式选择器。表单适配器忽略旧状态或被篡改的格式值，提交时固定写入 `html/markdown/epub`；读取当前 schema 中的旧格式子集时也显示为完整三格式。
 
 ## 前端职责
 
@@ -92,7 +95,7 @@ flowchart LR
 
 1. 登录状态展示和用户引导。
 2. 链接识别、任务录入、表单校验和配置适配。
-3. 展示运行阶段、最近日志、输出历史和诊断结果。
+3. 展示运行阶段、最近日志、HTML/Markdown/EPUB 输出历史和诊断结果。
 4. 展示数据库摘要、分页列表和详情。
 5. 生成经过共享契约校验、脱敏和限长的前端诊断事件。
 
@@ -105,7 +108,7 @@ flowchart LR
 
 ## Electron 主进程职责
 
-路径：`src/index.ts`、`src/preload.js`
+路径：`src/index.ts`、`src/preload.cjs`
 
 Electron 负责：
 
@@ -114,7 +117,7 @@ Electron 负责：
 3. 注册白名单 IPC，校验来自 renderer 的 payload。
 4. 读取、写入任务配置并启动 `RunTaskWorkflow`。
 5. 管理任务运行锁，避免重复启动。
-6. 提供日志、最近五日输出历史、数据库摘要、导入导出和诊断文件能力。
+6. 提供日志、最近五日三格式输出历史、数据库摘要、导入导出和诊断文件能力。
 7. 把前端事件写入独立的按日 JSONL；renderer 不能指定文件路径。
 
 日志写入失败必须降级到安全的控制台/stderr 路径，不能覆盖原始业务异常。`PathConfig.rootPath/log` 是本仓库约定的默认目录；测试通过注入将其切换到临时目录。
@@ -128,7 +131,7 @@ Electron 负责：
 1. 解析配置并初始化目录和 SQLite。
 2. 请求知乎接口，执行分页、子任务扩展和持久化。
 3. 从 SQLite 组织回答、文章、想法及其关系。
-4. 排序、分卷、渲染 HTML 并生成 EPUB。
+4. 排序、分卷、渲染 HTML、生成 EPUB，并把每本书的全部多文件/单文件 HTML 交给按需 worker 串行转换为 Markdown。
 5. 使用共享日志契约记录可关联、可脱敏、可判定终态的结构化事件。
 6. 区分不可恢复错误与可恢复的局部失败，不得用空结果伪装成功。
 
@@ -136,7 +139,7 @@ Electron 负责：
 
 ## IPC 列表
 
-IPC 公开面由 `src/preload.js` 与 `src/renderer.d.ts` 共同约束。新增或改名时必须同时更新两处和本表。
+IPC 公开面由 `src/preload.cjs` 与 `src/renderer.d.ts` 共同约束。新增或改名时必须同时更新两处和本表。
 
 | IPC                           | 主要调用方         | 用途与边界                                                                                                                                         |
 | ----------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -156,7 +159,7 @@ IPC 公开面由 `src/preload.js` 与 `src/renderer.d.ts` 共同约束。新增�
 | `clear-log-content`           | 运行日志           | 清理文本日志文件族                                                                                                                                 |
 | `get-runtime-jsonl-content`   | 运行日志、调试     | 合并读取最近五日后端 JSONL                                                                                                                         |
 | `clear-runtime-jsonl-content` | 运行日志           | 清理后端 JSONL 文件族                                                                                                                              |
-| `get-output-history`          | 运行日志           | 从最近五日 `output.created` 事件按规范化路径去重构建历史                                                                                           |
+| `get-output-history`          | 运行日志           | 从最近五日 `output.created` 事件按规范化 HTML/Markdown/EPUB 路径去重构建历史                                                                        |
 | `export-diagnostic-info`      | 运行日志           | 导出脱敏配置、摘要及前后端日志尾部                                                                                                                 |
 | `open-devtools`               | 调试               | 打开主窗口 DevTools                                                                                                                                |
 | `open-js-rpc-window-devtools` | 调试               | 显示 js-rpc 窗口并打开 DevTools                                                                                                                    |
@@ -173,4 +176,4 @@ IPC 公开面由 `src/preload.js` 与 `src/renderer.d.ts` 共同约束。新增�
 3. 有业务 payload 的入口在执行前校验对象形状和字段范围；当前包括任务配置、默认标题、数据库分页/导出和本地输出路径。非法 payload 抛出可诊断错误并记录唯一 failure，不得继续写配置、查询数据库或访问任意路径。
 4. 请求和响应在写日志前脱敏、摘要化并限制单条大小。
 5. `get-output-history`、日志读取轮询与 `append-frontend-log-batch` 是防递归的被动通道，不产生通用 IPC 起止事件；后者只记录 accepted/rejected 接收结果。
-6. 同步修改 `src/index.ts`、`src/preload.js`、`src/renderer.d.ts`、调试面板和本文档。
+6. 同步修改 `src/index.ts`、`src/preload.cjs`、`src/renderer.d.ts`、调试面板和本文档。

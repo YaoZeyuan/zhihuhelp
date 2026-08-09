@@ -34,6 +34,7 @@ type Type_Output_History_Item = {
   status?: string
   outputPath?: string
   htmlOutputPath?: string
+  markdownOutputPath?: string
   epubOutputPath?: string
   outputFormats?: string[]
 }
@@ -430,6 +431,7 @@ export default () => {
             </div>
             <Space wrap>
               {item.htmlOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.htmlOutputPath)}>打开 HTML</Button>}
+              {item.markdownOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.markdownOutputPath)}>打开 Markdown</Button>}
               {item.epubOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.epubOutputPath)}>打开 EPUB</Button>}
               {item.outputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.outputPath)}>打开输出目录</Button>}
             </Space>

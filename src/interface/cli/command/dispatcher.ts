@@ -1,5 +1,5 @@
-import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow'
-import { CliCommand } from '~/src/interface/cli/parser'
+import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow.js'
+import { CliCommand } from '~/src/interface/cli/parser/index.js'
 
 /**
  * 将 Optique 解析出的 CLI 指令派发到 application workflow。

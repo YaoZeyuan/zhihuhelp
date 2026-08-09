@@ -2,15 +2,15 @@
 layout: home
 title: 知乎助手
 titleTemplate: false
-description: 将知乎回答、文章、想法、收藏夹等内容保存到本地，并生成 HTML / EPUB 电子书。
+description: 将知乎回答、文章、想法、收藏夹等内容保存到本地，并固定生成 HTML、Markdown 与 EPUB。
 
 hero:
   name: 知乎助手
   text: 把喜欢的知乎内容，变成自己的离线书库
-  tagline: 在本地完成任务识别、内容抓取、数据整理与电子书生成。支持 HTML / EPUB 输出，也为开发者提供完整的运行诊断与维护文档。
+  tagline: 在本地完成任务识别、内容抓取与数据整理，每次同时生成 HTML、Markdown 和 EPUB，也为开发者提供完整的运行诊断与维护文档。
   image:
     src: /brand/知乎助手-宣传图.png
-    alt: ''
+    alt: 知乎助手宣传图，展示从知乎内容到本地离线书库的产品定位
     width: 1731
     height: 909
     loading: eager
@@ -31,8 +31,8 @@ features:
     title: 覆盖常用知乎内容
     details: 识别回答、文章、想法、问题、收藏夹、专栏、话题和用户链接，并按任务类型抓取关联内容。
   - icon: 📚
-    title: HTML 与 EPUB 输出
-    details: 支持单文件、目录版和自动分卷，将图片与正文整理成便于归档和离线阅读的电子书。
+    title: 三种格式固定输出
+    details: 每次任务同时生成 HTML、Markdown 与 EPUB；HTML 和 Markdown 都包含多文件目录版与单文件版，并支持自动分卷。
   - icon: 🗂️
     title: 本地数据浏览
     details: 数据保存在本机 SQLite 中，可按实体类型浏览缓存内容并查看最近五日输出历史。
@@ -51,12 +51,12 @@ features:
 
 ## 从链接到离线书库
 
-粘贴一个受支持的知乎链接，知乎助手会识别任务类型，低并发抓取公开内容并写入本地数据库，最后按照你的排序、图片质量和分卷设置生成 HTML 或 EPUB。不可恢复错误会准确终止任务，个别实体失败则以部分成功结束并保留可用结果。
+粘贴一个受支持的知乎链接，知乎助手会识别任务类型，低并发抓取公开内容并写入本地数据库，最后按照你的排序、图片质量和分卷设置同时生成 HTML、Markdown 与 EPUB。不可恢复错误会准确终止任务，个别实体失败则以部分成功结束并保留可用结果。
 
 <div class="workflow-strip" aria-label="知乎助手任务执行流程">
   <div class="workflow-step"><strong>01 · 添加任务</strong><span>粘贴知乎链接，自动识别内容类型并检查登录状态。</span></div>
   <div class="workflow-step"><strong>02 · 抓取整理</strong><span>按页读取内容、扩展关联实体，并持久化到本地 SQLite。</span></div>
-  <div class="workflow-step"><strong>03 · 配置输出</strong><span>选择 HTML 或 EPUB、排序方式、图片质量与自动分卷。</span></div>
+  <div class="workflow-step"><strong>03 · 配置生成</strong><span>设置排序、图片质量与自动分卷；三种输出格式无需选择。</span></div>
   <div class="workflow-step"><strong>04 · 阅读与诊断</strong><span>打开生成结果，或从运行日志和输出历史定位问题。</span></div>
 </div>
 
@@ -66,20 +66,20 @@ features:
 
 <div class="product-showcase">
   <figure class="product-shot">
-    <img :src="'/screenshots/task-management.png'" alt="知乎助手任务管理页面，展示链接识别和输出配置" loading="lazy">
-    <figcaption>任务管理：识别链接、配置输出并启动任务</figcaption>
+    <img :src="'/screenshots/task-management.png'" alt="知乎助手任务管理页面，展示链接识别、生成设置和任务启动入口" loading="lazy">
+    <figcaption>任务管理：识别链接、配置生成方式并启动任务</figcaption>
   </figure>
   <figure class="product-shot">
-    <img :src="'/screenshots/runtime-log.png'" alt="知乎助手运行日志页面，展示阶段状态和输出历史" loading="lazy">
-    <figcaption>运行日志：查看阶段状态、诊断事件与输出历史</figcaption>
+    <img :src="'/screenshots/runtime-log.png'" alt="知乎助手运行日志页面，展示阶段状态及 HTML、Markdown、EPUB 输出历史" loading="lazy">
+    <figcaption>运行日志：查看阶段状态、诊断事件与三格式输出历史</figcaption>
   </figure>
   <figure class="product-shot">
     <img :src="'/screenshots/data-explorer.png'" alt="知乎助手数据浏览页面，展示本地缓存内容列表" loading="lazy">
     <figcaption>数据浏览：按内容类型查看本地 SQLite 缓存</figcaption>
   </figure>
   <figure class="product-shot">
-    <img :src="'/screenshots/output-preview.png'" alt="知乎助手生成后的 HTML 和 EPUB 内容示例" loading="lazy">
-    <figcaption>输出预览：生成便于归档和离线阅读的 HTML / EPUB</figcaption>
+    <img :src="'/screenshots/output-preview.png'" alt="知乎助手生成后的 HTML、Markdown 与 EPUB 内容预览" loading="lazy">
+    <figcaption>输出预览：同时生成便于归档、编辑和离线阅读的三种格式</figcaption>
   </figure>
 </div>
 

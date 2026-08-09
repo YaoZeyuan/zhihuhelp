@@ -1,11 +1,11 @@
-import * as ConstTaskConfig from '~/src/constant/task_config'
-import * as LegacyTaskConfig from '~/src/type/task_config'
-import * as TaskSchema from '~/src/shared/config/task_schema'
+import * as ConstTaskConfig from '~/src/constant/task_config.js'
+import * as LegacyTaskConfig from '~/src/type/task_config.js'
+import * as TaskSchema from '~/src/shared/config/task_schema.js'
 
 export type TaskType = LegacyTaskConfig.Type_Task_Type
 export type GenerateMode = LegacyTaskConfig.Type_Generate_Type
 export type ImageQuality = LegacyTaskConfig.Type_Image_Quilty
-export type OutputFormat = 'html' | 'epub'
+export type OutputFormat = TaskSchema.OutputFormat
 
 export type TaskItem = {
   type: TaskType
@@ -53,7 +53,7 @@ export function createDefaultTaskConfig(): TaskConfig {
       imageQuality: ConstTaskConfig.Const_Image_Quilty_原图,
       maxItemsPerBook: 10000,
       orderBy: [],
-      outputFormats: ['html', 'epub'],
+      outputFormats: [...outputFormatList],
       comment: '',
     },
   }
@@ -75,7 +75,7 @@ export function toLegacyTaskConfig(config: TaskConfig): LegacyTaskConfig.Type_Ta
       maxItemInBook: config.generate.maxItemsPerBook,
       orderByList: config.generate.orderBy,
       generateType: config.generate.mode,
-      outputFormats: [...config.generate.outputFormats],
+      outputFormats: [...outputFormatList],
     },
     requestConfig: {
       ua: config.request.ua,
@@ -103,7 +103,7 @@ export function fromLegacyTaskConfig(config: LegacyTaskConfig.Type_Task_Config):
       imageQuality: config.generateConfig.imageQuilty,
       maxItemsPerBook: config.generateConfig.maxItemInBook,
       orderBy: config.generateConfig.orderByList,
-      outputFormats: config.generateConfig.outputFormats ?? ['html', 'epub'],
+      outputFormats: [...outputFormatList],
       comment: config.generateConfig.comment,
     },
   }

@@ -1,6 +1,6 @@
-import AnswerApi from '~/src/api/single/answer'
-import MAnswer from '~/src/model/answer'
-import Base from '~/src/api/batch/base'
+import AnswerApi from '~/src/api/single/answer.js'
+import MAnswer from '~/src/model/answer.js'
+import Base from '~/src/api/batch/base.js'
 
 class BatchFetchAnswer extends Base {
   /**

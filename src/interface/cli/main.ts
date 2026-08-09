@@ -2,11 +2,11 @@
 import { defineProgram } from '@optique/core/program'
 import { message } from '@optique/core/message'
 import { runSync } from '@optique/run'
-import CommonConfig from '~/src/config/common'
-import { cliParser } from '~/src/interface/cli/parser'
-import { dispatchCliCommand } from '~/src/interface/cli/command/dispatcher'
-import Logger from '~/src/library/logger'
-import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract'
+import CommonConfig from '~/src/config/common.js'
+import { cliParser } from '~/src/interface/cli/parser/index.js'
+import { dispatchCliCommand } from '~/src/interface/cli/command/dispatcher.js'
+import Logger from '~/src/library/logger.js'
+import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract.js'
 
 const program = defineProgram({
   parser: cliParser,

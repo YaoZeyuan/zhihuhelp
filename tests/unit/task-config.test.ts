@@ -37,11 +37,22 @@ describe('task config schema', () => {
     ).toThrow(/schema/i)
   })
 
-  it('preserves selected output formats through the internal legacy workflow adapter', () => {
+  it('normalizes legacy output-format subsets to the three required artifacts', () => {
     const config = createDefaultTaskConfig()
     config.generate.outputFormats = ['html']
     const legacy = toLegacyTaskConfig(config)
-    expect(legacy.generateConfig.outputFormats).toEqual(['html'])
-    expect(fromLegacyTaskConfig(legacy).generate.outputFormats).toEqual(['html'])
+    expect(legacy.generateConfig.outputFormats).toEqual(['html', 'markdown', 'epub'])
+    legacy.generateConfig.outputFormats = ['epub']
+    expect(fromLegacyTaskConfig(legacy).generate.outputFormats).toEqual([
+      'html',
+      'markdown',
+      'epub',
+    ])
+    expect(
+      parseTaskConfig({
+        ...config,
+        generate: { ...config.generate, outputFormats: ['html'] },
+      }).generate.outputFormats,
+    ).toEqual(['html', 'markdown', 'epub'])
   })
 })

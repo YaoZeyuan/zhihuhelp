@@ -1,16 +1,16 @@
-import http from '~/src/library/http'
+import http from '~/src/library/http/index.js'
 import md5 from 'md5'
 import url from 'url'
 import lodash from 'lodash'
 import fs from 'fs'
 import path from 'path'
-import PathConfig from '~/src/config/path'
-import CommonUtil from '~/src/library/util/common'
-import logger from '~/src/library/logger'
-import Epub from '~/src/library/epub'
-import * as Type_TaskConfig from '~/src/type/task_config'
+import PathConfig from '~/src/config/path.js'
+import CommonUtil from '~/src/library/util/common.js'
+import logger from '~/src/library/logger.js'
+import Epub from '~/src/library/epub/index.js'
+import * as Type_TaskConfig from '~/src/type/task_config.js'
 import sharp from 'sharp'
-import { resolveOutputChildPath, sanitizeOutputFilename } from '~/src/shared/path/safe_output_path'
+import { resolveOutputChildPath, sanitizeOutputFilename } from '~/src/shared/path/safe_output_path.js'
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
 const Const_Zhihu_Img_CDN_List = [
@@ -22,6 +22,11 @@ const Const_Zhihu_Img_CDN_List = [
 ]
 
 type TypeSrc2Download = string
+export type MarkdownHtmlSource = {
+  relativeHtmlPath: string
+  html: string
+}
+
 class ImgItem {
   /**
    * 文件名
@@ -109,6 +114,7 @@ class EpubGenerator {
   imageQuilty: Type_TaskConfig.Type_Image_Quilty = 'hd'
 
   imgUriPool: Map<TypeSrc2Download, ImgItem> = new Map()
+  private markdownHtmlSourceList: MarkdownHtmlSource[] = []
 
   get epubCachePath() {
     return resolveOutputChildPath(PathConfig.epubCachePath, this.outputBasename)
@@ -330,6 +336,10 @@ class EpubGenerator {
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)
+    this.markdownHtmlSourceList.push({
+      relativeHtmlPath: `html/${filename}.html`,
+      html: processContent,
+    })
     this.epub.addHtml(title, htmlUri)
 
     // 返回的html地址必须是相对地址, 以便在epub中进行定位
@@ -347,6 +357,10 @@ class EpubGenerator {
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
     fs.writeFileSync(path.resolve(this.htmlCacheSingleHtmlPath, `${this.outputBasename}.html`), processContent)
+    this.markdownHtmlSourceList.push({
+      relativeHtmlPath: `单文件版/${this.outputBasename}.html`,
+      html: processContent,
+    })
     return processContent
   }
 
@@ -355,6 +369,10 @@ class EpubGenerator {
     // 对html进行处理, 替换掉图片地址
     let processContent = this.processContent(html)
     fs.writeFileSync(htmlUri, processContent)
+    this.markdownHtmlSourceList.push({
+      relativeHtmlPath: `html/${filename}.html`,
+      html: processContent,
+    })
     this.epub.addIndexHtml(title, htmlUri)
 
     // 返回的html地址必须是相对地址, 以便在epub中进行定位
@@ -369,6 +387,16 @@ class EpubGenerator {
     })
     content = tinyContentList.join(`<div data-key='single-page'`)
     return content
+  }
+
+  getMarkdownHtmlSourceList(): MarkdownHtmlSource[] {
+    return this.markdownHtmlSourceList.map((source) => ({ ...source }))
+  }
+
+  getMarkdownImageSourceMap(): Map<string, string> {
+    return new Map(
+      [...this.imgUriPool.values()].map((image) => [image.htmlImguri, image.rawImgSrc]),
+    )
   }
 
   /**
@@ -525,7 +553,9 @@ class EpubGenerator {
     }
   }
 
-  async asyncGenerateEpub(outputFormats: ('html' | 'epub')[] = ['html', 'epub']) {
+  async asyncGenerateEpub(
+    outputFormats: ('html' | 'markdown' | 'epub')[] = ['html', 'markdown', 'epub'],
+  ) {
     this.log(`内容列表预处理完毕, 准备下载图片`)
     // 下载图片
     this.log(`开始下载图片, 共${this.imgUriPool.size}张待下载`)

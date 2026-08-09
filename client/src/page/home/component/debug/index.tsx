@@ -76,7 +76,7 @@ const Const_Default_Custom_Arg_Map: Record<Type_Debug_Channel, unknown[]> = {
           imageQuality: 'low',
           maxItemsPerBook: 100,
           orderBy: [],
-          outputFormats: ['html', 'epub'],
+          outputFormats: ['html', 'markdown', 'epub'],
           comment: '',
         },
       },

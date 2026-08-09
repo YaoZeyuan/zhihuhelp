@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import * as TypeCollection from '~/src/type/zhihu/collection'
+import Base from '~/src/model/base.js'
+import * as TypeCollection from '~/src/type/zhihu/collection.js'
 import moment from 'moment'
 
 type Type_Record = {

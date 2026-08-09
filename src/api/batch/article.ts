@@ -1,6 +1,6 @@
-import ArticleApi from '~/src/api/single/article'
-import MArticle from '~/src/model/article'
-import Base from '~/src/api/batch/base'
+import ArticleApi from '~/src/api/single/article.js'
+import MArticle from '~/src/model/article.js'
+import Base from '~/src/api/batch/base.js'
 
 class BatchFetchArticle extends Base {
   /**

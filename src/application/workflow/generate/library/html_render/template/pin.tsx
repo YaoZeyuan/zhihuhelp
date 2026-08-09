@@ -1,10 +1,10 @@
 import React from 'react'
-import * as TypePin from '~/src/type/zhihu/pin'
+import * as TypePin from '~/src/type/zhihu/pin.js'
 import lodash from 'lodash'
-import CommonUtil from '~/src/library/util/common'
-import CommentCompontent from './comment'
+import CommonUtil from '~/src/library/util/common.js'
+import CommentCompontent from './comment.js'
 import moment from 'moment'
-import * as DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format.js'
 
 export default ({ rawPinRecord }: { rawPinRecord: TypePin.Record }) => {
   if (lodash.isEmpty(rawPinRecord)) {

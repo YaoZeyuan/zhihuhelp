@@ -1,4 +1,4 @@
-import { AppErrorCode, AppErrorCodeValue } from '~/src/shared/error/application_error'
+import { AppErrorCode, AppErrorCodeValue } from '~/src/shared/error/application_error.js'
 
 export const ZhihuResponseKind = {
   OK: 'ok',

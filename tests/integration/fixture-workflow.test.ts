@@ -9,6 +9,7 @@ import InitWorkflow from '../../src/application/workflow/init/init_workflow'
 import Knex from '../../src/library/knex'
 import PathConfig from '../../src/config/path'
 import RunTaskWorkflow from '../../src/application/workflow/run_task/run_task_workflow'
+import { MarkdownGenerator } from '../../src/application/workflow/generate/library/markdown'
 import { createDefaultTaskConfig } from '../../src/domain/task/task_config'
 import { createRunContext } from '../../src/shared/runtime/run_context'
 import { writeTaskConfig } from '../../src/shared/config/task_config_parser'
@@ -164,7 +165,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(fs.realpathSync(sandbox.databasePath).startsWith(fs.realpathSync(sandbox.rootPath))).toBe(true)
   })
 
-  it('runs init, skipped fetch, database-backed generation and real HTML/EPUB output entirely in the sandbox', async () => {
+  it('runs init, skipped fetch, database-backed generation and forced HTML/Markdown/EPUB output entirely in the sandbox', async () => {
     const answerRecord = readAnswerFixture()
     const config = createDefaultTaskConfig()
     config.tasks = [
@@ -215,15 +216,21 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(result.runId).toBe('fixture-full-run-id')
     expect(outputFileList.some((filePath) => filePath.endsWith('.epub'))).toBe(true)
     expect(outputFileList.some((filePath) => filePath.endsWith('.html'))).toBe(true)
+    expect(outputFileList.some((filePath) => filePath.endsWith('.md'))).toBe(true)
+    expect(outputFileList.filter((filePath) => filePath.endsWith('.md'))).toHaveLength(
+      outputFileList.filter((filePath) => filePath.endsWith('.html')).length,
+    )
     expect(runtimeLog).toContain('"stage":"init"')
     expect(runtimeLog).toContain('"stage":"fetch"')
     expect(runtimeLog).toContain('"stage":"generate"')
     expect(runtimeLog).toContain('"eventCode":"output.created"')
+    expect(runtimeLog).toContain('"eventCode":"output.markdown.success"')
+    expect(runtimeLog).toContain('"outputFormats":["html","markdown","epub"]')
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
   })
 
-  it('creates distinct real HTML and EPUB files for a long-title two-volume book', async () => {
+  it('creates distinct real HTML, Markdown and EPUB files for a long-title two-volume book', async () => {
     const firstAnswer = readAnswerFixture()
     const secondAnswer = {
       ...firstAnswer,
@@ -266,11 +273,66 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     const outputFileList = listFilesRecursively(sandbox.outputPath)
     const epubFileList = outputFileList.filter((filePath) => filePath.endsWith('.epub'))
     const htmlIndexList = outputFileList.filter((filePath) => filePath.endsWith(`${path.sep}index.html`))
+    const markdownIndexList = outputFileList.filter((filePath) => filePath.endsWith(`${path.sep}index.md`))
     expect(epubFileList).toHaveLength(2)
     expect(htmlIndexList).toHaveLength(2)
+    expect(markdownIndexList).toHaveLength(2)
     expect(new Set(epubFileList.map((filePath) => path.basename(filePath))).size).toBe(2)
     expect(epubFileList.every((filePath) => path.basename(filePath).length <= 120)).toBe(true)
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
+  })
+
+  it('keeps HTML and EPUB usable and reports partial_success when Markdown publishing fails', async () => {
+    const answerRecord = readAnswerFixture()
+    const config = createDefaultTaskConfig()
+    config.tasks = [{
+      type: 'answer',
+      id: answerRecord.id,
+      rawInputText: `fixture://answer/${answerRecord.id}`,
+      comment: 'markdown failure fixture',
+      skipFetch: true,
+    }]
+    config.generate.imageQuality = 'none'
+    writeTaskConfig(sandbox.configPath, config)
+
+    const options = {
+      configPath: sandbox.configPath,
+      databasePath: sandbox.databasePath,
+      cachePath: sandbox.cachePath,
+      logPath: sandbox.logPath,
+      outputPath: sandbox.outputPath,
+      skipUpgradeCheck: true,
+      traceId: 'fixture-markdown-failure',
+      runId: 'fixture-markdown-failure-run-id',
+      trigger: 'cli' as const,
+      rebase: false,
+    }
+    const workflow = new RunTaskWorkflow()
+    await workflow.init({ ...options, runId: 'fixture-markdown-failure-setup' })
+    await AnswerModel.asyncReplaceAnswer(answerRecord as never)
+    vi.spyOn(MarkdownGenerator.prototype, 'generate').mockRejectedValue(
+      new Error('fixture Markdown output is unavailable'),
+    )
+
+    const result = await workflow.run(options)
+    const outputFileList = listFilesRecursively(sandbox.outputPath)
+    const runtimeRecords = readRuntimeRecords(sandbox.logPath)
+
+    expect(result.outcomeStatus).toBe(LogStatus.PARTIAL_SUCCESS)
+    expect(outputFileList.some((filePath) => filePath.endsWith('.html'))).toBe(true)
+    expect(outputFileList.some((filePath) => filePath.endsWith('.epub'))).toBe(true)
+    expect(outputFileList.some((filePath) => filePath.endsWith('.md'))).toBe(false)
+    expect(runtimeRecords).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        eventCode: 'output.markdown.failure',
+        status: LogStatus.FAILURE,
+      }),
+      expect.objectContaining({
+        eventCode: 'output.created',
+        status: LogStatus.PARTIAL_SUCCESS,
+      }),
+    ]))
+    expectEveryStartedOperationToHaveOneTerminal(runtimeRecords)
   })
 })

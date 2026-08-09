@@ -4,6 +4,10 @@ import { Type_FormValue } from '../state'
 
 export type Type_Form_Config = Type_FormValue
 
+function createRequiredOutputFormatList(): TypeTaskConfig.Type_Output_Format[] {
+  return [...ConstTaskConfig.Const_Required_Output_Format_List]
+}
+
 export default class TaskConfigAdapter {
   static formToTaskConfig(param: Type_Form_Config): TypeTaskConfig.Type_Task_Config {
     const taskList: TypeTaskConfig.Type_Task_Config['tasks'] = []
@@ -37,9 +41,9 @@ export default class TaskConfigAdapter {
           orderBy: orderItem.orderBy,
           orderWith: orderItem.orderWith,
         })),
-        outputFormats: param.outputFormats?.length > 0
-          ? param.outputFormats
-          : [...ConstTaskConfig.Const_Default_Config.generate.outputFormats],
+        // The GUI intentionally has no format selector. Ignore stale or
+        // manipulated form values and always persist the complete output set.
+        outputFormats: createRequiredOutputFormatList(),
       },
     }
   }
@@ -62,9 +66,9 @@ export default class TaskConfigAdapter {
         orderWith: orderItem.orderWith,
       })),
       generateType: config.generate.mode,
-      outputFormats: config.generate.outputFormats?.length > 0
-        ? config.generate.outputFormats
-        : [...ConstTaskConfig.Const_Default_Config.generate.outputFormats],
+      // Older HTML-only/EPUB-only configs are normalized as soon as they are
+      // loaded so the next save always writes all required formats.
+      outputFormats: createRequiredOutputFormatList(),
     }
   }
 }

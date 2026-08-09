@@ -1,22 +1,22 @@
-﻿import * as TypeTaskConfig from '~/src/type/task_config'
-import * as ConstTaskConfig from '~/src/constant/task_config'
-import RequestConfig from '~/src/config/request'
-import BatchFetchAnswer from '~/src/api/batch/answer'
-import BatchFetchArticle from '~/src/api/batch/article'
-import BatchFetchAuthorActivity from '~/src/api/batch/author_activity'
-import BatchFetchAuthorAnswer from '~/src/api/batch/author_answer'
-import BatchFetchAuthorArticle from '~/src/api/batch/author_article'
-import BlockAccountAnswer from '~/src/api/batch/block_account_answer'
-import BatchFetchAuthorAskQuestion from '~/src/api/batch/author_ask_question'
-import BatchFetchAuthorPin from '~/src/api/batch/author_pin'
-import BatchFetchCollection from '~/src/api/batch/collection'
-import BatchFetchColumn from '~/src/api/batch/column'
-import BatchFetchPin from '~/src/api/batch/pin'
-import BatchFetchQuestion from '~/src/api/batch/question'
-import BatchFetchTopic from '~/src/api/batch/topic'
-import { BatchFetchError } from '~/src/api/batch/base'
-import Logger from '~/src/library/logger'
-import { RunContext } from '~/src/shared/runtime/run_context'
+﻿import * as TypeTaskConfig from '~/src/type/task_config.js'
+import * as ConstTaskConfig from '~/src/constant/task_config.js'
+import RequestConfig from '~/src/config/request.js'
+import BatchFetchAnswer from '~/src/api/batch/answer.js'
+import BatchFetchArticle from '~/src/api/batch/article.js'
+import BatchFetchAuthorActivity from '~/src/api/batch/author_activity.js'
+import BatchFetchAuthorAnswer from '~/src/api/batch/author_answer.js'
+import BatchFetchAuthorArticle from '~/src/api/batch/author_article.js'
+import BlockAccountAnswer from '~/src/api/batch/block_account_answer.js'
+import BatchFetchAuthorAskQuestion from '~/src/api/batch/author_ask_question.js'
+import BatchFetchAuthorPin from '~/src/api/batch/author_pin.js'
+import BatchFetchCollection from '~/src/api/batch/collection.js'
+import BatchFetchColumn from '~/src/api/batch/column.js'
+import BatchFetchPin from '~/src/api/batch/pin.js'
+import BatchFetchQuestion from '~/src/api/batch/question.js'
+import BatchFetchTopic from '~/src/api/batch/topic.js'
+import { BatchFetchError } from '~/src/api/batch/base.js'
+import Logger from '~/src/library/logger.js'
+import { RunContext } from '~/src/shared/runtime/run_context.js'
 import lodash from 'lodash'
 import {
   LogEventCode,
@@ -24,13 +24,13 @@ import {
   LogStage,
   LogStatus,
   StructuredLogEntry,
-} from '~/src/shared/logging/log_contract'
+} from '~/src/shared/logging/log_contract.js'
 import {
   createPartialOutcome,
   createSuccessOutcome,
   ExecutionOutcome,
   hasFatalExecutionFailure,
-} from '~/src/shared/runtime/execution_outcome'
+} from '~/src/shared/runtime/execution_outcome.js'
 
 type BatchFetcher = {
   fetchListAndSaveToDb(idList: string[]): Promise<ExecutionOutcome>

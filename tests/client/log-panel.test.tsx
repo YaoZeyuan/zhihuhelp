@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { LogEventCode } from '../../src/shared/logging/log_contract'
 
@@ -161,6 +161,40 @@ describe('log panel', () => {
     })
   })
 
+  it('uses the canonical book partial result when only Markdown publishing fails', () => {
+    const stageList = buildStageList([
+      {
+        runId: 'run-1',
+        jobId: 'generate-book-1',
+        eventCode: LogEventCode.OUTPUT_START,
+        stage: 'output',
+        status: 'start',
+        message: 'book start',
+      },
+      {
+        runId: 'run-1',
+        jobId: 'markdown-book-1',
+        eventCode: LogEventCode.MARKDOWN_FAILURE,
+        stage: 'output',
+        status: 'failure',
+        message: 'markdown failed',
+      },
+      {
+        runId: 'run-1',
+        jobId: 'generate-book-1',
+        eventCode: LogEventCode.OUTPUT_CREATED,
+        stage: 'output',
+        status: 'partial_success',
+        message: 'HTML and EPUB created',
+      },
+    ])
+
+    expect(stageList.find((item) => item.stage === 'output')).toMatchObject({
+      status: 'partial_success',
+      message: 'HTML and EPUB created',
+    })
+  })
+
   it('loads IPC data, tolerates malformed JSONL and sorts output history newest first', async () => {
     const electronAPI = {
       'get-log-content': vi.fn().mockResolvedValue('line one\nline two'),
@@ -178,6 +212,7 @@ describe('log panel', () => {
           id: `output-${index}`,
           title: `output-${index}`,
           createdAt: `2026-08-08T00:00:${String(index).padStart(2, '0')}.000Z`,
+          markdownOutputPath: index === 9 ? 'D:/test-output/markdown/book' : undefined,
         })),
       ),
       'clear-log-content': vi.fn().mockResolvedValue(undefined),
@@ -185,6 +220,7 @@ describe('log panel', () => {
       'export-diagnostic-info': vi.fn().mockResolvedValue(undefined),
       'open-local-path': vi.fn().mockResolvedValue(undefined),
       'open-output-dir': vi.fn().mockResolvedValue(undefined),
+      'append-frontend-log-batch': vi.fn().mockResolvedValue({ acceptedCount: 1 }),
     }
     Object.defineProperty(window, 'electronAPI', {
       configurable: true,
@@ -201,6 +237,14 @@ describe('log panel', () => {
     )
     expect(titleList).toEqual(Array.from({ length: 10 }, (_, index) => `output-${9 - index}`))
     expect(view.container.querySelector('.latest-error')).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: '打开 Markdown' }))
+    await waitFor(() => {
+      expect(electronAPI['open-local-path']).toHaveBeenCalledWith(
+        { targetPath: 'D:/test-output/markdown/book' },
+        expect.objectContaining({ __zhihuhelpTraceId: expect.any(String) }),
+      )
+    })
 
     expect(() => view.rerender(<LogPanel />)).not.toThrow()
   })

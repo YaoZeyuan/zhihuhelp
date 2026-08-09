@@ -1,8 +1,8 @@
-import Base from '~/src/model/base'
-import * as TypeActivity from '~/src/type/zhihu/activity'
+import Base from '~/src/model/base.js'
+import * as TypeActivity from '~/src/type/zhihu/activity.js'
 import lodash from 'lodash'
 import moment from 'moment'
-import * as DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format.js'
 
 class Activity extends Base {
   static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.Const_Display_By_Second)

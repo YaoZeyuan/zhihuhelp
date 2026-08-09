@@ -3,8 +3,8 @@
     "checkJs": false, // JavaScript preload/renderer files are validated at runtime.
     "allowJs": true,
     /* Basic Options */
-    "target": "ES2015" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'. */,
-    "module": "Node16" /* Emit CommonJS for this package while using modern Node resolution. */,
+    "target": "ES2024" /* Match the Node.js runtime embedded by the supported Electron release. */,
+    "module": "NodeNext" /* Emit native ESM for the Electron main process and CLI. */,
     "lib": ["ESNext"] /* Specify library files to be included in the compilation. */,
     "jsx": "react" /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */,
     "resolveJsonModule": true,
@@ -21,7 +21,7 @@
     "strictBindCallApply": true /* Enable strict 'bind', 'call', and 'apply' methods on functions. */,
     "strictPropertyInitialization": true /* Enable strict checking of property initialization in classes. */,
     /* Module Resolution Options */
-    "moduleResolution": "node16" /* Use the current Node.js package resolution rules. */,
+    "moduleResolution": "nodenext" /* Enforce Node.js ESM package and extension resolution. */,
     "rootDir": "./" /* Base directory to resolve non-absolute module names. */,
     /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
     "paths": {

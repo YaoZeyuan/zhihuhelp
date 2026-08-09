@@ -1,17 +1,23 @@
 import path from 'path'
+import { fileURLToPath } from 'node:url'
+
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
+
 export default class PathConfig {
   // 根路径
-  static readonly rootPath = path.resolve(__dirname, '../../')
+  static readonly rootPath = path.resolve(moduleDirectory, '../../')
   // 项目打包时只打包dist目录, 因此路径中不能带src
-  static readonly resourcePath = path.resolve(path.resolve(__dirname, '../'), 'public')
+  static readonly resourcePath = path.resolve(path.resolve(moduleDirectory, '../'), 'public')
   static cachePath = path.resolve(PathConfig.rootPath, '缓存文件')
   static imgCachePath = path.resolve(PathConfig.cachePath, 'imgPool')
   static htmlCachePath = path.resolve(PathConfig.cachePath, 'html')
   static epubCachePath = path.resolve(PathConfig.cachePath, 'epub')
+  static markdownCachePath = path.resolve(PathConfig.cachePath, 'markdown')
   static logPath = path.resolve(PathConfig.rootPath, 'log')
   static outputPath = path.resolve(PathConfig.rootPath, '知乎助手输出的电子书')
   static epubOutputPath = path.resolve(PathConfig.outputPath, 'epub')
   static htmlOutputPath = path.resolve(PathConfig.outputPath, 'html')
+  static markdownOutputPath = path.resolve(PathConfig.outputPath, 'markdown')
 
   // package.json文件
   static readonly packageJsonUri = path.resolve(PathConfig.rootPath, 'package.json')
@@ -37,10 +43,12 @@ export default class PathConfig {
       PathConfig.imgCachePath,
       PathConfig.htmlCachePath,
       PathConfig.epubCachePath,
+      PathConfig.markdownCachePath,
       PathConfig.logPath,
       PathConfig.outputPath,
       PathConfig.epubOutputPath,
       PathConfig.htmlOutputPath,
+      PathConfig.markdownOutputPath,
     ]
   }
 
@@ -52,6 +60,7 @@ export default class PathConfig {
     PathConfig.outputPath = path.resolve(outputPath)
     PathConfig.epubOutputPath = path.resolve(PathConfig.outputPath, 'epub')
     PathConfig.htmlOutputPath = path.resolve(PathConfig.outputPath, 'html')
+    PathConfig.markdownOutputPath = path.resolve(PathConfig.outputPath, 'markdown')
   }
 
   static setCachePath(cachePath: string) {
@@ -59,6 +68,7 @@ export default class PathConfig {
     PathConfig.imgCachePath = path.resolve(PathConfig.cachePath, 'imgPool')
     PathConfig.htmlCachePath = path.resolve(PathConfig.cachePath, 'html')
     PathConfig.epubCachePath = path.resolve(PathConfig.cachePath, 'epub')
+    PathConfig.markdownCachePath = path.resolve(PathConfig.cachePath, 'markdown')
   }
 
   static setLogPath(logPath: string) {

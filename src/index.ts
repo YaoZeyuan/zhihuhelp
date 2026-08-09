@@ -1,19 +1,20 @@
 ﻿// Modules to control application life and create native browser window
-import Electron, { Menu } from 'electron'
-import RequestConfig from '~/src/config/request'
-import PathConfig from '~/src/config/path'
-import CommonUtil from '~/src/library/util/common'
-import Logger from '~/src/library/logger'
-import * as FrontTools from '~/src/library/util/front_tools'
-import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index'
-import MSummary from '~/src/model/summary'
-import CacheJsonTransfer from '~/src/application/cache_transfer/json_transfer'
-import http from '~/src/library/http'
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen, session, shell } from 'electron'
+import RequestConfig from '~/src/config/request.js'
+import PathConfig from '~/src/config/path.js'
+import CommonUtil from '~/src/library/util/common.js'
+import Logger from '~/src/library/logger.js'
+import * as FrontTools from '~/src/library/util/front_tools.js'
+import { setBridgeFunc } from '~/src/library/zhihu_encrypt/index.js'
+import MSummary from '~/src/model/summary.js'
+import CacheJsonTransfer from '~/src/application/cache_transfer/json_transfer.js'
+import http from '~/src/library/http/index.js'
 import fs from 'fs'
 import path from 'path'
-import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow'
-import { TaskConfig, TaskType, taskTypeList } from '~/src/domain/task/task_config'
-import { parseTaskConfig, readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser'
+import { fileURLToPath } from 'node:url'
+import RunTaskWorkflow from '~/src/application/workflow/run_task/run_task_workflow.js'
+import { TaskConfig, TaskType, taskTypeList } from '~/src/domain/task/task_config.js'
+import { parseTaskConfig, readTaskConfig, writeTaskConfig } from '~/src/shared/config/task_config_parser.js'
 import {
   LOG_SCHEMA_VERSION,
   LogEventCode,
@@ -22,30 +23,29 @@ import {
   LogStage,
   LogStatus,
   StructuredLogRecord,
-} from '~/src/shared/logging/log_contract'
-import { buildOutputHistory, parseJsonlRecords } from '~/src/shared/logging/output_history'
-import { sanitizeDiagnosticLogTail } from '~/src/shared/logging/diagnostic'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
-import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context'
-import { isPathInsideRoot } from '~/src/shared/path/safe_output_path'
-import { createRunId } from '~/src/shared/runtime/run_context'
+} from '~/src/shared/logging/log_contract.js'
+import { buildOutputHistory, parseJsonlRecords } from '~/src/shared/logging/output_history.js'
+import { sanitizeDiagnosticLogTail } from '~/src/shared/logging/diagnostic.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
+import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context.js'
+import { isPathInsideRoot } from '~/src/shared/path/safe_output_path.js'
+import { createRunId } from '~/src/shared/runtime/run_context.js'
 import {
   parseDbRecordExportPayload,
   parseDbRecordListPayload,
   parseOpenLocalPathPayload,
-} from '~/src/shared/ipc/payload'
-import { assertIpcResponseSucceeded } from '~/src/shared/ipc/result'
+} from '~/src/shared/ipc/payload.js'
+import { assertIpcResponseSucceeded } from '~/src/shared/ipc/result.js'
 
-
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 let argv = process.argv
 let isDebug = argv.includes('--zhihuhelp-debug')
 Logger.setDebugMode(isDebug)
-let { app, BrowserWindow, dialog, ipcMain, session, shell } = Electron
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow: Electron.BrowserWindow
+let mainWindow: BrowserWindow
 // 用于执行远程通信
-let jsRpcWindow: Electron.BrowserWindow
+let jsRpcWindow: BrowserWindow
 
 let isRunning = false
 let activeRunId: string | undefined
@@ -278,7 +278,6 @@ async function asyncCreateWindow() {
     Menu.setApplicationMenu(null)
   }
 
-  const { screen } = Electron
   const { width, height } = screen.getPrimaryDisplay().workAreaSize
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -294,8 +293,8 @@ async function asyncCreateWindow() {
     frame: true,
     // 禁用web安全功能 --> 个人软件, 要啥自行车
     webPreferences: {
-      // 使用preload.js, 以进行rpc通信
-      preload: path.join(__dirname, 'preload.js'),
+      // 沙盒 preload 使用 CommonJS, 以进行rpc通信
+      preload: path.join(moduleDirectory, 'preload.cjs'),
       // 开启 DevTools.
       devTools: true,
       // 禁用同源策略, 允许加载任何来源的js
@@ -327,8 +326,8 @@ async function asyncCreateWindow() {
       // contextIsolation: true,
       // 启用webview标签
       webviewTag: true,
-      // 启用preload.js, 以进行rpc通信
-      preload: path.join(__dirname, 'public', 'js-rpc', 'preload.js'),
+      // 沙盒 preload 使用 CommonJS, 以进行rpc通信
+      preload: path.join(moduleDirectory, 'public', 'js-rpc', 'preload.cjs'),
     },
   })
 
@@ -340,7 +339,7 @@ async function asyncCreateWindow() {
     mainWindow.loadURL('http://localhost:8080')
     mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(moduleDirectory, 'public', 'js-rpc', 'index.html')
     if (isMacOS) {
       // mac上载入url时必须明确指明协议, 否则无法载入
       jsRpcUri = "file://" + jsRpcUri
@@ -351,7 +350,7 @@ async function asyncCreateWindow() {
     // 线上地址
     // 构建出来后所有文件都位于dist目录中
     // mac上载入url时必须明确指明协议, 否则无法载入
-    let webviewUri = path.resolve(__dirname, 'client', 'index.html')
+    let webviewUri = path.resolve(moduleDirectory, 'client', 'index.html')
     if (isMacOS) {
       // 针对macos的特殊hack, mac上只有这样mainWindow才能加载html
       mainWindow.loadFile('./dist/client/index.html')
@@ -361,7 +360,7 @@ async function asyncCreateWindow() {
 
     // mainWindow.webContents.openDevTools()
 
-    let jsRpcUri = path.resolve(__dirname, 'public', 'js-rpc', 'index.html')
+    let jsRpcUri = path.resolve(moduleDirectory, 'public', 'js-rpc', 'index.html')
     if (isMacOS) {
       // mac上载入url时必须明确指明协议, 否则无法载入
       jsRpcUri = "file://" + jsRpcUri
@@ -858,6 +857,7 @@ app.whenReady().then(() => {
         configUri: PathConfig.configUri,
         outputPath: PathConfig.outputPath,
         htmlOutputPath: PathConfig.htmlOutputPath,
+        markdownOutputPath: PathConfig.markdownOutputPath,
         epubOutputPath: PathConfig.epubOutputPath,
         runtimeLogUri: PathConfig.runtimeLogUri,
         runtimeJsonlUri: PathConfig.runtimeJsonlUri,

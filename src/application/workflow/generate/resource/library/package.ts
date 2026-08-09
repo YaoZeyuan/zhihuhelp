@@ -1,20 +1,20 @@
 // 数据包裹内并不是单纯的数据, 由于需要支持排序功能, 所以数据中存在状态.
 // 因此使用类实现效果更好
 
-import * as Consts from '../const/index'
-import * as Types_Task_Config from '~/src/type/task_config'
-import * as Consts_Task_Config from '~/src/constant/task_config'
+import * as Consts from '../const/index.js'
+import * as Types_Task_Config from '~/src/type/task_config.js'
+import * as Consts_Task_Config from '~/src/constant/task_config.js'
 
-import * as Type_Activity from '~/src/type/zhihu/activity'
-import * as Type_Answer from '~/src/type/zhihu/answer'
-import * as Type_Article from '~/src/type/zhihu/article'
-import * as Type_Author from '~/src/type/zhihu/author'
-import * as Type_Collection from '~/src/type/zhihu/collection'
-import * as Type_Column from '~/src/type/zhihu/column'
-import * as Type_Pin from '~/src/type/zhihu/pin'
-import * as Type_Question from '~/src/type/zhihu/question'
-import * as Type_Topic from '~/src/type/zhihu/topic'
-import { Type_Page_Question_Item } from '../type'
+import * as Type_Activity from '~/src/type/zhihu/activity.js'
+import * as Type_Answer from '~/src/type/zhihu/answer.js'
+import * as Type_Article from '~/src/type/zhihu/article.js'
+import * as Type_Author from '~/src/type/zhihu/author.js'
+import * as Type_Collection from '~/src/type/zhihu/collection.js'
+import * as Type_Column from '~/src/type/zhihu/column.js'
+import * as Type_Pin from '~/src/type/zhihu/pin.js'
+import * as Type_Question from '~/src/type/zhihu/question.js'
+import * as Type_Topic from '~/src/type/zhihu/topic.js'
+import { Type_Page_Question_Item } from '../type/index.js'
 
 // 基本设计思路
 // 页的上一级是单元, 每个单元的顺序为: 单元信息页 + 后续问题/文章/想法页

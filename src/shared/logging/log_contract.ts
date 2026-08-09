@@ -78,6 +78,10 @@ export const LogEventCode = {
   RENDER_FAILURE: 'render.failure',
   OUTPUT_START: 'output.start',
   OUTPUT_PROGRESS: 'output.progress',
+  MARKDOWN_START: 'output.markdown.start',
+  MARKDOWN_SUCCESS: 'output.markdown.success',
+  MARKDOWN_FALLBACK: 'output.markdown.fallback',
+  MARKDOWN_FAILURE: 'output.markdown.failure',
   OUTPUT_CREATED: 'output.created',
   OUTPUT_OPENED: 'output.opened',
   OUTPUT_FAILURE: 'output.failure',
@@ -164,7 +168,7 @@ const MAX_STACK_LENGTH = 4000
 const MAX_ARRAY_LENGTH = 50
 const MAX_OBJECT_KEYS = 100
 const MAX_DEPTH = 8
-const OPERATIONAL_PATH_KEY_PATTERN = /^(?:outputPath|htmlOutputPath|epubOutputPath|diagnosticPath|targetPath)$/i
+const OPERATIONAL_PATH_KEY_PATTERN = /^(?:outputPath|htmlOutputPath|markdownOutputPath|epubOutputPath|diagnosticPath|targetPath)$/i
 
 function normalizeLogKey(key: string): string {
   return key.replace(/[^a-z0-9]/gi, '').toLowerCase()

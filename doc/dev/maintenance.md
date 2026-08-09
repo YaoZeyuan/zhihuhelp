@@ -15,28 +15,25 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 
 维护时优先把新业务放到更合适的位置，不要继续把所有逻辑塞进上述文件。
 
-## 前后端常量存在历史差异
+## 维护共享任务 schema
 
-当前根项目和前端各维护了一套任务常量：
+任务类型、生成模式、图片质量和输出格式的唯一常量源是 `src/shared/config/task_schema.ts`。根项目 `src/constant/task_config.ts` 与前端 `client/src/resource/const/task_config.ts` 只做兼容导出和各自默认值组合，不得重新定义一套不同的序列化值。
 
-1.  根项目：`src/constant/task_config.ts`
-2.  前端：`client/src/resource/const/task_config.ts`
-
-需要特别注意图片质量常量存在历史差异。涉及任务配置转换时，应检查：
+涉及任务配置转换时，应检查：
 
 1.  `client/src/page/home/component/customer_task/library/task_config_adapter.ts`
 2.  `src/domain/task/task_config.ts`
 3.  `src/constant/task_config.ts`
 4.  `client/src/resource/const/task_config.ts`
 
-后续理想方向是把任务类型、输出格式、图片质量和生成模式整理为单一 schema。
+输出格式固定为 `html/markdown/epub`：GUI 不提供选择器，前端 adapter、parser 和 workflow 都必须忽略旧子集并恢复完整列表。新增格式或改变这一行为属于产品契约变化，必须同时修改用户文档、共享 schema、前后端测试和生成链路。
 
 ## 修改 IPC 的同步清单
 
 新增或修改 IPC 时同步检查：
 
 1.  `src/index.ts`
-2.  `src/preload.js`
+2.  `src/preload.cjs`
 3.  `src/renderer.d.ts`
 4.  `client/src/page/home/component/debug/index.tsx`
 5.  `client/src/library/debug_log.ts` 的 passive channel 与调用记录
@@ -69,7 +66,7 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 2.  最后恰好写一个 `success`、`failure` 或 `partial_success`。
 3.  局部失败记录成功数、失败数和失败实体摘要。
 4.  不可恢复错误继续向上抛出，日志失败不能覆盖业务错误。
-5.  新增事件码时同时更新共享常量和[结构化日志事件诊断表](./data-and-logging#结构化日志事件诊断表)。
+5.  新增事件码时同时更新共享常量和[结构化日志事件诊断表](./data-and-logging#结构化日志事件诊断表)。Markdown 子 job 必须保持 `output.markdown.start` 后恰好一个终止事件：`success`、`fallback(status=success)` 或 `failure`；回退详情在该终止事件中汇总。
 
 日志默认位于 `PathConfig.rootPath/log`，文本、后端 JSONL 和前端 JSONL 每类各保留最近 5 个日期文件。GUI 输出历史也只覆盖这 5 日；不要重新引入“日志永久保存”或独立永久历史的假设。
 
@@ -89,14 +86,42 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 
 ## 修改生成输出的同步清单
 
-生成文件、分卷或 EPUB 结构变更时同步检查：
+生成文件、分卷或任一输出格式结构变更时同步检查：
 
 1. `src/shared/path/safe_output_path.ts` 的 Windows 非法字符、保留名、路径越界、120 字符上限和长名稳定摘要。
 2. 分卷名称在安全化前包含 `_N-of-M卷`，保证超长标题的不同卷仍生成不同路径。
 3. Windows + Node.js 24 的中文目录复制继续使用显式递归与 `copyFileSync`；不要未经真实回归改回 `fs.cpSync`。
 4. EPUB 的 `mimetype` 是第一个 STORE 条目，OPF/TOC XML 已转义，图片扩展名与 MIME 一致，封面不重复登记。
-5. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；输出历史仍应保留并显示该告警状态。
-6. 运行 `safe-output-path`、`epub-metadata`、`output-generation-contract` 和真实双卷 workflow 集成测试。
+5. 每本书全部 `html/*.html` 与 `单文件版/*.html` 都进入 Markdown 来源清单；结果分别位于 `markdown/<安全书名>/html/*.md` 与 `单文件版/*.md`，内部链接必须指向实际结果。
+6. Markdown 的 `none` 图片策略删除图片，`raw/hd` 恢复远程 URL 且不复制资源；不要把 HTML 缓存中的本地图片路径泄漏进 Markdown。
+7. Pandoc 只能在 generate 期间按需创建的单 worker 中串行运行，并在命令结束后回收。转换失败写 `.pandoc-failed.md` 并汇总 fallback，不触发局部成功；结果文件真正写入失败才按其他格式是否可用汇总为 `partial_success/failure`。
+8. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；输出历史仍应保留并显示该告警状态。
+9. 运行 `safe-output-path`、`epub-metadata`、Markdown generator/worker、`output-generation-contract` 和真实双卷 workflow 集成测试。
+
+## 维护 ESM 与 CJS 边界
+
+根包是原生 ESM。Electron main、CLI 和后端 TypeScript 的导入必须符合 NodeNext 运行时解析，并保留显式 `.js` 扩展。sandbox preload 和必须使用 CommonJS 的工具脚本以 `.cjs` 命名；不要重新添加无后缀相对导入、`require` 业务入口或同名旧 `.js` preload。
+
+修改模块边界后至少检查：
+
+1. `pnpm exec tsc --noEmit` 与 `pnpm build`。
+2. `dist/index.js` 和 CLI 入口仍是 ESM，两个 preload 复制为 `.cjs`，没有旧 preload 残留。
+3. `pnpm watch` 可以单独增量更新 `dist`，`pnpm start` 仍只启动已有产物。
+4. `pnpm watch`、`pnpm startgui`、`pnpm start` 组合下完成 Electron 人工冒烟。
+5. Markdown worker 的运行时 URL 能在源码测试、`dist` 和打包目录中解析，Pandoc WASM 只在转换时加载，worker 在 generate 结束后释放。
+6. `pnpm-workspace.yaml` 将 `app-builder-lib>@electron/get` 精确覆盖为 `3.1.0`：该版本仍在 electron-builder 声明的 3.x 兼容范围内，并提供构建器使用的缓存模式 API。不要把这个 CJS 调用方全局覆盖到 ESM-only 的 5.x；升级 electron-builder 后应重新核对依赖范围并同时执行 `pnpm pack` 与 `pnpm dist`。
+
+## 发布 Pandoc 对应源码
+
+桌面发行包包含 `pandoc-wasm@1.1.0` 与 Pandoc 3.10 WASM。项目源码允许按 `MIT OR GPL-2.0-or-later` 使用；包含 Pandoc 的官方桌面发行包按 `GPL-2.0-or-later` 分发，并必须同时提供精确的对应源码，不能把 `node_modules` 或单独的 `pandoc.wasm` 当作源码。
+
+发布前检查：
+
+1. 执行 `node scripts/release/create-corresponding-source.cjs --verify-installed`，确认锁定版本与 WASM 校验值。
+2. 生成 `zhihuhelp-<version>-corresponding-source.tar.gz` 及 `.sha256`，其中包含同一 Git commit、锁文件、构建说明以及固定校验值的 pandoc-wasm/Pandoc 源码归档。
+3. 在构建前使用 `--stage-license-files dist/licenses`，在打包后使用 `--verify-packaged release`。
+4. 每个 Windows/macOS 二进制 Release 必须同时上传对应源码包和校验文件；任一下载、版本、工作区状态或校验失败都应中止发布。
+5. 具体命令、离线源码缓存方式和重建步骤以仓库根 `CORRESPONDING_SOURCE.md` 与 `THIRD_PARTY_NOTICES.md` 为准。
 
 ## 维护 Mermaid 流程图查看器
 
@@ -114,7 +139,7 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 首页产品截图必须使用隔离的公开示例，不得连接真实 Electron 主进程或读取根目录 `config.json`、Cookie 和业务 SQLite。
 
 1. 任务管理、运行日志和数据浏览预览只有在 Vite 开发模式、`VITE_DOCS_SCREENSHOT_MODE=1` 与 `?docs-preview=app` 三项同时满足时才会加载 `client/src/docs_preview/install.ts`；不得放宽这三重门禁。
-2. HTML / EPUB 输出示例先完成根项目构建，再运行 `node scripts/docs/prepare-output-screenshot.cjs`。脚本只把产物写入仓库内的 `.docs-screenshot-tmp`，采集完成后必须删除该目录。
+2. HTML / Markdown / EPUB 输出示例先完成根项目构建，再运行 `node scripts/docs/prepare-output-screenshot.cjs`。脚本只把产物写入仓库内的 `.docs-screenshot-tmp`，采集完成后必须删除该目录。
 3. 更新后的 PNG 放入 `doc/public/screenshots`，随后执行 `pnpm buildgui`，确认生产 GUI 产物中不存在 `docs-preview` fixture 标记。
 4. 最后执行 `pnpm docs:build` 与 `pnpm docs:check`；校验会检查四张截图、品牌资源、七张 Mermaid 图、公开路由和敏感信息。
 

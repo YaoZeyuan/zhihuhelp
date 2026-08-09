@@ -1,5 +1,5 @@
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
-import { LogStatus } from '~/src/shared/logging/log_contract'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
+import { LogStatus } from '~/src/shared/logging/log_contract.js'
 
 type IpcResultRecord = {
   status?: unknown

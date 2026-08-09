@@ -1,8 +1,8 @@
 import path from 'path'
-import PathConfig from '~/src/config/path'
-import CommonConfig from '~/src/config/common'
-import Logger from '~/src/library/logger'
-import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract'
+import PathConfig from '~/src/config/path.js'
+import CommonConfig from '~/src/config/common.js'
+import Logger from '~/src/library/logger.js'
+import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract.js'
 
 export type RunStage = 'cli' | 'config' | 'init' | 'fetch' | 'persist' | 'generate' | 'render' | 'output'
 

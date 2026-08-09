@@ -1,6 +1,6 @@
 import React from 'react'
-import { Type_Index_Record } from '~/src/application/workflow/generate/customer'
-import CommonUtil from '~/src/library/util/common'
+import { Type_Index_Record } from '~/src/application/workflow/generate/customer.js'
+import CommonUtil from '~/src/library/util/common.js'
 
 export default (props: { bookname: string; recordList: Type_Index_Record[] }) => {
   let indexPageEleList: React.ReactElement<any>[] = []

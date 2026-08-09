@@ -1,8 +1,8 @@
-import QuestionApi from '~/src/api/single/question'
-import BatchFetchAnswer from '~/src/api/batch/answer'
-import Base from '~/src/api/batch/base'
-import CommonUtil from '~/src/library/util/common'
-import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
+import QuestionApi from '~/src/api/single/question.js'
+import BatchFetchAnswer from '~/src/api/batch/answer.js'
+import Base from '~/src/api/batch/base.js'
+import CommonUtil from '~/src/library/util/common.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchQuestion extends Base {
   /**

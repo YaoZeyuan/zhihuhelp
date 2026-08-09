@@ -1,9 +1,9 @@
-import Base from '~/src/api/single/base'
-import TypeAuthor from '~/src/type/zhihu/author'
+import Base from '~/src/api/single/base.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
 import {
   assertZhihuNonNegativeIntegerCount,
   assertZhihuPaginatedData,
-} from '~/src/shared/error/zhihu_response_validation'
+} from '~/src/shared/error/zhihu_response_validation.js'
 
 class Author extends Base {
   /**

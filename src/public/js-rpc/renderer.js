@@ -584,7 +584,7 @@ async function asyncEncrypt(inputStr) {
 asyncInit()
 
 /**
- * 接收主进程请求, encryptString 注册在preload.js文件中
+ * 接收主进程请求, encryptString 注册在preload.cjs文件中
  */
 window.electronAPI.registerEncryptCallback(async (event, paramList, id) => {
   let param = paramList[0]

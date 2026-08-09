@@ -5,17 +5,18 @@ description: 知乎助手的项目地址、版本状态、许可证、问题反�
 
 # 关于知乎助手
 
-知乎助手是一个开源的本地桌面工具，用于整理个人希望离线阅读的知乎内容。它通过 Electron 提供图形界面，在本机完成内容抓取、SQLite 持久化和 HTML / EPUB 生成。
+知乎助手是一个开源的本地桌面工具，用于整理个人希望离线阅读的知乎内容。它通过 Electron 提供图形界面，在本机完成内容抓取、SQLite 持久化，并固定生成 HTML、Markdown、EPUB 三种产物。
 
 ## 项目信息
 
-| 项目     | 信息                                                                      |
-| -------- | ------------------------------------------------------------------------- |
-| 当前版本 | `2.6.0`（开发中，尚未正式发布）                                           |
-| 源代码   | [YaoZeyuan/zhihuhelp](https://github.com/YaoZeyuan/zhihuhelp)             |
-| 下载     | [GitHub Releases](https://github.com/YaoZeyuan/zhihuhelp/releases)        |
-| 许可证   | [MIT License](https://github.com/YaoZeyuan/zhihuhelp/blob/master/LICENSE) |
-| 更新记录 | [查看更新日志](./changelog)                                               |
+| 项目     | 信息                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------- |
+| 当前版本 | `2.6.0`（开发中，尚未正式发布）                                                                                       |
+| 源代码   | [YaoZeyuan/zhihuhelp](https://github.com/YaoZeyuan/zhihuhelp)                                                 |
+| 下载     | [GitHub Releases](https://github.com/YaoZeyuan/zhihuhelp/releases)                                            |
+| 许可证   | 自有代码为 `MIT OR GPL-2.0-or-later`；含 Pandoc WASM 的桌面发行物整体按 GPL-2.0-or-later 发布                          |
+| 源码提供 | 每个桌面 Release 同步附对应源码包；详见 [LICENSE](https://github.com/YaoZeyuan/zhihuhelp/blob/master/LICENSE) 与 [CORRESPONDING_SOURCE.md](https://github.com/YaoZeyuan/zhihuhelp/blob/master/CORRESPONDING_SOURCE.md) |
+| 更新记录 | [查看更新日志](./changelog)                                                                                           |
 
 ## 使用边界
 

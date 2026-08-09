@@ -1,5 +1,6 @@
 const fs = require('node:fs')
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 
 const repositoryRoot = path.resolve(__dirname, '../..')
 const temporaryRoot = path.resolve(repositoryRoot, '.docs-screenshot-tmp')
@@ -9,17 +10,14 @@ if (relativeTemporaryRoot === '' || relativeTemporaryRoot.startsWith('..') || pa
   throw new Error('截图临时目录必须位于仓库根目录内')
 }
 
-const PathConfig = require('../../dist/config/path').default
-const EpubGenerator = require('../../dist/application/workflow/generate/library/epub_generator').default
-const HtmlRender = require('../../dist/application/workflow/generate/library/html_render').default
-
-fs.rmSync(temporaryRoot, { recursive: true, force: true })
 const cachePath = path.resolve(temporaryRoot, 'cache')
 const outputPath = path.resolve(temporaryRoot, 'output')
 const logPath = path.resolve(temporaryRoot, 'log')
-PathConfig.setCachePath(cachePath)
-PathConfig.setOutputPath(outputPath)
-PathConfig.setLogPath(logPath)
+
+function importDistModule(...relativePathSegments) {
+  const moduleUrl = pathToFileURL(path.join(repositoryRoot, 'dist', ...relativePathSegments)).href
+  return import(moduleUrl)
+}
 
 const title = '知乎助手公开示例电子书'
 const questionTitle = '如何高效整理公开资料？'
@@ -56,6 +54,19 @@ const answerRecord = {
 }
 
 async function main() {
+  const PathConfig = (await importDistModule('config', 'path.js')).default
+  const EpubGenerator = (
+    await importDistModule('application', 'workflow', 'generate', 'library', 'epub_generator.js')
+  ).default
+  const HtmlRender = (
+    await importDistModule('application', 'workflow', 'generate', 'library', 'html_render', 'index.js')
+  ).default
+
+  fs.rmSync(temporaryRoot, { recursive: true, force: true })
+  PathConfig.setCachePath(cachePath)
+  PathConfig.setOutputPath(outputPath)
+  PathConfig.setLogPath(logPath)
+
   const generator = new EpubGenerator({ bookname: title, imageQuilty: 'none' })
   const infoPage = HtmlRender.renderInfoPage({
     title,

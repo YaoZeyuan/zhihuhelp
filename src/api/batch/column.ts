@@ -1,10 +1,10 @@
-import ColumnApi from '~/src/api/single/column'
-import MColumn from '~/src/model/column'
-import Base from '~/src/api/batch/base'
-import CommonUtil from '~/src/library/util/common'
-import BatchFetchArticle from '~/src/api/batch/article'
-import Logger from '~/src/library/logger'
-import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
+import ColumnApi from '~/src/api/single/column.js'
+import MColumn from '~/src/model/column.js'
+import Base from '~/src/api/batch/base.js'
+import CommonUtil from '~/src/library/util/common.js'
+import BatchFetchArticle from '~/src/api/batch/article.js'
+import Logger from '~/src/library/logger.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchColumn extends Base {
   async fetch(id: string) {

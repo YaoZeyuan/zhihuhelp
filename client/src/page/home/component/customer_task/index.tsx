@@ -219,11 +219,6 @@ export default () => {
         message.error('请先粘贴至少一个可识别的知乎链接')
         return
       }
-      if ((values.outputFormats ?? []).length === 0) {
-        statusStore.loading.startTask = false
-        message.error('请至少选择一种输出格式')
-        return
-      }
       let isLogin = await handleFormAction.asyncCheckLogin()
       if (isLogin === false) {
         setLoginStatus('failure')
@@ -543,40 +538,18 @@ export default () => {
               }
             />
           )}
-          <Form.Item noStyle>
-            <Row align="middle" gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="imageQuilty"
-                  label="图片质量"
-                  labelCol={{
-                    span: 6,
-                  }}
-                >
-                  <Radio.Group buttonStyle="solid">
-                    <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
-                    <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
-                    <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
-                  </Radio.Group>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="outputFormats"
-                  label="输出格式"
-                  labelCol={{
-                    span: 6,
-                  }}
-                >
-                  <Checkbox.Group
-                    options={[
-                      { label: 'HTML', value: Consts_Task_Config.Const_Output_Format_Html },
-                      { label: 'EPUB', value: Consts_Task_Config.Const_Output_Format_Epub },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+          <Form.Item
+            name="imageQuilty"
+            label="图片质量"
+            labelCol={{
+              span: 3,
+            }}
+          >
+            <Radio.Group buttonStyle="solid">
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
+            </Radio.Group>
           </Form.Item>
           <details className="advanced-config-panel">
             <summary>高级配置：生成模式、排序、分卷和备注</summary>

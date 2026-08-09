@@ -1,12 +1,12 @@
 import fs from 'fs'
 import path from 'path'
 import semver from 'semver'
-import PathConfig from '~/src/config/path'
-import CommonConfig from '~/src/config/common'
-import CommonUtil from '~/src/library/util/common'
-import Base from '~/src/model/base'
-import * as TaskConsts from '~/src/constant/task_config'
-import { LogStatus } from '~/src/shared/logging/log_contract'
+import PathConfig from '~/src/config/path.js'
+import CommonConfig from '~/src/config/common.js'
+import CommonUtil from '~/src/library/util/common.js'
+import Base from '~/src/model/base.js'
+import * as TaskConsts from '~/src/constant/task_config.js'
+import { LogStatus } from '~/src/shared/logging/log_contract.js'
 
 const Const_Export_Schema = 'zhihuhelp.cache-export.v1'
 const Const_Max_Error_Count = 20

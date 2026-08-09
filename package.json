@@ -1,6 +1,7 @@
 {
   "name": "zhihuhelp",
   "version": "2.6.0",
+  "type": "module",
   "description": "知乎助手 & TypeScript",
   "repository": {
     "type": "git",
@@ -11,7 +12,7 @@
     "zhihuhelp": "dist/interface/cli/main.js"
   },
   "author": "姚泽源",
-  "license": "MIT",
+  "license": "MIT OR GPL-2.0-or-later",
   "packageManager": "pnpm@11.5.0",
   "engines": {
     "node": ">=24 <25",
@@ -27,16 +28,18 @@
     "start": "electron dist/index.js --zhihuhelp-debug",
     "zhihuhelp": "node dist/interface/cli/main.js",
     "watch": "babel src --copy-files --watch --out-dir dist  --verbose --source-maps --extensions \".ts,.tsx,.js,.jsx\"",
-    "build": "babel src --copy-files -d dist --verbose  --source-maps --extensions \".ts,.tsx,.js,.jsx\" ",
-    "build-without-sourcemap": "babel src --copy-files -d dist --verbose --extensions \".ts,.tsx,.js,.jsx\" ",
-    "pack": "npm run build-without-sourcemap && npm run buildgui && electron-builder --dir",
-    "dist": "npm run build-without-sourcemap && npm run buildgui && electron-builder",
+    "clean:esm-stale": "node scripts/build/clean-esm-stale.cjs",
+    "build": "pnpm clean:esm-stale && babel src --copy-files -d dist --verbose  --source-maps --extensions \".ts,.tsx,.js,.jsx\" ",
+    "build-without-sourcemap": "pnpm clean:esm-stale && babel src --copy-files -d dist --verbose --extensions \".ts,.tsx,.js,.jsx\" ",
+    "stage:licenses": "node scripts/release/create-corresponding-source.cjs --stage-license-files dist/licenses",
+    "pack": "npm run build-without-sourcemap && npm run stage:licenses && npm run buildgui && electron-builder --dir",
+    "dist": "npm run build-without-sourcemap && npm run stage:licenses && npm run buildgui && electron-builder",
     "electron-builder": "electron-builder",
     "postinstall-4-mac": "electron-rebuild -f -w sharp",
     "postinstall-4-win": "electron-builder install-app-deps",
     "server": "nodemon --inspect dist/start-dev-server.js",
-    "tsc": "tsc",
-    "lint": "tsc && eslint src",
+    "tsc": "tsc --noEmit",
+    "lint": "pnpm tsc && eslint src",
     "eslint": "eslint src",
     "prettier-with-fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,less,css}\"",
     "test": "vitest run --coverage",
@@ -59,7 +62,12 @@
     "files": [
       "dist/**/*",
       "gui/dist/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "LICENSE",
+      "LICENSE-MIT",
+      "LICENSE-GPL-2.0-or-later",
+      "THIRD_PARTY_NOTICES.md",
+      "CORRESPONDING_SOURCE.md"
     ],
     "win": {
       "target": [

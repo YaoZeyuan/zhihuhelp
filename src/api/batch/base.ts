@@ -1,15 +1,15 @@
-import Logger from '~/src/library/logger'
-import { TaskManager } from '~/src/library/util/common'
+import Logger from '~/src/library/logger.js'
+import { TaskManager } from '~/src/library/util/common.js'
 import lodash from 'lodash'
-import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract'
+import { LogEventCode, LogLevel, LogStage, LogStatus } from '~/src/shared/logging/log_contract.js'
 import {
   createPartialOutcome,
   createSuccessOutcome,
   ExecutionOutcome,
   hasFatalExecutionFailure,
-} from '~/src/shared/runtime/execution_outcome'
-import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+} from '~/src/shared/runtime/execution_outcome.js'
+import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 let persistJobSequence = 0
 

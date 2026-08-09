@@ -87,4 +87,25 @@ describe('output history', () => {
       htmlOutputPath: 'D:\\output\\partial-book',
     })
   })
+
+  it('preserves the Markdown book directory for GUI open actions and deduplication', () => {
+    const markdownOutputPath = 'D:\\output\\markdown\\book'
+    const [item] = buildOutputHistory([
+      createStructuredLogRecord({
+        eventCode: LogEventCode.OUTPUT_CREATED,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.INFO,
+        message: 'three artifacts created',
+        details: {
+          bookname: 'book',
+          markdownOutputPath,
+          outputFormats: ['html', 'markdown', 'epub'],
+        },
+      }, '2026-08-03T00:00:00.000Z'),
+    ])
+    expect(item).toMatchObject({
+      markdownOutputPath,
+      outputFormats: ['html', 'markdown', 'epub'],
+    })
+  })
 })

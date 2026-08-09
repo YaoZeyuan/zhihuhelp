@@ -30,5 +30,5 @@ description: 知乎助手的架构、运行链路、日志、测试与维护说�
 | 3    | 前端页面、状态与 IPC 调用     | [前端 / Electron / 后端分工](./frontend-electron-backend#前端页面、状态与-ipc-调用图-3-7) |
 | 4    | `RunTaskWorkflow` 命令时序    | [业务流程](./workflows#runtaskworkflow-时序图-4-7)                                        |
 | 5    | 任务分派、分页、扩展与持久化  | [业务流程](./workflows#抓取与持久化流程图-5-7)                                            |
-| 6    | 读取、排序、分卷与 HTML/EPUB  | [业务流程](./workflows#生成与输出流程图-6-7)                                              |
+| 6    | 读取、排序、分卷与三格式输出  | [业务流程](./workflows#生成与输出流程图-6-7)                                              |
 | 7    | 日志汇聚与故障定位            | [数据与日志](./data-and-logging#日志汇聚与故障定位图-7-7)                                 |

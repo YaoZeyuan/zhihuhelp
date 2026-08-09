@@ -1,33 +1,39 @@
-﻿import * as Consts from '~/src/application/workflow/generate/resource/const/index'
-import * as Const_TaskConfig from '~/src/constant/task_config'
-import TypeTaskConfig from '~/src/type/task_config'
-import TypeAnswer from '~/src/type/zhihu/answer'
-import * as TypePin from '~/src/type/zhihu/pin'
-import TypeArticle from '~/src/type/zhihu/article'
-import MAuthor from '~/src/model/author'
-import MAuthorAskQuestion from '~/src/model/author_ask_question'
-import MActivity from '~/src/model/activity'
-import MAnswer from '~/src/model/answer'
-import MArticle from '~/src/model/article'
-import MTopic from '~/src/model/topic'
-import MCollection from '~/src/model/collection'
-import MColumn from '~/src/model/column'
-import MPin from '~/src/model/pin'
+﻿import * as Consts from '~/src/application/workflow/generate/resource/const/index.js'
+import * as Const_TaskConfig from '~/src/constant/task_config.js'
+import type * as TypeTaskConfig from '~/src/type/task_config.js'
+import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
+import * as TypePin from '~/src/type/zhihu/pin.js'
+import type * as TypeArticle from '~/src/type/zhihu/article.js'
+import MAuthor from '~/src/model/author.js'
+import MAuthorAskQuestion from '~/src/model/author_ask_question.js'
+import MActivity from '~/src/model/activity.js'
+import MAnswer from '~/src/model/answer.js'
+import MArticle from '~/src/model/article.js'
+import MTopic from '~/src/model/topic.js'
+import MCollection from '~/src/model/collection.js'
+import MColumn from '~/src/model/column.js'
+import MPin from '~/src/model/pin.js'
 import lodash from 'lodash'
-import CommonUtil from "~/src/library/util/common"
-import Logger from '~/src/library/logger'
+import CommonUtil from "~/src/library/util/common.js"
+import Logger from '~/src/library/logger.js'
 
-import HtmlRender from '~/src/application/workflow/generate/library/html_render'
-import * as Date_Format from '~/src/constant/date_format'
+import HtmlRender from '~/src/application/workflow/generate/library/html_render/index.js'
+import * as Date_Format from '~/src/constant/date_format.js'
 
-import * as Package from '~/src/application/workflow/generate/resource/library/package'
+import * as Package from '~/src/application/workflow/generate/resource/library/package.js'
 
-import EpubGenerator from '~/src/application/workflow/generate/library/epub_generator'
+import EpubGenerator from '~/src/application/workflow/generate/library/epub_generator.js'
+import {
+  MarkdownGenerator,
+  PandocWorkerClient,
+  type MarkdownGenerationResult,
+} from '~/src/application/workflow/generate/library/markdown/index.js'
 import moment from 'moment'
 import React, { ReactElement } from 'react'
-import { RunContext } from '~/src/shared/runtime/run_context'
-import { LogEventCode, LogLevel, LogStage, LogStatus, StructuredLogEntry } from '~/src/shared/logging/log_contract'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { RunContext } from '~/src/shared/runtime/run_context.js'
+import { LogEventCode, LogLevel, LogStage, LogStatus, StructuredLogEntry } from '~/src/shared/logging/log_contract.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
+import PathConfig from '~/src/config/path.js'
 
 /**
  * 生成html
@@ -95,7 +101,8 @@ class GenerateWorkflow {
 
     // 生成类型
     let imageQuilty = generateConfig.imageQuilty
-    const outputFormats = generateConfig.outputFormats ?? ['html', 'epub']
+    const outputFormats = [...Const_TaskConfig.Const_Required_Output_Format_List]
+    const markdownGenerator = new MarkdownGenerator(new PandocWorkerClient())
 
     // 根据生成类型, 制定最终结果数据集
 
@@ -150,6 +157,7 @@ class GenerateWorkflow {
           epubColumn,
           imageQuilty,
           outputFormats,
+          markdownGenerator,
         })
         this.log(`电子书:${bookname}输出完毕`)
       }
@@ -184,6 +192,8 @@ class GenerateWorkflow {
         },
       })
       throw error
+    } finally {
+      await markdownGenerator.dispose()
     }
   }
 
@@ -1339,10 +1349,12 @@ class GenerateWorkflow {
     imageQuilty,
     epubColumn,
     outputFormats,
+    markdownGenerator,
   }: {
     imageQuilty: TypeTaskConfig.Type_Image_Quilty
     epubColumn: Package.Ebook_Column
-    outputFormats: ('html' | 'epub')[]
+    outputFormats: ('html' | 'markdown' | 'epub')[]
+    markdownGenerator: MarkdownGenerator
   }) {
     const startedAt = Date.now()
     const jobId = `generate-book-${++this.generateJobCounter}`
@@ -1436,7 +1448,75 @@ class GenerateWorkflow {
 
       // 生成电子书
       const generateResult = await epubGenerator.asyncGenerateEpub(outputFormats)
-      const outputStatus = generateResult.missingImageCount > 0
+      const markdownJobId = jobId.replace(/^generate-/, 'markdown-')
+      let markdownResult: MarkdownGenerationResult | undefined
+      let markdownError: unknown
+      this.event({
+        jobId: markdownJobId,
+        eventCode: LogEventCode.MARKDOWN_START,
+        stage: LogStage.OUTPUT,
+        status: LogStatus.START,
+        level: LogLevel.INFO,
+        message: '开始将全部 HTML 文件转换为 Markdown',
+        details: {
+          bookname: epubColumn.bookname,
+          sourceFileCount: epubGenerator.getMarkdownHtmlSourceList().length,
+        },
+      })
+      const markdownStartedAt = Date.now()
+      try {
+        markdownResult = await markdownGenerator.generate({
+          sources: epubGenerator.getMarkdownHtmlSourceList(),
+          cacheRootPath: PathConfig.markdownCachePath,
+          outputRootPath: PathConfig.markdownOutputPath,
+          bookBasename: epubGenerator.outputBasename,
+          imageQuality: imageQuilty,
+          imageSourceMap: epubGenerator.getMarkdownImageSourceMap(),
+        })
+        const usedFallback = markdownResult.fallbackCount > 0
+        this.event({
+          jobId: markdownJobId,
+          eventCode: usedFallback
+            ? LogEventCode.MARKDOWN_FALLBACK
+            : LogEventCode.MARKDOWN_SUCCESS,
+          stage: LogStage.OUTPUT,
+          status: LogStatus.SUCCESS,
+          level: usedFallback ? LogLevel.WARN : LogLevel.INFO,
+          message: usedFallback
+            ? 'Markdown 输出完成，部分文件使用原 HTML 回退内容'
+            : 'Markdown 输出完成',
+          durationMs: Date.now() - markdownStartedAt,
+          details: {
+            bookname: epubColumn.bookname,
+            markdownOutputPath: markdownResult.outputPath,
+            markdownFileCount: markdownResult.fileCount,
+            markdownFallbackCount: markdownResult.fallbackCount,
+            fallbackDetails: markdownResult.details,
+          },
+        })
+      } catch (error) {
+        markdownError = error
+        this.hasPartialGenerateOutcome = true
+        if (this.context) {
+          this.context.outcomeStatus = LogStatus.PARTIAL_SUCCESS
+        }
+        this.event({
+          jobId: markdownJobId,
+          eventCode: LogEventCode.MARKDOWN_FAILURE,
+          stage: LogStage.OUTPUT,
+          status: LogStatus.FAILURE,
+          level: LogLevel.ERROR,
+          message: 'Markdown 输出失败，HTML 与 EPUB 产物仍然可用',
+          durationMs: Date.now() - markdownStartedAt,
+          error: Logger.serializeError(error),
+          details: {
+            bookname: epubColumn.bookname,
+            sourceFileCount: epubGenerator.getMarkdownHtmlSourceList().length,
+          },
+        })
+      }
+
+      const outputStatus = generateResult.missingImageCount > 0 || markdownError !== undefined
         ? LogStatus.PARTIAL_SUCCESS
         : LogStatus.SUCCESS
       if (outputStatus === LogStatus.PARTIAL_SUCCESS && this.context) {
@@ -1450,15 +1530,29 @@ class GenerateWorkflow {
         outputFormats,
         epubOutputPath: outputFormats.includes('epub') ? epubGenerator.epubOutputPathUri : undefined,
         htmlOutputPath: outputFormats.includes('html') ? epubGenerator.htmlOutputPathUri : undefined,
+        markdownOutputPath: markdownResult?.outputPath,
+        markdownFileCount: markdownResult?.fileCount ?? 0,
+        markdownFallbackCount: markdownResult?.fallbackCount ?? 0,
       }
+
+      const usedMarkdownFallback = (markdownResult?.fallbackCount ?? 0) > 0
+      const outputMessage = markdownError !== undefined
+        ? '单本电子书生成完成，但 Markdown 输出失败'
+        : outputStatus === LogStatus.PARTIAL_SUCCESS
+          ? '单本电子书生成完成，但部分图片缺失'
+          : usedMarkdownFallback
+            ? '单本电子书生成完成，部分 Markdown 文件使用回退内容'
+            : '单本电子书生成完成'
 
       this.event({
         jobId,
         eventCode: LogEventCode.OUTPUT_CREATED,
         stage: LogStage.OUTPUT,
         status: outputStatus,
-        level: outputStatus === LogStatus.PARTIAL_SUCCESS ? LogLevel.WARN : LogLevel.INFO,
-        message: outputStatus === LogStatus.PARTIAL_SUCCESS ? '单本电子书生成完成，但部分图片缺失' : '单本电子书生成完成',
+        level: outputStatus === LogStatus.PARTIAL_SUCCESS || usedMarkdownFallback
+          ? LogLevel.WARN
+          : LogLevel.INFO,
+        message: outputMessage,
         durationMs: Date.now() - startedAt,
         details: {
           bookname: epubColumn.bookname,
@@ -1489,6 +1583,9 @@ class GenerateWorkflow {
           htmlCachePath: epubGenerator?.htmlCachePath,
           epubOutputPath: epubGenerator?.epubOutputPathUri,
           htmlOutputPath: epubGenerator?.htmlOutputPathUri,
+          markdownOutputPath: epubGenerator === undefined
+            ? undefined
+            : PathConfig.markdownOutputPath,
         },
       })
       throw error

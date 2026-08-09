@@ -16,6 +16,11 @@ export const Const_Default_Ua =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' as const
 export const Const_Default_Cookie = '' as const
 export const Const_Max_Question_Or_Article_In_Book = 10000 as const
+export const Const_Required_Output_Format_List = [
+  SharedTaskSchema.Const_Output_Format_Html,
+  SharedTaskSchema.Const_Output_Format_Markdown,
+  SharedTaskSchema.Const_Output_Format_Epub,
+] as const
 
 export const Const_Default_Config: TypeTaskConfig.Type_Task_Config = {
   request: { cookie: Const_Default_Cookie, ua: Const_Default_Ua },
@@ -26,7 +31,7 @@ export const Const_Default_Config: TypeTaskConfig.Type_Task_Config = {
     imageQuality: SharedTaskSchema.Const_Image_Quilty_高清,
     maxItemsPerBook: Const_Max_Question_Or_Article_In_Book,
     orderBy: [],
-    outputFormats: [SharedTaskSchema.Const_Output_Format_Html, SharedTaskSchema.Const_Output_Format_Epub],
+    outputFormats: [...Const_Required_Output_Format_List],
     comment: '',
   },
 }

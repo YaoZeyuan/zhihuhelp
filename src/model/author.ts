@@ -1,5 +1,5 @@
-import Base from '~/src/model/base'
-import TypeAuthor from '~/src/type/zhihu/author'
+import Base from '~/src/model/base.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
 
 class Author extends Base {
   static TABLE_NAME = `Author`

@@ -3,7 +3,7 @@ import TaskConfigAdapter from '../../client/src/page/home/component/customer_tas
 import { Const_Default_Config } from '../../client/src/resource/const/task_config'
 
 describe('client task config adapter', () => {
-  it('preserves editable fields without exposing Cookie in form state or snapshots', () => {
+  it('preserves editable fields, hides Cookie and normalizes an HTML-only config', () => {
     const config = {
       ...Const_Default_Config,
       request: {
@@ -30,13 +30,17 @@ describe('client task config adapter', () => {
 
     const form = TaskConfigAdapter.taskConfigToForm(config)
     expect(JSON.stringify(form)).not.toContain('must-not-leak')
+    expect(form.outputFormats).toEqual(['html', 'markdown', 'epub'])
     const converted = TaskConfigAdapter.formToTaskConfig(form)
     expect(converted.tasks).toEqual(config.tasks)
-    expect(converted.generate).toEqual(config.generate)
+    expect(converted.generate).toEqual({
+      ...config.generate,
+      outputFormats: ['html', 'markdown', 'epub'],
+    })
     expect(converted.request.cookie).toBe('')
   })
 
-  it('drops incomplete task items and restores default output formats', () => {
+  it('drops incomplete task items and ignores manipulated form output formats', () => {
     const form = TaskConfigAdapter.taskConfigToForm(Const_Default_Config)
     form.taskItemList = [
       {
@@ -47,10 +51,32 @@ describe('client task config adapter', () => {
         skipFetch: false,
       },
     ]
-    form.outputFormats = []
+    form.outputFormats = ['epub']
 
     const converted = TaskConfigAdapter.formToTaskConfig(form)
     expect(converted.tasks).toEqual([])
     expect(converted.generate.outputFormats).toEqual(Const_Default_Config.generate.outputFormats)
+  })
+
+  it.each([
+    [['html'] as const],
+    [['epub'] as const],
+    [[] as const],
+  ])('normalizes legacy output format subset %j when loading and saving', (outputFormats) => {
+    const legacyConfig = {
+      ...Const_Default_Config,
+      generate: {
+        ...Const_Default_Config.generate,
+        outputFormats: [...outputFormats],
+      },
+    }
+
+    const form = TaskConfigAdapter.taskConfigToForm(legacyConfig)
+    expect(form.outputFormats).toEqual(['html', 'markdown', 'epub'])
+    expect(TaskConfigAdapter.formToTaskConfig(form).generate.outputFormats).toEqual([
+      'html',
+      'markdown',
+      'epub',
+    ])
   })
 })

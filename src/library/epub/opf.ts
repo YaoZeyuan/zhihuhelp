@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { escapeXmlAttribute, escapeXmlText, getImageMediaType } from './xml'
+import { escapeXmlAttribute, escapeXmlText, getImageMediaType } from './xml.js'
 class OPF {
   index = 0 // 生成id
 

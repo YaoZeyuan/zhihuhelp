@@ -1,9 +1,9 @@
-import AuthorApi from '~/src/api/single/author'
-import MAuthorAskQuestion from '~/src/model/author_ask_question'
-import MAuthor from '~/src/model/author'
-import Base from '~/src/api/batch/base'
-import BatchFetchQuestion from '~/src/api/batch/question'
-import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
+import AuthorApi from '~/src/api/single/author.js'
+import MAuthorAskQuestion from '~/src/model/author_ask_question.js'
+import MAuthor from '~/src/model/author.js'
+import Base from '~/src/api/batch/base.js'
+import BatchFetchQuestion from '~/src/api/batch/question.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchAuthorQuestion extends Base {
   async fetch(urlToken: string) {

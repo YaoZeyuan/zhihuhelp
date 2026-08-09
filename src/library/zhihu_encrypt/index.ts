@@ -1,5 +1,5 @@
 import md5 from 'md5'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 // 需要从index.ts中获得js-rpc函数
 type BridgeInput = { method: string; paramList: any[]; traceId?: string }

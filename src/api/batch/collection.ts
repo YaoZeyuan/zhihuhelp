@@ -1,13 +1,13 @@
-import CollectionApi from '~/src/api/single/collection'
-import MCollection from '~/src/model/collection'
-import Base from '~/src/api/batch/base'
-import CommonUtil from '~/src/library/util/common'
-import BatchFetchAnswer from '~/src/api/batch/answer'
-import BatchFetchPin from '~/src/api/batch/pin'
-import BatchFetchArticle from '~/src/api/batch/article'
-import Logger from '~/src/library/logger'
-import { mergeExecutionOutcomes } from '~/src/shared/runtime/execution_outcome'
-import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation'
+import CollectionApi from '~/src/api/single/collection.js'
+import MCollection from '~/src/model/collection.js'
+import Base from '~/src/api/batch/base.js'
+import CommonUtil from '~/src/library/util/common.js'
+import BatchFetchAnswer from '~/src/api/batch/answer.js'
+import BatchFetchPin from '~/src/api/batch/pin.js'
+import BatchFetchArticle from '~/src/api/batch/article.js'
+import Logger from '~/src/library/logger.js'
+import { mergeExecutionOutcomes } from '~/src/shared/runtime/execution_outcome.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchCollection extends Base {
   async fetch(id: string) {

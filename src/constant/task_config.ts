@@ -1,6 +1,6 @@
 // 任务相关配置
-import * as Type_TaskConfig from '~/src/type/task_config'
-import * as SharedTaskSchema from '~/src/shared/config/task_schema'
+import * as Type_TaskConfig from '~/src/type/task_config.js'
+import * as SharedTaskSchema from '~/src/shared/config/task_schema.js'
 
 // 常量类别并不多, 因此可以集中编写, 不用额外拆分
 
@@ -51,7 +51,9 @@ export const Const_Image_Quilty_高清 = SharedTaskSchema.Const_Image_Quilty_高
 export const Const_Image_Quilty_原图 = SharedTaskSchema.Const_Image_Quilty_原图
 export const Const_Image_Quilty_无图 = SharedTaskSchema.Const_Image_Quilty_无图
 export const Const_Output_Format_Html = SharedTaskSchema.Const_Output_Format_Html
+export const Const_Output_Format_Markdown = SharedTaskSchema.Const_Output_Format_Markdown
 export const Const_Output_Format_Epub = SharedTaskSchema.Const_Output_Format_Epub
+export const Const_Required_Output_Format_List = [...SharedTaskSchema.outputFormatList]
 
 // 默认ua
 export const Const_Default_Ua =
@@ -71,7 +73,7 @@ export const Const_Default_Config: Type_TaskConfig.Type_Task_Config = {
     maxItemInBook: 10000, // 自动分卷: 单本电子书中最大问题/文章数量
     orderByList: [],
     generateType: Const_Generate_Type_独立输出电子书, // 生成逻辑
-    outputFormats: ['html', 'epub'],
+    outputFormats: [...Const_Required_Output_Format_List],
   },
   requestConfig: {
     cookie: Const_Default_Cookie,

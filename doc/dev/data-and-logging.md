@@ -14,8 +14,10 @@ description: SQLite 数据、结构化日志契约、关联标识与故障诊断
 | `缓存文件`                              | 生成过程缓存根目录                                    |
 | `缓存文件/imgPool`                      | 图片缓存                                              |
 | `缓存文件/html`                         | HTML 生成缓存                                         |
+| `缓存文件/markdown`                     | Markdown 生成过程的隔离路径                           |
 | `缓存文件/epub`                         | EPUB 生成缓存                                         |
 | `知乎助手输出的电子书/html`             | HTML 最终输出                                         |
+| `知乎助手输出的电子书/markdown`         | 每书全部多文件与单文件 Markdown 最终输出              |
 | `知乎助手输出的电子书/epub`             | EPUB 最终输出                                         |
 | `config.json`                           | 当前任务配置，包含敏感 Cookie，不得进入日志或 fixture |
 | `log/runtime.YYYY-MM-DD.log`            | 后端人类可读日志                                      |
@@ -70,11 +72,13 @@ flowchart LR
   Workflow["RunTaskWorkflow"] --> RunEvent["workflow / stage 事件"]
   API["Batch / Single / js-rpc"] --> ApiEvent["fetch / persist / rpc 事件"]
   Generate["Generate / Render / Output"] --> OutputEvent["generate / render / output 事件"]
+  Markdown["Pandoc Worker / Markdown"] --> MarkdownEvent["output.markdown.* 事件"]
 
   IpcEvent --> BackendLogger["Logger"]
   RunEvent --> BackendLogger
   ApiEvent --> BackendLogger
   OutputEvent --> BackendLogger
+  MarkdownEvent --> BackendLogger
   Main --> FrontFile["frontend.runtime.YYYY-MM-DD.jsonl"]
   BackendLogger --> BackFile["runtime.YYYY-MM-DD.jsonl"]
   BackendLogger --> TextFile["runtime.YYYY-MM-DD.log"]
@@ -152,7 +156,8 @@ flowchart LR
 | `persist.start`<br>`persist.success`<br>`persist.failure`                                              | `src/model/*`、batch 入库边界                                           | SQLite 写入或关系持久化；检查表名、实体 id、事务/唯一键、损坏数据与数据库锁。                                                                                                                                                                                                                                                 |
 | `generate.start`<br>`generate.success`<br>`generate.failure`<br>`generate.partial_success`             | `GenerateWorkflow.execute`、`asyncGetColumnPackage`                     | 从数据库组装 Unit、排序和分卷；检查任务是否有数据、生成模式、排序字段与分卷边界。                                                                                                                                                                                                                                             |
 | `render.start`<br>`render.success`<br>`render.failure`                                                 | `GenerateWorkflow.generateEpub`、`html_render`、`epub_generator.ts`     | HTML、图片和 EPUB 渲染；检查模板数据、特殊字符、图片策略、资源清单与缓存路径。                                                                                                                                                                                                                                                |
-| `output.start`<br>`output.progress`<br>`output.created`<br>`output.opened`<br>`output.failure`         | `GenerateWorkflow.generateEpub`、`epub_generator.ts`、输出/打开路径 IPC | 每个 `generate-book-*` 先记录 `output.start`，完成 HTML 渲染后记录 `output.progress`，终态为 `output.created` 或 `output.failure`；start/progress 在生产模式也保留，以支持多卷配对和 UI 运行态。检查目标路径、文件存在性、权限和系统 shell 返回值。缺图但产物可用时，`output.created` 使用 `partial_success` 并携带缺失数量。 |
+| `output.markdown.start`<br>`output.markdown.success`<br>`output.markdown.fallback`<br>`output.markdown.failure` | `GenerateWorkflow.generateEpub`、`generate/library/markdown` | 每书 Markdown 子 job，共用 generate 期间按需创建的单个串行 worker。`start` 后恰好一个终止事件：无回退为 `success`；有页面写入 `.pandoc-failed.md` 时为 `fallback` 且结构化 `status=success`，检查 `fallbackCount/fallbackDetails`；真正输出失败为 `failure`，再按其他格式是否可用决定书的局部成功或失败。 |
+| `output.start`<br>`output.progress`<br>`output.created`<br>`output.opened`<br>`output.failure`         | `GenerateWorkflow.generateEpub`、三格式生成器、输出/打开路径 IPC         | 每个 `generate-book-*` 先记录 `output.start`，完成 HTML 渲染后记录 `output.progress`，终态为 `output.created` 或 `output.failure`；start/progress 在生产模式也保留，以支持多卷配对和 UI 运行态。检查三格式目标路径、文件存在性、权限和系统 shell 返回值。缺图或某格式真正写入失败但仍有可用产物时，`output.created` 使用 `partial_success`；Pandoc 回退文件成功不触发局部成功。 |
 
 ## 脱敏与容量边界
 
@@ -164,13 +169,13 @@ flowchart LR
 4. renderer 不能提供日志文件路径；主进程固定文件族。当前每批 1–20 条、单条最多 64 KiB；renderer 最多等待 500 ms 或累计 20 条后上报，错误事件立即刷新。
 5. 前端日志上报 channel 必须绕过通用 IPC recorder，防止“记录日志 → 上报日志 → 再记录”的递归。
 
-## 运行状态与最近五日输出历史
-
 ## 缓存 JSON 迁移
 
 数据浏览页支持按当前分类/父级筛选导出，也支持一次导出 SQLite 的 11 张缓存实体与关系表。导出文件继续使用 `zhihuhelp.cache-export.v1`；新增记录类别属于 v1 的向后兼容扩展，旧导出包仍可导入。
 
 导入只增量写入：新主键插入；同主键实体比较原始对象的 `updated_time`（文章、想法兼容 `updated`），收藏夹关系比较 `record_at`。只有导入记录时间严格较新才更新；时间缺失、相同或本地更新时保留本地记录。无时间字段的关系同主键也保留本地。结果分别报告新增、更新、保留和跳过数量。
+
+## 运行状态与最近五日输出历史
 
 运行日志页合并读取最近五日 `runtime.YYYY-MM-DD.jsonl`，按最新 `runId` 构建 `配置 → 初始化 → 抓取 → 生成 → 输出` 阶段状态：
 
@@ -182,7 +187,7 @@ flowchart LR
 
 原始文本和后端 JSONL 查看接口会合并最近五日文件，并只返回最后 5000 行，避免 renderer 一次载入无限内容；输出历史仍从最近五日后端 JSONL 解析。
 
-GUI 输出历史只来自仍保留的最近五日后端 JSONL：仅筛选状态为 `success` 或 `partial_success` 的显式 `output.created` 事件，按规范化输出路径去重，并按时间倒序，后端最多返回 50 条；renderer 不再二次截断，完整展示这批历史。历史项保留原始结构化 `status`，因此缺图等仍生成产物的情况会以局部成功警告展示。`failure`、普通 workflow/IPC 成功或仅在上下文中存在 `outputPath` 都不能生成历史项；每一本实际完成的输出由 `GenerateWorkflow.generateEpub` 写入 `output.created`。进入第六个自然日后，随旧日志清理，对应历史也不再显示；这是已接受行为，不另建永久索引。
+GUI 输出历史只来自仍保留的最近五日后端 JSONL：仅筛选状态为 `success` 或 `partial_success` 的显式 `output.created` 事件，按规范化的 `outputPath/htmlOutputPath/markdownOutputPath/epubOutputPath` 组合去重，并按时间倒序，后端最多返回 50 条；renderer 不再二次截断，完整展示这批历史。历史项保留原始结构化 `status`，并分别提供 HTML、Markdown、EPUB 与总目录打开入口，因此缺图或单格式写入失败后仍保留产物的情况会以局部成功警告展示。Pandoc 转换失败但 `.pandoc-failed.md` 写入成功时仍是成功项，同时可从日志中的 `fallbackCount` 诊断。`failure`、普通 workflow/IPC 成功或仅在上下文中存在 `outputPath` 都不能生成历史项；每一本实际完成的输出由 `GenerateWorkflow.generateEpub` 写入 `output.created`。进入第六个自然日后，随旧日志清理，对应历史也不再显示；这是已接受行为，不另建永久索引。
 
 ## 诊断导出
 

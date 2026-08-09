@@ -1,22 +1,22 @@
 ﻿import fs from 'fs'
-import InitWorkflow from '~/src/application/workflow/init/init_workflow'
-import FetchWorkflow from '~/src/application/workflow/fetch/customer'
-import GenerateWorkflow from '~/src/application/workflow/generate/customer'
+import InitWorkflow from '~/src/application/workflow/init/init_workflow.js'
+import FetchWorkflow from '~/src/application/workflow/fetch/customer.js'
+import GenerateWorkflow from '~/src/application/workflow/generate/customer.js'
 import {
   ensureTaskConfigFile,
   readTaskConfig,
-} from '~/src/shared/config/task_config_parser'
-import { createRunContext, RunContext, RunContextOptions, RunStage } from '~/src/shared/runtime/run_context'
-import { TaskConfig, toLegacyTaskConfig } from '~/src/domain/task/task_config'
-import Logger from '~/src/library/logger'
+} from '~/src/shared/config/task_config_parser.js'
+import { createRunContext, RunContext, RunContextOptions, RunStage } from '~/src/shared/runtime/run_context.js'
+import { TaskConfig, toLegacyTaskConfig } from '~/src/domain/task/task_config.js'
+import Logger from '~/src/library/logger.js'
 import {
   LogEventCode,
   LogLevel,
   LogStage,
   LogStatus,
-} from '~/src/shared/logging/log_contract'
-import { ExecutionOutcome, isExecutionOutcome } from '~/src/shared/runtime/execution_outcome'
-import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context'
+} from '~/src/shared/logging/log_contract.js'
+import { ExecutionOutcome, isExecutionOutcome } from '~/src/shared/runtime/execution_outcome.js'
+import { runWithLogCorrelation } from '~/src/shared/runtime/log_correlation_context.js'
 
 export type RunTaskWorkflowOptions = RunContextOptions & {
   rebase?: boolean

@@ -1,4 +1,4 @@
-import { LogEventCode, LogStatus } from '~/src/shared/logging/log_contract'
+import { LogEventCode, LogStatus } from '~/src/shared/logging/log_contract.js'
 
 export type OutputHistoryItem = {
   id: string
@@ -10,6 +10,7 @@ export type OutputHistoryItem = {
   title: string
   outputPath?: string
   htmlOutputPath?: string
+  markdownOutputPath?: string
   epubOutputPath?: string
   outputFormats?: unknown
 }
@@ -44,6 +45,7 @@ export function buildOutputHistory(
           : {}
       const outputPath = typeof details.outputPath === 'string' ? details.outputPath : undefined
       const htmlOutputPath = typeof details.htmlOutputPath === 'string' ? details.htmlOutputPath : undefined
+      const markdownOutputPath = typeof details.markdownOutputPath === 'string' ? details.markdownOutputPath : undefined
       const epubOutputPath = typeof details.epubOutputPath === 'string' ? details.epubOutputPath : undefined
       if (
         (event.status !== LogStatus.SUCCESS && event.status !== LogStatus.PARTIAL_SUCCESS)
@@ -51,7 +53,12 @@ export function buildOutputHistory(
       ) {
         return undefined
       }
-      if (outputPath === undefined && htmlOutputPath === undefined && epubOutputPath === undefined) {
+      if (
+        outputPath === undefined
+        && htmlOutputPath === undefined
+        && markdownOutputPath === undefined
+        && epubOutputPath === undefined
+      ) {
         return undefined
       }
       const message = typeof event.message === 'string' ? event.message : undefined
@@ -72,6 +79,7 @@ export function buildOutputHistory(
         title,
         outputPath,
         htmlOutputPath,
+        markdownOutputPath,
         epubOutputPath,
         outputFormats: details.outputFormats,
       }
@@ -85,8 +93,11 @@ export function buildOutputHistory(
     const key = JSON.stringify({
       outputPath: normalizePath(item.outputPath),
       htmlOutputPath: normalizePath(item.htmlOutputPath),
+      markdownOutputPath: normalizePath(item.markdownOutputPath),
       epubOutputPath: normalizePath(item.epubOutputPath),
-      title: item.outputPath || item.htmlOutputPath || item.epubOutputPath ? undefined : item.title,
+      title: item.outputPath || item.htmlOutputPath || item.markdownOutputPath || item.epubOutputPath
+        ? undefined
+        : item.title,
     })
     if (dedupeMap.has(key) === false) {
       dedupeMap.set(key, item)

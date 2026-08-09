@@ -1,5 +1,7 @@
 packages:
   - client
+overrides:
+  "app-builder-lib>@electron/get": 3.1.0
 allowBuilds:
   core-js: true
   electron: true

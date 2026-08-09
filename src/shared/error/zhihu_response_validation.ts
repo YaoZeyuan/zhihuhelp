@@ -1,4 +1,4 @@
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 /**
  * Parse a Zhihu paginated response without conflating a malformed payload with

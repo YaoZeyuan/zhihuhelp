@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import json5 from 'json5'
-import * as ConstTaskConfig from '~/src/constant/task_config'
+import * as ConstTaskConfig from '~/src/constant/task_config.js'
 import {
   createDefaultTaskConfig,
   generateModeList,
@@ -11,8 +11,8 @@ import {
   TaskConfig,
   TaskItem,
   taskTypeList,
-} from '~/src/domain/task/task_config'
-import * as LegacyTaskConfig from '~/src/type/task_config'
+} from '~/src/domain/task/task_config.js'
+import * as LegacyTaskConfig from '~/src/type/task_config.js'
 
 type UnknownRecord = {
   [key: string]: unknown
@@ -59,7 +59,7 @@ export function readTaskConfig(configPath: string): TaskConfig {
  */
 export function writeTaskConfig(configPath: string, config: TaskConfig): void {
   ensureDirectory(path.dirname(configPath))
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
+  fs.writeFileSync(configPath, JSON.stringify(parseTaskConfig(config), null, 2))
 }
 
 export function parseTaskConfig(rawConfig: unknown): TaskConfig {
@@ -149,13 +149,14 @@ function parseOutputFormats(rawList: unknown, pathLabel: string): OutputFormat[]
   if (recordList.length === 0) {
     throw new Error(`${pathLabel} 至少需要一个输出格式`)
   }
-  return recordList.map((rawFormat, index) => {
+  recordList.forEach((rawFormat, index) => {
     const format = expectString(rawFormat, `${pathLabel}[${index}]`)
     if (outputFormatList.includes(format as OutputFormat) === false) {
       throw new Error(`${pathLabel}[${index}] 不支持: ${format}`)
     }
-    return format as OutputFormat
   })
+  // 问题 9 起三种格式为固定产物；旧配置中的子集仅用于兼容读取。
+  return [...outputFormatList]
 }
 
 function expectRecord(value: unknown, pathLabel: string): UnknownRecord {

@@ -70,8 +70,9 @@ describe('customer task config failure state', () => {
     expect(within(alert as HTMLElement).getByText(/旧 schemaVersion=1 已被拒绝/)).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/粘贴知乎链接，每行一个/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /开\s*始/ })).toBeDisabled()
-    expect(screen.getByRole('checkbox', { name: 'HTML' })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: 'EPUB' })).toBeChecked()
+    expect(screen.queryByText('输出格式')).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'HTML' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'EPUB' })).not.toBeInTheDocument()
     expect(adapterSpy).not.toHaveBeenCalled()
 
     fireEvent.click(screen.getByRole('button', { name: /开\s*始/ }))

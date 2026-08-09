@@ -23,6 +23,7 @@ description: 安装依赖并运行知乎助手的后端、前端、Electron 与�
 | SQLite / knex  | sqlite3 6.0 / knex 3.3             |
 | VitePress      | 2.0 alpha                          |
 | Mermaid        | 11.16                              |
+| Pandoc         | pandoc-wasm 1.1（Pandoc 3.10）     |
 
 Windows 上如遇 `sqlite3`、`sharp` 等原生依赖安装失败，先确认已安装 Visual Studio 2022 C++ 构建工具和 Python 3。Node 主版本必须保持 24，避免 Electron 原生模块 ABI 不一致。
 
@@ -44,8 +45,8 @@ pnpm install
 
 | 命令                                           | 说明                                                    |
 | ---------------------------------------------- | ------------------------------------------------------- |
-| `pnpm watch`                                   | 监听 `src` 并持续用 Babel 编译到 `dist`                 |
-| `pnpm build`                                   | 一次性编译根项目 `src` 到 `dist`                        |
+| `pnpm watch`                                   | 监听 `src` 并持续用 Babel 编译原生 ESM 到 `dist`        |
+| `pnpm build`                                   | 一次性编译根项目原生 ESM，并复制 `.cjs` 资源到 `dist`   |
 | `pnpm startgui`                                | 启动 Vite 开发服务，端口 8080                           |
 | `pnpm start`                                   | 用调试参数启动现有 `dist/index.js`，不会自动编译源码    |
 | `pnpm buildgui`                                | 构建前端并复制到 `dist/client`                          |
@@ -62,6 +63,17 @@ pnpm install
 | `pnpm zhihuhelp run --config config.json`      | 顺序执行 init、fetch、generate；真实请求要求签名 bridge |
 
 `pnpm start` 必须保持只启动已有构建产物。开发时不要依赖它隐式编译；先执行一次 `pnpm build`，或保持 `pnpm watch` 运行。
+
+## ESM 与 CommonJS 边界
+
+根 `package.json` 使用 `"type": "module"`；Electron main、CLI、application、API、model、library 和 shared 层按 NodeNext 规则运行原生 ESM。维护这些模块时遵循：
+
+1. 相对导入和仓库别名导入在源码中都写最终运行时可解析的 `.js` 扩展，目录入口也显式写到 `index.js`。
+2. 不再用 `require`、`module.exports`、`__dirname` 或 `__filename` 扩大 CommonJS 边界；ESM 中需要当前路径时从 `import.meta.url` 派生。
+3. sandboxed preload 必须保持 `src/preload.cjs` 和 `src/public/js-rpc/preload.cjs`。由 Node 直接执行、确实依赖 CommonJS 的构建/测试辅助脚本也明确使用 `.cjs` 后缀。
+4. `pnpm build` 会先清理可能残留的旧扩展产物，避免 `dist` 中同时存在已失效的 `.js` preload 与新的 `.cjs` preload。
+
+Markdown 依赖不会随应用启动进入主进程。一次 generate 在首次生成 Markdown 时才启动一个独立 worker 并载入 Pandoc WASM，所有书和页面共用串行队列，生成命令结束后回收 worker。第一次转换的初始化时间属于预期行为；不要为了缩短时间在 Electron 主线程直接调用 Pandoc，或无界并行创建多个 WASM 实例。
 
 ## 文档站开发与发布
 
@@ -108,13 +120,13 @@ pnpm start
 
 链路如下：
 
-1. `pnpm watch` 把主进程、preload、workflow 和 js-rpc 资源更新到 `dist`。
+1. `pnpm watch` 把原生 ESM 主进程/workflow、`.cjs` preload 和 js-rpc 资源更新到 `dist`。
 2. `pnpm startgui` 在 8080 端口提供 React 页面。
 3. `pnpm start` 加载 `dist/index.js --zhihuhelp-debug`；主窗口加载 Vite 页面并打开 DevTools。
 4. js-rpc 子窗口用于知乎签名，调试模式下可见并可打开 DevTools。
 5. 前后端按日日志写入 `PathConfig.rootPath/log`，文件名和排查方法见[数据与日志](./data-and-logging)。
 
-修改 `src/preload.js`、`src/public/js-rpc` 或 Electron 主进程后必须等待 `pnpm watch` 完成，再重启 Electron；只刷新浏览器页面不会更新这些代码。
+修改 `src/preload.cjs`、`src/public/js-rpc` 或 Electron 主进程后必须等待 `pnpm watch` 完成，再重启 Electron；只刷新浏览器页面不会更新这些代码。
 
 ## CLI 调试流程
 
@@ -131,7 +143,7 @@ pnpm zhihuhelp run --config config.json
 
 1. 命令退出码和终端摘要。
 2. `log/runtime.YYYY-MM-DD.log` 与 `log/runtime.YYYY-MM-DD.jsonl`。
-3. SQLite 数据和 `知乎助手输出的电子书`。
+3. SQLite 数据和 `知乎助手输出的电子书/html`、`markdown`、`epub` 三个目录。
 
 ## 类型检查与构建验证
 
@@ -150,7 +162,7 @@ pnpm exec tsc --noEmit
 pnpm build
 ```
 
-根 `tsconfig.json` 的 `checkJs` 为 `false`，历史 JavaScript preload/js-rpc 文件不参与完整 JS 类型检查；新增或修改 TypeScript 仍必须通过根类型检查。涉及 GUI 静态资源或打包时，再执行：
+根 `tsconfig.json` 的 `checkJs` 为 `false`，`.cjs` preload 和浏览器侧 js-rpc 文件不参与完整 JS 类型检查；新增或修改 TypeScript 仍必须通过根类型检查。涉及 GUI 静态资源或打包时，再执行：
 
 ```shell
 pnpm buildgui

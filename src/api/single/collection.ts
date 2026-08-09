@@ -1,6 +1,6 @@
-import Base from '~/src/api/single/base'
-import * as TypeCollection from '~/src/type/zhihu/collection'
-import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation'
+import Base from '~/src/api/single/base.js'
+import * as TypeCollection from '~/src/type/zhihu/collection.js'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
 
 class Collection extends Base {
   /**

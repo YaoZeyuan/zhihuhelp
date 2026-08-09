@@ -1,4 +1,4 @@
-import httpClient from '~/src/library/http'
+import httpClient from '~/src/library/http/index.js'
 class Base {
   static readonly http = httpClient
   static readonly CONST_SORT_BY_CREATED = 'created'

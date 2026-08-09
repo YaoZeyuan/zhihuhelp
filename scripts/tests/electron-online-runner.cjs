@@ -2,6 +2,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 const { app, BrowserWindow, ipcMain } = require('electron')
 const {
   TestResultStatus,
@@ -18,18 +19,11 @@ const {
 } = require('./runtime.cjs')
 
 const rootPath = path.resolve(__dirname, '../..')
-const { LogEventCode, LogLevel, LogStage, LogStatus } = require(
-  path.join(rootPath, 'dist', 'shared', 'logging', 'log_contract.js'),
-)
-const TestLogStageByEventCode = Object.freeze({
-  [LogEventCode.WORKFLOW_START]: LogStage.APP,
-  [LogEventCode.RPC_SIGN_SUCCESS]: LogStage.RPC,
-  [LogEventCode.INIT_SUCCESS]: LogStage.INIT,
-  [LogEventCode.FETCH_SUCCESS]: LogStage.FETCH,
-  [LogEventCode.PERSIST_SUCCESS]: LogStage.PERSIST,
-  [LogEventCode.WORKFLOW_SUCCESS]: LogStage.APP,
-  [LogEventCode.WORKFLOW_FAILURE]: LogStage.APP,
-})
+let LogEventCode
+let LogLevel
+let LogStage
+let LogStatus
+let TestLogStageByEventCode
 const mode = process.argv.find((argument) => argument.startsWith('--mode='))?.slice('--mode='.length)
 const artifactPath = process.argv.find((argument) => argument.startsWith('--artifacts='))?.slice('--artifacts='.length)
 const fixtureRoot = path.join(rootPath, 'fixtures', 'zhihu')
@@ -40,6 +34,28 @@ let taskCounter = 0
 let runSettled = false
 let forcedFailure = false
 const pendingTaskMap = new Map()
+
+function importDistModule(...relativePathSegments) {
+  const moduleUrl = pathToFileURL(path.join(rootPath, 'dist', ...relativePathSegments)).href
+  return import(moduleUrl)
+}
+
+async function initializeRuntimeContract() {
+  const contractModule = await importDistModule('shared', 'logging', 'log_contract.js')
+  LogEventCode = contractModule.LogEventCode
+  LogLevel = contractModule.LogLevel
+  LogStage = contractModule.LogStage
+  LogStatus = contractModule.LogStatus
+  TestLogStageByEventCode = Object.freeze({
+    [LogEventCode.WORKFLOW_START]: LogStage.APP,
+    [LogEventCode.RPC_SIGN_SUCCESS]: LogStage.RPC,
+    [LogEventCode.INIT_SUCCESS]: LogStage.INIT,
+    [LogEventCode.FETCH_SUCCESS]: LogStage.FETCH,
+    [LogEventCode.PERSIST_SUCCESS]: LogStage.PERSIST,
+    [LogEventCode.WORKFLOW_SUCCESS]: LogStage.APP,
+    [LogEventCode.WORKFLOW_FAILURE]: LogStage.APP,
+  })
+}
 
 function log(eventCode, status, message, details) {
   if (!artifactPath) {
@@ -111,7 +127,7 @@ async function waitForSignerReady() {
   throw new Error('Electron 签名运行时初始化超时')
 }
 
-function loadApi(sourceType) {
+async function loadApi(sourceType) {
   const apiMap = {
     author: ['author', 'asyncGetAutherInfo'],
     question: ['question', 'asyncGetQuestionInfo'],
@@ -126,11 +142,11 @@ function loadApi(sourceType) {
   if (!definition) {
     throw new Error(`不支持的在线样本类型：${sourceType}`)
   }
-  const apiModule = require(path.join(rootPath, 'dist', 'api', 'single', `${definition[0]}.js`)).default
+  const apiModule = (await importDistModule('api', 'single', `${definition[0]}.js`)).default
   return (id) => apiModule[definition[1]](id)
 }
 
-function loadPageApi(sourceType) {
+async function loadPageApi(sourceType) {
   const apiMap = {
     author: ['author', 'asyncGetAutherAnswerList'],
     question: ['question', 'asyncGetAnswerList'],
@@ -142,7 +158,7 @@ function loadPageApi(sourceType) {
   if (!definition) {
     return undefined
   }
-  const apiModule = require(path.join(rootPath, 'dist', 'api', 'single', `${definition[0]}.js`)).default
+  const apiModule = (await importDistModule('api', 'single', `${definition[0]}.js`)).default
   return (id, offset, limit) => apiModule[definition[1]](id, offset, limit)
 }
 
@@ -186,7 +202,7 @@ function pickStableData(sourceType, record) {
 }
 
 async function fetchMinimalPages(source) {
-  const pageApi = loadPageApi(source.sourceType)
+  const pageApi = await loadPageApi(source.sourceType)
   if (!pageApi || !Array.isArray(source.pageOffsets)) {
     return undefined
   }
@@ -219,9 +235,9 @@ async function checkAuthenticatedSession(httpClient) {
 }
 
 async function createTemporaryPersistence() {
-  const CommonConfig = require(path.join(rootPath, 'dist', 'config', 'common.js')).default
-  const Knex = require(path.join(rootPath, 'dist', 'library', 'knex.js')).default
-  const AnswerModel = require(path.join(rootPath, 'dist', 'model', 'answer.js')).default
+  const CommonConfig = (await importDistModule('config', 'common.js')).default
+  const Knex = (await importDistModule('library', 'knex.js')).default
+  const AnswerModel = (await importDistModule('model', 'answer.js')).default
   const databasePath = path.join(artifactPath, 'online.sqlite')
   CommonConfig.setDatabaseUri(databasePath)
   const schemaContent = fs.readFileSync(
@@ -273,7 +289,7 @@ async function execute() {
       devTools: true,
       webSecurity: false,
       webviewTag: true,
-      preload: path.join(rootPath, 'src', 'public', 'js-rpc', 'preload.js'),
+      preload: path.join(rootPath, 'src', 'public', 'js-rpc', 'preload.cjs'),
     },
   })
   signerWindow.once('closed', () => {
@@ -286,15 +302,15 @@ async function execute() {
   await waitForSignerReady()
   log(LogEventCode.RPC_SIGN_SUCCESS, LogStatus.SUCCESS, 'Electron 签名运行时就绪')
 
-  const encryptModule = require(path.join(rootPath, 'dist', 'library', 'zhihu_encrypt', 'index.js'))
+  const encryptModule = await importDistModule('library', 'zhihu_encrypt', 'index.js')
   encryptModule.setBridgeFunc(createBridge())
-  const RuntimePathConfig = require(path.join(rootPath, 'dist', 'config', 'path.js')).default
+  const RuntimePathConfig = (await importDistModule('config', 'path.js')).default
   RuntimePathConfig.setLogPath(path.join(artifactPath, 'log'))
   RuntimePathConfig.setCachePath(path.join(artifactPath, 'cache'))
   RuntimePathConfig.setOutputPath(path.join(artifactPath, 'output'))
-  const RequestConfig = require(path.join(rootPath, 'dist', 'config', 'request.js')).default
+  const RequestConfig = (await importDistModule('config', 'request.js')).default
   RequestConfig.setRequestConfig({ ua: RequestConfig.ua, cookie })
-  const httpClient = require(path.join(rootPath, 'dist', 'library', 'http', 'index.js')).default
+  const httpClient = (await importDistModule('library', 'http', 'index.js')).default
   await checkAuthenticatedSession(httpClient)
   const persistence = await createTemporaryPersistence()
   log(LogEventCode.INIT_SUCCESS, LogStatus.SUCCESS, 'Cookie 登录检查通过')
@@ -306,7 +322,8 @@ async function execute() {
   for (const source of selectedSourceList) {
     const startedAt = Date.now()
     try {
-      const record = await loadApi(source.sourceType)(source.id)
+      const api = await loadApi(source.sourceType)
+      const record = await api(source.id)
       validateEntitySourceResult(source, record)
       const entity = pickStableData(source.sourceType, record)
       if (source.sourceType === 'answer') {
@@ -388,6 +405,7 @@ async function execute() {
 
 app.whenReady().then(async () => {
   try {
+    await initializeRuntimeContract()
     await execute()
     if (forcedFailure) {
       return
@@ -399,9 +417,11 @@ app.whenReady().then(async () => {
       return
     }
     runSettled = true
-    log(LogEventCode.WORKFLOW_FAILURE, LogStatus.FAILURE, `${mode || 'online'} 失败`, {
-      error: safeErrorMessage(error),
-    })
+    if (LogEventCode && LogStatus) {
+      log(LogEventCode.WORKFLOW_FAILURE, LogStatus.FAILURE, `${mode || 'online'} 失败`, {
+        error: safeErrorMessage(error),
+      })
+    }
     console.error(`[${mode || 'online'}] ${safeErrorMessage(error)}`)
     app.exit(1)
   }

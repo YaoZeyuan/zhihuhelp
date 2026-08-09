@@ -1,5 +1,5 @@
-import Knex from '~/src/library/knex'
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import Knex from '~/src/library/knex.js'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 class Base {
   static TABLE_NAME = ``

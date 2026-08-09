@@ -1,4 +1,4 @@
-import { sanitizeLogValue } from '~/src/shared/logging/log_contract'
+import { sanitizeLogValue } from '~/src/shared/logging/log_contract.js'
 
 export function sanitizeDiagnosticLogTail(content: string, maxLines = 800): string {
   return content

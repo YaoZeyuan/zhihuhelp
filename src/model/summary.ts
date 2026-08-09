@@ -1,13 +1,13 @@
-import Base from '~/src/model/base'
+import Base from '~/src/model/base.js'
 
-import * as Consts from "~/src/constant/task_config"
-import MAuthor from '~/src/model/author'
-import MAnswer from '~/src/model/answer'
-import MArticle from '~/src/model/article'
-import MTopic from '~/src/model/topic'
-import MCollection from '~/src/model/collection'
-import MColumn from '~/src/model/column'
-import MPin from '~/src/model/pin'
+import * as Consts from "~/src/constant/task_config.js"
+import MAuthor from '~/src/model/author.js'
+import MAnswer from '~/src/model/answer.js'
+import MArticle from '~/src/model/article.js'
+import MTopic from '~/src/model/topic.js'
+import MCollection from '~/src/model/collection.js'
+import MColumn from '~/src/model/column.js'
+import MPin from '~/src/model/pin.js'
 
 export type DataRecordKind = 'answer' | 'article' | 'pin' | 'meta'
 

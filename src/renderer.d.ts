@@ -1,4 +1,4 @@
-import type { StructuredLogRecord } from './shared/logging/log_contract'
+import type { StructuredLogRecord } from './shared/logging/log_contract.js'
 
 export interface IElectronAPI {
     ['get-debug-ipc-channel-list']: () => Promise<any>,

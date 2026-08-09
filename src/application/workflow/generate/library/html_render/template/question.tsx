@@ -1,8 +1,8 @@
 import React from 'react'
-import TypeAnswer from '~/src/type/zhihu/answer'
+import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
 import lodash from 'lodash'
-import CommonUtil from '~/src/library/util/common'
-import Answer from './answer'
+import CommonUtil from '~/src/library/util/common.js'
+import Answer from './answer.js'
 
 export default ({ answerRecordList = [] }: { answerRecordList: TypeAnswer.Record[] }) => {
   if (lodash.isEmpty(answerRecordList)) {

@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import moment from 'moment'
-import * as DATE_FORMAT from '~/src/constant/date_format'
-import PathConfig from '~/src/config/path'
+import * as DATE_FORMAT from '~/src/constant/date_format.js'
+import PathConfig from '~/src/config/path.js'
 import {
   createStructuredLogRecord,
   LogLevel,
@@ -13,8 +13,8 @@ import {
   SerializedError,
   StructuredLogEntry,
   StructuredLogRecord,
-} from '~/src/shared/logging/log_contract'
-import { getLogCorrelationContext } from '~/src/shared/runtime/log_correlation_context'
+} from '~/src/shared/logging/log_contract.js'
+import { getLogCorrelationContext } from '~/src/shared/runtime/log_correlation_context.js'
 
 export type { SerializedError, StructuredLogEntry, StructuredLogRecord }
 

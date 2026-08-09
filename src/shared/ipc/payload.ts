@@ -1,4 +1,4 @@
-import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
+import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 
 export type DbRecordListRequest = {
   type: string

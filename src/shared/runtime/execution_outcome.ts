@@ -1,5 +1,5 @@
-import { LogStatus, SerializedError } from '~/src/shared/logging/log_contract'
-import { AppErrorCode } from '~/src/shared/error/application_error'
+import { LogStatus, SerializedError } from '~/src/shared/logging/log_contract.js'
+import { AppErrorCode } from '~/src/shared/error/application_error.js'
 
 export type ExecutionFailure = {
   entityType?: string
