@@ -95,6 +95,10 @@ pnpm docs:preview
 
 根 `api` 是有意公开的静态数据，不是 Electron 后端源码目录 `src/api`。当前版本检查文件为 `api/zhihuhelp/version`，线上地址是 `https://zhihuhelp.yaozeyuan.online/api/zhihuhelp/version`。不得在根 `api` 放入 Cookie、访问令牌、私钥、本机路径或其他不应公开的数据。
 
+文档站首页在浏览器中运行时请求同源 `/api/zhihuhelp/version`，展示顶层最新版本号，并分别使用 `detail.windows`、`detail.mac` 中的版本和 URL 生成下载按钮。接口失败或字段无效时只显示错误与重试入口，不得回退到 GitHub Releases 或硬编码旧下载地址。
+
+执行 `pnpm docs:dev` 时，Vite 开发中间件把 `/api/**` 只读映射到仓库根 `api/**`，因此首页可直接加载与发布源一致的版本接口；映射会移除查询参数并拒绝目录穿越。`pnpm docs:build` 不使用该中间件，仍在 VitePress 构建成功后运行 `scripts/docs/copy-static-api.cjs`。
+
 推送到 `master` 或手动运行 `Documentation Pages` 工作流后，GitHub Actions 会拉取完整 Git 历史以生成准确的页面更新时间，重新安装锁定依赖、构建和校验站点，再把 `doc/.vitepress/dist` 发布到 GitHub Pages。仓库 Settings → Pages → Build and deployment 的 Source 必须设置为 **GitHub Actions**；旧 `homepage` 分支不再承担官网发布职责。正式域名由 `doc/public/CNAME` 固定为 `zhihuhelp.yaozeyuan.online`。
 
 ## 测试命令

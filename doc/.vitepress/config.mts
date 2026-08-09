@@ -1,7 +1,12 @@
 import { defineConfig } from 'vitepress'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { staticApiPlugin } from '../../scripts/docs/static-api-plugin.ts'
 
 const siteUrl = 'https://zhihuhelp.yaozeyuan.online'
 const githubUrl = 'https://github.com/YaoZeyuan/zhihuhelp'
+const configDirectory = path.dirname(fileURLToPath(import.meta.url))
+const publicApiRoot = path.resolve(configDirectory, '..', '..', 'api')
 
 function canonicalPath(page: string): string {
   const withoutExtension = page.replace(/\.(?:html|md)$/, '')
@@ -10,6 +15,9 @@ function canonicalPath(page: string): string {
 }
 
 export default defineConfig({
+  vite: {
+    plugins: [staticApiPlugin(publicApiRoot)],
+  },
   lang: 'zh-CN',
   title: '知乎助手',
   titleTemplate: ':title | 知乎助手',

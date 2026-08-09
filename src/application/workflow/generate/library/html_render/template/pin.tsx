@@ -2,6 +2,7 @@ import React from 'react'
 import * as TypePin from '~/src/type/zhihu/pin.js'
 import lodash from 'lodash'
 import CommonUtil from '~/src/library/util/common.js'
+import { createAuthorProfileUrl } from '~/src/domain/author/identity.js'
 import CommentCompontent from './comment.js'
 import moment from 'moment'
 import * as DATE_FORMAT from '~/src/constant/date_format.js'
@@ -10,6 +11,7 @@ export default ({ rawPinRecord }: { rawPinRecord: TypePin.Record }) => {
   if (lodash.isEmpty(rawPinRecord)) {
     return <div key={CommonUtil.getUuid()} />
   }
+  const authorProfileUrl = createAuthorProfileUrl(rawPinRecord.author)
   // 想法
 
   let title = ''
@@ -61,7 +63,7 @@ export default ({ rawPinRecord }: { rawPinRecord: TypePin.Record }) => {
               </div>
 
               <span className="author-name">
-                <a href={`http://www.zhihu.com/people/${rawPinRecord.author.id}`}>{rawPinRecord.author.name}</a>
+                <a href={authorProfileUrl}>{rawPinRecord.author.name}</a>
               </span>
               <span className="author-sign">
                 {rawPinRecord.author.headline ? '　' + rawPinRecord.author.headline : ''}

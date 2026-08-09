@@ -7,6 +7,25 @@ import AutorApi from '~/src/api/single/author.js'
 import TopicApi from '~/src/api/single/topic.js'
 import CollectionApi from '~/src/api/single/collection.js'
 import ColumnApi from '~/src/api/single/column.js'
+import { getCanonicalAuthorUrlToken, getStableAuthorId } from '~/src/domain/author/identity.js'
+import type * as TypeAuthor from '~/src/type/zhihu/author.js'
+
+function getAuthorTitleIdentity(
+  info: TypeAuthor.Record | undefined,
+  taskId: string,
+  requireRequestedIdentityMatch = false,
+): { userName: string; displayIdentifier: string } {
+  const userName = info?.name || taskId
+  const stableId = info === undefined ? '' : getStableAuthorId(info)
+  const canonicalUrlToken = info === undefined ? '' : getCanonicalAuthorUrlToken(info)
+  const canUseCanonicalIdentity =
+    requireRequestedIdentityMatch === false || stableId === taskId || canonicalUrlToken === taskId
+
+  return {
+    userName,
+    displayIdentifier: canUseCanonicalIdentity ? canonicalUrlToken || taskId : taskId,
+  }
+}
 
 export async function asyncGetTaskDefaultTitle(taskType: Type_Task_Config.Type_Task_Type, taskId: string) {
   let bookTitle = ''
@@ -26,57 +45,57 @@ export async function asyncGetTaskDefaultTitle(taskType: Type_Task_Config.Type_T
     case Const_Task_Config.Const_Task_Type_用户提问过的所有问题:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})的知乎提问合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})的知乎提问合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户的所有回答:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})的知乎回答合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})的知乎回答合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户发布的所有文章:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})的知乎文章合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})的知乎文章合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_销号用户的所有回答:
       {
         let info = await AutorApi.asyncGetBlockAccountAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})的知乎回答合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId, true)
+        bookTitle = `${userName}(${displayIdentifier})的知乎回答合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户发布的所有想法:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})发布过的想法合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})发布过的想法合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户赞同过的所有回答:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})赞同过的回答合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})赞同过的回答合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户赞同过的所有文章:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})赞同过的文章合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})赞同过的文章合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_用户关注过的所有问题:
       {
         let info = await AutorApi.asyncGetAutherInfo(taskId)
-        let userName = info?.name || taskId
-        bookTitle = `${userName}(${taskId})关注过的问题合集`
+        const { userName, displayIdentifier } = getAuthorTitleIdentity(info, taskId)
+        bookTitle = `${userName}(${displayIdentifier})关注过的问题合集`
       }
       break
     case Const_Task_Config.Const_Task_Type_话题:

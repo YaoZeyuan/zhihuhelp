@@ -11,35 +11,39 @@ import BatchFetchQuestion from '~/src/api/batch/question.js'
 import BatchFetchArticle from './article.js'
 import CommonConfig from '~/src/config/common.js'
 import { createSuccessOutcome, mergeExecutionOutcomes } from '~/src/shared/runtime/execution_outcome.js'
+import { createResolvedAuthorIdentity } from '~/src/domain/author/identity.js'
 
 class BatchFetchAuthorActivity extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的历史活动`)
     this.log(`获取用户信息`)
     const authorInfo = await AuthorApi.asyncGetAutherInfo(urlToken)
-    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id', 'url_token'])
-    await this.persist('author', urlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
+    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id'])
+    const { aliases: authorAliases, urlToken: canonicalUrlToken } = createResolvedAuthorIdentity(authorInfo, urlToken)
+    await this.persist('author', canonicalUrlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
     this.log(`用户信息获取完毕`)
     const name = authorInfo.name
     this.log(`开始抓取用户行为列表`)
     let startAt = MActivity.ZHIHU_ACTIVITY_START_MONTH_AT
-    this.log(`检查用户${name}(${urlToken})最后一次活跃时间`)
-    let endAt = await ActivityApi.asyncGetAutherLastActivityAt(urlToken)
+    this.log(`检查用户${name}(${canonicalUrlToken})最后一次活跃时间`)
+    let endAt = await ActivityApi.asyncGetAutherLastActivityAt(canonicalUrlToken)
     if (endAt === 0) {
-      this.log(`用户${name}(${urlToken})没有活动记录`)
+      this.log(`用户${name}(${canonicalUrlToken})没有活动记录`)
       return createSuccessOutcome(0)
     }
-    this.log(`用户${name}(${urlToken})最后一次活跃于${moment.unix(endAt).format(DATE_FORMAT.Const_Display_By_Second)}`)
+    this.log(
+      `用户${name}(${canonicalUrlToken})最后一次活跃于${moment.unix(endAt).format(DATE_FORMAT.Const_Display_By_Second)}`,
+    )
 
-    this.log(`检查用户${name}(${urlToken})首次活跃时间`)
+    this.log(`检查用户${name}(${canonicalUrlToken})首次活跃时间`)
     let loopCounter = 0
     let hasActivityInSupportedRange = false
     for (let checkAt = startAt; checkAt <= endAt;) {
-      let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(urlToken, checkAt)
+      let hasActivityAfterAt = await ActivityApi.asyncCheckHasAutherActivityAfterAt(canonicalUrlToken, checkAt)
       if (hasActivityAfterAt) {
         hasActivityInSupportedRange = true
         this.log(
-          `经检查, 用户${name}(${urlToken})在${moment
+          `经检查, 用户${name}(${canonicalUrlToken})在${moment
             .unix(checkAt)
             .format(DATE_FORMAT.Const_Display_By_Second)}前有活动记录`,
         )
@@ -48,7 +52,7 @@ class BatchFetchAuthorActivity extends Base {
         break
       } else {
         this.log(
-          `经检查, 用户${name}(${urlToken})在${moment
+          `经检查, 用户${name}(${canonicalUrlToken})在${moment
             .unix(checkAt)
             .format(DATE_FORMAT.Const_Display_By_Second)}前没有活动记录`,
         )
@@ -63,7 +67,7 @@ class BatchFetchAuthorActivity extends Base {
       }
     }
     if (hasActivityInSupportedRange === false) {
-      this.log(`用户${name}(${urlToken})在支持的时间范围内没有活动记录`)
+      this.log(`用户${name}(${canonicalUrlToken})在支持的时间范围内没有活动记录`)
       return createSuccessOutcome(0)
     }
     this.log(
@@ -77,43 +81,46 @@ class BatchFetchAuthorActivity extends Base {
       fetchAt = fetchEndAt + 1
       CommonUtil.addAsyncTaskFunc({
         asyncTaskFunc: async () => {
-          await this.fetchActivityInRange(urlToken, fetchStartAt, fetchEndAt)
+          await this.fetchActivityInRange(canonicalUrlToken, fetchStartAt, fetchEndAt)
         },
         needProtect: true,
       })
     }
     await CommonUtil.asyncWaitAllTaskComplete({
-      needTTL: false
+      needTTL: false,
     })
-    this.log(`用户${name}(${urlToken})活动记录抓取完毕`)
+    this.log(`用户${name}(${canonicalUrlToken})活动记录抓取完毕`)
 
-    this.log(`抓取用户${name}(${urlToken})赞同过的所有回答`)
-    let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdList(urlToken, MActivity.VERB_ANSWER_VOTE_UP)
+    this.log(`抓取用户${name}(${canonicalUrlToken})赞同过的所有回答`)
+    let allAgreeAnswerIdList = await MActivity.asyncGetAllActivityTargetIdListByAuthorAliases(
+      authorAliases,
+      MActivity.VERB_ANSWER_VOTE_UP,
+    )
     let batchFetchAnswer = new BatchFetchAnswer()
     const answerOutcome = await this.collectNestedBatchOutcome(() =>
       batchFetchAnswer.fetchListAndSaveToDb(allAgreeAnswerIdList),
     )
-    this.log(`用户${name}(${urlToken})赞同过的所有回答抓取完毕`)
-    this.log(`抓取用户${name}(${urlToken})赞同过的所有文章`)
-    let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdList(
-      urlToken,
+    this.log(`用户${name}(${canonicalUrlToken})赞同过的所有回答抓取完毕`)
+    this.log(`抓取用户${name}(${canonicalUrlToken})赞同过的所有文章`)
+    let allAgreeArticleIdList = await MActivity.asyncGetAllActivityTargetIdListByAuthorAliases(
+      authorAliases,
       MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
     )
     let batchFetchArticle = new BatchFetchArticle()
     const articleOutcome = await this.collectNestedBatchOutcome(() =>
       batchFetchArticle.fetchListAndSaveToDb(allAgreeArticleIdList),
     )
-    this.log(`用户${name}(${urlToken})赞同过的所有文章抓取完毕`)
-    this.log(`抓取用户${name}(${urlToken})关注过的所有问题`)
-    let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdList(
-      urlToken,
+    this.log(`用户${name}(${canonicalUrlToken})赞同过的所有文章抓取完毕`)
+    this.log(`抓取用户${name}(${canonicalUrlToken})关注过的所有问题`)
+    let allFollowQustionIdList = await MActivity.asyncGetAllActivityTargetIdListByAuthorAliases(
+      authorAliases,
       MActivity.VERB_QUESTION_FOLLOW,
     )
     let batchFetchQuestion = new BatchFetchQuestion()
     const questionOutcome = await this.collectNestedBatchOutcome(() =>
       batchFetchQuestion.fetchListAndSaveToDb(allFollowQustionIdList),
     )
-    this.log(`用户${name}(${urlToken})关注过的所有问题抓取完毕`)
+    this.log(`用户${name}(${canonicalUrlToken})关注过的所有问题抓取完毕`)
     return mergeExecutionOutcomes([answerOutcome, articleOutcome, questionOutcome])
   }
 

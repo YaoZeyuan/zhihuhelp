@@ -2,12 +2,14 @@ import React from 'react'
 import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
 import lodash from 'lodash'
 import CommonUtil from '~/src/library/util/common.js'
+import { createAuthorProfileUrl } from '~/src/domain/author/identity.js'
 import CommentCompontent from './comment.js'
 
 export default ({ answerRecord }: { answerRecord: TypeAnswer.Record }) => {
   if (lodash.isEmpty(answerRecord)) {
     return <div key={CommonUtil.getUuid()} />
   }
+  const authorProfileUrl = createAuthorProfileUrl(answerRecord.author)
   const answer = (
     <div key={CommonUtil.getUuid()}>
       <div className="answer">
@@ -19,7 +21,7 @@ export default ({ answerRecord }: { answerRecord: TypeAnswer.Record }) => {
               </div>
 
               <span className="author-name">
-                <a href={`http://www.zhihu.com/people/${answerRecord.author.id}`}>{answerRecord.author.name}</a>
+                <a href={authorProfileUrl}>{answerRecord.author.name}</a>
               </span>
 
               <span className="author-sign">

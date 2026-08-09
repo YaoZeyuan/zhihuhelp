@@ -14,7 +14,7 @@ import MCollection from '~/src/model/collection.js'
 import MColumn from '~/src/model/column.js'
 import MPin from '~/src/model/pin.js'
 import lodash from 'lodash'
-import CommonUtil from "~/src/library/util/common.js"
+import CommonUtil from '~/src/library/util/common.js'
 import Logger from '~/src/library/logger.js'
 
 import HtmlRender from '~/src/application/workflow/generate/library/html_render/index.js'
@@ -34,6 +34,7 @@ import { RunContext } from '~/src/shared/runtime/run_context.js'
 import { LogEventCode, LogLevel, LogStage, LogStatus, StructuredLogEntry } from '~/src/shared/logging/log_contract.js'
 import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error.js'
 import PathConfig from '~/src/config/path.js'
+import { getCanonicalAuthorUrlToken } from '~/src/domain/author/identity.js'
 
 /**
  * 生成html
@@ -115,10 +116,7 @@ class GenerateWorkflow {
     try {
       let epubColumnList = await this.asyncGetColumnPackage({ fetchTaskList, generateConfig })
 
-      if (
-        fetchTaskList.length > 0
-        && this.missingGenerateTaskList.length >= fetchTaskList.length
-      ) {
+      if (fetchTaskList.length > 0 && this.missingGenerateTaskList.length >= fetchTaskList.length) {
         throw new ApplicationError(
           AppErrorCode.BATCH_FAILED,
           `没有可生成的数据，${this.missingGenerateTaskList.length} 个任务未在数据库中找到实体`,
@@ -161,9 +159,7 @@ class GenerateWorkflow {
         })
         this.log(`电子书:${bookname}输出完毕`)
       }
-      const executeStatus = this.hasPartialGenerateOutcome
-        ? LogStatus.PARTIAL_SUCCESS
-        : LogStatus.SUCCESS
+      const executeStatus = this.hasPartialGenerateOutcome ? LogStatus.PARTIAL_SUCCESS : LogStatus.SUCCESS
       this.event({
         jobId: executeJobId,
         status: executeStatus,
@@ -207,9 +203,9 @@ class GenerateWorkflow {
     })
   }
 
-  private summarizeGenerateConfig(
-    generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig'],
-  ): { [key: string]: unknown } {
+  private summarizeGenerateConfig(generateConfig: TypeTaskConfig.Type_Task_Config['generateConfig']): {
+    [key: string]: unknown
+  } {
     return {
       bookTitle: generateConfig.bookTitle,
       generateType: generateConfig.generateType,
@@ -505,20 +501,25 @@ class GenerateWorkflow {
       case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
       case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题: {
         // 提取公共代码
-        this.log(`获取用户${targetId}信息`)
-        let authorInfo = await MAuthor.asyncGetAuthor(targetId)
-        if (lodash.isEmpty(authorInfo)) {
+        this.log('解析用户身份')
+        const authorIdentity = await MAuthor.asyncResolveIdentity(targetId)
+        if (authorIdentity === undefined) {
           this.log(`用户${targetId}信息获取失败, 自动跳过`)
           return
         }
-        let userName = `${authorInfo.name}(${targetId})`
+        const { author: authorInfo, authorId, urlToken, aliases } = authorIdentity
+        const userName = `${authorInfo.name}(${urlToken})`
+        this.log(`用户${userName}身份解析完成`)
         let pageList: Package.Type_Page_Item[] = []
         // 根据任务类别, 收集具体数据
         switch (taskConfig.type) {
           case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
             {
               this.log(`获取用户${userName}所有提问过的问题`)
-              let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdList(targetId)
+              let questionIdList = await MAuthorAskQuestion.asyncGetAuthorAskQuestionIdListByAuthorIdentity(
+                authorId,
+                aliases,
+              )
               this.log(`用户${userName}所有提问过的问题id列表获取完毕`)
               this.log(`开始获取用户${userName}所有提问过的问题下的回答列表`)
               for (let questionId of questionIdList) {
@@ -540,21 +541,29 @@ class GenerateWorkflow {
                 }
                 pageList.push(page)
               }
-              this.log(`用户${targetId}所有提问过的问题下的回答列表获取完毕`)
+              this.log(`用户${userName}所有提问过的问题下的回答列表获取完毕`)
             }
             break
           case Const_TaskConfig.Const_Task_Type_用户的所有回答:
           case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
             {
               this.log(`获取用户${userName}所有回答过的答案`)
-              let answerListInAuthorHasAnswer = await MAnswer.asyncGetAnswerListByAuthorUrlToken(targetId)
+              let answerListInAuthorHasAnswer = await MAnswer.asyncGetAnswerListByAuthorIdentity(authorId, aliases)
               for (let item of answerListInAuthorHasAnswer) {
+                const canonicalItem = {
+                  ...item,
+                  author: {
+                    ...item.author,
+                    id: authorId,
+                    url_token: urlToken,
+                  },
+                }
                 let page = new Package.Page_Question({
-                  baseInfo: item.question,
+                  baseInfo: canonicalItem.question,
                 })
                 page.add({
                   actionAt: 0,
-                  record: item,
+                  record: canonicalItem,
                 })
                 pageList.push(page)
               }
@@ -563,12 +572,20 @@ class GenerateWorkflow {
           case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
             {
               this.log(`获取用户${userName}所有发表过的想法`)
-              let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorUrlToken(targetId)
+              let pinListByAuthorPost = await MPin.asyncGetPinListByAuthorIdentity(authorId, aliases)
               for (let item of pinListByAuthorPost) {
+                const canonicalItem = {
+                  ...item,
+                  author: {
+                    ...item.author,
+                    id: authorId,
+                    url_token: urlToken,
+                  },
+                }
                 let page = new Package.Page_Pin()
                 page.add({
                   actionAt: 0,
-                  record: item,
+                  record: canonicalItem,
                 })
                 pageList.push(page)
               }
@@ -577,12 +594,20 @@ class GenerateWorkflow {
           case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
             {
               this.log(`获取用户${userName}发表过的所有文章`)
-              let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorUrlToken(targetId)
+              let articleListByAuthor = await MArticle.asyncGetArticleListByAuthorIdentity(authorId, aliases)
               for (let item of articleListByAuthor) {
+                const canonicalItem = {
+                  ...item,
+                  author: {
+                    ...item.author,
+                    id: authorId,
+                    url_token: urlToken,
+                  },
+                }
                 let page = new Package.Page_Article()
                 page.add({
                   actionAt: 0,
-                  record: item,
+                  record: canonicalItem,
                 })
                 pageList.push(page)
               }
@@ -591,8 +616,8 @@ class GenerateWorkflow {
           case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
             {
               this.log(`获取用户${userName}赞同过的所有文章id`)
-              let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdList(
-                targetId,
+              let articleIdListInAuthorAgreeArticle = await MActivity.asyncGetAllActivityTargetIdListByAuthorAliases(
+                aliases,
                 MActivity.VERB_MEMBER_VOTEUP_ARTICLE,
               )
               this.log(`用户${userName}赞同过的所有文章id获取完毕`)
@@ -613,7 +638,10 @@ class GenerateWorkflow {
           case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
             {
               this.log(`获取用户${userName}赞同过的所有回答id`)
-              let actionRecordMap = await MActivity.asyncGetAllActionRecordMap(targetId, MActivity.VERB_ANSWER_VOTE_UP)
+              let actionRecordMap = await MActivity.asyncGetAllActionRecordMapByAuthorAliases(
+                aliases,
+                MActivity.VERB_ANSWER_VOTE_UP,
+              )
               this.log(`用户${userName}赞同过的所有回答id获取完毕`)
               this.log(`获取用户${userName}赞同过的所有回答`)
               let answerListInAuthorAgreeAnswer = await MAnswer.asyncGetAnswerList(Object.keys(actionRecordMap))
@@ -633,7 +661,10 @@ class GenerateWorkflow {
           case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
             {
               this.log(`获取用户${userName}关注过的所有问题id`)
-              let actionRecordMap = await MActivity.asyncGetAllActionRecordMap(targetId, MActivity.VERB_QUESTION_FOLLOW)
+              let actionRecordMap = await MActivity.asyncGetAllActionRecordMapByAuthorAliases(
+                aliases,
+                MActivity.VERB_QUESTION_FOLLOW,
+              )
               this.log(`用户${userName}关注过的所有问题id获取完毕`)
               this.log(`开始获取用户${userName}关注过的所有问题下的回答列表`)
               let questionIdListInAuthorWatchQuestion = Object.keys(actionRecordMap)
@@ -945,7 +976,8 @@ class GenerateWorkflow {
       case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
       case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
         {
-          let userName = `用户_${unitItem.info['name']}(${unitItem.info['id']})`
+          const displayIdentifier = getCanonicalAuthorUrlToken(unitItem.info)
+          let userName = `用户_${unitItem.info['name']}(${displayIdentifier})`
           switch (unitItem.type) {
             case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
               bookTitle = `${userName}_提问过的所有问题`
@@ -1157,7 +1189,7 @@ class GenerateWorkflow {
    */
   generateUnitInfoHtml(unit: Package.Type_Unit_Item): Type_Generate_Html {
     let pageTitle = this.generateColumnTitle(unit)
-    let filename = ""
+    let filename = ''
     // 渲染结果
     let renderResult
     const description = [
@@ -1166,7 +1198,10 @@ class GenerateWorkflow {
       unit.info && 'intro' in unit.info ? unit.info.intro : '',
       unit.info && 'excerpt' in unit.info ? unit.info.excerpt : '',
       unit.info && 'introduction' in unit.info ? unit.info.introduction : '',
-    ].filter((item): item is string => typeof item === 'string' && item.trim() !== '').filter((item, index, list) => list.indexOf(item) === index).join('\n')
+    ]
+      .filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+      .filter((item, index, list) => list.indexOf(item) === index)
+      .join('\n')
     switch (unit.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
         renderResult = HtmlRender.renderInfoPage({
@@ -1205,7 +1240,8 @@ class GenerateWorkflow {
       case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
       case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
         {
-          let userName = `用户_${unit.info['name']}(${unit.info['id']})`
+          const displayIdentifier = getCanonicalAuthorUrlToken(unit.info)
+          let userName = `用户_${unit.info['name']}(${displayIdentifier})`
           switch (unit.type) {
             case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
               renderResult = HtmlRender.renderInfoPage({
@@ -1282,11 +1318,11 @@ class GenerateWorkflow {
 
   generatePageHtml(page: Package.Type_Page_Item): Type_Generate_Html {
     let pageTitle = ''
-    let filename = ""
+    let filename = ''
     let renderResult
     switch (page.type) {
       case Consts.Const_Type_Article:
-        filename = (page as Package.Page_Article).recordList[0].record.id + ""
+        filename = (page as Package.Page_Article).recordList[0].record.id + ''
         pageTitle = (page as Package.Page_Article).recordList[0].record.title
         renderResult = HtmlRender.renderArticle({
           title: pageTitle,
@@ -1302,7 +1338,7 @@ class GenerateWorkflow {
         })
         break
       case Consts.Const_Type_Question:
-        filename = (page as Package.Page_Question).recordList[0].record.question.id + ""
+        filename = (page as Package.Page_Question).recordList[0].record.question.id + ''
         pageTitle = (page as Package.Page_Question).recordList[0].record.question.title
         renderResult = HtmlRender.renderQuestion({
           title: pageTitle,
@@ -1326,18 +1362,24 @@ class GenerateWorkflow {
     })
 
     return {
-      filename: "index",
+      filename: 'index',
       title: '目录',
       html: HtmlRender.renderToString(renderResult.htmlEle),
       ele4SinglePage: renderResult.singleEle,
     }
   }
 
-  generateSinglePageHtml(eleList: Type_Generate_Html['ele4SinglePage'][], indexRecordList: Type_Index_Record[]): string {
+  generateSinglePageHtml(
+    eleList: Type_Generate_Html['ele4SinglePage'][],
+    indexRecordList: Type_Index_Record[],
+  ): string {
     const anchorRecords = indexRecordList.map((unit) => ({
       ...unit,
       uri: `#${unit.uri.replace(/^\.\//, '').replace(/\.html$/, '')}`,
-      pageList: unit.pageList.map((page) => ({ ...page, uri: `#${page.uri.replace(/^\.\//, '').replace(/\.html$/, '')}` })),
+      pageList: unit.pageList.map((page) => ({
+        ...page,
+        uri: `#${page.uri.replace(/^\.\//, '').replace(/\.html$/, '')}`,
+      })),
     }))
     const index = HtmlRender.renderIndex({ title: '目录', recordList: anchorRecords }).singleEle
     const htmlResult = HtmlRender.generateSinglePageWithIndex({ title: '目录', index, eleList })
@@ -1476,15 +1518,11 @@ class GenerateWorkflow {
         const usedFallback = markdownResult.fallbackCount > 0
         this.event({
           jobId: markdownJobId,
-          eventCode: usedFallback
-            ? LogEventCode.MARKDOWN_FALLBACK
-            : LogEventCode.MARKDOWN_SUCCESS,
+          eventCode: usedFallback ? LogEventCode.MARKDOWN_FALLBACK : LogEventCode.MARKDOWN_SUCCESS,
           stage: LogStage.OUTPUT,
           status: LogStatus.SUCCESS,
           level: usedFallback ? LogLevel.WARN : LogLevel.INFO,
-          message: usedFallback
-            ? 'Markdown 输出完成，部分文件使用原 HTML 回退内容'
-            : 'Markdown 输出完成',
+          message: usedFallback ? 'Markdown 输出完成，部分文件使用原 HTML 回退内容' : 'Markdown 输出完成',
           durationMs: Date.now() - markdownStartedAt,
           details: {
             bookname: epubColumn.bookname,
@@ -1516,9 +1554,10 @@ class GenerateWorkflow {
         })
       }
 
-      const outputStatus = generateResult.missingImageCount > 0 || markdownError !== undefined
-        ? LogStatus.PARTIAL_SUCCESS
-        : LogStatus.SUCCESS
+      const outputStatus =
+        generateResult.missingImageCount > 0 || markdownError !== undefined
+          ? LogStatus.PARTIAL_SUCCESS
+          : LogStatus.SUCCESS
       if (outputStatus === LogStatus.PARTIAL_SUCCESS && this.context) {
         this.hasPartialGenerateOutcome = true
         this.context.outcomeStatus = LogStatus.PARTIAL_SUCCESS
@@ -1536,22 +1575,21 @@ class GenerateWorkflow {
       }
 
       const usedMarkdownFallback = (markdownResult?.fallbackCount ?? 0) > 0
-      const outputMessage = markdownError !== undefined
-        ? '单本电子书生成完成，但 Markdown 输出失败'
-        : outputStatus === LogStatus.PARTIAL_SUCCESS
-          ? '单本电子书生成完成，但部分图片缺失'
-          : usedMarkdownFallback
-            ? '单本电子书生成完成，部分 Markdown 文件使用回退内容'
-            : '单本电子书生成完成'
+      const outputMessage =
+        markdownError !== undefined
+          ? '单本电子书生成完成，但 Markdown 输出失败'
+          : outputStatus === LogStatus.PARTIAL_SUCCESS
+            ? '单本电子书生成完成，但部分图片缺失'
+            : usedMarkdownFallback
+              ? '单本电子书生成完成，部分 Markdown 文件使用回退内容'
+              : '单本电子书生成完成'
 
       this.event({
         jobId,
         eventCode: LogEventCode.OUTPUT_CREATED,
         stage: LogStage.OUTPUT,
         status: outputStatus,
-        level: outputStatus === LogStatus.PARTIAL_SUCCESS || usedMarkdownFallback
-          ? LogLevel.WARN
-          : LogLevel.INFO,
+        level: outputStatus === LogStatus.PARTIAL_SUCCESS || usedMarkdownFallback ? LogLevel.WARN : LogLevel.INFO,
         message: outputMessage,
         durationMs: Date.now() - startedAt,
         details: {
@@ -1583,9 +1621,7 @@ class GenerateWorkflow {
           htmlCachePath: epubGenerator?.htmlCachePath,
           epubOutputPath: epubGenerator?.epubOutputPathUri,
           htmlOutputPath: epubGenerator?.htmlOutputPathUri,
-          markdownOutputPath: epubGenerator === undefined
-            ? undefined
-            : PathConfig.markdownOutputPath,
+          markdownOutputPath: epubGenerator === undefined ? undefined : PathConfig.markdownOutputPath,
         },
       })
       throw error

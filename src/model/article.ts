@@ -1,6 +1,7 @@
 import Base from '~/src/model/base.js'
 import type * as TypeArticle from '~/src/type/zhihu/article.js'
 import lodash from 'lodash'
+import { normalizeAuthorAliases, normalizeAuthorIdentifier } from '~/src/domain/author/identity.js'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
@@ -11,10 +12,7 @@ class Article extends Base {
    * @param articleId
    */
   static async asyncGetArticle(articleId: string): Promise<TypeArticle.Record> {
-    let recordList = await this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .where('article_id', '=', articleId)
+    let recordList = await this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).where('article_id', '=', articleId)
     let articleRecord = recordList?.[0]
     if (articleRecord === undefined) {
       return {} as TypeArticle.Record
@@ -27,10 +25,34 @@ class Article extends Base {
    * @param columnId
    */
   static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<TypeArticle.Record[]> {
+    return this.asyncGetArticleListByAuthorIdentity(authorUrlToken, [authorUrlToken])
+  }
+
+  /**
+   * Query author relations by stable id first while retaining token-only legacy rows.
+   */
+  static async asyncGetArticleListByAuthorIdentity(
+    authorId: string,
+    aliases: string[] = [],
+  ): Promise<TypeArticle.Record[]> {
+    const normalizedAuthorId = normalizeAuthorIdentifier(authorId)
+    const normalizedAliases = normalizeAuthorAliases([normalizedAuthorId, ...aliases])
+    if (normalizedAuthorId === '' && normalizedAliases.length === 0) {
+      return []
+    }
+
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .where('author_url_token', '=', authorUrlToken)
+      .where((builder) => {
+        if (normalizedAuthorId !== '') {
+          builder.where('author_id', '=', normalizedAuthorId)
+        }
+        if (normalizedAliases.length > 0) {
+          const method = normalizedAuthorId === '' ? 'whereIn' : 'orWhereIn'
+          builder[method]('author_url_token', normalizedAliases)
+        }
+      })
 
     let articleRecordList = []
     for (let record of recordList) {
@@ -47,10 +69,7 @@ class Article extends Base {
    * @param columnId
    */
   static async asyncGetArticleListByColumnId(columnId: string): Promise<TypeArticle.Record[]> {
-    let recordList = await this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .where('column_id', '=', columnId)
+    let recordList = await this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).where('column_id', '=', columnId)
 
     let articleRecordList = []
     for (let record of recordList) {
@@ -104,12 +123,10 @@ class Article extends Base {
 
   /**
    * 获取所有question数量
-   * @returns 
+   * @returns
    */
   static async asyncGetArticleCount(): Promise<number> {
-    let count = (await this.db
-      .countDistinct("article_id as count")
-      .from(this.TABLE_NAME)) as { "count": number }[]
+    let count = (await this.db.countDistinct('article_id as count').from(this.TABLE_NAME)) as { count: number }[]
 
     return count?.[0]?.count ?? 0
   }

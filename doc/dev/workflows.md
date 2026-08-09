@@ -128,6 +128,14 @@ flowchart TD
 
 三个 activity 类型目前共用 `BatchFetchAuthorActivity`：一次抓取会建立活动记录并解析回答、文章和关注问题。生成阶段再按原始 `task.type` 选择对应内容。`mix` 是生成期内部 Unit 类型，不是用户可配置的抓取任务。
 
+### 用户身份归一化
+
+八种用户任务都接受稳定 `Author.id` 或当前 `Author.url_token`。任务配置保留用户原始输入；首次取得作者响应后，抓取和生成通过模型层身份解析器得到同一份身份：稳定 `authorId` 用于持久化和关系关联，规范 `urlToken` 用于后续分页请求与用户可见内容，别名集合只用于兼容当前任务标识及既有数据。本期不持久化已经失效的历史 token 别名。
+
+生成阶段不再把任务输入直接当作 `url_token`。作者先按稳定 ID、再按规范 token 解析；回答、文章、想法和用户提问关系优先使用解析后的稳定 ID 查询，同时以规范 token、任务输入及其他已知别名兼容历史关系。`Activity` 尚未保存 `author_id`，因此活动类任务使用规范 token 和别名查询，不要求迁移现有 SQLite。销号用户保留专用抓取入口，但只要数据库中能够解析到其真实 ID 或 token，生成阶段就复用相同身份契约。
+
+GUI 自动任务标题、生成书名、用户相关运行诊断以及回答、文章、想法中的作者主页链接使用规范 `url_token`；token 缺失时才回退稳定 ID。主页链接统一为 `https://www.zhihu.com/people/<编码后的展示标识>`，不会向用户展示仅供内部关联的 hash（无 token 的回退场景除外）。旧内容记录中的作者 token 只在生成期内存中替换为当前解析结果，不回写业务数据库。
+
 ## 生成与输出流程图（6/7）
 
 ```mermaid
@@ -174,14 +182,14 @@ flowchart TD
 
 核心概念：
 
-| 概念          | 当前实现                                                              | 说明                                  |
-| ------------- | --------------------------------------------------------------------- | ------------------------------------- |
-| Page          | `Page_Question`、`Page_Article`、`Page_Pin`                           | 一类可渲染内容页                      |
-| Unit          | `Unit_用户`、`Unit_收藏夹`、`Unit_话题`、`Unit_专栏`、`Unit_混合类型` | 一组内容页及其信息页                  |
-| Ebook_Column  | `Ebook_Column`                                                        | 自动分卷后的单本书                    |
-| HtmlRender    | `src/application/workflow/generate/library/html_render`               | React 服务端渲染模板                  |
-| EpubGenerator | `src/application/workflow/generate/library/epub_generator.ts`         | HTML、图片、清单、EPUB 和最终文件输出 |
-| MarkdownGenerator | `src/application/workflow/generate/library/markdown`              | HTML 预处理、worker 转换、链接改写和回退文件输出 |
+| 概念              | 当前实现                                                              | 说明                                             |
+| ----------------- | --------------------------------------------------------------------- | ------------------------------------------------ |
+| Page              | `Page_Question`、`Page_Article`、`Page_Pin`                           | 一类可渲染内容页                                 |
+| Unit              | `Unit_用户`、`Unit_收藏夹`、`Unit_话题`、`Unit_专栏`、`Unit_混合类型` | 一组内容页及其信息页                             |
+| Ebook_Column      | `Ebook_Column`                                                        | 自动分卷后的单本书                               |
+| HtmlRender        | `src/application/workflow/generate/library/html_render`               | React 服务端渲染模板                             |
+| EpubGenerator     | `src/application/workflow/generate/library/epub_generator.ts`         | HTML、图片、清单、EPUB 和最终文件输出            |
+| MarkdownGenerator | `src/application/workflow/generate/library/markdown`                  | HTML 预处理、worker 转换、链接改写和回退文件输出 |
 
 排序配置会逆序应用，以保持多重排序优先级。分卷边界必须覆盖 0、`max-1`、`max`、`max+1`、多 Unit 和单个 Unit 跨卷场景，详见[测试与 Fixture](./testing-and-fixtures)。
 

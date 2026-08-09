@@ -7,24 +7,14 @@ description: 将知乎回答、文章、想法、收藏夹等内容保存到本�
 hero:
   name: 知乎助手
   text: 把喜欢的知乎内容，变成自己的离线书库
-  tagline: 在本地完成任务识别、内容抓取与数据整理，每次同时生成 HTML、Markdown 和 EPUB，也为开发者提供完整的运行诊断与维护文档。
-  image:
-    src: /brand/知乎助手-宣传图.png
-    alt: 知乎助手宣传图，展示从知乎内容到本地离线书库的产品定位
-    width: 1731
-    height: 909
-    loading: eager
-    fetchpriority: high
+  tagline: 下载桌面版，在本地抓取、整理并生成 HTML、Markdown 与 EPUB。
   actions:
-    - theme: brand
-      text: 开始使用
+    - theme: alt
+      text: 查看用户指南
       link: /guide/getting-started
     - theme: alt
       text: 阅读开发文档
       link: /dev/
-    - theme: alt
-      text: 下载最新版本
-      link: https://github.com/YaoZeyuan/zhihuhelp/releases
 
 features:
   - icon: 🔗

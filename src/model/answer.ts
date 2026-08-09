@@ -1,6 +1,7 @@
 import Base from '~/src/model/base.js'
 import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
 import lodash from 'lodash'
+import { normalizeAuthorAliases, normalizeAuthorIdentifier } from '~/src/domain/author/identity.js'
 
 class Answer extends Base {
   static TABLE_NAME = `Answer`
@@ -11,10 +12,7 @@ class Answer extends Base {
    * @param answerId
    */
   static async asyncGetAnswer(answerId: string): Promise<TypeAnswer.Record> {
-    let recordList = await this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .where('answer_id', '=', answerId)
+    let recordList = await this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).where('answer_id', '=', answerId)
     let answerRecord = recordList[0]
     if (answerRecord === undefined) {
       return {} as TypeAnswer.Record
@@ -65,10 +63,34 @@ class Answer extends Base {
    * @param authorUrlToken
    */
   static async asyncGetAnswerListByAuthorUrlToken(authorUrlToken: string): Promise<TypeAnswer.Record[]> {
+    return this.asyncGetAnswerListByAuthorIdentity(authorUrlToken, [authorUrlToken])
+  }
+
+  /**
+   * Query author relations by stable id first while retaining token-only legacy rows.
+   */
+  static async asyncGetAnswerListByAuthorIdentity(
+    authorId: string,
+    aliases: string[] = [],
+  ): Promise<TypeAnswer.Record[]> {
+    const normalizedAuthorId = normalizeAuthorIdentifier(authorId)
+    const normalizedAliases = normalizeAuthorAliases([normalizedAuthorId, ...aliases])
+    if (normalizedAuthorId === '' && normalizedAliases.length === 0) {
+      return []
+    }
+
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .where('author_url_token', '=', authorUrlToken)
+      .where((builder) => {
+        if (normalizedAuthorId !== '') {
+          builder.where('author_id', '=', normalizedAuthorId)
+        }
+        if (normalizedAliases.length > 0) {
+          const method = normalizedAuthorId === '' ? 'whereIn' : 'orWhereIn'
+          builder[method]('author_url_token', normalizedAliases)
+        }
+      })
     let answerRecordList = []
     for (let record of recordList) {
       let answerRecord = this.parseEntityRawJson<TypeAnswer.Record>(record?.raw_json, record?.answer_id ?? 'unknown')
@@ -105,24 +127,20 @@ class Answer extends Base {
 
   /**
    * 获取所有answer数量
-   * @returns 
+   * @returns
    */
   static async asyncGetAnswerCount(): Promise<number> {
-    let count = (await this.db
-      .countDistinct("answer_id as count")
-      .from(this.TABLE_NAME)) as { "count": number }[]
+    let count = (await this.db.countDistinct('answer_id as count').from(this.TABLE_NAME)) as { count: number }[]
 
     return count?.[0]?.count ?? 0
   }
 
   /**
    * 获取所有question数量
-   * @returns 
+   * @returns
    */
   static async asyncGetQuestionCount(): Promise<number> {
-    let count = (await this.db
-      .countDistinct("question_id as count")
-      .from(this.TABLE_NAME)) as { "count": number }[]
+    let count = (await this.db.countDistinct('question_id as count').from(this.TABLE_NAME)) as { count: number }[]
 
     return count?.[0]?.count ?? 0
   }

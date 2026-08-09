@@ -368,9 +368,13 @@ function verifyStaticApi() {
       versionPayload === null ||
       typeof versionPayload !== 'object' ||
       typeof versionPayload.version !== 'string' ||
-      semver.valid(versionPayload.version) === null
+      semver.valid(versionPayload.version) === null ||
+      ['windows', 'mac'].some((platform) => {
+        const release = versionPayload.detail?.[platform]
+        return release === null || typeof release !== 'object' || semver.valid(release.version) === null || /^https?:\/\//i.test(release.url) === false
+      })
     ) {
-      report('api/zhihuhelp/version must contain a valid semver `version` field')
+      report('api/zhihuhelp/version must contain valid version, detail.windows and detail.mac releases')
     }
   } catch (error) {
     report(`api/zhihuhelp/version must contain valid JSON: ${error.message}`)

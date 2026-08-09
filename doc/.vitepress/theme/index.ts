@@ -2,6 +2,7 @@ import { h, onBeforeUnmount, onMounted } from 'vue'
 import { onContentUpdated, type Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme-without-fonts'
 import { scheduleMermaidRender } from './mermaid'
+import DownloadRelease from './DownloadRelease.vue'
 import './style.css'
 
 const Layout = {
@@ -21,7 +22,9 @@ const Layout = {
 
     onBeforeUnmount(() => observer?.disconnect())
 
-    return () => h(DefaultTheme.Layout)
+    return () => h(DefaultTheme.Layout, null, {
+      'home-hero-info-after': () => h(DownloadRelease),
+    })
   },
 }
 
