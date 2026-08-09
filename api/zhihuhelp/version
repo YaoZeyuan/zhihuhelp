@@ -6,11 +6,11 @@
   "detail": {
     "windows": {
       "version": "3.0.0",
-      "url": "https://bit.ly/3RVVpTE"
+      "url": "https://cloudflare-cdn.bookflaneur.cn/3.0.0/%E7%9F%A5%E4%B9%8E%E5%8A%A9%E6%89%8B%20Setup%203.0.0.exe"
     },
     "mac": {
       "version": "3.0.0",
-      "url": "https://bit.ly/4fLKuoF"
+      "url": "https://cloudflare-cdn.bookflaneur.cn/3.0.0/%E7%9F%A5%E4%B9%8E%E5%8A%A9%E6%89%8B-3.0.0-arm64-mac.7z"
     }
   }
 }
