@@ -67,7 +67,7 @@ pnpm docs:check
 pnpm docs:preview
 ```
 
-`docs:check` 检查已经生成的 `doc/.vitepress/dist`，因此需在 `docs:build` 之后执行。完整开发说明见[开发环境与命令](doc/dev/environment.md)。
+`docs:build` 会把仓库根 `api` 原样镜像到站点产物的 `/api`；`docs:check` 检查已经生成的 `doc/.vitepress/dist`，因此需在构建之后执行。完整开发说明见[开发环境与命令](doc/dev/environment.md)。
 
 ## 使用限制
 

@@ -22,7 +22,7 @@
     "startgui": "node client/script/start.js",
     "buildgui": "node client/script/build.js",
     "docs:dev": "vitepress dev doc",
-    "docs:build": "vitepress build doc",
+    "docs:build": "vitepress build doc && node scripts/docs/copy-static-api.cjs",
     "docs:preview": "vitepress preview doc",
     "docs:check": "node scripts/docs/verify-site.cjs",
     "start": "electron dist/index.js --zhihuhelp-debug",
