@@ -5,14 +5,47 @@ body {
   word-wrap: break-word; /* 自动折行 */
 }
 
-.info-page .desc { white-space: pre-line; }
-.single-page-layout { display: grid; grid-template-columns: minmax(240px, 28vw) minmax(0, 1fr); gap: 2rem; align-items: start; }
-.single-page-toc { position: sticky; top: 0; max-height: 100vh; overflow: auto; padding: 1rem; background: #fff; z-index: 2; }
-.single-page-toc summary { cursor: pointer; font-weight: bold; margin-bottom: .75rem; }
-.single-page-content > section { scroll-margin-top: 1rem; }
+.info-page .desc {
+  white-space: pre-line;
+}
+body:has(.single-page-layout) {
+  /* 当页面为单页时，移除对body宽度的限制 */
+  max-width: none;
+}
+.single-page-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 28vw) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+.single-page-toc {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow: auto;
+  padding: 1rem;
+  background: #fff;
+  z-index: 2;
+}
+.single-page-toc summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+}
+.single-page-content {
+  width: 900px;
+}
+.single-page-content > section {
+  scroll-margin-top: 1rem;
+}
 @media (max-width: 760px) {
-  .single-page-layout { display: block; }
-  .single-page-toc { position: static; max-height: none; }
+  .single-page-layout {
+    display: block;
+  }
+  .single-page-toc {
+    position: static;
+    max-height: none;
+  }
 }
 
 /* color */
