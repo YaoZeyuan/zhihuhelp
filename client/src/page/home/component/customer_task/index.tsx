@@ -295,6 +295,9 @@ export default () => {
 
     // 载入完成后标记状态
     statusStore.initComplete = true
+
+    // 首次启动时检查更新
+    handleCheckUpgrade().catch(() => {})
   })
 
   const handleFormAction = {
