@@ -73,3 +73,6 @@ gui/dist
 /doc/.vitepress/.temp/
 /doc/.vitepress/dist/
 /.docs-screenshot-tmp/
+
+# pnpm输出文件
+.pnpm-store
