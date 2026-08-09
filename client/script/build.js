@@ -5,7 +5,8 @@ const path = require('node:path')
 const clientBasePath = path.resolve(__dirname, '..')
 const sourcePath = path.resolve(clientBasePath, 'dist')
 const targetPath = path.resolve(clientBasePath, '..', 'dist', 'client')
-const corepackCliPath = path.resolve(path.dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'corepack.js')
+const vitePackagePath = require.resolve('vite/package.json', { paths: [clientBasePath] })
+const viteCliPath = path.resolve(path.dirname(vitePackagePath), 'bin', 'vite.js')
 
 function assertPathInside(rootPath, target, label) {
   const relativePath = path.relative(path.resolve(rootPath), path.resolve(target))
@@ -34,15 +35,11 @@ function copyDirectorySync(source, target) {
 
 assertPathInside(clientBasePath, sourcePath, '前端构建目录')
 assertPathInside(path.resolve(clientBasePath, '..', 'dist'), targetPath, 'Electron 静态资源目录')
-if (fs.existsSync(corepackCliPath) === false) {
-  throw new Error(`找不到当前 Node.js 自带的 Corepack: ${corepackCliPath}`)
-}
-
 console.log(`清空旧构建结果 => ${sourcePath}`)
 fs.rmSync(sourcePath, { recursive: true, force: true })
 
 console.log('开始构建前端项目')
-const buildResult = childProcess.spawnSync(process.execPath, [corepackCliPath, 'pnpm', 'run', 'build'], {
+const buildResult = childProcess.spawnSync(process.execPath, [viteCliPath, 'build'], {
   cwd: clientBasePath,
   stdio: 'inherit',
 })

@@ -43,8 +43,7 @@
 安装依赖：
 
 ```shell
-corepack enable
-corepack prepare pnpm@11.5.0 --activate
+npm install --global pnpm@11.5.0
 pnpm install
 ```
 

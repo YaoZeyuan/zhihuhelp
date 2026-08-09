@@ -34,12 +34,11 @@ Windows 上如遇 `sqlite3`、`sharp` 等原生依赖安装失败，先确认已
 仓库根目录是 pnpm workspace，`client` 会随根安装一起处理：
 
 ```shell
-corepack enable
-corepack prepare pnpm@11.5.0 --activate
+npm install --global pnpm@11.5.0
 pnpm install
 ```
 
-不要在根项目和 `client` 分别使用不同版本的 npm/pnpm 重写 lockfile。
+pnpm 需要显式安装，构建脚本不依赖 Node.js 是否捆绑 Corepack。不要在根项目和 `client` 分别使用不同版本的 npm/pnpm 重写 lockfile。
 
 ## 常用开发与构建命令
 

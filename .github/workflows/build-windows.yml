@@ -27,9 +27,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Use pnpm 11
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.5.0 --activate
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
       # 获取package.json中的版本号, 方便后续处理
       - name: Read package.json
         id: get-version-from-package-json

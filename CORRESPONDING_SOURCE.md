@@ -63,8 +63,7 @@ Requirements are Node.js 24.x and pnpm 11.5.0. Extract the ZhihuHelp archive,
 then run the same commands recorded in the release workflows:
 
 ```sh
-corepack enable
-corepack prepare pnpm@11.5.0 --activate
+npm install --global pnpm@11.5.0
 pnpm install --frozen-lockfile
 pnpm build-without-sourcemap
 node scripts/release/create-corresponding-source.cjs --stage-license-files dist/licenses

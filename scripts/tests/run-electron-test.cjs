@@ -103,7 +103,7 @@ try {
       }
     }
     console.info(`fixture schema 与校验值验证通过，共 ${fileList.length} 份。请人工检查以下变更：`)
-    const offlineResult = childProcess.spawnSync('corepack', ['pnpm', 'test'], {
+    const offlineResult = childProcess.spawnSync('pnpm', ['test'], {
       cwd: rootPath,
       stdio: 'inherit',
       shell: process.platform === 'win32',

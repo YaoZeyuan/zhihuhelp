@@ -1,13 +1,10 @@
 const childProcess = require('node:child_process')
-const fs = require('node:fs')
 const path = require('node:path')
 
 const clientBasePath = path.resolve(__dirname, '..')
-const corepackCliPath = path.resolve(path.dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'corepack.js')
-if (fs.existsSync(corepackCliPath) === false) {
-  throw new Error(`找不到当前 Node.js 自带的 Corepack: ${corepackCliPath}`)
-}
-const result = childProcess.spawnSync(process.execPath, [corepackCliPath, 'pnpm', 'run', 'dev'], {
+const vitePackagePath = require.resolve('vite/package.json', { paths: [clientBasePath] })
+const viteCliPath = path.resolve(path.dirname(vitePackagePath), 'bin', 'vite.js')
+const result = childProcess.spawnSync(process.execPath, [viteCliPath], {
   cwd: clientBasePath,
   stdio: 'inherit',
 })
