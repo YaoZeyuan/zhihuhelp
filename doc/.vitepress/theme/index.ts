@@ -1,6 +1,7 @@
 import { h, onBeforeUnmount, onMounted } from 'vue'
 import { onContentUpdated, type Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme-without-fonts'
+import { inject } from '@vercel/analytics'
 import { scheduleMermaidRender } from './mermaid'
 import DownloadRelease from './DownloadRelease.vue'
 import './style.css'
@@ -12,6 +13,9 @@ const Layout = {
     onContentUpdated(scheduleMermaidRender)
 
     onMounted(() => {
+      // Initialize Vercel Web Analytics
+      inject()
+      
       scheduleMermaidRender()
       observer = new MutationObserver(scheduleMermaidRender)
       observer.observe(document.documentElement, {
