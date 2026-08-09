@@ -112,17 +112,14 @@ function expectCompleteEpub(epubPath: string) {
 }
 
 function expectEveryStartedOperationToHaveOneTerminal(records: StructuredLogRecord[]) {
-  const terminalStatusSet = new Set([
-    LogStatus.SUCCESS,
-    LogStatus.PARTIAL_SUCCESS,
-    LogStatus.FAILURE,
-  ])
+  const terminalStatusSet = new Set([LogStatus.SUCCESS, LogStatus.PARTIAL_SUCCESS, LogStatus.FAILURE])
   for (const startRecord of records.filter((record) => record.status === LogStatus.START)) {
-    const matchingTerminalList = records.filter((record) =>
-      record.runId === startRecord.runId
-      && record.stage === startRecord.stage
-      && (record.jobId ?? '__stage__') === (startRecord.jobId ?? '__stage__')
-      && terminalStatusSet.has(record.status as typeof LogStatus.SUCCESS),
+    const matchingTerminalList = records.filter(
+      (record) =>
+        record.runId === startRecord.runId &&
+        record.stage === startRecord.stage &&
+        (record.jobId ?? '__stage__') === (startRecord.jobId ?? '__stage__') &&
+        terminalStatusSet.has(record.status as typeof LogStatus.SUCCESS),
     )
     expect(
       matchingTerminalList,
@@ -243,6 +240,10 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
       .filter((fileName) => /^runtime\..+\.jsonl$/.test(fileName))
       .map((fileName) => fs.readFileSync(path.join(sandbox.logPath, fileName), 'utf8'))
       .join('\n')
+    const outputCreatedRecord = readRuntimeRecords(sandbox.logPath).find(
+      (record) => record.eventCode === 'output.created',
+    )
+    const outputDetails = outputCreatedRecord?.details as Record<string, string> | undefined
 
     expect(result.outcomeStatus).toBe('success')
     expect(result.runId).toBe('fixture-full-run-id')
@@ -258,6 +259,14 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
     expect(runtimeLog).toContain('"eventCode":"output.created"')
     expect(runtimeLog).toContain('"eventCode":"output.markdown.success"')
     expect(runtimeLog).toContain('"outputFormats":["html","markdown","epub"]')
+    expect(outputDetails).toBeDefined()
+    expect(outputDetails?.htmlOutputPath).toBe(path.join(outputDetails?.outputPath ?? '', 'html'))
+    expect(outputDetails?.markdownOutputPath).toBe(path.join(outputDetails?.outputPath ?? '', 'markdown'))
+    expect(path.dirname(outputDetails?.epubOutputPath ?? '')).toBe(path.join(outputDetails?.outputPath ?? '', 'epub'))
+    expect(fs.existsSync(outputDetails?.outputPath ?? '')).toBe(true)
+    expect(fs.existsSync(path.join(sandbox.outputPath, 'html'))).toBe(false)
+    expect(fs.existsSync(path.join(sandbox.outputPath, 'markdown'))).toBe(false)
+    expect(fs.existsSync(path.join(sandbox.outputPath, 'epub'))).toBe(false)
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
     outputFileList.filter((filePath) => filePath.endsWith('.epub')).forEach(expectCompleteEpub)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
@@ -271,13 +280,15 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
       content: '<p>second offline fixture answer</p>',
     }
     const config = createDefaultTaskConfig()
-    config.tasks = [{
-      type: 'question',
-      id: String(firstAnswer.question.id),
-      rawInputText: `fixture://question/${firstAnswer.question.id}`,
-      comment: 'two-volume offline fixture',
-      skipFetch: true,
-    }]
+    config.tasks = [
+      {
+        type: 'question',
+        id: String(firstAnswer.question.id),
+        rawInputText: `fixture://question/${firstAnswer.question.id}`,
+        comment: 'two-volume offline fixture',
+        skipFetch: true,
+      },
+    ]
     config.generate.title = `${'超长书名'.repeat(35)} /:*?`
     config.generate.mode = 'merge_by_task'
     config.generate.imageQuality = 'none'
@@ -312,6 +323,11 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
     expect(markdownIndexList).toHaveLength(2)
     expect(new Set(epubFileList.map((filePath) => path.basename(filePath))).size).toBe(2)
     expect(epubFileList.every((filePath) => path.basename(filePath).length <= 120)).toBe(true)
+    expect(
+      epubFileList.every(
+        (filePath) => path.basename(filePath, '.epub') === path.basename(path.dirname(path.dirname(filePath))),
+      ),
+    ).toBe(true)
     epubFileList.forEach(expectCompleteEpub)
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
@@ -320,13 +336,15 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
   it('Markdown 发布失败时保持 HTML 与 EPUB 可用并报告 partial_success', async () => {
     const answerRecord = readAnswerFixture()
     const config = createDefaultTaskConfig()
-    config.tasks = [{
-      type: 'answer',
-      id: answerRecord.id,
-      rawInputText: `fixture://answer/${answerRecord.id}`,
-      comment: 'markdown failure fixture',
-      skipFetch: true,
-    }]
+    config.tasks = [
+      {
+        type: 'answer',
+        id: answerRecord.id,
+        rawInputText: `fixture://answer/${answerRecord.id}`,
+        comment: 'markdown failure fixture',
+        skipFetch: true,
+      },
+    ]
     config.generate.imageQuality = 'none'
     writeTaskConfig(sandbox.configPath, config)
 
@@ -358,16 +376,24 @@ describe('fixture 驱动的持久化与沙箱工作流', () => {
     expect(outputFileList.some((filePath) => filePath.endsWith('.epub'))).toBe(true)
     expect(outputFileList.some((filePath) => filePath.endsWith('.md'))).toBe(false)
     outputFileList.filter((filePath) => filePath.endsWith('.epub')).forEach(expectCompleteEpub)
-    expect(runtimeRecords).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        eventCode: 'output.markdown.failure',
-        status: LogStatus.FAILURE,
-      }),
-      expect.objectContaining({
-        eventCode: 'output.created',
-        status: LogStatus.PARTIAL_SUCCESS,
-      }),
-    ]))
+    expect(runtimeRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventCode: 'output.markdown.failure',
+          status: LogStatus.FAILURE,
+        }),
+        expect.objectContaining({
+          eventCode: 'output.created',
+          status: LogStatus.PARTIAL_SUCCESS,
+          details: expect.objectContaining({
+            outputPath: expect.any(String),
+            htmlOutputPath: expect.any(String),
+            markdownOutputPath: expect.any(String),
+            epubOutputPath: expect.any(String),
+          }),
+        }),
+      ]),
+    )
     expectEveryStartedOperationToHaveOneTerminal(runtimeRecords)
   })
 })

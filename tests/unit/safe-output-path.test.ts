@@ -2,7 +2,9 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   isPathInsideRoot,
+  resolveBookOutputPath,
   resolveOutputChildPath,
+  sanitizeBookOutputDirectoryName,
   sanitizeOutputFilename,
 } from '../../src/shared/path/safe_output_path'
 
@@ -37,4 +39,16 @@ describe('安全输出路径', () => {
     expect(isPathInsideRoot(root, path.join(root, 'book', 'index.html'))).toBe(true)
     expect(isPathInsideRoot(root, path.resolve(root, '..', 'secret.txt'))).toBe(false)
   })
+
+  it.each(['html', 'Markdown', 'EPUB', 'json', 'diagnostics'])(
+    '为输出根保留名称 %s 生成稳定的书籍目录替代名',
+    (bookname) => {
+      const first = sanitizeBookOutputDirectoryName(bookname)
+      const second = sanitizeBookOutputDirectoryName(bookname)
+      expect(first).toBe(second)
+      expect(first.toLowerCase()).not.toBe(bookname.toLowerCase())
+      expect(first).not.toMatch(/[<>:"/\\|?*]/)
+      expect(resolveBookOutputPath('D:\\output', bookname)).toBe(path.resolve('D:\\output', first))
+    },
+  )
 })

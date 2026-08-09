@@ -265,7 +265,10 @@ export class MarkdownGenerator {
   }
 
   async generate(options: MarkdownGenerationOptions): Promise<MarkdownGenerationResult> {
-    const outputPath = resolveOutputChildPath(options.outputRootPath, options.bookBasename)
+    const outputPath = resolveOutputChildPath(
+      options.outputRootPath,
+      options.outputBasename ?? options.bookBasename,
+    )
     const cachePath = options.cacheRootPath === undefined
       ? outputPath
       : resolveOutputChildPath(options.cacheRootPath, options.bookBasename)

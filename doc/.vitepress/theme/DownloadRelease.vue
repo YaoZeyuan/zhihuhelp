@@ -42,7 +42,7 @@ onBeforeUnmount(() => controller?.abort())
     <div class="download-release-heading">
       <p class="download-release-kicker"></p>
       <h2 id="download-release-title">
-        {{ release ? `最新版本 v${release.version}` : '获取知乎助手' }}
+        {{ release ? `最新版本 v${release.version}（${release.releaseAt}）` : '获取知乎助手' }}
       </h2>
       <p>选择你的系统，直接下载桌面版安装包。</p>
     </div>

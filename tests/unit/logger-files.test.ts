@@ -171,4 +171,80 @@ describe('每日日志文件', () => {
     })
     expect(Logger.readRecentLogContent('runtime-jsonl')).toContain('debug entity event')
   })
+
+  it('从超过五千行的后端日志中保留会话早期错误', () => {
+    const sessionStartedAt = Date.parse('2026-08-08T00:00:00.000Z')
+    const createRecord = (
+      triggerAt: number,
+      message: string,
+      level: 'info' | 'warn' | 'error',
+      status: 'progress' | 'failure' | 'partial_success',
+    ) => ({
+      schemaVersion: 1,
+      triggerAt: new Date(triggerAt).toISOString(),
+      source: 'backend',
+      eventCode: `test.${status}`,
+      level,
+      status,
+      message,
+    })
+    const recordList = [
+      createRecord(sessionStartedAt - 1, '会话前错误', 'error', 'failure'),
+      createRecord(sessionStartedAt + 1, '会话早期错误', 'error', 'failure'),
+      ...Array.from({ length: 5_001 }, (_, index) =>
+        createRecord(sessionStartedAt + index + 2, `普通事件-${index}`, 'info', 'progress'),
+      ),
+      createRecord(sessionStartedAt + 6_000, '部分成功', 'error', 'partial_success'),
+      createRecord(sessionStartedAt + 6_001, '普通警告', 'warn', 'progress'),
+      createRecord(sessionStartedAt + 6_002, '会话末尾失败', 'warn', 'failure'),
+    ]
+    fs.writeFileSync(PathConfig.runtimeJsonlUri, `${recordList.map((item) => JSON.stringify(item)).join('\n')}\n`)
+
+    expect(Logger.readRecentLogContent('runtime-jsonl', 5_000)).not.toContain('会话早期错误')
+    expect(Logger.readRuntimeSessionErrorList(sessionStartedAt).map((item) => item.message)).toEqual([
+      '会话末尾失败',
+      '会话早期错误',
+    ])
+  })
+
+  it('严格会话错误读取会传播目录枚举和文件读取异常', () => {
+    fs.writeFileSync(PathConfig.runtimeJsonlUri, '{"message":"record"}\n')
+    const readError = new Error('read failed')
+    const readFileSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
+      throw readError
+    })
+    expect(() => Logger.readRuntimeSessionErrorList(0)).toThrow(readError)
+    readFileSpy.mockRestore()
+
+    const directoryError = Object.assign(new Error('directory failed'), { code: 'EACCES' })
+    vi.spyOn(fs, 'readdirSync').mockImplementation(() => {
+      throw directoryError
+    })
+    expect(() => Logger.readRuntimeSessionErrorList(0)).toThrow(directoryError)
+    expect(Logger.readRecentLogContent('runtime-jsonl')).toBe('')
+  })
+
+  it('严格日志清空会传播文件写入异常', () => {
+    fs.writeFileSync(PathConfig.runtimeLogUri, 'record\n')
+    const writeError = new Error('clear failed')
+    vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {
+      throw writeError
+    })
+
+    expect(() => Logger.clearLogFilesStrict('runtime-text')).toThrow(writeError)
+  })
+
+  it('主进程会话读取与清空处理器使用严格日志接口', () => {
+    const mainProcessSource = fs.readFileSync(new URL('../../src/index.ts', import.meta.url), 'utf8')
+
+    expect(mainProcessSource).toMatch(
+      /ipcMain\.handle\('get-runtime-session-errors'[\s\S]{0,300}Logger\.readRuntimeSessionErrorList\(since\)/,
+    )
+    expect(mainProcessSource).toMatch(
+      /ipcMain\.handle\('clear-log-content'[\s\S]{0,300}Logger\.clearLogFilesStrict\('runtime-text'\)/,
+    )
+    expect(mainProcessSource).toMatch(
+      /ipcMain\.handle\('clear-runtime-jsonl-content'[\s\S]{0,300}Logger\.clearLogFilesStrict\('runtime-jsonl'\)/,
+    )
+  })
 })

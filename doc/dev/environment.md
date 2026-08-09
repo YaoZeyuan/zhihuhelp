@@ -149,7 +149,7 @@ pnpm zhihuhelp run --config config.json
 
 1. 命令退出码和终端摘要。
 2. `log/runtime.YYYY-MM-DD.log` 与 `log/runtime.YYYY-MM-DD.jsonl`。
-3. SQLite 数据和 `知乎助手输出的电子书/html`、`markdown`、`epub` 三个目录。
+3. SQLite 数据，以及 `知乎助手输出的电子书/<安全书名>/{html,markdown,epub}` 书籍目录。
 
 ## 类型检查与构建验证
 

@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import CommonConfig from '../../src/config/common'
 import PathConfig from '../../src/config/path'
@@ -57,6 +58,9 @@ describe('隔离运行时初始化', () => {
     expect(fs.existsSync(sandbox.cachePath)).toBe(true)
     expect(fs.existsSync(sandbox.logPath)).toBe(true)
     expect(fs.existsSync(sandbox.outputPath)).toBe(true)
+    for (const legacyFormatDirectory of ['html', 'markdown', 'epub']) {
+      expect(fs.existsSync(path.join(sandbox.outputPath, legacyFormatDirectory))).toBe(false)
+    }
 
     const tableRows = await Knex.raw("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
     expect(JSON.stringify(tableRows)).toContain('Answer')

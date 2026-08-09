@@ -27,7 +27,7 @@ const answerRecord = {
   content: [
     '<h2>从公开内容到离线电子书</h2>',
     '<p>选择需要保存的公开内容，知乎助手会依次完成抓取、入库、排版与输出。</p>',
-    '<blockquote>同一次任务可以同时生成 HTML 与 EPUB，方便浏览器阅读和电子书设备使用。</blockquote>',
+    '<blockquote>同一次任务固定生成 HTML、Markdown 与 EPUB，方便浏览器阅读、文本归档和电子书设备使用。</blockquote>',
     '<h3>可复现的文档示例</h3>',
     '<p>本页面由真实输出生成器在隔离目录中创建，不读取 Cookie、配置文件或业务数据库。</p>',
   ].join(''),
@@ -55,12 +55,19 @@ const answerRecord = {
 
 async function main() {
   const PathConfig = (await importDistModule('config', 'path.js')).default
-  const EpubGenerator = (
-    await importDistModule('application', 'workflow', 'generate', 'library', 'epub_generator.js')
-  ).default
+  const EpubGenerator = (await importDistModule('application', 'workflow', 'generate', 'library', 'epub_generator.js'))
+    .default
   const HtmlRender = (
     await importDistModule('application', 'workflow', 'generate', 'library', 'html_render', 'index.js')
   ).default
+  const { MarkdownGenerator } = await importDistModule(
+    'application',
+    'workflow',
+    'generate',
+    'library',
+    'markdown',
+    'index.js',
+  )
 
   fs.rmSync(temporaryRoot, { recursive: true, force: true })
   PathConfig.setCachePath(cachePath)
@@ -70,7 +77,7 @@ async function main() {
   const generator = new EpubGenerator({ bookname: title, imageQuilty: 'none' })
   const infoPage = HtmlRender.renderInfoPage({
     title,
-    desc: '由知乎助手生成的公开示例，包含 HTML 与 EPUB 两种输出格式。',
+    desc: '由知乎助手生成的公开示例，包含 HTML、Markdown 与 EPUB 三种输出格式。',
   })
   const questionPage = HtmlRender.renderQuestion({ title: questionTitle, recordList: [answerRecord] })
 
@@ -92,14 +99,32 @@ async function main() {
   })
   await generator.asyncGenerateEpub(['html', 'epub'])
 
+  const markdownGenerator = new MarkdownGenerator()
+  let markdownResult
+  try {
+    markdownResult = await markdownGenerator.generate({
+      sources: generator.getMarkdownHtmlSourceList(),
+      cacheRootPath: PathConfig.markdownCachePath,
+      outputRootPath: generator.bookOutputPath,
+      outputBasename: 'markdown',
+      bookBasename: generator.outputBasename,
+      imageQuality: 'none',
+      imageSourceMap: generator.getMarkdownImageSourceMap(),
+    })
+  } finally {
+    await markdownGenerator.dispose()
+  }
+
   const htmlPath = path.resolve(generator.htmlOutputPathUri, '单文件版', `${generator.outputBasename}.html`)
+  const markdownPath = path.resolve(markdownResult.outputPath, '单文件版', `${generator.outputBasename}.md`)
   const epubPath = generator.epubOutputPathUri
-  if (!fs.existsSync(htmlPath) || !fs.existsSync(epubPath)) {
-    throw new Error('隔离输出未同时生成 HTML 与 EPUB')
+  if (!fs.existsSync(htmlPath) || !fs.existsSync(markdownPath) || !fs.existsSync(epubPath)) {
+    throw new Error('隔离输出未同时生成 HTML、Markdown 与 EPUB')
   }
   process.stdout.write(
     `${JSON.stringify({
       htmlPath: path.relative(repositoryRoot, htmlPath).replaceAll('\\', '/'),
+      markdownPath: path.relative(repositoryRoot, markdownPath).replaceAll('\\', '/'),
       epubPath: path.relative(repositoryRoot, epubPath).replaceAll('\\', '/'),
     })}\n`,
   )

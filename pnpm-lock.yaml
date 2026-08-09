@@ -213,6 +213,9 @@ importers:
       dayjs:
         specifier: ^1.11.21
         version: 1.11.21
+      lodash:
+        specifier: ^4.18.1
+        version: 4.18.1
       query-string:
         specifier: ^9.5.0
         version: 9.5.0
@@ -235,6 +238,9 @@ importers:
         specifier: ^2.3.2
         version: 2.3.2(@types/react@19.2.18)(react@19.2.8)
     devDependencies:
+      '@types/lodash':
+        specifier: ^4.17.25
+        version: 4.17.25
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18

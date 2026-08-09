@@ -27,8 +27,52 @@
       color: rgba(0, 0, 0, 0.65);
     }
 
-    .latest-error {
+    .session-error-section {
       margin-top: 12px;
+
+      h5.ant-typography {
+        margin: 0 0 8px;
+      }
+    }
+
+    .empty-session-errors {
+      padding: 10px 12px;
+      color: rgba(0, 0, 0, 0.55);
+      border: 1px dashed rgba(5, 5, 5, 0.15);
+      border-radius: 6px;
+    }
+
+    .session-error-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .session-error-item {
+      .ant-alert-title {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    .session-error-description {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .session-error-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      code {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    .session-error-detail {
+      overflow-wrap: anywhere;
     }
   }
 

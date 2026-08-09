@@ -3,6 +3,7 @@ import {
   parseDbRecordExportPayload,
   parseDbRecordListPayload,
   parseOpenLocalPathPayload,
+  parseRuntimeSessionErrorsPayload,
 } from '../../src/shared/ipc/payload'
 import { AppErrorCode } from '../../src/shared/error/application_error'
 
@@ -39,5 +40,16 @@ describe('IPC 载荷校验', () => {
     expect(() => parseOpenLocalPathPayload({ targetPath: '' })).toThrowError(
       expect.objectContaining({ code: AppErrorCode.LOG_PAYLOAD_INVALID }),
     )
+  })
+
+  it('只接受有效的本会话错误查询起点', () => {
+    expect(parseRuntimeSessionErrorsPayload({ since: 1_786_118_400_000 })).toEqual({
+      since: 1_786_118_400_000,
+    })
+    for (const payload of [null, {}, { since: -1 }, { since: Number.NaN }, { since: 'now' }]) {
+      expect(() => parseRuntimeSessionErrorsPayload(payload)).toThrowError(
+        expect.objectContaining({ code: AppErrorCode.LOG_PAYLOAD_INVALID }),
+      )
+    }
   })
 })

@@ -10,7 +10,11 @@ import logger from '~/src/library/logger.js'
 import Epub from '~/src/library/epub/index.js'
 import * as Type_TaskConfig from '~/src/type/task_config.js'
 import sharp from 'sharp'
-import { resolveOutputChildPath, sanitizeOutputFilename } from '~/src/shared/path/safe_output_path.js'
+import {
+  resolveBookOutputPath,
+  resolveOutputChildPath,
+  sanitizeBookOutputDirectoryName,
+} from '~/src/shared/path/safe_output_path.js'
 
 const Const_Zhihu_Img_Prefix_Reg = /https:\/\/pic\w.zhimg.com/
 const Const_Zhihu_Img_CDN_List = [
@@ -120,8 +124,12 @@ class EpubGenerator {
     return resolveOutputChildPath(PathConfig.epubCachePath, this.outputBasename)
   }
 
+  get bookOutputPath() {
+    return resolveBookOutputPath(PathConfig.outputPath, this.outputBasename)
+  }
+
   get epubOutputPath() {
-    return path.resolve(PathConfig.epubOutputPath)
+    return resolveOutputChildPath(this.bookOutputPath, 'epub')
   }
 
   get epubOutputPathUri() {
@@ -145,11 +153,19 @@ class EpubGenerator {
   }
 
   get htmlOutputPath() {
-    return path.resolve(PathConfig.htmlOutputPath)
+    return resolveOutputChildPath(this.bookOutputPath, 'html')
   }
 
   get htmlOutputPathUri() {
-    return resolveOutputChildPath(this.htmlOutputPath, this.outputBasename)
+    return this.htmlOutputPath
+  }
+
+  get markdownOutputPath() {
+    return resolveOutputChildPath(this.bookOutputPath, 'markdown')
+  }
+
+  get markdownOutputPathUri() {
+    return this.markdownOutputPath
   }
 
   /**
@@ -170,7 +186,7 @@ class EpubGenerator {
 
   constructor({ bookname, imageQuilty }: { bookname: string; imageQuilty: Type_TaskConfig.Type_Image_Quilty }) {
     this.bookname = bookname
-    this.outputBasename = sanitizeOutputFilename(bookname)
+    this.outputBasename = sanitizeBookOutputDirectoryName(bookname)
     this.imageQuilty = imageQuilty
     // 必须要先处理静态资源, 否则创建出的Epub缓存目录会被删除
     this.initStaticRecource()
@@ -182,21 +198,19 @@ class EpubGenerator {
   // 初始化静态资源(电子书 & html目录)
   private initStaticRecource() {
     this.log(`删除旧目录`)
+    this.log(`删除当前书籍旧输出目录:${this.bookOutputPath}`)
+    fs.rmSync(this.bookOutputPath, { recursive: true, force: true, maxRetries: 3 })
+    this.log(`当前书籍旧输出目录删除完毕`)
     this.log(`删除旧epub缓存资源目录:${this.epubCachePath}`)
     fs.rmSync(this.epubCachePath, { recursive: true, force: true, maxRetries: 3 })
     this.log(`旧epub缓存目录删除完毕`)
-    this.log(`删除旧epub输出资源目录:${this.epubOutputPathUri}`)
-    fs.rmSync(this.epubOutputPathUri, { force: true, maxRetries: 3 })
-    this.log(`旧epub输出目录删除完毕`)
     this.log(`删除旧html资源目录:${this.htmlCachePath}`)
     fs.rmSync(this.htmlCachePath, { recursive: true, force: true, maxRetries: 3 })
     this.log(`旧html资源目录删除完毕`)
-    this.log(`删除旧html输出目录:${this.htmlOutputPathUri}`)
-    fs.rmSync(this.htmlOutputPathUri, { recursive: true, force: true, maxRetries: 3 })
-    this.log(`旧html输出目录删除完毕`)
 
     this.log(`创建电子书:${this.bookname}对应文件夹`)
     fs.mkdirSync(this.epubCachePath, { recursive: true })
+    fs.mkdirSync(this.bookOutputPath, { recursive: true })
     fs.mkdirSync(this.epubOutputPath, { recursive: true })
 
     fs.mkdirSync(this.htmlCachePath, { recursive: true })
@@ -205,6 +219,7 @@ class EpubGenerator {
     fs.mkdirSync(this.htmlCacheCssPath, { recursive: true })
     fs.mkdirSync(this.htmlCacheImgPath, { recursive: true })
     fs.mkdirSync(this.htmlOutputPath, { recursive: true })
+    fs.mkdirSync(this.markdownOutputPath, { recursive: true })
     this.log(`电子书:${this.bookname}对应文件夹创建完毕`)
   }
 

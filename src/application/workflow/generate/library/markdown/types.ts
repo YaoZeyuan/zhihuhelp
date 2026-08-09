@@ -28,6 +28,7 @@ export interface MarkdownConverter {
 export type MarkdownGenerationOptions = {
   sources: readonly MarkdownHtmlSource[]
   outputRootPath: string
+  outputBasename?: string
   cacheRootPath?: string
   bookBasename: string
   imageQuality: 'hd' | 'raw' | 'none'

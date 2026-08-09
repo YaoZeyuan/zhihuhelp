@@ -6,6 +6,7 @@ export type PlatformRelease = {
 }
 
 export type ReleaseInfo = {
+  releaseAt: string
   version: string
   windows: PlatformRelease
   mac: PlatformRelease
@@ -22,11 +23,12 @@ function parsePlatform(value: unknown): PlatformRelease | undefined {
 export function parseReleaseInfo(value: unknown): ReleaseInfo | undefined {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined
   const payload = value as Record<string, unknown>
+  const releaseAt = payload.releaseAt as string
   const detail = payload.detail
   if (typeof payload.version !== 'string' || payload.version.trim() === '' || detail === null || typeof detail !== 'object' || Array.isArray(detail)) return undefined
   const platforms = detail as Record<string, unknown>
   const windows = parsePlatform(platforms.windows)
   const mac = parsePlatform(platforms.mac)
   if (!windows || !mac) return undefined
-  return { version: payload.version, windows, mac }
+  return { releaseAt, version: payload.version, windows, mac }
 }

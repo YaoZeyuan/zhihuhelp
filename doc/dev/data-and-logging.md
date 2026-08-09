@@ -16,9 +16,11 @@ description: SQLite 数据、结构化日志契约、关联标识与故障诊断
 | `缓存文件/html`                         | HTML 生成缓存                                         |
 | `缓存文件/markdown`                     | Markdown 生成过程的隔离路径                           |
 | `缓存文件/epub`                         | EPUB 生成缓存                                         |
-| `知乎助手输出的电子书/html`             | HTML 最终输出                                         |
-| `知乎助手输出的电子书/markdown`         | 每书全部多文件与单文件 Markdown 最终输出              |
-| `知乎助手输出的电子书/epub`             | EPUB 最终输出                                         |
+| `知乎助手输出的电子书/<安全书名>/html`  | 单本书的 HTML 最终输出                                |
+| `知乎助手输出的电子书/<安全书名>/markdown` | 单本书全部多文件与单文件 Markdown 最终输出         |
+| `知乎助手输出的电子书/<安全书名>/epub/<安全书名>.epub` | 单本书的 EPUB 最终输出                 |
+| `知乎助手输出的电子书/json`             | 缓存数据 JSON 导出                                    |
+| `知乎助手输出的电子书/diagnostics`      | 诊断信息导出                                          |
 | `config.json`                           | 当前任务配置，包含敏感 Cookie，不得进入日志或 fixture |
 | `log/runtime.YYYY-MM-DD.log`            | 后端人类可读日志                                      |
 | `log/runtime.YYYY-MM-DD.jsonl`          | 后端结构化运行日志                                    |
@@ -191,9 +193,9 @@ flowchart LR
 4. 损坏 JSONL 行单独忽略并给出诊断，不能导致整个日志页不可用。
 5. 输出阶段按每个 `generate-book-*` job 的最新事件聚合：生产日志也保留每本书的 `output.start/output.progress`，所以任一 job 仍为 `start/progress` 时显示运行中；全部进入 `output.created/output.failure` 终态后按 `failure > partial_success > success` 的优先级确定阶段状态。
 
-原始文本和后端 JSONL 查看接口会合并最近五日文件，并只返回最后 5000 行，避免 renderer 一次载入无限内容；输出历史仍从最近五日后端 JSONL 解析。
+原始文本和后端 JSONL 查看接口会合并最近五日文件，并只返回最后 5000 行，避免 renderer 一次载入无限内容；输出历史仍从最近五日后端 JSONL 解析。“本会话错误”使用独立的只读 IPC，以 renderer 文档启动时刻为边界，在主进程扫描最近五日完整后端 JSONL 并只返回 `level=error` 或 `status=failure` 的事件，因此会话早期错误不会因普通日志超过 5000 行而丢失，也不会每 2 秒把全部普通事件传给 renderer。错误按时间倒序平铺展示，`partial_success` 和普通 warning 不进入列表。刷新页面或重开窗口会开始新会话，切换页签和刷新日志不会重置边界；读取失败时保留当前列表，清空两个日志通道均成功后才立即清空列表。
 
-GUI 输出历史只来自仍保留的最近五日后端 JSONL：仅筛选状态为 `success` 或 `partial_success` 的显式 `output.created` 事件，按规范化的 `outputPath/htmlOutputPath/markdownOutputPath/epubOutputPath` 组合去重，并按时间倒序，后端最多返回 50 条；renderer 不再二次截断，完整展示这批历史。历史项保留原始结构化 `status`，并分别提供 HTML、Markdown、EPUB 与总目录打开入口，因此缺图或单格式写入失败后仍保留产物的情况会以局部成功警告展示。Pandoc 转换失败但 `.pandoc-failed.md` 写入成功时仍是成功项，同时可从日志中的 `fallbackCount` 诊断。`failure`、普通 workflow/IPC 成功或仅在上下文中存在 `outputPath` 都不能生成历史项；每一本实际完成的输出由 `GenerateWorkflow.generateEpub` 写入 `output.created`。进入第六个自然日后，随旧日志清理，对应历史也不再显示；这是已接受行为，不另建永久索引。
+GUI 输出历史只来自仍保留的最近五日后端 JSONL：仅筛选状态为 `success` 或 `partial_success`、且带书籍级 `outputPath` 的显式 `output.created` 事件，按规范化的 `outputPath` 去重并按时间倒序，后端最多返回 50 条；renderer 不再二次截断，完整展示这批历史。历史项保留原始结构化 `status`，但只提供一个“打开文件夹”入口；精确的 HTML、Markdown、EPUB 路径仍留在事件 details 中供诊断。缺图或单格式写入失败后只要书籍目录仍存在，就以局部成功警告展示。Pandoc 转换失败但 `.pandoc-failed.md` 写入成功时仍是成功项，同时可从日志中的 `fallbackCount` 诊断。`failure`、普通 workflow/IPC 成功、没有书籍级 `outputPath` 的旧记录都不能生成历史项；每一本实际完成的输出由 `GenerateWorkflow.generateEpub` 写入 `output.created`。进入第六个自然日后，随旧日志清理，对应历史也不再显示；这是已接受行为，不另建永久索引，也不迁移旧格式优先目录。
 
 ## 诊断导出
 

@@ -16,12 +16,14 @@ import {
   Modal,
   Alert,
   Card,
+  Switch,
   Tag,
 } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import { useSnapshot } from 'valtio'
+import throttle from 'lodash/throttle'
 
-import { useState, useContext, useEffect } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as Consts_Task_Config from '~/src/resource/const/task_config'
 import * as Consts from './resource/const/index'
 import { createStatusStore, Const_Default_FormValue } from './state'
@@ -30,7 +32,6 @@ import OrderItem from './component/order_item/index'
 import { Const_Default_Order_Item } from './component/order_item/state/index'
 import Util from './library/util'
 import TaskConfigAdapter, { Type_Form_Config } from './library/task_config_adapter'
-import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Ahooks from 'ahooks'
@@ -99,12 +100,17 @@ export default () => {
 
   const taskItemList = Form.useWatch('taskItemList', form)
   const orderItemList = Form.useWatch('orderItemList', form)
+  const skipAllFetch =
+    taskItemList !== undefined && taskItemList.length > 0 && taskItemList.every((item) => item.skipFetch)
+  const skipAllFetchRef = useRef(skipAllFetch)
+  skipAllFetchRef.current = skipAllFetch
   const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
-  const taskItemErrorList = taskItemList?.map((item, index) => ({
-    index,
-    rawInputText: item.rawInputText,
-    error: Util.getTaskItemError(item),
-  })) ?? []
+  const taskItemErrorList =
+    taskItemList?.map((item, index) => ({
+      index,
+      rawInputText: item.rawInputText,
+      error: Util.getTaskItemError(item),
+    })) ?? []
   const invalidTaskItemList = taskItemErrorList.filter((item) => item.error !== '' && item.rawInputText.trim() !== '')
 
   Ahooks.useAsyncEffect(async () => {
@@ -137,8 +143,9 @@ export default () => {
       // 配置未载入完成前不进行兜底操作
       return
     }
-    // 监控排序列表不能为空
-    if (orderItemList?.length === 0) {
+    // 以 Form 内的即时值为准，避免配置写入后 useWatch 尚未刷新时被空白默认值覆盖。
+    const currentOrderItemList: Type_Form_Config['orderItemList'] = form.getFieldValue('orderItemList') ?? []
+    if (currentOrderItemList.length === 0) {
       form.setFieldValue('orderItemList', [
         {
           ...Const_Default_Order_Item,
@@ -147,7 +154,8 @@ export default () => {
     }
 
     // 监控任务列表不能为空
-    if (taskItemList?.length === 0) {
+    const currentTaskItemList: Type_Form_Config['taskItemList'] = form.getFieldValue('taskItemList') ?? []
+    if (currentTaskItemList.length === 0) {
       form.setFieldValue('taskItemList', [
         {
           id: '',
@@ -162,12 +170,69 @@ export default () => {
       handleBatchTaskModal.syncToModalValue([])
     } else {
       // 同步到批量任务模态框
-      handleBatchTaskModal.syncToModalValue(taskItemList)
+      handleBatchTaskModal.syncToModalValue(currentTaskItemList)
     }
     // 当配置载入成功时, 也重新执行一次检查工作
   }, [taskItemList, orderItemList, statusSnap.initComplete])
 
   let [isModalShow, setIsModalShow] = useState<boolean>(false)
+
+  const createRecognizedTaskList = useCallback((rawInputText: string) => {
+    const taskList = Util.createTaskItemListFromText({
+      rawInputText,
+    })
+    if (skipAllFetchRef.current === false) {
+      return taskList
+    }
+    return taskList.map((taskItem) => ({
+      ...taskItem,
+      skipFetch: true,
+    }))
+  }, [])
+
+  const replaceTaskListFromQuickInput = useCallback(
+    (rawInputText: string, warnIfEmpty: boolean) => {
+      const taskList = createRecognizedTaskList(rawInputText)
+      if (taskList.length === 0 && warnIfEmpty) {
+        message.warning('请先粘贴至少一个知乎链接')
+        return
+      }
+      const nextTaskList =
+        taskList.length === 0
+          ? [
+              {
+                ...Util.createTaskItemFromRawInput({ rawInputText: '' }),
+                skipFetch: skipAllFetchRef.current,
+              },
+            ]
+          : taskList
+      form.setFieldValue('taskItemList', nextTaskList)
+      modalForm.setFieldValue('batchUrlListStr', taskList.map((item) => item.rawInputText).join('\n'))
+      setBatchTaskUpdateCounter((counter) => counter + 1)
+    },
+    [createRecognizedTaskList, form, modalForm],
+  )
+
+  const throttledQuickTaskRecognition = useMemo(
+    () =>
+      throttle(
+        (rawInputText: string) => {
+          replaceTaskListFromQuickInput(rawInputText, false)
+        },
+        1000,
+        {
+          leading: true,
+          trailing: true,
+        },
+      ),
+    [replaceTaskListFromQuickInput],
+  )
+
+  useEffect(() => {
+    return () => {
+      throttledQuickTaskRecognition.cancel()
+    }
+  }, [throttledQuickTaskRecognition])
 
   Ahooks.useMount(async () => {
     // 初始化时载入一次
@@ -192,7 +257,12 @@ export default () => {
     form.setFieldValue('outputFormats', initValue.outputFormats)
 
     handleBatchTaskModal.syncToModalValue(initValue.taskItemList)
-    setQuickTaskInput(initValue.taskItemList.map((item) => item.rawInputText).filter((item) => item !== '').join('\n'))
+    setQuickTaskInput(
+      initValue.taskItemList
+        .map((item) => item.rawInputText)
+        .filter((item) => item !== '')
+        .join('\n'),
+    )
 
     // 载入完成后标记状态
     statusStore.initComplete = true
@@ -325,9 +395,7 @@ export default () => {
       modalForm.setFieldValue('batchUrlListStr', batchUrlListStr)
     },
     syncToTaskList: (batchUrlListStr: string) => {
-      const taskList = Util.createTaskItemListFromText({
-        rawInputText: batchUrlListStr,
-      })
+      const taskList = createRecognizedTaskList(batchUrlListStr)
       form.setFieldValue('taskItemList', taskList)
     },
     showModal: () => {
@@ -345,17 +413,18 @@ export default () => {
   }
 
   const handleQuickTaskInput = {
-    syncToTaskList: () => {
-      const taskList = Util.createTaskItemListFromText({
-        rawInputText: quickTaskInput,
-      })
-      if (taskList.length === 0) {
-        message.warning('请先粘贴至少一个知乎链接')
+    syncToTaskListImmediately: () => {
+      throttledQuickTaskRecognition.cancel()
+      replaceTaskListFromQuickInput(quickTaskInput, true)
+    },
+    onChange: (rawInputText: string) => {
+      setQuickTaskInput(rawInputText)
+      if (rawInputText.trim() === '') {
+        throttledQuickTaskRecognition.cancel()
+        replaceTaskListFromQuickInput(rawInputText, false)
         return
       }
-      form.setFieldValue('taskItemList', taskList)
-      handleBatchTaskModal.syncToModalValue(taskList)
-      setBatchTaskUpdateCounter(batchTaskUpdateCounter + 1)
+      throttledQuickTaskRecognition(rawInputText)
     },
   }
 
@@ -425,11 +494,11 @@ export default () => {
                 value={quickTaskInput}
                 placeholder="粘贴知乎链接，每行一个。例如问题、回答、文章、收藏夹、专栏、话题、想法或用户主页。"
                 onChange={(event) => {
-                  setQuickTaskInput(event.target.value)
+                  handleQuickTaskInput.onChange(event.target.value)
                 }}
               />
               <Space wrap className="quick-task-actions">
-                <Button type="primary" onClick={handleQuickTaskInput.syncToTaskList}>
+                <Button type="primary" onClick={handleQuickTaskInput.syncToTaskListImmediately}>
                   识别链接
                 </Button>
                 <Button
@@ -513,7 +582,12 @@ export default () => {
                         remove: (index: number) => {
                           operation.remove(index)
                         },
-                        add: operation.add,
+                        add: (taskItem) => {
+                          operation.add({
+                            ...taskItem,
+                            skipFetch: skipAllFetch,
+                          })
+                        },
                       }}
                     ></TaskItem>
                   </Form.Item>
@@ -552,73 +626,93 @@ export default () => {
             </Radio.Group>
           </Form.Item>
           <details className="advanced-config-panel">
-            <summary>高级配置：生成模式、排序、分卷和备注</summary>
-          <Form.Item noStyle>
-            <Row align="middle" gutter={1}>
-              <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
-              <Col span={Consts.CONST_Order_Item_Width.规则}>规则</Col>
-              <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
-            </Row>
-            <Divider style={{ margin: '12px' }} />
-          </Form.Item>
-          <Form.List name="orderItemList">
-            {(fields, operation) => {
-              return fields.map(({ key, ...field }) => {
-                return (
-                  <Form.Item key={key} {...field} noStyle>
-                    <OrderItem
-                      fieldKey={key}
-                      action={{
-                        remove: operation.remove,
-                        add: operation.add,
-                      }}
-                    ></OrderItem>
-                  </Form.Item>
-                )
-              })
-            }}
-          </Form.List>
-          <Form.Item
-            name="generateType"
-            label="生成模式"
-            labelCol={{
-              span: 3,
-            }}
-          >
-            <Radio.Group buttonStyle="solid">
-              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_独立输出电子书}>独立成书</Radio.Button>
-              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节}>
-                按任务合并
-              </Radio.Button>
-              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_内容打乱重排}>
-                打乱合并
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item
-            label="自动分卷"
-            labelCol={{
-              span: 3,
-            }}
-          >
-            <Space>
-              单本电子书中最多
-              <Form.Item name="maxItemInBook" noStyle>
-                <InputNumber step={1000}></InputNumber>
-              </Form.Item>
-              条答案/想法/文章
-            </Space>
-          </Form.Item>
-          <Form.Item
-            name="comment"
-            label="备注"
-            labelCol={{
-              span: 3,
-            }}
-            wrapperCol={{ span: 18 }}
-          >
-            <TextArea {...({ allowClear: true } as any)} />
-          </Form.Item>
+            <summary>高级配置：抓取、生成模式、排序、分卷和备注</summary>
+            <Form.Item label="跳过抓取" labelCol={{ span: 3 }}>
+              <Space>
+                <Switch
+                  aria-label="全局跳过抓取"
+                  checked={skipAllFetch}
+                  onChange={(checked) => {
+                    const currentTaskItemList: Type_Form_Config['taskItemList'] =
+                      form.getFieldValue('taskItemList') ?? []
+                    form.setFieldValue(
+                      'taskItemList',
+                      currentTaskItemList.map((taskItem) => ({
+                        ...taskItem,
+                        skipFetch: checked,
+                      })),
+                    )
+                  }}
+                />
+                <span>为全部任务跳过抓取，直接使用数据库中的已有内容</span>
+              </Space>
+            </Form.Item>
+            <Form.Item noStyle>
+              <Row align="middle" gutter={1}>
+                <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
+                <Col span={Consts.CONST_Order_Item_Width.规则}>规则</Col>
+                <Col span={Consts.CONST_Order_Item_Width.操作}>操作</Col>
+              </Row>
+              <Divider style={{ margin: '12px' }} />
+            </Form.Item>
+            <Form.List name="orderItemList">
+              {(fields, operation) => {
+                return fields.map(({ key, ...field }) => {
+                  return (
+                    <Form.Item key={key} {...field} noStyle>
+                      <OrderItem
+                        fieldKey={key}
+                        action={{
+                          remove: operation.remove,
+                          add: operation.add,
+                        }}
+                      ></OrderItem>
+                    </Form.Item>
+                  )
+                })
+              }}
+            </Form.List>
+            <Form.Item
+              name="generateType"
+              label="生成模式"
+              labelCol={{
+                span: 3,
+              }}
+            >
+              <Radio.Group buttonStyle="solid">
+                <Radio.Button value={Consts_Task_Config.Const_Generate_Type_独立输出电子书}>独立成书</Radio.Button>
+                <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节}>
+                  按任务合并
+                </Radio.Button>
+                <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_内容打乱重排}>
+                  打乱合并
+                </Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item
+              label="自动分卷"
+              labelCol={{
+                span: 3,
+              }}
+            >
+              <Space>
+                单本电子书中最多
+                <Form.Item name="maxItemInBook" noStyle>
+                  <InputNumber step={1000}></InputNumber>
+                </Form.Item>
+                条答案/想法/文章
+              </Space>
+            </Form.Item>
+            <Form.Item
+              name="comment"
+              label="备注"
+              labelCol={{
+                span: 3,
+              }}
+              wrapperCol={{ span: 18 }}
+            >
+              <TextArea {...({ allowClear: true } as any)} />
+            </Form.Item>
           </details>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
             <Button

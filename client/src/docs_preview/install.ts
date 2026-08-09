@@ -1,4 +1,5 @@
 import type { IElectronAPI } from '../../../src/renderer'
+import { LogLevel, LogStatus, type StructuredLogRecord } from '@shared/logging/log_contract'
 
 // This module is dynamically imported only when development mode, the explicit
 // build-time opt-in and the preview query flag are all enabled. Keep every
@@ -35,7 +36,7 @@ const previewConfig = {
   },
 }
 
-const runtimeEventList = [
+const runtimeEventList: StructuredLogRecord[] = [
   {
     schemaVersion: 1,
     triggerAt: '2026-08-08T02:00:00.000Z',
@@ -100,6 +101,29 @@ const runtimeEventList = [
     status: 'success',
     level: 'info',
     message: '公开示例电子书已生成',
+    details: {
+      outputPath: 'docs-preview://output/知乎助手公开示例电子书',
+      htmlOutputPath: 'docs-preview://output/知乎助手公开示例电子书/html',
+      markdownOutputPath: 'docs-preview://output/知乎助手公开示例电子书/markdown',
+      epubOutputPath: 'docs-preview://output/知乎助手公开示例电子书/epub/知乎助手公开示例电子书.epub',
+    },
+  },
+  {
+    schemaVersion: 1,
+    triggerAt: new Date().toISOString(),
+    source: 'backend',
+    traceId: 'docs-preview-open-trace',
+    jobId: 'docs-preview-open-output',
+    eventCode: 'ipc.request.failure',
+    stage: 'ipc',
+    status: 'failure',
+    level: 'error',
+    message: '示例诊断：历史输出目录已不存在',
+    error: {
+      name: 'ApplicationError',
+      code: 'OUTPUT_PATH_NOT_FOUND',
+      message: '请重新生成该书，或从总输出目录查找仍保留的结果。',
+    },
   },
 ]
 
@@ -205,10 +229,10 @@ export function installDocsScreenshotPreview() {
           title: '知乎助手公开示例电子书',
           message: 'HTML、Markdown 与 EPUB 已生成',
           status: 'success',
-          outputPath: 'docs-preview://output',
-          htmlOutputPath: 'docs-preview://output/html',
-          markdownOutputPath: 'docs-preview://output/markdown',
-          epubOutputPath: 'docs-preview://output/epub',
+          outputPath: 'docs-preview://output/知乎助手公开示例电子书',
+          htmlOutputPath: 'docs-preview://output/知乎助手公开示例电子书/html',
+          markdownOutputPath: 'docs-preview://output/知乎助手公开示例电子书/markdown',
+          epubOutputPath: 'docs-preview://output/知乎助手公开示例电子书/epub/知乎助手公开示例电子书.epub',
           outputFormats: ['html', 'markdown', 'epub'],
         },
         {
@@ -217,10 +241,10 @@ export function installDocsScreenshotPreview() {
           title: '公开文章合集',
           message: 'HTML、Markdown 与 EPUB 已生成',
           status: 'success',
-          outputPath: 'docs-preview://output/articles',
-          htmlOutputPath: 'docs-preview://output/articles/html',
-          markdownOutputPath: 'docs-preview://output/articles/markdown',
-          epubOutputPath: 'docs-preview://output/articles/epub',
+          outputPath: 'docs-preview://output/公开文章合集',
+          htmlOutputPath: 'docs-preview://output/公开文章合集/html',
+          markdownOutputPath: 'docs-preview://output/公开文章合集/markdown',
+          epubOutputPath: 'docs-preview://output/公开文章合集/epub/公开文章合集.epub',
           outputFormats: ['html', 'markdown', 'epub'],
         },
       ]),
@@ -229,6 +253,18 @@ export function installDocsScreenshotPreview() {
     'get-log-content': () => resolved(runtimeLog),
     'clear-log-content': () => resolved(''),
     'get-runtime-jsonl-content': () => resolved(runtimeEventList.map((item) => JSON.stringify(item)).join('\n')),
+    'get-runtime-session-errors': (payload) =>
+      resolved(
+        runtimeEventList.filter((item) => {
+          const triggerAt = Date.parse(item.triggerAt)
+          return (
+            Number.isFinite(triggerAt) &&
+            triggerAt >= payload.since &&
+            item.status !== LogStatus.PARTIAL_SUCCESS &&
+            (item.level === LogLevel.ERROR || item.status === LogStatus.FAILURE)
+          )
+        }),
+      ),
     'clear-runtime-jsonl-content': () => resolved(''),
     'open-js-rpc-window-devtools': () => resolved(true),
     'append-frontend-log-batch': (payload) => resolved({ acceptedCount: payload.records.length }),

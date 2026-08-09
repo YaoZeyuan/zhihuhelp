@@ -56,12 +56,12 @@ features:
 
 <div class="product-showcase">
   <figure class="product-shot">
-    <img :src="'/screenshots/task-management.png'" alt="知乎助手任务管理页面，展示链接识别、生成设置和任务启动入口" loading="lazy">
-    <figcaption>任务管理：识别链接、配置生成方式并启动任务</figcaption>
+    <img :src="'/screenshots/task-management.png'" alt="知乎助手任务管理页面，展示自动链接识别、跳过抓取、生成设置和任务启动入口" loading="lazy">
+    <figcaption>任务管理：自动识别链接、管理抓取状态并启动任务</figcaption>
   </figure>
   <figure class="product-shot">
-    <img :src="'/screenshots/runtime-log.png'" alt="知乎助手运行日志页面，展示阶段状态及 HTML、Markdown、EPUB 输出历史" loading="lazy">
-    <figcaption>运行日志：查看阶段状态、诊断事件与三格式输出历史</figcaption>
+    <img :src="'/screenshots/runtime-log.png'" alt="知乎助手运行日志页面，展示阶段状态、本会话错误及书籍级输出历史" loading="lazy">
+    <figcaption>运行日志：查看阶段状态、本会话错误与书籍级输出历史</figcaption>
   </figure>
   <figure class="product-shot">
     <img :src="'/screenshots/data-explorer.png'" alt="知乎助手数据浏览页面，展示本地缓存内容列表" loading="lazy">

@@ -19,6 +19,7 @@ export interface IElectronAPI {
     ['get-log-content']: (...args) => Promise<any>,
     ['clear-log-content']: () => Promise<any>,
     ['get-runtime-jsonl-content']: () => Promise<any>,
+    ['get-runtime-session-errors']: (payload: { since: number }) => Promise<StructuredLogRecord[]>,
     ['clear-runtime-jsonl-content']: () => Promise<any>,
     ['open-js-rpc-window-devtools']: () => Promise<any>,
     ['append-frontend-log-batch']: (payload: { records: StructuredLogRecord[] }) => Promise<any>,

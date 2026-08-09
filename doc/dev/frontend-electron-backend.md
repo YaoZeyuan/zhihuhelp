@@ -79,13 +79,14 @@ flowchart LR
 
 1. `CurrentTab` 只负责当前页签；不要把业务实体塞进全局 context。
 2. 任务管理页的表单值与执行状态分开管理；提交前完成 URL、任务类型和必填字段校验。
-3. 运行日志页按最新 `runId` 计算阶段状态，并只展示最近五个自然日内的输出历史。
+3. 运行日志页按最新 `runId` 计算阶段状态；本会话错误只筛选 renderer 启动后的后端 error/failure，输出历史只展示最近五个自然日内带书籍级 `outputPath` 的记录。
 4. 数据浏览页通过摘要和分页 IPC 获取展示模型，不直接消费 SQLite 行。
 5. 前端日志记录应用启动、页面切换、关键操作、IPC、React Error Boundary、`error` 和 `unhandledrejection`；不记录普通输入过程或高频 render。
 6. 普通业务 IPC 由 `DebugLog.invokeElectronApi` 在末参数附加 `{ __zhihuhelpTraceId }`，主进程沿用该值；日志读取轮询和 `append-frontend-log-batch` 自身走 silent/passive 路径。
 7. 任务配置读取失败或返回非法 schema 时，任务页保留安全默认表单、显示“任务配置不可用”错误，并禁用启动按钮，不能以默认值继续覆盖 `config.json`。
 8. 数据库摘要和记录列表分别维护 loading、failure 与真实空数据状态；SQLite/解析/IPC 异常显示错误 Alert 和“暂无可用”占位，不得伪装成“当前分类没有记录”。
 9. 任务页不展示输出格式选择器。表单适配器忽略旧状态或被篡改的格式值，提交时固定写入 `html/markdown/epub`；读取当前 schema 中的旧格式子集时也显示为完整三格式。
+10. 快捷输入只在用户修改时经 1000 ms leading/trailing throttle 自动识别，配置初始化不得触发；手动识别会取消待执行 trailing。全局“跳过抓取”只批量修改逐任务 `skipFetch`，其显示值始终由当前任务聚合得出。
 
 ## 前端职责
 
@@ -95,7 +96,7 @@ flowchart LR
 
 1. 登录状态展示和用户引导。
 2. 链接识别、任务录入、表单校验和配置适配。
-3. 展示运行阶段、最近日志、HTML/Markdown/EPUB 输出历史和诊断结果。
+3. 展示运行阶段、本 renderer 会话错误、最近日志、书籍级输出历史和诊断结果。
 4. 展示数据库摘要、分页列表和详情。
 5. 生成经过共享契约校验、脱敏和限长的前端诊断事件。
 
@@ -117,7 +118,7 @@ Electron 负责：
 3. 注册白名单 IPC，校验来自 renderer 的 payload。
 4. 读取、写入任务配置并启动 `RunTaskWorkflow`。
 5. 管理任务运行锁，避免重复启动。
-6. 提供日志、最近五日三格式输出历史、数据库摘要、导入导出和诊断文件能力。
+6. 提供日志、最近五日书籍级输出历史、数据库摘要、导入导出和诊断文件能力。
 7. 把前端事件写入独立的按日 JSONL；renderer 不能指定文件路径。
 
 日志写入失败必须降级到安全的控制台/stderr 路径，不能覆盖原始业务异常。`PathConfig.rootPath/log` 是本仓库约定的默认目录；测试通过注入将其切换到临时目录。
@@ -158,8 +159,9 @@ IPC 公开面由 `src/preload.cjs` 与 `src/renderer.d.ts` 共同约束。新增
 | `get-log-content`             | 运行日志           | 读取最近文本日志                                                                                                                                   |
 | `clear-log-content`           | 运行日志           | 清理文本日志文件族                                                                                                                                 |
 | `get-runtime-jsonl-content`   | 运行日志、调试     | 合并读取最近五日后端 JSONL                                                                                                                         |
+| `get-runtime-session-errors`  | 运行日志           | 按 renderer 文档启动时间筛选最近五日完整后端 JSONL，仅返回本会话 error/failure；只读且不记录自身 IPC 日志                                               |
 | `clear-runtime-jsonl-content` | 运行日志           | 清理后端 JSONL 文件族                                                                                                                              |
-| `get-output-history`          | 运行日志           | 从最近五日 `output.created` 事件按规范化 HTML/Markdown/EPUB 路径去重构建历史                                                                        |
+| `get-output-history`          | 运行日志           | 从最近五日带书籍级 `outputPath` 的 `output.created` 事件按目录去重构建历史                                                                          |
 | `export-diagnostic-info`      | 运行日志           | 导出脱敏配置、摘要及前后端日志尾部                                                                                                                 |
 | `open-devtools`               | 调试               | 打开主窗口 DevTools                                                                                                                                |
 | `open-js-rpc-window-devtools` | 调试               | 显示 js-rpc 窗口并打开 DevTools                                                                                                                    |

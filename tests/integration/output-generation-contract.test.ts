@@ -46,8 +46,17 @@ describe('输出生成契约', () => {
     expect(result.missingImageCount).toBe(0)
     expect(fs.existsSync(generator.htmlOutputPathUri)).toBe(true)
     expect(fs.existsSync(generator.epubOutputPathUri)).toBe(false)
-    expect(generator.htmlOutputPathUri.startsWith(path.resolve(sandbox.outputPath))).toBe(true)
-    expect(path.basename(generator.htmlOutputPathUri)).not.toMatch(/[<>:"/\\|?*]/)
+    expect(generator.bookOutputPath).toBe(path.join(sandbox.outputPath, generator.outputBasename))
+    expect(generator.htmlOutputPathUri).toBe(path.join(generator.bookOutputPath, 'html'))
+    expect(generator.markdownOutputPathUri).toBe(path.join(generator.bookOutputPath, 'markdown'))
+    expect(generator.epubOutputPathUri).toBe(
+      path.join(generator.bookOutputPath, 'epub', `${generator.outputBasename}.epub`),
+    )
+    expect(path.basename(generator.epubOutputPathUri, '.epub')).toBe(
+      path.basename(generator.bookOutputPath),
+    )
+    expect(path.basename(generator.bookOutputPath)).not.toMatch(/[<>:"/\\|?*]/)
+    expect(generator.htmlCachePath).toBe(path.join(sandbox.cachePath, 'html', generator.outputBasename))
   })
 
   it('不将下载失败的图片加入 EPUB manifest', () => {
@@ -81,12 +90,14 @@ describe('输出生成契约', () => {
 
     const zip = new AdmZip(archive)
     const entryNames = zip.getEntries().map((entry) => entry.entryName.replace(/\\/g, '/'))
-    expect(entryNames).toEqual(expect.arrayContaining([
-      'META-INF/container.xml',
-      'OEBPS/content.opf',
-      'OEBPS/toc.xhtml',
-      'OEBPS/html/chapter-1.html',
-    ]))
+    expect(entryNames).toEqual(
+      expect.arrayContaining([
+        'META-INF/container.xml',
+        'OEBPS/content.opf',
+        'OEBPS/toc.xhtml',
+        'OEBPS/html/chapter-1.html',
+      ]),
+    )
     expect(zip.readAsText('OEBPS/html/chapter-1.html')).toContain('EPUB body marker')
     const opf = zip.readAsText('OEBPS/content.opf')
     expect(opf).toContain('href="html/chapter-1.html"')
@@ -102,10 +113,20 @@ describe('输出生成契约', () => {
   })
 
   it('渲染带页内锚点的响应式单文件目录', () => {
-    const index = HtmlRender.renderIndex({ title: '目录', recordList: [{ title: '用户', uri: '#author-1', pageList: [{ title: '回答', uri: '#answer-1' }] }] }).singleEle
+    const index = HtmlRender.renderIndex({
+      title: '目录',
+      recordList: [{ title: '用户', uri: '#author-1', pageList: [{ title: '回答', uri: '#answer-1' }] }],
+    }).singleEle
     const html = HtmlRender.generateSinglePageWithIndex({
-      title: 'fixture', index,
-      eleList: [React.createElement('section', { id: 'author-1', key: 'author-1' }, HtmlRender.renderInfoPage({ title: '用户', desc: '签名' }).singleEle)],
+      title: 'fixture',
+      index,
+      eleList: [
+        React.createElement(
+          'section',
+          { id: 'author-1', key: 'author-1' },
+          HtmlRender.renderInfoPage({ title: '用户', desc: '签名' }).singleEle,
+        ),
+      ],
     })
     expect(html).toContain('single-page-toc')
     expect(html).toContain('href="#answer-1"')
@@ -117,4 +138,39 @@ describe('输出生成契约', () => {
     const html = HtmlRender.renderToString(HtmlRender.renderInfoPage({ title: '信息页' }).htmlEle)
     expect(html).not.toContain('panel-body')
   })
+
+  it('同名重跑仅清理当前书籍目录并保留其他书籍和公共输出', () => {
+    const firstGenerator = new EpubGenerator({ bookname: 'same-book', imageQuilty: 'none' })
+    const staleFile = path.join(firstGenerator.bookOutputPath, 'markdown', 'stale.md')
+    const otherBookFile = path.join(sandbox.outputPath, 'other-book', 'html', 'keep.html')
+    const jsonFile = path.join(sandbox.outputPath, 'json', 'keep.json')
+    const diagnosticFile = path.join(sandbox.outputPath, 'diagnostics', 'keep.json')
+    for (const filePath of [staleFile, otherBookFile, jsonFile, diagnosticFile]) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true })
+      fs.writeFileSync(filePath, 'keep')
+    }
+
+    const secondGenerator = new EpubGenerator({ bookname: 'same-book', imageQuilty: 'none' })
+
+    expect(secondGenerator.bookOutputPath).toBe(firstGenerator.bookOutputPath)
+    expect(fs.existsSync(staleFile)).toBe(false)
+    expect(fs.readFileSync(otherBookFile, 'utf8')).toBe('keep')
+    expect(fs.readFileSync(jsonFile, 'utf8')).toBe('keep')
+    expect(fs.readFileSync(diagnosticFile, 'utf8')).toBe('keep')
+  })
+
+  it.each(['html', 'markdown', 'epub', 'json', 'diagnostics'])(
+    '保留名称 %s 不会占用或清理输出根公共目录',
+    (bookname) => {
+      const publicFile = path.join(sandbox.outputPath, bookname, 'keep.txt')
+      fs.mkdirSync(path.dirname(publicFile), { recursive: true })
+      fs.writeFileSync(publicFile, 'keep')
+
+      const generator = new EpubGenerator({ bookname, imageQuilty: 'none' })
+
+      expect(generator.bookOutputPath).not.toBe(path.join(sandbox.outputPath, bookname))
+      expect(fs.readFileSync(publicFile, 'utf8')).toBe('keep')
+      expect(path.basename(generator.bookOutputPath).length).toBeLessThanOrEqual(120)
+    },
+  )
 })

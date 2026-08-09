@@ -15,9 +15,6 @@ export default class PathConfig {
   static markdownCachePath = path.resolve(PathConfig.cachePath, 'markdown')
   static logPath = path.resolve(PathConfig.rootPath, 'log')
   static outputPath = path.resolve(PathConfig.rootPath, '知乎助手输出的电子书')
-  static epubOutputPath = path.resolve(PathConfig.outputPath, 'epub')
-  static htmlOutputPath = path.resolve(PathConfig.outputPath, 'html')
-  static markdownOutputPath = path.resolve(PathConfig.outputPath, 'markdown')
 
   // package.json文件
   static readonly packageJsonUri = path.resolve(PathConfig.rootPath, 'package.json')
@@ -46,9 +43,6 @@ export default class PathConfig {
       PathConfig.markdownCachePath,
       PathConfig.logPath,
       PathConfig.outputPath,
-      PathConfig.epubOutputPath,
-      PathConfig.htmlOutputPath,
-      PathConfig.markdownOutputPath,
     ]
   }
 
@@ -58,9 +52,6 @@ export default class PathConfig {
 
   static setOutputPath(outputPath: string) {
     PathConfig.outputPath = path.resolve(outputPath)
-    PathConfig.epubOutputPath = path.resolve(PathConfig.outputPath, 'epub')
-    PathConfig.htmlOutputPath = path.resolve(PathConfig.outputPath, 'html')
-    PathConfig.markdownOutputPath = path.resolve(PathConfig.outputPath, 'markdown')
   }
 
   static setCachePath(cachePath: string) {

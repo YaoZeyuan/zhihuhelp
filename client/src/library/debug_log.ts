@@ -53,6 +53,7 @@ const Const_Passive_Channel_Set = new Set([
   Const_Frontend_Log_Channel,
   'get-log-content',
   'get-runtime-jsonl-content',
+  'get-runtime-session-errors',
 ])
 const rawConsoleWarn = console.warn.bind(console)
 

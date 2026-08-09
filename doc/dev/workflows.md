@@ -7,7 +7,7 @@ description: 任务识别、分页抓取、持久化以及 HTML/Markdown/EPUB �
 
 ## 用户侧主流程
 
-GUI 用户先在登录页建立知乎 session，再在任务管理页粘贴链接或批量录入任务，设置生成模式、排序、分卷和图片策略后启动任务。GUI 不提供格式选择；每次固定生成 HTML、Markdown 与 EPUB。任务执行期间可在运行日志页查看阶段状态；完成后可打开三种结果、查看最近五日输出历史或导出诊断信息。CLI 用户通过配置文件执行相同的 workflow，配置中的旧格式子集也会规范化为三格式。
+GUI 用户先在登录页建立知乎 session，再在任务管理页粘贴链接或批量录入任务，设置生成模式、排序、分卷和图片策略后启动任务。快捷输入由 1000 ms 的 leading/trailing throttle 自动整表识别，同时保留立即识别按钮；高级配置的全局“跳过抓取”由所有任务的 `skipFetch` 派生，并与逐行选项双向同步，不引入第二份配置字段。GUI 不提供格式选择；每次固定生成 HTML、Markdown 与 EPUB。任务执行期间可在运行日志页查看阶段状态和当前 renderer 会话内的后端错误；完成后可从书籍级目录查看三种结果、查看最近五日输出历史或导出诊断信息。CLI 用户通过配置文件执行相同的 workflow，配置中的旧格式子集也会规范化为三格式。
 
 ## RunTaskWorkflow 时序图（4/7）
 
@@ -175,7 +175,7 @@ flowchart TD
   MarkdownFile --> Rewrite["按实际结果改写页面链接"]
   Fallback --> Rewrite
 
-  Package --> Output["复制到三格式最终输出目录"]
+  Package --> Output["写入书籍级目录下的 html / markdown / epub"]
   Rewrite --> Output
   Output --> Event["output.created"]
 ```
@@ -206,16 +206,21 @@ EPUB 打包遵守三个文件级约束：根目录的 `mimetype` 必须是 ZIP �
 三格式是固定集合：任务 parser、GUI adapter 和生成 workflow 都使用共享的 `html/markdown/epub` 常量，不能通过旧配置子集跳过其中一种。每个 `Ebook_Column` 使用与 HTML/EPUB 相同的安全书名，Markdown 必须转换该书已经渲染的全部来源：
 
 ```text
-知乎助手输出的电子书/markdown/<安全书名>/
-  html/<每个多文件 HTML 对应页面>.md
-  单文件版/<单文件 HTML 对应页面>.md
+知乎助手输出的电子书/<安全书名>/
+  html/**
+  markdown/
+    html/<每个多文件 HTML 对应页面>.md
+    单文件版/<单文件 HTML 对应页面>.md
+  epub/<安全书名>.epub
 ```
 
 `MarkdownGenerator` 在送入 Pandoc 前移除脚本、样式和单文件 HTML 的侧栏目录。图片质量为 `none` 时删除图片；`raw/hd` 时把 HTML 缓存中的本地图片引用恢复为原远程 URL，使 Markdown 保留替代文本但不复制图片文件。转换目标为 GFM，页面按来源顺序串行处理；内部 `.html` 链接在所有转换结果确定后统一指向实际 `.md` 或回退文件。
 
 Pandoc 只在整个 generate 的首次转换时由单个 worker 动态导入，不进入 Electron main；所有书和页面共用串行队列，命令结束时统一回收。单页转换异常时，协调器把预处理后的 HTML 写入 `<名称>.pandoc-failed.md`，汇总 `fallbackCount/fallbackDetails` 后继续处理剩余页面。该回退文件本身是可用产物，因此不会单独把书或 workflow 降为 `partial_success`。如果回退文件或正常 Markdown 真正写入失败，则 Markdown 输出失败：HTML/EPUB 已成功时书和整体生成保留已有路径并返回 `partial_success`；没有可用输出时返回 `failure`。每书 Markdown 子 job 使用 `output.markdown.start`，无回退时以 `output.markdown.success` 结束；存在回退时以 `output.markdown.fallback` 且 `status=success` 结束；真实输出失败则以 `output.markdown.failure` 结束。三者恰好出现一个，避免同一子 job 先失败再成功。
 
-最终 `output.created` 记录 `htmlOutputPath`、`markdownOutputPath`、`epubOutputPath`、文件数和回退数，GUI 最近五日历史据此提供三种打开入口。`output.created` 的状态仍由真实输出结果决定：Pandoc 回退不改变成功状态；缺图或某格式写入失败但保留其他格式时为 `partial_success`；三格式均不可用时不会写成功历史。
+最终 `output.created` 记录书籍级 `outputPath`，并保留 `htmlOutputPath`、`markdownOutputPath`、`epubOutputPath`、文件数和回退数用于诊断。GUI 最近五日历史只接受带 `outputPath` 的记录，每本书只提供一个“打开文件夹”入口。`output.created` 的状态仍由真实输出结果决定：Pandoc 回退不改变成功状态；缺图或某格式写入失败但书籍目录中仍有可用产物时为 `partial_success` 并保留历史；三格式均不可用时不会写成功历史。
+
+最终输出采用书名优先布局；缓存继续采用格式优先布局。`html`、`markdown`、`epub`、`json`、`diagnostics` 是输出根的保留书名，冲突时安全路径模块产生稳定替代名。同名书重跑只能清理并重建自己的书籍目录，不得触碰其他书、JSON 导出或诊断目录。
 
 ## 数据浏览链路
 

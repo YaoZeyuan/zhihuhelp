@@ -8,7 +8,7 @@ export type OutputHistoryItem = {
   status?: string
   message?: string
   title: string
-  outputPath?: string
+  outputPath: string
   htmlOutputPath?: string
   markdownOutputPath?: string
   epubOutputPath?: string
@@ -53,12 +53,7 @@ export function buildOutputHistory(
       ) {
         return undefined
       }
-      if (
-        outputPath === undefined
-        && htmlOutputPath === undefined
-        && markdownOutputPath === undefined
-        && epubOutputPath === undefined
-      ) {
+      if (outputPath === undefined || outputPath.trim() === '') {
         return undefined
       }
       const message = typeof event.message === 'string' ? event.message : undefined
@@ -89,16 +84,7 @@ export function buildOutputHistory(
 
   const dedupeMap = new Map<string, (typeof historyList)[number]>()
   for (const item of historyList) {
-    const normalizePath = (value?: string) => value?.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase()
-    const key = JSON.stringify({
-      outputPath: normalizePath(item.outputPath),
-      htmlOutputPath: normalizePath(item.htmlOutputPath),
-      markdownOutputPath: normalizePath(item.markdownOutputPath),
-      epubOutputPath: normalizePath(item.epubOutputPath),
-      title: item.outputPath || item.htmlOutputPath || item.markdownOutputPath || item.epubOutputPath
-        ? undefined
-        : item.title,
-    })
+    const key = item.outputPath.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase()
     if (dedupeMap.has(key) === false) {
       dedupeMap.set(key, item)
     }

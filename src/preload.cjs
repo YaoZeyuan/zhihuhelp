@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ['get-log-content']: async (...args) => invoke('get-log-content', ...args),
   ['clear-log-content']: async (...args) => invoke('clear-log-content', ...args),
   ['get-runtime-jsonl-content']: async (...args) => invoke('get-runtime-jsonl-content', ...args),
+  ['get-runtime-session-errors']: async (...args) => invoke('get-runtime-session-errors', ...args),
   ['clear-runtime-jsonl-content']: async (...args) => invoke('clear-runtime-jsonl-content', ...args),
   ['open-js-rpc-window-devtools']: async (...args) => invoke('open-js-rpc-window-devtools', ...args),
   ['append-frontend-log-batch']: async (payload = {}) => invoke('append-frontend-log-batch', payload),

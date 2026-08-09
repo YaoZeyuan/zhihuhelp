@@ -25,7 +25,10 @@ describe('输出历史', () => {
           eventCode: LogEventCode.OUTPUT_CREATED,
           status: LogStatus.SUCCESS,
           message: 'last',
-          details: { htmlOutputPath: 'D:/output/last' },
+          details: {
+            outputPath: 'D:/output/last',
+            htmlOutputPath: 'D:/output/last/html',
+          },
         }),
       ].join('\n'),
     )
@@ -58,54 +61,126 @@ describe('输出历史', () => {
     ).toEqual([])
   })
 
-  it('保留深层 Windows 输出路径以供 GUI 打开操作使用', () => {
-    const path = 'D:\\win_www\\zhihuhelp\\output\\epub\\book.epub'
+  it('保留书籍目录和深层 Windows 输出路径以供 GUI 打开操作使用', () => {
+    const outputPath = 'D:\\win_www\\zhihuhelp\\output\\book'
+    const epubOutputPath = `${outputPath}\\epub\\book.epub`
     const [item] = buildOutputHistory([
-      createStructuredLogRecord({
-        eventCode: LogEventCode.OUTPUT_CREATED,
-        status: LogStatus.SUCCESS,
-        level: LogLevel.INFO,
-        message: 'created',
-        details: { epubOutputPath: path, bookname: 'book' },
-      }, '2026-08-03T00:00:00.000Z'),
+      createStructuredLogRecord(
+        {
+          eventCode: LogEventCode.OUTPUT_CREATED,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          message: 'created',
+          details: { outputPath, epubOutputPath, bookname: 'book' },
+        },
+        '2026-08-03T00:00:00.000Z',
+      ),
     ])
-    expect(item.epubOutputPath).toBe(path)
+    expect(item.outputPath).toBe(outputPath)
+    expect(item.epubOutputPath).toBe(epubOutputPath)
   })
 
   it('保留部分成功的输出产物并暴露其警告状态', () => {
     const [item] = buildOutputHistory([
-      createStructuredLogRecord({
-        eventCode: LogEventCode.OUTPUT_CREATED,
-        status: LogStatus.PARTIAL_SUCCESS,
-        level: LogLevel.WARN,
-        message: 'created with missing images',
-        details: { htmlOutputPath: 'D:\\output\\partial-book' },
-      }, '2026-08-03T00:00:00.000Z'),
+      createStructuredLogRecord(
+        {
+          eventCode: LogEventCode.OUTPUT_CREATED,
+          status: LogStatus.PARTIAL_SUCCESS,
+          level: LogLevel.WARN,
+          message: 'created with missing images',
+          details: {
+            outputPath: 'D:\\output\\partial-book',
+            htmlOutputPath: 'D:\\output\\partial-book\\html',
+          },
+        },
+        '2026-08-03T00:00:00.000Z',
+      ),
     ])
     expect(item).toMatchObject({
       status: LogStatus.PARTIAL_SUCCESS,
-      htmlOutputPath: 'D:\\output\\partial-book',
+      outputPath: 'D:\\output\\partial-book',
+      htmlOutputPath: 'D:\\output\\partial-book\\html',
     })
   })
 
-  it('保留 Markdown 书籍目录供 GUI 打开和去重', () => {
-    const markdownOutputPath = 'D:\\output\\markdown\\book'
+  it('保留 Markdown 精确路径供诊断并使用书籍目录去重', () => {
+    const outputPath = 'D:\\output\\book'
+    const markdownOutputPath = `${outputPath}\\markdown`
     const [item] = buildOutputHistory([
-      createStructuredLogRecord({
-        eventCode: LogEventCode.OUTPUT_CREATED,
-        status: LogStatus.SUCCESS,
-        level: LogLevel.INFO,
-        message: 'three artifacts created',
-        details: {
-          bookname: 'book',
-          markdownOutputPath,
-          outputFormats: ['html', 'markdown', 'epub'],
+      createStructuredLogRecord(
+        {
+          eventCode: LogEventCode.OUTPUT_CREATED,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          message: 'three artifacts created',
+          details: {
+            bookname: 'book',
+            outputPath,
+            markdownOutputPath,
+            outputFormats: ['html', 'markdown', 'epub'],
+          },
         },
-      }, '2026-08-03T00:00:00.000Z'),
+        '2026-08-03T00:00:00.000Z',
+      ),
     ])
     expect(item).toMatchObject({
+      outputPath,
       markdownOutputPath,
       outputFormats: ['html', 'markdown', 'epub'],
     })
+  })
+
+  it('拒绝没有书籍级 outputPath 的旧布局日志', () => {
+    expect(
+      buildOutputHistory([
+        createStructuredLogRecord({
+          eventCode: LogEventCode.OUTPUT_CREATED,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          message: 'legacy output',
+          details: {
+            htmlOutputPath: 'D:\\output\\html\\book',
+            markdownOutputPath: 'D:\\output\\markdown\\book',
+            epubOutputPath: 'D:\\output\\epub\\book.epub',
+          },
+        }),
+      ]),
+    ).toEqual([])
+  })
+
+  it('仅按书籍级 outputPath 去重并保留最新诊断路径', () => {
+    const oldEvent = createStructuredLogRecord(
+      {
+        eventCode: LogEventCode.OUTPUT_CREATED,
+        status: LogStatus.SUCCESS,
+        level: LogLevel.INFO,
+        message: 'old output',
+        details: {
+          outputPath: 'D:\\output\\book',
+          htmlOutputPath: 'D:\\output\\book\\html-old',
+        },
+      },
+      '2026-08-03T00:00:00.000Z',
+    )
+    const latestEvent = createStructuredLogRecord(
+      {
+        eventCode: LogEventCode.OUTPUT_CREATED,
+        status: LogStatus.PARTIAL_SUCCESS,
+        level: LogLevel.WARN,
+        message: 'latest output',
+        details: {
+          outputPath: 'd:/output/book/',
+          htmlOutputPath: 'D:\\output\\book\\html',
+        },
+      },
+      '2026-08-04T00:00:00.000Z',
+    )
+
+    expect(buildOutputHistory([oldEvent, latestEvent])).toEqual([
+      expect.objectContaining({
+        message: 'latest output',
+        htmlOutputPath: 'D:\\output\\book\\html',
+      }),
+    ])
   })
 })

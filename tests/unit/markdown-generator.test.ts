@@ -18,9 +18,9 @@ async function createTemporaryDirectory(): Promise<string> {
 }
 
 afterEach(async () => {
-  await Promise.all(temporaryPaths.splice(0).map((temporaryPath) => (
-    fs.rm(temporaryPath, { recursive: true, force: true })
-  )))
+  await Promise.all(
+    temporaryPaths.splice(0).map((temporaryPath) => fs.rm(temporaryPath, { recursive: true, force: true })),
+  )
 })
 
 describe('MarkdownGenerator 生成器', () => {
@@ -33,17 +33,18 @@ describe('MarkdownGenerator 生成器', () => {
         outputRootPath,
         bookBasename: 'real-worker-book',
         imageQuality: 'hd',
-        sources: [{
-          relativeHtmlPath: 'html/index.html',
-          html: '<h1>真实 Worker 转换</h1><p>正文</p>',
-        }],
+        sources: [
+          {
+            relativeHtmlPath: 'html/index.html',
+            html: '<h1>真实 Worker 转换</h1><p>正文</p>',
+          },
+        ],
       })
 
       expect(result).toMatchObject({ fileCount: 1, fallbackCount: 0, details: [] })
-      await expect(fs.readFile(
-        path.join(result.outputPath, 'html', 'index.md'),
-        'utf8',
-      )).resolves.toContain('# 真实 Worker 转换')
+      await expect(fs.readFile(path.join(result.outputPath, 'html', 'index.md'), 'utf8')).resolves.toContain(
+        '# 真实 Worker 转换',
+      )
     } finally {
       await generator.dispose()
     }
@@ -101,10 +102,7 @@ describe('MarkdownGenerator 生成器', () => {
     ])
 
     const indexMarkdown = await fs.readFile(path.join(result.outputPath, 'html', 'index.md'), 'utf8')
-    const singleMarkdown = await fs.readFile(
-      path.join(result.outputPath, '单文件版', '中文测试书.md'),
-      'utf8',
-    )
+    const singleMarkdown = await fs.readFile(path.join(result.outputPath, '单文件版', '中文测试书.md'), 'utf8')
     expect(indexMarkdown).toContain('# 中文标题')
     expect(indexMarkdown).toMatch(/-\s+列表项目/)
     expect(indexMarkdown).toMatch(/\|\s*列\s*\|/)
@@ -121,9 +119,11 @@ describe('MarkdownGenerator 生成器', () => {
   it('无图模式移除所有图片，其他模式恢复映射后的远程 URL', () => {
     const html = '<p><img alt="示例" src="../image/a.jpg"><img src=https://already.example/b.png></p>'
     expect(prepareHtmlForMarkdown(html, 'none')).not.toMatch(/<img\b/i)
-    expect(prepareHtmlForMarkdown(html, 'raw', {
-      '../image/a.jpg': 'https://pic.example.com/a.jpg',
-    })).toContain('src="https://pic.example.com/a.jpg"')
+    expect(
+      prepareHtmlForMarkdown(html, 'raw', {
+        '../image/a.jpg': 'https://pic.example.com/a.jpg',
+      }),
+    ).toContain('src="https://pic.example.com/a.jpg"')
     expect(prepareHtmlForMarkdown(html, 'raw')).toContain('https://already.example/b.png')
   })
 
@@ -168,10 +168,7 @@ describe('MarkdownGenerator 生成器', () => {
       }),
     ])
     const indexMarkdown = await fs.readFile(path.join(result.outputPath, 'html', 'index.md'), 'utf8')
-    const fallbackMarkdown = await fs.readFile(
-      path.join(result.outputPath, 'html', 'broken.pandoc-failed.md'),
-      'utf8',
-    )
+    const fallbackMarkdown = await fs.readFile(path.join(result.outputPath, 'html', 'broken.pandoc-failed.md'), 'utf8')
     expect(indexMarkdown).toContain('./broken.pandoc-failed.md#anchor')
     expect(fallbackMarkdown).toContain('href="./index.md"')
     expect(fallbackMarkdown).not.toMatch(/<img\b/i)
@@ -187,12 +184,14 @@ describe('MarkdownGenerator 生成器', () => {
       },
     })
 
-    await expect(generator.generate({
-      outputRootPath,
-      bookBasename: 'book',
-      imageQuality: 'hd',
-      sources: [{ relativeHtmlPath: 'html/index.html', html: '<h1>book</h1>' }],
-    })).rejects.toThrow()
+    await expect(
+      generator.generate({
+        outputRootPath,
+        bookBasename: 'book',
+        imageQuality: 'hd',
+        sources: [{ relativeHtmlPath: 'html/index.html', html: '<h1>book</h1>' }],
+      }),
+    ).rejects.toThrow()
   })
 
   it('转换完成后仅清理当前书籍的过期 Markdown', async () => {
@@ -221,6 +220,38 @@ describe('MarkdownGenerator 生成器', () => {
     await expect(fs.readFile(otherBookFile, 'utf8')).resolves.toBe('keep')
   })
 
+  it('将缓存保留在书名目录并发布到书籍根下的 markdown 目录', async () => {
+    const temporaryDirectory = await createTemporaryDirectory()
+    const cacheRootPath = path.join(temporaryDirectory, 'cache', 'markdown')
+    const bookOutputPath = path.join(temporaryDirectory, 'output', 'current-book')
+    const htmlFile = path.join(bookOutputPath, 'html', 'keep.html')
+    await fs.mkdir(path.dirname(htmlFile), { recursive: true })
+    await fs.writeFile(htmlFile, 'keep', 'utf8')
+    const generator = new MarkdownGenerator({
+      async convert() {
+        return { markdown: '# markdown', warnings: [] }
+      },
+    })
+
+    const result = await generator.generate({
+      cacheRootPath,
+      outputRootPath: bookOutputPath,
+      outputBasename: 'markdown',
+      bookBasename: 'current-book',
+      imageQuality: 'hd',
+      sources: [{ relativeHtmlPath: 'html/index.html', html: '<h1>markdown</h1>' }],
+    })
+
+    expect(result.outputPath).toBe(path.join(bookOutputPath, 'markdown'))
+    await expect(fs.readFile(path.join(cacheRootPath, 'current-book', 'html', 'index.md'), 'utf8')).resolves.toBe(
+      '# markdown',
+    )
+    await expect(fs.readFile(path.join(bookOutputPath, 'markdown', 'html', 'index.md'), 'utf8')).resolves.toBe(
+      '# markdown',
+    )
+    await expect(fs.readFile(htmlFile, 'utf8')).resolves.toBe('keep')
+  })
+
   it('替换过期最终输出前写入干净的缓存镜像', async () => {
     const temporaryDirectory = await createTemporaryDirectory()
     const cacheRootPath = path.join(temporaryDirectory, 'cache')
@@ -238,7 +269,7 @@ describe('MarkdownGenerator 生成器', () => {
     let sawOldFinalDuringConversion = false
     const generator = new MarkdownGenerator({
       async convert() {
-        sawOldFinalDuringConversion = await fs.readFile(oldFinalFile, 'utf8') === 'old final'
+        sawOldFinalDuringConversion = (await fs.readFile(oldFinalFile, 'utf8')) === 'old final'
         return { markdown: '# fresh cache', warnings: [] }
       },
     })
@@ -271,21 +302,25 @@ describe('MarkdownGenerator 生成器', () => {
       },
     })
 
-    await expect(generator.generate({
-      outputRootPath,
-      bookBasename: 'book',
-      imageQuality: 'hd',
-      sources: [{ relativeHtmlPath: '../secret.html', html: '' }],
-    })).rejects.toThrow(/Unsafe relative HTML path/)
-    await expect(generator.generate({
-      outputRootPath,
-      bookBasename: 'book',
-      imageQuality: 'hd',
-      sources: [
-        { relativeHtmlPath: 'html/a:b.html', html: '' },
-        { relativeHtmlPath: 'html/a?b.html', html: '' },
-      ],
-    })).rejects.toThrow(/output path collision/)
+    await expect(
+      generator.generate({
+        outputRootPath,
+        bookBasename: 'book',
+        imageQuality: 'hd',
+        sources: [{ relativeHtmlPath: '../secret.html', html: '' }],
+      }),
+    ).rejects.toThrow(/Unsafe relative HTML path/)
+    await expect(
+      generator.generate({
+        outputRootPath,
+        bookBasename: 'book',
+        imageQuality: 'hd',
+        sources: [
+          { relativeHtmlPath: 'html/a:b.html', html: '' },
+          { relativeHtmlPath: 'html/a?b.html', html: '' },
+        ],
+      }),
+    ).rejects.toThrow(/output path collision/)
     expect(conversionCount).toBe(0)
   })
 
@@ -300,14 +335,16 @@ describe('MarkdownGenerator 生成器', () => {
       },
     })
 
-    await expect(generator.generate({
-      outputRootPath,
-      bookBasename: 'book',
-      imageQuality: 'hd',
-      sources: [
-        { relativeHtmlPath: 'html/a.html', html: 'fail' },
-        { relativeHtmlPath: 'html/a.pandoc-failed.html', html: 'success' },
-      ],
-    })).rejects.toThrow(/collision after fallback/)
+    await expect(
+      generator.generate({
+        outputRootPath,
+        bookBasename: 'book',
+        imageQuality: 'hd',
+        sources: [
+          { relativeHtmlPath: 'html/a.html', html: 'fail' },
+          { relativeHtmlPath: 'html/a.pandoc-failed.html', html: 'success' },
+        ],
+      }),
+    ).rejects.toThrow(/collision after fallback/)
   })
 })

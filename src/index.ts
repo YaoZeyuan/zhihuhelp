@@ -34,6 +34,7 @@ import {
   parseDbRecordExportPayload,
   parseDbRecordListPayload,
   parseOpenLocalPathPayload,
+  parseRuntimeSessionErrorsPayload,
 } from '~/src/shared/ipc/payload.js'
 import { assertIpcResponseSucceeded } from '~/src/shared/ipc/result.js'
 
@@ -69,6 +70,7 @@ const Const_Debug_Ipc_Channel_List = [
   'get-log-content',
   'clear-log-content',
   'get-runtime-jsonl-content',
+  'get-runtime-session-errors',
   'clear-runtime-jsonl-content',
   'append-frontend-log-batch',
   'open-devtools',
@@ -818,66 +820,68 @@ app.whenReady().then(() => {
 
   ipcMain.handle('export-diagnostic-info', async (event, metadata?: IpcTraceMetadata) => {
     return runLoggedIpc('export-diagnostic-info', metadata, async () => {
-    const diagnosticDir = path.resolve(PathConfig.outputPath, 'diagnostics')
-    if (fs.existsSync(PathConfig.outputPath) === false) {
-      fs.mkdirSync(PathConfig.outputPath)
-    }
-    if (fs.existsSync(diagnosticDir) === false) {
-      fs.mkdirSync(diagnosticDir)
-    }
-    let taskConfig: unknown = undefined
-    try {
-      taskConfig = maskTaskConfigForDiagnostic(readTaskConfig(PathConfig.configUri))
-    } catch (error) {
-      taskConfig = {
-        error: Logger.serializeError(error),
+      const diagnosticDir = path.resolve(PathConfig.outputPath, 'diagnostics')
+      if (fs.existsSync(PathConfig.outputPath) === false) {
+        fs.mkdirSync(PathConfig.outputPath)
       }
-    }
-    const databaseSummary = await MSummary.asyncGetSummaryInfo().catch((error) => {
+      if (fs.existsSync(diagnosticDir) === false) {
+        fs.mkdirSync(diagnosticDir)
+      }
+      let taskConfig: unknown = undefined
+      try {
+        taskConfig = maskTaskConfigForDiagnostic(readTaskConfig(PathConfig.configUri))
+      } catch (error) {
+        taskConfig = {
+          error: Logger.serializeError(error),
+        }
+      }
+      const databaseSummary = await MSummary.asyncGetSummaryInfo().catch((error) => {
+        return {
+          error: Logger.serializeError(error),
+        }
+      })
+      const packageJson = JSON.parse(fs.readFileSync(PathConfig.packageJsonUri, 'utf-8'))
+      const runtimeLogContent = Logger.readRecentLogContent('runtime-text')
+      const runtimeJsonlContent = Logger.readRecentLogContent('runtime-jsonl')
+      const frontendRuntimeJsonlContent = Logger.readRecentLogContent('frontend-jsonl')
+      const diagnosticInfo = {
+        createdAt: new Date().toISOString(),
+        app: {
+          name: packageJson.name,
+          version: packageJson.version,
+          electron: process.versions.electron,
+          node: process.versions.node,
+          platform: process.platform,
+          arch: process.arch,
+        },
+        paths: {
+          rootPath: PathConfig.rootPath,
+          configUri: PathConfig.configUri,
+          outputPath: PathConfig.outputPath,
+          outputLayout: '<outputPath>/<safeBookName>/{html,markdown,epub/<safeBookName>.epub}',
+          cachePath: PathConfig.cachePath,
+          htmlCachePath: PathConfig.htmlCachePath,
+          markdownCachePath: PathConfig.markdownCachePath,
+          epubCachePath: PathConfig.epubCachePath,
+          runtimeLogUri: PathConfig.runtimeLogUri,
+          runtimeJsonlUri: PathConfig.runtimeJsonlUri,
+          frontendRuntimeJsonlUri: PathConfig.frontendRuntimeJsonlUri,
+          logPath: PathConfig.logPath,
+        },
+        databaseSummary,
+        taskConfig,
+        outputHistory: asyncBuildOutputHistory(),
+        runtimeLogTail: sanitizeDiagnosticLogTail(runtimeLogContent),
+        runtimeJsonlTail: sanitizeDiagnosticLogTail(runtimeJsonlContent),
+        frontendRuntimeJsonlTail: sanitizeDiagnosticLogTail(frontendRuntimeJsonlContent),
+      }
+      const diagnosticPath = path.resolve(diagnosticDir, `diagnostic-${Date.now()}.json`)
+      fs.writeFileSync(diagnosticPath, JSON.stringify(diagnosticInfo, null, 2), 'utf-8')
+      shell.showItemInFolder(diagnosticPath)
       return {
-        error: Logger.serializeError(error),
+        status: LogStatus.SUCCESS,
+        diagnosticPath,
       }
-    })
-    const packageJson = JSON.parse(fs.readFileSync(PathConfig.packageJsonUri, 'utf-8'))
-    const runtimeLogContent = Logger.readRecentLogContent('runtime-text')
-    const runtimeJsonlContent = Logger.readRecentLogContent('runtime-jsonl')
-    const frontendRuntimeJsonlContent = Logger.readRecentLogContent('frontend-jsonl')
-    const diagnosticInfo = {
-      createdAt: new Date().toISOString(),
-      app: {
-        name: packageJson.name,
-        version: packageJson.version,
-        electron: process.versions.electron,
-        node: process.versions.node,
-        platform: process.platform,
-        arch: process.arch,
-      },
-      paths: {
-        rootPath: PathConfig.rootPath,
-        configUri: PathConfig.configUri,
-        outputPath: PathConfig.outputPath,
-        htmlOutputPath: PathConfig.htmlOutputPath,
-        markdownOutputPath: PathConfig.markdownOutputPath,
-        epubOutputPath: PathConfig.epubOutputPath,
-        runtimeLogUri: PathConfig.runtimeLogUri,
-        runtimeJsonlUri: PathConfig.runtimeJsonlUri,
-        frontendRuntimeJsonlUri: PathConfig.frontendRuntimeJsonlUri,
-        logPath: PathConfig.logPath,
-      },
-      databaseSummary,
-      taskConfig,
-      outputHistory: asyncBuildOutputHistory(),
-      runtimeLogTail: sanitizeDiagnosticLogTail(runtimeLogContent),
-      runtimeJsonlTail: sanitizeDiagnosticLogTail(runtimeJsonlContent),
-      frontendRuntimeJsonlTail: sanitizeDiagnosticLogTail(frontendRuntimeJsonlContent),
-    }
-    const diagnosticPath = path.resolve(diagnosticDir, `diagnostic-${Date.now()}.json`)
-    fs.writeFileSync(diagnosticPath, JSON.stringify(diagnosticInfo, null, 2), 'utf-8')
-    shell.showItemInFolder(diagnosticPath)
-    return {
-      status: LogStatus.SUCCESS,
-      diagnosticPath,
-    }
     })
   })
 
@@ -1099,17 +1103,21 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('clear-log-content', async (event, metadata?: IpcTraceMetadata) => {
     return runLoggedIpc('clear-log-content', metadata, () => {
-      Logger.clearLogFiles('runtime-text')
+      Logger.clearLogFilesStrict('runtime-text')
       return ''
     })
   })
   ipcMain.handle('get-runtime-jsonl-content', async (event, metadata?: IpcTraceMetadata) => {
     return Logger.readRecentLogContent('runtime-jsonl', 5000)
   })
+  ipcMain.handle('get-runtime-session-errors', async (event, payload: unknown) => {
+    const { since } = parseRuntimeSessionErrorsPayload(payload)
+    return Logger.readRuntimeSessionErrorList(since)
+  })
   ipcMain.handle('clear-runtime-jsonl-content', async (event, metadata?: IpcTraceMetadata) => {
     // Clear first, then record the clear operation itself so the new log still
     // contains a complete start/terminal pair.
-    Logger.clearLogFiles('runtime-jsonl')
+    Logger.clearLogFilesStrict('runtime-jsonl')
     return runLoggedIpc('clear-runtime-jsonl-content', metadata, () => '')
   })
   ipcMain.handle('open-devtools', async (event, metadata?: IpcTraceMetadata) => {

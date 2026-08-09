@@ -70,6 +70,8 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 
 日志默认位于 `PathConfig.rootPath/log`，文本、后端 JSONL 和前端 JSONL 每类各保留最近 5 个日期文件。GUI 输出历史也只覆盖这 5 日；不要重新引入“日志永久保存”或独立永久历史的假设。
 
+运行日志页的“本会话错误”以 renderer 文档的启动时刻为固定边界，通过被动只读的 `get-runtime-session-errors` 从最近五日完整后端 JSONL 中筛选 `level=error` 或 `status=failure`；不要改用最后 5000 行的原始查看接口、组件挂载时间或主进程启动时间，也不要把 `partial_success` 或前端 JSONL 混入该列表。专用读取及两个清空 IPC 必须使用严格 I/O：日志目录不存在可视为空，目录已存在但无法枚举、文件无法读取或清空时必须拒绝 IPC；普通查看和诊断读取仍可容错。刷新日志不重置边界，读取失败不得覆盖现有列表；只有文本与 JSONL 清空 IPC 都成功后才清空当前列表，并应让清空前的并发读取结果失效。
+
 ## 修改数据浏览的同步清单
 
 数据浏览涉及前端、IPC 和数据库摘要模型：
@@ -92,11 +94,12 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 2. 分卷名称在安全化前包含 `_N-of-M卷`，保证超长标题的不同卷仍生成不同路径。
 3. Windows + Node.js 24 的中文目录复制继续使用显式递归与 `copyFileSync`；不要未经真实回归改回 `fs.cpSync`。
 4. EPUB 的 `mimetype` 是第一个 STORE 条目，OPF/TOC XML 已转义，图片扩展名与 MIME 一致，封面不重复登记。
-5. 每本书全部 `html/*.html` 与 `单文件版/*.html` 都进入 Markdown 来源清单；结果分别位于 `markdown/<安全书名>/html/*.md` 与 `单文件版/*.md`，内部链接必须指向实际结果。
+5. 每本书全部 `html/*.html` 与 `单文件版/*.html` 都进入 Markdown 来源清单；最终结果位于 `<输出根>/<安全书名>/markdown/html/*.md` 与 `单文件版/*.md`，内部链接必须指向实际结果；缓存仍保持格式优先结构。
 6. Markdown 的 `none` 图片策略删除图片，`raw/hd` 恢复远程 URL 且不复制资源；不要把 HTML 缓存中的本地图片路径泄漏进 Markdown。
 7. Pandoc 只能在 generate 期间按需创建的单 worker 中串行运行，并在命令结束后回收。转换失败写 `.pandoc-failed.md` 并汇总 fallback，不触发局部成功；结果文件真正写入失败才按其他格式是否可用汇总为 `partial_success/failure`。
-8. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；输出历史仍应保留并显示该告警状态。
-9. 运行 `safe-output-path`、`epub-metadata`、Markdown generator/worker、`output-generation-contract` 和真实双卷 workflow 集成测试。
+8. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；只要书籍级目录存在，输出历史仍应保留并显示该告警状态。
+9. 最终输出使用 `<输出根>/<安全书名>/{html,markdown,epub}`，`output.created` 必须携带书籍级 `outputPath`；`html/markdown/epub/json/diagnostics` 是保留书名。同名重跑只清理本书目录，不能触碰其他书、JSON 或诊断文件。
+10. 运行 `safe-output-path`、`epub-metadata`、Markdown generator/worker、`output-generation-contract` 和真实双卷 workflow 集成测试。
 
 ## 维护 ESM 与 CJS 边界
 

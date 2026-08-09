@@ -15,6 +15,7 @@ import {
   StructuredLogRecord,
 } from '~/src/shared/logging/log_contract.js'
 import { getLogCorrelationContext } from '~/src/shared/runtime/log_correlation_context.js'
+import { parseRuntimeSessionErrorList } from '~/src/shared/logging/session_error.js'
 
 export type { SerializedError, StructuredLogEntry, StructuredLogRecord }
 
@@ -28,9 +29,22 @@ const LOG_FILE_PATTERN_MAP: Record<LogFileKind, RegExp> = {
   'frontend-jsonl': /^frontend\.runtime\.\d{4}-\d{2}-\d{2}\.jsonl$/,
 }
 
+function isMissingPathError(error: unknown): boolean {
+  return error !== null
+    && typeof error === 'object'
+    && (error as { code?: unknown }).code === 'ENOENT'
+}
+
 class Logger {
   private static lastWriteFailure = ''
   private static isDebugMode = process.env.NODE_ENV === 'test'
+
+  private static throwStrictIoFailure(message: string, error: unknown): never {
+    const serialized = serializeLogError(error)
+    Logger.lastWriteFailure = serialized.message
+    console.error(`[Logger] ${message}: ${serialized.message}`)
+    throw error
+  }
 
   private static shouldWriteRecord(record: StructuredLogRecord): boolean {
     if (Logger.isDebugMode) {
@@ -115,21 +129,38 @@ class Logger {
     return PathConfig.runtimeJsonlUri
   }
 
-  static getLogFileList(kind: LogFileKind, newestFirst = false): string[] {
+  private static getLogFileListStrict(kind: LogFileKind, newestFirst = false): string[] {
+    let logPathStat: fs.Stats
     try {
-      if (fs.existsSync(PathConfig.logPath) === false || fs.statSync(PathConfig.logPath).isDirectory() === false) {
+      logPathStat = fs.statSync(PathConfig.logPath)
+    } catch (error) {
+      if (isMissingPathError(error)) {
         return []
       }
-      const pattern = LOG_FILE_PATTERN_MAP[kind]
-      const fileList = fs
-        .readdirSync(PathConfig.logPath)
-        .filter((fileName) => pattern.test(fileName))
-        .sort()
-        .map((fileName) => path.resolve(PathConfig.logPath, fileName))
-      return newestFirst ? fileList.reverse() : fileList
+      return Logger.throwStrictIoFailure('读取日志目录失败', error)
+    }
+    if (logPathStat.isDirectory() === false) {
+      return Logger.throwStrictIoFailure('读取日志目录失败', new Error(`日志路径不是目录：${PathConfig.logPath}`))
+    }
+    const pattern = LOG_FILE_PATTERN_MAP[kind]
+    let fileNameList: string[]
+    try {
+      fileNameList = fs.readdirSync(PathConfig.logPath)
     } catch (error) {
-      Logger.lastWriteFailure = serializeLogError(error).message
-      console.error(`[Logger] 读取日志目录失败: ${Logger.lastWriteFailure}`)
+      return Logger.throwStrictIoFailure('读取日志目录失败', error)
+    }
+    const fileList = fileNameList
+      .filter((fileName) => pattern.test(fileName))
+      .sort()
+      .map((fileName) => path.resolve(PathConfig.logPath, fileName))
+    return newestFirst ? fileList.reverse() : fileList
+  }
+
+  static getLogFileList(kind: LogFileKind, newestFirst = false): string[] {
+    try {
+      return Logger.getLogFileListStrict(kind, newestFirst)
+    } catch {
+      // 严格读取已经记录诊断；普通查看保持降级为空列表。
       return []
     }
   }
@@ -153,12 +184,37 @@ class Logger {
     return content.split('\n').slice(-maxLines).join('\n')
   }
 
+  static readRuntimeSessionErrorList(sessionStartedAt: number): StructuredLogRecord[] {
+    const content = Logger.getLogFileListStrict('runtime-jsonl')
+      .slice(-LOG_RETENTION_DAYS)
+      .map((filePath) => {
+        try {
+          return fs.readFileSync(filePath, 'utf8')
+        } catch (error) {
+          return Logger.throwStrictIoFailure('读取日志失败', error)
+        }
+      })
+      .filter((item) => item !== '')
+      .join('\n')
+    return parseRuntimeSessionErrorList(content, sessionStartedAt)
+  }
+
   static clearLogFiles(kind: LogFileKind): void {
     for (const filePath of Logger.getLogFileList(kind)) {
       try {
         fs.writeFileSync(filePath, '', 'utf8')
       } catch (error) {
         console.error(`[Logger] 清空日志失败: ${serializeLogError(error).message}`)
+      }
+    }
+  }
+
+  static clearLogFilesStrict(kind: LogFileKind): void {
+    for (const filePath of Logger.getLogFileListStrict(kind)) {
+      try {
+        fs.writeFileSync(filePath, '', 'utf8')
+      } catch (error) {
+        Logger.throwStrictIoFailure('清空日志失败', error)
       }
     }
   }

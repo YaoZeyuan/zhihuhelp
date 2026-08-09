@@ -12,6 +12,10 @@ export type DbRecordExportRequest = {
   parentId?: string
 }
 
+export type RuntimeSessionErrorsRequest = {
+  since: number
+}
+
 function requireRecord(payload: unknown, label: string): Record<string, unknown> {
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, `${label}必须是对象`)
@@ -62,4 +66,12 @@ export function parseOpenLocalPathPayload(payload: unknown): string {
     throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '打开路径参数无效')
   }
   return targetPath
+}
+
+export function parseRuntimeSessionErrorsPayload(payload: unknown): RuntimeSessionErrorsRequest {
+  const since = requireRecord(payload, '本会话错误查询参数').since
+  if (typeof since !== 'number' || Number.isFinite(since) === false || since < 0) {
+    throw new ApplicationError(AppErrorCode.LOG_PAYLOAD_INVALID, '本会话错误查询起点无效')
+  }
+  return { since }
 }

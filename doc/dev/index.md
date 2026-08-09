@@ -15,7 +15,7 @@ description: 知乎助手的架构、运行链路、日志、测试与维护说�
 | [架构总览](./architecture)                                | 目录职责、核心模块、GUI/CLI 总体分层图               |
 | [业务流程](./workflows)                                   | Workflow、抓取分派、任务类型差异和生成流程           |
 | [前端 / Electron / 后端分工](./frontend-electron-backend) | Electron 窗口与桥接、前端页面状态流、IPC 边界        |
-| [数据与日志](./data-and-logging)                          | SQLite、按日日志、事件契约、诊断表和最近五日输出历史 |
+| [数据与日志](./data-and-logging)                          | SQLite、按日日志、会话错误、事件契约、诊断表和书籍级输出历史 |
 | [测试与 Fixture](./testing-and-fixtures)                  | 测试分层、fixture 更新、Cookie、隔离和结果判定       |
 | [维护注意事项](./maintenance)                             | 修改 IPC、日志、测试和文档时的同步清单               |
 

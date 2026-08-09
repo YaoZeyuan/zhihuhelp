@@ -1,9 +1,9 @@
 import { Alert, Button, Typography, Card, Row, Divider, Space, Col, Checkbox, message, Tag } from 'antd'
-import { useState, useContext, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import VirtualList from 'rc-virtual-list'
 import * as Ahooks from 'ahooks'
 import DebugLog from '~/src/library/debug_log'
-import { LogEventCode, LogStatus } from '@shared/logging/log_contract'
+import { LogEventCode, LogLevel, LogStatus } from '@shared/logging/log_contract'
 
 import './index.less'
 
@@ -22,7 +22,9 @@ type Type_Runtime_Event = {
   level?: string
   message?: string
   error?: {
+    name?: string
     message?: string
+    code?: string
   }
 }
 
@@ -32,11 +34,7 @@ type Type_Output_History_Item = {
   title?: string
   message?: string
   status?: string
-  outputPath?: string
-  htmlOutputPath?: string
-  markdownOutputPath?: string
-  epubOutputPath?: string
-  outputFormats?: string[]
+  outputPath: string
 }
 
 type Type_Stage_Status = 'waiting' | 'running' | 'success' | 'partial_success' | 'failure' | 'skip'
@@ -60,6 +58,17 @@ const Const_Stage_Title: Record<string, string> = {
   output: '输出',
 }
 
+export function resolveRendererSessionStartedAt(
+  rendererPerformance: { timeOrigin?: number } | null | undefined =
+    typeof performance === 'undefined' ? undefined : performance,
+  now: () => number = Date.now,
+) {
+  const timeOrigin = rendererPerformance?.timeOrigin
+  return typeof timeOrigin === 'number' && Number.isFinite(timeOrigin) && timeOrigin > 0 ? timeOrigin : now()
+}
+
+export const RendererSessionStartedAt = resolveRendererSessionStartedAt()
+
 function parseRuntimeJsonl(content: string): Type_Runtime_Event[] {
   return (content || '')
     .split('\n')
@@ -77,6 +86,30 @@ function parseRuntimeJsonl(content: string): Type_Runtime_Event[] {
 
 function isRunStage(stage?: string): stage is Type_Run_Stage {
   return Const_Stage_Order.includes(stage as Type_Run_Stage)
+}
+
+function getRuntimeEventTimeValue(event: Type_Runtime_Event) {
+  if (!event.triggerAt) {
+    return Number.NaN
+  }
+  return Date.parse(event.triggerAt)
+}
+
+export function buildSessionErrorList(eventList: Type_Runtime_Event[], sessionStartedAt: number) {
+  return eventList
+    .map((event, index) => ({
+      event,
+      index,
+      triggerAt: getRuntimeEventTimeValue(event),
+    }))
+    .filter(({ event, triggerAt }) => {
+      if (!Number.isFinite(triggerAt) || triggerAt < sessionStartedAt || event.status === LogStatus.PARTIAL_SUCCESS) {
+        return false
+      }
+      return event.level === LogLevel.ERROR || event.status === LogStatus.FAILURE
+    })
+    .sort((left, right) => right.triggerAt - left.triggerAt || right.index - left.index)
+    .map(({ event }) => event)
 }
 
 function getLatestRunEventList(eventList: Type_Runtime_Event[]) {
@@ -290,6 +323,14 @@ function formatHistoryTime(createdAt?: string) {
   return new Date(createdAt).toLocaleString()
 }
 
+function formatStructuredError(error?: Type_Runtime_Event['error']) {
+  if (!error) {
+    return '无结构化错误详情'
+  }
+  const identity = [error.name, error.code].filter((item): item is string => Boolean(item)).join(' / ')
+  return [identity, error.message].filter((item): item is string => Boolean(item)).join('：') || '无结构化错误详情'
+}
+
 function getHistoryTimeValue(item: Type_Output_History_Item) {
   if (!item.createdAt) {
     return 0
@@ -318,11 +359,36 @@ export default () => {
   const [isAutoFresh, setIsAutoFresh] = useState<boolean>(true)
   const [logList, setLogList] = useState<Type_Log_Item[]>([])
   const [stageList, setStageList] = useState<Type_Stage_Item[]>(buildStageList([]))
-  const [latestError, setLatestError] = useState<Type_Runtime_Event | undefined>()
+  const [sessionErrorList, setSessionErrorList] = useState<Type_Runtime_Event[]>([])
   const [latestEvent, setLatestEvent] = useState<Type_Runtime_Event | undefined>()
   const [outputHistoryList, setOutputHistoryList] = useState<Type_Output_History_Item[]>([])
+  const sessionErrorRequestSequenceRef = useRef(0)
+  const isClearingLogRef = useRef(false)
   const ContainerHeight = 768
+  const asyncFetchSessionErrorList = async () => {
+    if (isClearingLogRef.current) {
+      return
+    }
+    const requestSequence = ++sessionErrorRequestSequenceRef.current
+    try {
+      const eventList = await DebugLog.invokeSilentElectronApi<Type_Runtime_Event[]>(
+        'get-runtime-session-errors',
+        [{ since: RendererSessionStartedAt }],
+      )
+      if (
+        requestSequence !== sessionErrorRequestSequenceRef.current
+        || isClearingLogRef.current
+        || Array.isArray(eventList) === false
+      ) {
+        return
+      }
+      setSessionErrorList(buildSessionErrorList(eventList, RendererSessionStartedAt))
+    } catch {
+      // 读取失败时保留已经展示的本会话错误，等待下一次刷新恢复。
+    }
+  }
   const asyncFetchLogList = async () => {
+    const sessionErrorPromise = asyncFetchSessionErrorList()
     let content = await DebugLog.invokeSilentElectronApi<string>('get-log-content')
     let runtimeJsonlContent = await DebugLog.invokeSilentElectronApi<string>('get-runtime-jsonl-content').catch(() => '')
     const outputHistory = await DebugLog.invokeSilentElectronApi<any[]>('get-output-history').catch(() => [])
@@ -348,16 +414,25 @@ export default () => {
     const runtimeEventList = parseRuntimeJsonl(runtimeJsonlContent)
     setStageList(buildStageList(runtimeEventList))
     setLatestEvent(runtimeEventList[runtimeEventList.length - 1])
-    setLatestError([...runtimeEventList].reverse().find((item) => item.level === 'error' || item.status === 'failure'))
     setOutputHistoryList(Array.isArray(outputHistory) ? sortOutputHistoryList(outputHistory) : [])
+    await sessionErrorPromise
     let containerEle = document.querySelector('.rc-virtual-list-holder')
     if (containerEle?.scrollTop !== undefined) {
       containerEle.scrollTop = containerEle.scrollHeight ?? 1000000000
     }
   }
   const asyncClearLogList = async () => {
-    await DebugLog.invokeElectronApi('clear-log-content')
-    await DebugLog.invokeElectronApi('clear-runtime-jsonl-content')
+    isClearingLogRef.current = true
+    sessionErrorRequestSequenceRef.current += 1
+    try {
+      await DebugLog.invokeElectronApi('clear-log-content')
+      await DebugLog.invokeElectronApi('clear-runtime-jsonl-content')
+      setSessionErrorList([])
+    } catch {
+      return
+    } finally {
+      isClearingLogRef.current = false
+    }
     await asyncFetchLogList()
   }
   const asyncExportDiagnosticInfo = async () => {
@@ -405,15 +480,35 @@ export default () => {
             最近事件：{latestEvent.message}
           </div>
         )}
-        {latestError && (
-          <Alert
-            className="latest-error"
-            type="error"
-            showIcon
-            title="最近错误"
-            description={latestError.error?.message ?? latestError.message}
-          />
-        )}
+        <section className="session-error-section" aria-label="本会话错误">
+          <Typography.Title level={5}>本会话错误（{sessionErrorList.length}）</Typography.Title>
+          {sessionErrorList.length === 0 && <div className="empty-session-errors">本会话暂无错误。</div>}
+          {sessionErrorList.length > 0 && (
+            <div className="session-error-list">
+              {sessionErrorList.map((event, index) => (
+                <Alert
+                  className="session-error-item"
+                  key={`${event.triggerAt ?? 'unknown'}-${event.eventCode ?? event.stage ?? 'error'}-${index}`}
+                  type="error"
+                  showIcon
+                  title={event.message ?? '未提供错误消息'}
+                  description={(
+                    <div className="session-error-description">
+                      <div className="session-error-meta">
+                        <span>{formatHistoryTime(event.triggerAt)}</span>
+                        <Tag color="error">{event.stage ?? '未知阶段'}</Tag>
+                        <code>{event.eventCode ?? '未提供 eventCode'}</code>
+                      </div>
+                      <div className="session-error-detail">
+                        结构化错误：{formatStructuredError(event.error)}
+                      </div>
+                    </div>
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </Card>
       <Card
         className="output-history-card"
@@ -429,12 +524,9 @@ export default () => {
               <span>{formatHistoryTime(item.createdAt)}</span>
               <span>{item.message}</span>
             </div>
-            <Space wrap>
-              {item.htmlOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.htmlOutputPath)}>打开 HTML</Button>}
-              {item.markdownOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.markdownOutputPath)}>打开 Markdown</Button>}
-              {item.epubOutputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.epubOutputPath)}>打开 EPUB</Button>}
-              {item.outputPath && <Button size="small" onClick={() => asyncOpenLocalPath(item.outputPath)}>打开输出目录</Button>}
-            </Space>
+            <Button size="small" onClick={() => asyncOpenLocalPath(item.outputPath)}>
+              打开文件夹
+            </Button>
           </div>
         ))}
       </Card>

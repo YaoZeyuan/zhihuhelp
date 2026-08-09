@@ -30,8 +30,10 @@ describe('客户端任务配置适配器', () => {
 
     const form = TaskConfigAdapter.taskConfigToForm(config)
     expect(JSON.stringify(form)).not.toContain('must-not-leak')
+    expect(form).not.toHaveProperty('skipAllFetch')
     expect(form.outputFormats).toEqual(['html', 'markdown', 'epub'])
     const converted = TaskConfigAdapter.formToTaskConfig(form)
+    expect(converted).not.toHaveProperty('skipAllFetch')
     expect(converted.tasks).toEqual(config.tasks)
     expect(converted.generate).toEqual({
       ...config.generate,

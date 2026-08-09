@@ -45,7 +45,7 @@ flowchart LR
   MarkdownQueue --> Worker["按需启动的串行 Worker"]
   Worker --> Pandoc["Pandoc WASM"]
   Pandoc --> Markdown["Markdown / 回退文件"]
-  HtmlEpub --> Output["三格式最终输出"]
+  HtmlEpub --> Output["按书聚合的三格式最终输出"]
   Markdown --> Output
 
   GUI -.->|前端事件| IPC
@@ -93,8 +93,8 @@ flowchart LR
 
 | 页面     | 组件                      | 状态与职责                                                 |
 | -------- | ------------------------- | ---------------------------------------------------------- |
-| 任务管理 | `component/customer_task` | Ant Design Form、Valtio 状态、登录检查、生成配置和任务启动；不提供格式选择 |
-| 运行日志 | `component/log`           | 阶段状态、最近五日日志、三格式输出历史、诊断导出           |
+| 任务管理 | `component/customer_task` | Ant Design Form、Valtio 状态、自动链接识别、全局跳过抓取、登录检查、生成配置和任务启动；不提供格式选择 |
+| 运行日志 | `component/log`           | 阶段状态、本会话错误、最近五日日志、书籍级输出历史、诊断导出 |
 | 数据浏览 | `component/db_explorer`   | 数据库摘要、分页列表、父子筛选、摘要和详情                 |
 | 登录     | `component/login`         | 内置 webview 登录知乎并复用 Electron session               |
 | 调试面板 | `component/debug`         | IPC 调试和前后端日志查看，仅在开发者模式展示               |
@@ -112,7 +112,7 @@ flowchart LR
 | Markdown   | `src/application/workflow/generate/library/markdown`          | 独立 worker 中按页面执行 Pandoc、改写链接和生成回退文件 |
 | 结构化日志 | `src/shared/logging/log_contract.ts`、`src/library/logger.ts` | 共享事件契约、脱敏、按日 JSONL 和文本日志   |
 | 运行上下文 | `src/shared/runtime/run_context.ts`                           | `runId` 与配置、数据库、输出路径            |
-| 路径       | `src/config/path.ts`                                          | 根路径、三格式缓存/输出和 `log` 目录         |
+| 路径       | `src/config/path.ts`、`src/shared/path/safe_output_path.ts`   | 根路径、格式优先缓存、书籍级输出和 `log` 目录 |
 | 任务 schema | `src/shared/config/task_schema.ts`                            | 前后端共享任务类型、生成模式、图片质量和固定三格式常量 |
 
 ## 当前技术栈

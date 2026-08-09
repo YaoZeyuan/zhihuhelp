@@ -1510,7 +1510,8 @@ class GenerateWorkflow {
         markdownResult = await markdownGenerator.generate({
           sources: epubGenerator.getMarkdownHtmlSourceList(),
           cacheRootPath: PathConfig.markdownCachePath,
-          outputRootPath: PathConfig.markdownOutputPath,
+          outputRootPath: epubGenerator.bookOutputPath,
+          outputBasename: 'markdown',
           bookBasename: epubGenerator.outputBasename,
           imageQuality: imageQuilty,
           imageSourceMap: epubGenerator.getMarkdownImageSourceMap(),
@@ -1566,10 +1567,11 @@ class GenerateWorkflow {
       }
 
       const outputDetails = {
+        outputPath: epubGenerator.bookOutputPath,
         outputFormats,
         epubOutputPath: outputFormats.includes('epub') ? epubGenerator.epubOutputPathUri : undefined,
         htmlOutputPath: outputFormats.includes('html') ? epubGenerator.htmlOutputPathUri : undefined,
-        markdownOutputPath: markdownResult?.outputPath,
+        markdownOutputPath: epubGenerator.markdownOutputPathUri,
         markdownFileCount: markdownResult?.fileCount ?? 0,
         markdownFallbackCount: markdownResult?.fallbackCount ?? 0,
       }
@@ -1621,7 +1623,7 @@ class GenerateWorkflow {
           htmlCachePath: epubGenerator?.htmlCachePath,
           epubOutputPath: epubGenerator?.epubOutputPathUri,
           htmlOutputPath: epubGenerator?.htmlOutputPathUri,
-          markdownOutputPath: epubGenerator === undefined ? undefined : PathConfig.markdownOutputPath,
+          markdownOutputPath: epubGenerator?.markdownOutputPathUri,
         },
       })
       throw error

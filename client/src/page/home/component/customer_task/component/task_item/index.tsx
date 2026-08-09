@@ -29,23 +29,45 @@ export default ({
   // 仅在初始化时通过value创建一次, 后续直接通过useEffect更新store的值
   let refStore = useRef(createStore(value))
   const store = refStore.current
+  const pendingParentValueRef = useRef<Pick<
+    typeof Const_Default_Task_Item,
+    'type' | 'rawInputText' | 'skipFetch'
+  > | null>(null)
   let snap = useSnapshot(store)
 
   useEffect(() => {
-    if (value?.rawInputText !== snap.rawInputText || value.type !== snap.type) {
-      store.rawInputText = value!.rawInputText
-      store.type = value!.type
+    if (value.rawInputText !== store.rawInputText || value.type !== store.type || value.skipFetch !== store.skipFetch) {
+      pendingParentValueRef.current = {
+        type: value.type,
+        rawInputText: value.rawInputText,
+        skipFetch: value.skipFetch,
+      }
+      store.rawInputText = value.rawInputText
+      store.type = value.type
+      store.skipFetch = value.skipFetch
     }
-  }, [value])
+  }, [store, value.rawInputText, value.skipFetch, value.type])
 
   useEffect(() => {
-    // 当id和type发生变更时, 通知外部组件
-    onChange({
+    const currentValue = {
       type: snap.type,
       id: snap.id,
       rawInputText: snap.rawInputText,
       skipFetch: snap.skipFetch,
-    })
+    }
+    const pendingParentValue = pendingParentValueRef.current
+    if (pendingParentValue !== null) {
+      if (
+        pendingParentValue.type === currentValue.type &&
+        pendingParentValue.rawInputText === currentValue.rawInputText &&
+        pendingParentValue.skipFetch === currentValue.skipFetch
+      ) {
+        pendingParentValueRef.current = null
+      }
+      return
+    }
+    // 当id和type发生变更时, 通知外部组件
+    onChange(currentValue)
   }, [snap])
 
   return (
@@ -65,6 +87,7 @@ export default ({
         <Col span={Consts.CONST_Task_Item_Width.待抓取url}>
           <div className="url-container">
             <Checkbox
+              aria-label={`抓取任务 ${fieldIndex + 1}`}
               checked={snap.skipFetch === false}
               onClick={(e) => {
                 // @ts-ignore
