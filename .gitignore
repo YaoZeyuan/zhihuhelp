@@ -67,3 +67,9 @@ gui/dist
 
 *.sqlite
 *.sqlite3
+
+# VitePress documentation
+/doc/.vitepress/cache/
+/doc/.vitepress/.temp/
+/doc/.vitepress/dist/
+/.docs-screenshot-tmp/

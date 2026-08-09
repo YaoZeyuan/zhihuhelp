@@ -1,3 +1,8 @@
+---
+title: 维护注意事项
+description: 修改 IPC、日志、数据浏览、输出和测试时的同步检查清单。
+---
+
 # 维护注意事项
 
 ## 不要扩大旧边界
@@ -35,7 +40,7 @@
 3.  `src/renderer.d.ts`
 4.  `client/src/page/home/component/debug/index.tsx`
 5.  `client/src/library/debug_log.ts` 的 passive channel 与调用记录
-6.  [前端 / Electron / 后端分工](前端-Electron-后端分工.md)
+6.  [前端 / Electron / 后端分工](./frontend-electron-backend)
 
 如果 IPC 返回本地文件路径，也要考虑：
 
@@ -55,7 +60,7 @@
 4.  `client/src/library/debug_log.ts`
 5.  `client/src/page/home/component/log/index.tsx`
 6.  `src/index.ts` 中的输出历史和诊断导出 handler
-7.  [数据与日志](数据与日志.md)
+7.  [数据与日志](./data-and-logging)
 8.  `tests/unit/log-contract.test.ts`、`tests/unit/logger-files.test.ts` 及相关集成测试
 
 阶段状态必须依赖共享 `eventCode/status`，不得依赖中文 `message`。关键阶段遵循：
@@ -64,7 +69,7 @@
 2.  最后恰好写一个 `success`、`failure` 或 `partial_success`。
 3.  局部失败记录成功数、失败数和失败实体摘要。
 4.  不可恢复错误继续向上抛出，日志失败不能覆盖业务错误。
-5.  新增事件码时同时更新共享常量和[结构化日志事件诊断表](数据与日志.md#结构化日志事件诊断表)。
+5.  新增事件码时同时更新共享常量和[结构化日志事件诊断表](./data-and-logging#结构化日志事件诊断表)。
 
 日志默认位于 `PathConfig.rootPath/log`，文本、后端 JSONL 和前端 JSONL 每类各保留最近 5 个日期文件。GUI 输出历史也只覆盖这 5 日；不要重新引入“日志永久保存”或独立永久历史的假设。
 
@@ -92,6 +97,15 @@
 4. EPUB 的 `mimetype` 是第一个 STORE 条目，OPF/TOC XML 已转义，图片扩展名与 MIME 一致，封面不重复登记。
 5. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；输出历史仍应保留并显示该告警状态。
 6. 运行 `safe-output-path`、`epub-metadata`、`output-generation-contract` 和真实双卷 workflow 集成测试。
+
+## 更新文档站产品截图
+
+首页产品截图必须使用隔离的公开示例，不得连接真实 Electron 主进程或读取根目录 `config.json`、Cookie 和业务 SQLite。
+
+1. 任务管理、运行日志和数据浏览预览只有在 Vite 开发模式、`VITE_DOCS_SCREENSHOT_MODE=1` 与 `?docs-preview=app` 三项同时满足时才会加载 `client/src/docs_preview/install.ts`；不得放宽这三重门禁。
+2. HTML / EPUB 输出示例先完成根项目构建，再运行 `node scripts/docs/prepare-output-screenshot.cjs`。脚本只把产物写入仓库内的 `.docs-screenshot-tmp`，采集完成后必须删除该目录。
+3. 更新后的 PNG 放入 `doc/public/screenshots`，随后执行 `pnpm buildgui`，确认生产 GUI 产物中不存在 `docs-preview` fixture 标记。
+4. 最后执行 `pnpm docs:build` 与 `pnpm docs:check`；校验会检查四张截图、品牌资源、七张 Mermaid 图、公开路由和敏感信息。
 
 ## 验证建议
 
@@ -127,7 +141,7 @@ pnpm exec tsc --noEmit
 pnpm test
 ```
 
-真实知乎验证只通过显式的 `pnpm test:online` 或 `pnpm fixtures:refresh` 执行。普通测试不得联网或读取业务 `config.json`；详细边界见[测试与 Fixture](测试与Fixture.md)。
+真实知乎验证只通过显式的 `pnpm test:online` 或 `pnpm fixtures:refresh` 执行。普通测试不得联网或读取业务 `config.json`；详细边界见[测试与 Fixture](./testing-and-fixtures)。
 
 ## 修改测试或 Fixture 的同步清单
 
@@ -135,14 +149,13 @@ pnpm test
 2.  知乎响应 fixture 放在 `fixtures/zhihu`，必须通过 envelope、内容校验值、脱敏扫描和 `sources.json` 语义校验。
 3.  只有 `pnpm fixtures:refresh` 可以改写 fixture，更新后人工审阅 diff。
 4.  修改可变全局配置、任务池、HTTP 缓存或 SQLite client 时，补充 teardown 和串行/进程隔离验证。
-5.  修改命令、Cookie 前提、临时产物策略或允许跳过的在线场景时，同步更新[开发环境与命令](开发环境与命令.md)和[测试与 Fixture](测试与Fixture.md)。
+5.  修改命令、Cookie 前提、临时产物策略或允许跳过的在线场景时，同步更新[开发环境与命令](./environment)和[测试与 Fixture](./testing-and-fixtures)。
 
 ## 文档更新规则
 
-1.  面向用户的行为变化，更新 `doc/用户文档`。
-2.  架构、流程、IPC、数据、日志变化，更新 `doc/开发文档`。
+1.  面向用户的行为变化，更新 `doc/guide`。
+2.  架构、流程、IPC、数据、日志变化，更新 `doc/dev`。
 3.  阶段性规划和任务拆解，可继续更新 `doc/项目文档`。
 4.  新问题处理记录放在 `doc/task/问题描述-*`。
 5.  不要只改 README；README 应保持为入口。
 6.  开发文档只描述最终有效行为，不保留已经结束的需求问答或待办标记。
-

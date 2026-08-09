@@ -1,3 +1,8 @@
+---
+title: 业务流程
+description: 任务识别、分页抓取、持久化以及 HTML/EPUB 生成流程。
+---
+
 # 业务流程
 
 ## 用户侧主流程
@@ -103,23 +108,23 @@ flowchart TD
 
 任务类型的唯一入口是 `src/application/workflow/fetch/customer.ts` 的 `createBatchFetcher`。不同任务共用上面的流程图，差异如下。
 
-| `task.type`              | Batch 实现                    | 分页或子任务扩展                                               | 主要持久化数据                              | 生成 Unit / Page                    |
-| ------------------------ | ----------------------------- | -------------------------------------------------------------- | ------------------------------------------- | ----------------------------------- |
-| `author-ask-question`    | `author_ask_question.ts`      | 分页读取用户提问，再抓每个问题下的回答                         | `Author`、`Author_Ask_Question`、`Answer`   | `Unit_用户` / `Page_Question`       |
-| `author-answer`          | `author_answer.ts`            | 分页收集用户回答 id，再批量抓回答                              | `Author`、`Answer`                          | `Unit_用户` / `Page_Question`       |
-| `author-article`         | `author_article.ts`           | 分页收集文章 id，再批量抓文章                                  | `Author`、`Article`                         | `Unit_用户` / `Page_Article`        |
-| `author-pin`             | `author_pin.ts`               | 分页收集想法 id，再批量抓想法                                  | `Author`、`Pin`                             | `Unit_用户` / `Page_Pin`            |
-| `author-agree-answer`    | `author_activity.ts`          | 按月抓活动；从活动扩展赞同回答                                 | `Author`、`Activity`、`Answer`              | `Unit_用户` / `Page_Question`       |
-| `author-agree-article`   | `author_activity.ts`          | 按月抓活动；从活动扩展赞同文章                                 | `Author`、`Activity`、`Article`             | `Unit_用户` / `Page_Article`        |
-| `author-watch-question`  | `author_activity.ts`          | 按月抓活动；从活动扩展关注问题及其回答                         | `Author`、`Activity`、`Answer`              | `Unit_用户` / `Page_Question`       |
-| `block-account-answer`   | `block_account_answer.ts`     | 使用销号用户信息端点，分页收集并抓取回答                       | `Author`、`Answer`                          | `Unit_用户` / `Page_Question`       |
-| `topic`                  | `topic.ts`                    | 分页读取话题精华回答，再抓完整回答                             | `Topic`、`Topic_Answer`、`Answer`           | `Unit_话题` / `Page_Question`       |
-| `collection`             | `collection.ts`               | 分页读取混合收藏记录，并分派回答、文章、想法子任务             | `Collection`、`Collection_Record` 及三类主表 | `Unit_收藏夹` / 三类 Page           |
-| `column`                 | `column.ts`                   | 分页读取文章摘要，再批量抓完整文章                             | `Column`、`Article`                         | `Unit_专栏` / `Page_Article`        |
-| `article`                | `article.ts`                  | 单条读取                                                       | `Article`                                   | `Unit_混合类型` / `Page_Article`    |
-| `question`               | `question.ts`                 | 读取问题元信息，分页收集并抓取全部回答                         | `Answer`；问题信息保存在回答原始数据中      | `Unit_混合类型` / `Page_Question`   |
-| `answer`                 | `answer.ts`                   | 单条读取                                                       | `Answer`                                    | `Unit_混合类型` / `Page_Question`   |
-| `pin`                    | `pin.ts`                      | 单条读取                                                       | `Pin`                                       | `Unit_混合类型` / `Page_Pin`        |
+| `task.type`             | Batch 实现                | 分页或子任务扩展                                   | 主要持久化数据                               | 生成 Unit / Page                  |
+| ----------------------- | ------------------------- | -------------------------------------------------- | -------------------------------------------- | --------------------------------- |
+| `author-ask-question`   | `author_ask_question.ts`  | 分页读取用户提问，再抓每个问题下的回答             | `Author`、`Author_Ask_Question`、`Answer`    | `Unit_用户` / `Page_Question`     |
+| `author-answer`         | `author_answer.ts`        | 分页收集用户回答 id，再批量抓回答                  | `Author`、`Answer`                           | `Unit_用户` / `Page_Question`     |
+| `author-article`        | `author_article.ts`       | 分页收集文章 id，再批量抓文章                      | `Author`、`Article`                          | `Unit_用户` / `Page_Article`      |
+| `author-pin`            | `author_pin.ts`           | 分页收集想法 id，再批量抓想法                      | `Author`、`Pin`                              | `Unit_用户` / `Page_Pin`          |
+| `author-agree-answer`   | `author_activity.ts`      | 按月抓活动；从活动扩展赞同回答                     | `Author`、`Activity`、`Answer`               | `Unit_用户` / `Page_Question`     |
+| `author-agree-article`  | `author_activity.ts`      | 按月抓活动；从活动扩展赞同文章                     | `Author`、`Activity`、`Article`              | `Unit_用户` / `Page_Article`      |
+| `author-watch-question` | `author_activity.ts`      | 按月抓活动；从活动扩展关注问题及其回答             | `Author`、`Activity`、`Answer`               | `Unit_用户` / `Page_Question`     |
+| `block-account-answer`  | `block_account_answer.ts` | 使用销号用户信息端点，分页收集并抓取回答           | `Author`、`Answer`                           | `Unit_用户` / `Page_Question`     |
+| `topic`                 | `topic.ts`                | 分页读取话题精华回答，再抓完整回答                 | `Topic`、`Topic_Answer`、`Answer`            | `Unit_话题` / `Page_Question`     |
+| `collection`            | `collection.ts`           | 分页读取混合收藏记录，并分派回答、文章、想法子任务 | `Collection`、`Collection_Record` 及三类主表 | `Unit_收藏夹` / 三类 Page         |
+| `column`                | `column.ts`               | 分页读取文章摘要，再批量抓完整文章                 | `Column`、`Article`                          | `Unit_专栏` / `Page_Article`      |
+| `article`               | `article.ts`              | 单条读取                                           | `Article`                                    | `Unit_混合类型` / `Page_Article`  |
+| `question`              | `question.ts`             | 读取问题元信息，分页收集并抓取全部回答             | `Answer`；问题信息保存在回答原始数据中       | `Unit_混合类型` / `Page_Question` |
+| `answer`                | `answer.ts`               | 单条读取                                           | `Answer`                                     | `Unit_混合类型` / `Page_Question` |
+| `pin`                   | `pin.ts`                  | 单条读取                                           | `Pin`                                        | `Unit_混合类型` / `Page_Pin`      |
 
 三个 activity 类型目前共用 `BatchFetchAuthorActivity`：一次抓取会建立活动记录并解析回答、文章和关注问题。生成阶段再按原始 `task.type` 选择对应内容。`mix` 是生成期内部 Unit 类型，不是用户可配置的抓取任务。
 
@@ -153,15 +158,15 @@ flowchart TD
 
 核心概念：
 
-| 概念          | 当前实现                                                                 | 说明                                         |
-| ------------- | ------------------------------------------------------------------------ | -------------------------------------------- |
-| Page          | `Page_Question`、`Page_Article`、`Page_Pin`                              | 一类可渲染内容页                             |
-| Unit          | `Unit_用户`、`Unit_收藏夹`、`Unit_话题`、`Unit_专栏`、`Unit_混合类型`   | 一组内容页及其信息页                         |
-| Ebook_Column  | `Ebook_Column`                                                           | 自动分卷后的单本书                           |
-| HtmlRender    | `src/application/workflow/generate/library/html_render`                  | React 服务端渲染模板                         |
-| EpubGenerator | `src/application/workflow/generate/library/epub_generator.ts`            | HTML、图片、清单、EPUB 和最终文件输出        |
+| 概念          | 当前实现                                                              | 说明                                  |
+| ------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| Page          | `Page_Question`、`Page_Article`、`Page_Pin`                           | 一类可渲染内容页                      |
+| Unit          | `Unit_用户`、`Unit_收藏夹`、`Unit_话题`、`Unit_专栏`、`Unit_混合类型` | 一组内容页及其信息页                  |
+| Ebook_Column  | `Ebook_Column`                                                        | 自动分卷后的单本书                    |
+| HtmlRender    | `src/application/workflow/generate/library/html_render`               | React 服务端渲染模板                  |
+| EpubGenerator | `src/application/workflow/generate/library/epub_generator.ts`         | HTML、图片、清单、EPUB 和最终文件输出 |
 
-排序配置会逆序应用，以保持多重排序优先级。分卷边界必须覆盖 0、`max-1`、`max`、`max+1`、多 Unit 和单个 Unit 跨卷场景，详见[测试与 Fixture](测试与Fixture.md)。
+排序配置会逆序应用，以保持多重排序优先级。分卷边界必须覆盖 0、`max-1`、`max`、`max+1`、多 Unit 和单个 Unit 跨卷场景，详见[测试与 Fixture](./testing-and-fixtures)。
 
 输出路径在进入缓存和最终目录前统一经过 `src/shared/path/safe_output_path.ts`：先进行 Unicode NFKC 规范化，再替换 Windows 非法字符、路径分隔符和 `..`，处理保留设备名及结尾点/空格，并确认解析结果仍在指定输出根目录内。文件名最长 120 个字符；超长标题使用标题前缀加稳定 SHA-256 摘要，分卷名在清理前使用 `_1-of-2卷`、`_2-of-2卷` 形式，因此长标题的不同卷不会截断成同名。书内显示标题仍保留原始名称，安全名称只用于目录和 `.epub` 文件。
 

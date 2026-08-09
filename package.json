@@ -20,6 +20,10 @@
   "scripts": {
     "startgui": "node client/script/start.js",
     "buildgui": "node client/script/build.js",
+    "docs:dev": "vitepress dev doc",
+    "docs:build": "vitepress build doc",
+    "docs:preview": "vitepress preview doc",
+    "docs:check": "node scripts/docs/verify-site.cjs",
     "start": "electron dist/index.js --zhihuhelp-debug",
     "zhihuhelp": "node dist/interface/cli/main.js",
     "watch": "babel src --copy-files --watch --out-dir dist  --verbose --source-maps --extensions \".ts,.tsx,.js,.jsx\"",
@@ -132,10 +136,12 @@
     "eslint": "^10.8.0",
     "globals": "17.9.0",
     "jsdom": "^30.0.1",
+    "mermaid": "^11.16.1",
     "node-gyp": "^13.0.1",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.6",
     "typescript": "^7.0.2",
+    "vitepress": "2.0.0-alpha.19",
     "vitest": "^4.1.10"
   }
 }

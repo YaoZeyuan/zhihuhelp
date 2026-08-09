@@ -1,0 +1,233 @@
+:root {
+  --vp-font-family-base:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+  --vp-font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --vp-c-brand-1: #1677ff;
+  --vp-c-brand-2: #0958d9;
+  --vp-c-brand-3: #4096ff;
+  --vp-c-brand-soft: rgb(22 119 255 / 14%);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #0958d9 20%, #36cfc9 85%);
+  --vp-home-hero-image-background-image: linear-gradient(145deg, rgb(22 119 255 / 25%), rgb(54 207 201 / 20%));
+  --vp-home-hero-image-filter: blur(46px);
+}
+
+.dark {
+  --vp-c-brand-1: #69b1ff;
+  --vp-c-brand-2: #4096ff;
+  --vp-c-brand-3: #91caff;
+  --vp-c-brand-soft: rgb(64 150 255 / 16%);
+  --vp-home-hero-name-background: linear-gradient(120deg, #69b1ff 20%, #5cdbd3 85%);
+}
+
+.VPNavBar {
+  backdrop-filter: saturate(180%) blur(14px);
+}
+
+.VPNavBar:not(.home.top) .content-body,
+.VPNavBar.home.top {
+  background-color: color-mix(in srgb, var(--vp-c-bg) 88%, transparent);
+}
+
+.VPHomeHero .image-src {
+  max-width: 330px;
+  max-height: 330px;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 48px rgb(9 88 217 / 24%));
+}
+
+.VPFeature {
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 16%, var(--vp-c-divider));
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.VPFeature:hover {
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 46%, var(--vp-c-divider));
+  box-shadow: 0 14px 36px rgb(9 88 217 / 10%);
+  transform: translateY(-2px);
+}
+
+.vp-doc a {
+  text-underline-offset: 3px;
+}
+
+.home-content {
+  margin: 24px auto 0;
+  max-width: 1152px;
+  padding: 0 24px 72px;
+}
+
+.home-content h2 {
+  margin: 72px 0 12px;
+  border: 0;
+  font-size: clamp(26px, 4vw, 36px);
+  letter-spacing: -0.02em;
+}
+
+.home-content > p {
+  max-width: 760px;
+  color: var(--vp-c-text-2);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.workflow-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.workflow-step {
+  position: relative;
+  min-height: 132px;
+  padding: 22px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--vp-c-bg-soft), var(--vp-c-bg));
+}
+
+.workflow-step strong {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--vp-c-brand-1);
+  font-size: 18px;
+}
+
+.workflow-step span {
+  color: var(--vp-c-text-2);
+  line-height: 1.65;
+}
+
+.product-showcase {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.product-shot {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 18px;
+  background: var(--vp-c-bg-soft);
+  box-shadow: 0 18px 46px rgb(0 0 0 / 8%);
+}
+
+.product-shot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--vp-c-bg-alt);
+}
+
+.product-shot figcaption {
+  padding: 14px 17px 16px;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
+
+.docs-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.docs-entry {
+  display: block;
+  padding: 26px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 18px;
+  color: var(--vp-c-text-1) !important;
+  text-decoration: none !important;
+  background: var(--vp-c-bg-soft);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.docs-entry:hover {
+  border-color: var(--vp-c-brand-1);
+  transform: translateY(-2px);
+}
+
+.docs-entry strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.docs-entry span {
+  color: var(--vp-c-text-2);
+  line-height: 1.65;
+}
+
+.mermaid-diagram {
+  overflow-x: auto;
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-soft);
+  text-align: center;
+}
+
+.mermaid-diagram svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.mermaid-fallback {
+  margin: 0 !important;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.mermaid-error {
+  margin: 0 0 12px;
+  color: var(--vp-c-danger-1);
+  text-align: left;
+}
+
+@media (max-width: 767px) {
+  .home-content {
+    padding: 0 20px 52px;
+  }
+
+  .home-content h2 {
+    margin-top: 52px;
+  }
+
+  .workflow-strip,
+  .product-showcase,
+  .docs-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step {
+    min-height: auto;
+  }
+
+  .mermaid-diagram {
+    margin-right: -8px;
+    margin-left: -8px;
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPFeature,
+  .docs-entry {
+    transition: none;
+  }
+}

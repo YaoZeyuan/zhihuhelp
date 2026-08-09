@@ -1,3 +1,8 @@
+---
+title: 前端 / Electron / 后端分工
+description: Electron 窗口、前端状态、IPC 边界与后端服务的职责划分。
+---
+
 # 前端 / Electron / 后端分工
 
 ## 总原则
@@ -133,29 +138,29 @@ Electron 负责：
 
 IPC 公开面由 `src/preload.js` 与 `src/renderer.d.ts` 共同约束。新增或改名时必须同时更新两处和本表。
 
-| IPC                           | 主要调用方         | 用途与边界                                             |
-| ----------------------------- | ------------------ | ------------------------------------------------------ |
-| `get-debug-ipc-channel-list`  | 调试面板           | 获取调试标志、进程信息和允许展示的 IPC 列表            |
-| `get-common-config`           | 任务管理           | 读取任务配置；前端日志不得保存其中的 Cookie            |
-| `start-customer-task`         | 任务管理           | 合并 session Cookie、保存配置并启动完整任务            |
-| `get-task-default-title`      | 任务管理           | 根据任务类型和 id 获取默认书名                         |
-| `zhihu-http-get`              | 任务管理、调试     | 由主进程代理最小知乎 GET 请求                          |
-| `open-output-dir`             | 任务管理、运行日志 | 打开默认输出目录                                       |
-| `open-local-path`             | 运行日志           | 校验后打开文件或定位目录                               |
-| `clear-all-session-storage`   | 任务管理           | 清除 Electron 登录状态                                 |
-| `get-db-summary-info`         | 数据浏览           | 获取数据库实体汇总                                     |
-| `get-db-record-list`          | 数据浏览           | 获取带可选父级筛选的分页展示模型                       |
-| `export-db-record-json`       | 数据浏览           | 导出选定记录；SQLite 缺表/查询错误或损坏 `raw_json` 会拒绝 IPC，不生成空数据成功文件 |
+| IPC                           | 主要调用方         | 用途与边界                                                                                                                                         |
+| ----------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get-debug-ipc-channel-list`  | 调试面板           | 获取调试标志、进程信息和允许展示的 IPC 列表                                                                                                        |
+| `get-common-config`           | 任务管理           | 读取任务配置；前端日志不得保存其中的 Cookie                                                                                                        |
+| `start-customer-task`         | 任务管理           | 合并 session Cookie、保存配置并启动完整任务                                                                                                        |
+| `get-task-default-title`      | 任务管理           | 根据任务类型和 id 获取默认书名                                                                                                                     |
+| `zhihu-http-get`              | 任务管理、调试     | 由主进程代理最小知乎 GET 请求                                                                                                                      |
+| `open-output-dir`             | 任务管理、运行日志 | 打开默认输出目录                                                                                                                                   |
+| `open-local-path`             | 运行日志           | 校验后打开文件或定位目录                                                                                                                           |
+| `clear-all-session-storage`   | 任务管理           | 清除 Electron 登录状态                                                                                                                             |
+| `get-db-summary-info`         | 数据浏览           | 获取数据库实体汇总                                                                                                                                 |
+| `get-db-record-list`          | 数据浏览           | 获取带可选父级筛选的分页展示模型                                                                                                                   |
+| `export-db-record-json`       | 数据浏览           | 导出选定记录；SQLite 缺表/查询错误或损坏 `raw_json` 会拒绝 IPC，不生成空数据成功文件                                                               |
 | `import-db-record-json`       | 数据浏览           | 严格要求 `records/indexes/relations` 数组；全部条目无效时拒绝 IPC，部分写入返回 `partial_success` 并刷新摘要/列表，选择器取消则正常返回 `canceled` |
-| `get-log-content`             | 运行日志           | 读取最近文本日志                                       |
-| `clear-log-content`           | 运行日志           | 清理文本日志文件族                                     |
-| `get-runtime-jsonl-content`   | 运行日志、调试     | 合并读取最近五日后端 JSONL                             |
-| `clear-runtime-jsonl-content` | 运行日志           | 清理后端 JSONL 文件族                                  |
-| `get-output-history`          | 运行日志           | 从最近五日 `output.created` 事件按规范化路径去重构建历史 |
-| `export-diagnostic-info`      | 运行日志           | 导出脱敏配置、摘要及前后端日志尾部                     |
-| `open-devtools`               | 调试               | 打开主窗口 DevTools                                    |
-| `open-js-rpc-window-devtools` | 调试               | 显示 js-rpc 窗口并打开 DevTools                        |
-| `append-frontend-log-batch`   | 全局日志记录器     | 每批接收 1–20 条前端事件；固定目标文件、单条最多 64 KiB；error 立即刷新 |
+| `get-log-content`             | 运行日志           | 读取最近文本日志                                                                                                                                   |
+| `clear-log-content`           | 运行日志           | 清理文本日志文件族                                                                                                                                 |
+| `get-runtime-jsonl-content`   | 运行日志、调试     | 合并读取最近五日后端 JSONL                                                                                                                         |
+| `clear-runtime-jsonl-content` | 运行日志           | 清理后端 JSONL 文件族                                                                                                                              |
+| `get-output-history`          | 运行日志           | 从最近五日 `output.created` 事件按规范化路径去重构建历史                                                                                           |
+| `export-diagnostic-info`      | 运行日志           | 导出脱敏配置、摘要及前后端日志尾部                                                                                                                 |
+| `open-devtools`               | 调试               | 打开主窗口 DevTools                                                                                                                                |
+| `open-js-rpc-window-devtools` | 调试               | 显示 js-rpc 窗口并打开 DevTools                                                                                                                    |
+| `append-frontend-log-batch`   | 全局日志记录器     | 每批接收 1–20 条前端事件；固定目标文件、单条最多 64 KiB；error 立即刷新                                                                            |
 
 缓存 JSON 导入除顶层三个数组外还校验条目形状：每个 record/index 的 `raw`、`db.columns` 以及 collection relation 的 `raw`、`db.columns` 都必须是普通对象，标量和数组会在写数据库前计入 skipped，不得产生半条或污染记录。全部条目无效返回 failure；合法与非法条目混合时只写入合法项并返回 `partial_success`，前端随后刷新摘要和当前列表。
 
