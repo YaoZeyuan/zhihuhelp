@@ -20,7 +20,7 @@ export default class CommonConfig {
   // 使用serverless实现
   static readonly checkUpgradeUri = 'https://zhihuhelp.yaozeyuan.online/api/zhihuhelp/version'
 
-  static readonly db_version = '1.0.2'
+  static readonly db_version = '1.0.3'
   static db_uri: string = path.resolve(moduleDirectory, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
 
   /**
