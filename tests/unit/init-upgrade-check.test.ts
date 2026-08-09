@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import semver from 'semver'
 import InitWorkflow from '../../src/application/workflow/init/init_workflow'
+import CommonConfig from '../../src/config/common'
 import http from '../../src/library/http'
 import Logger from '../../src/library/logger'
 import { AppErrorCode } from '../../src/shared/error/application_error'
@@ -34,6 +35,22 @@ describe('InitWorkflow upgrade response validation', () => {
     vi.restoreAllMocks()
   })
 
+  it('requests the version endpoint published by the documentation site', async () => {
+    const getSpy = vi
+      .spyOn(http.rawInstance, 'get')
+      .mockResolvedValue({ data: { version: CommonConfig.version } } as never)
+    vi.spyOn(Logger, 'event').mockReturnValue({} as never)
+
+    await runUpgradeCheck(createContext())
+
+    expect(CommonConfig.checkUpgradeUri).toBe('https://zhihuhelp.yaozeyuan.online/api/zhihuhelp/version')
+    expect(getSpy).toHaveBeenCalledWith(CommonConfig.checkUpgradeUri, {
+      params: {
+        now: expect.any(String),
+      },
+    })
+  })
+
   it.each([
     ['a response without version', {}],
     ['an invalid semver version', { version: 'latest' }],
@@ -45,12 +62,14 @@ describe('InitWorkflow upgrade response validation', () => {
     await expect(runUpgradeCheck(context)).resolves.toBeUndefined()
 
     expect(context.outcomeStatus).toBe(LogStatus.PARTIAL_SUCCESS)
-    expect(eventSpy).toHaveBeenLastCalledWith(expect.objectContaining({
-      eventCode: LogEventCode.INIT_PARTIAL_SUCCESS,
-      status: LogStatus.PARTIAL_SUCCESS,
-      errorCode: AppErrorCode.VERSION_CHECK_FAILED,
-      error: expect.objectContaining({ code: AppErrorCode.VERSION_CHECK_FAILED }),
-    }))
+    expect(eventSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        eventCode: LogEventCode.INIT_PARTIAL_SUCCESS,
+        status: LogStatus.PARTIAL_SUCCESS,
+        errorCode: AppErrorCode.VERSION_CHECK_FAILED,
+        error: expect.objectContaining({ code: AppErrorCode.VERSION_CHECK_FAILED }),
+      }),
+    )
   })
 
   it('also recovers when semver comparison itself throws', async () => {
@@ -64,9 +83,11 @@ describe('InitWorkflow upgrade response validation', () => {
     await expect(runUpgradeCheck(context)).resolves.toBeUndefined()
 
     expect(context.outcomeStatus).toBe(LogStatus.PARTIAL_SUCCESS)
-    expect(eventSpy).toHaveBeenLastCalledWith(expect.objectContaining({
-      errorCode: AppErrorCode.VERSION_CHECK_FAILED,
-      status: LogStatus.PARTIAL_SUCCESS,
-    }))
+    expect(eventSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        errorCode: AppErrorCode.VERSION_CHECK_FAILED,
+        status: LogStatus.PARTIAL_SUCCESS,
+      }),
+    )
   })
 })

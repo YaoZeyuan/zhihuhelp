@@ -143,6 +143,10 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 3. 更新后的 PNG 放入 `doc/public/screenshots`，随后执行 `pnpm buildgui`，确认生产 GUI 产物中不存在 `docs-preview` fixture 标记。
 4. 最后执行 `pnpm docs:build` 与 `pnpm docs:check`；校验会检查四张截图、品牌资源、七张 Mermaid 图、公开路由和敏感信息。
 
+## 更新公开静态 API
+
+文档站公开接口的唯一源码位于仓库根 `api`，不得改用 Electron 后端实现目录 `src/api`。`pnpm docs:build` 会先清理发布产物中的旧 `/api`，再完整复制根 `api`；`pnpm docs:check` 会比较两侧文件集合和二进制内容，并扫描包括无扩展名接口文件在内的敏感信息。修改接口数据后必须依次运行这两个命令，且不得把 Cookie、令牌、私钥、本机路径或数据库内容放入根 `api`。
+
 ## 验证建议
 
 文档或前端改动：

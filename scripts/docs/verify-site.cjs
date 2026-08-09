@@ -1,9 +1,12 @@
 const fs = require('node:fs')
 const path = require('node:path')
+const semver = require('semver')
 
 const REPOSITORY_ROOT = path.resolve(__dirname, '..', '..')
 const SITE_ROOT = path.join(REPOSITORY_ROOT, 'doc')
 const DIST_ROOT = path.join(SITE_ROOT, '.vitepress', 'dist')
+const API_SOURCE_ROOT = path.join(REPOSITORY_ROOT, 'api')
+const API_DIST_ROOT = path.join(DIST_ROOT, 'api')
 const SITE_ORIGIN = 'https://zhihuhelp.yaozeyuan.online'
 const EXPECTED_CNAME = 'zhihuhelp.yaozeyuan.online'
 
@@ -34,13 +37,14 @@ const REQUIRED_STATIC_ASSETS = [
   'screenshots/runtime-log.png',
   'screenshots/data-explorer.png',
   'screenshots/output-preview.png',
+  'api/zhihuhelp/version',
 ]
 
 const FORBIDDEN_STATIC_ASSETS = ['brand/kanshan.png']
 
 const EXPECTED_MERMAID_DIAGRAM_COUNT = 7
 
-const TEXT_FILE_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.map', '.svg', '.txt', '.xml'])
+const TEXT_FILE_EXTENSIONS = new Set(['', '.css', '.html', '.js', '.json', '.map', '.svg', '.txt', '.xml'])
 
 const SENSITIVE_PATTERNS = [
   {
@@ -290,6 +294,89 @@ function verifyRequiredStaticAssets() {
   }
 }
 
+function collectStaticApiFiles(directory, label, relativeDirectory = '') {
+  if (!fs.existsSync(directory)) {
+    report(`${label} is missing: ${path.relative(REPOSITORY_ROOT, directory)}`)
+    return []
+  }
+
+  const directoryStats = fs.lstatSync(directory)
+  if (directoryStats.isSymbolicLink() || !directoryStats.isDirectory()) {
+    report(`${label} must be a real directory: ${path.relative(REPOSITORY_ROOT, directory)}`)
+    return []
+  }
+
+  const files = []
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name)
+    const relativePath = path.join(relativeDirectory, entry.name)
+    const displayPath = relativePath.split(path.sep).join('/')
+
+    if (entry.isSymbolicLink()) {
+      report(`${label} contains a forbidden symbolic link: ${displayPath}`)
+    } else if (entry.isDirectory()) {
+      files.push(...collectStaticApiFiles(entryPath, label, relativePath))
+    } else if (entry.isFile()) {
+      files.push(relativePath)
+    } else {
+      report(`${label} contains an unsupported entry: ${displayPath}`)
+    }
+  }
+
+  return files
+}
+
+function verifyStaticApi() {
+  const sourceFiles = collectStaticApiFiles(API_SOURCE_ROOT, 'public API source')
+  const builtFiles = collectStaticApiFiles(API_DIST_ROOT, 'built public API')
+  const normalize = (filePath) => filePath.split(path.sep).join('/')
+  const sourceFileSet = new Set(sourceFiles.map(normalize))
+  const builtFileSet = new Set(builtFiles.map(normalize))
+
+  if (sourceFiles.length === 0) {
+    report('public API source contains no files')
+  }
+
+  for (const relativePath of sourceFileSet) {
+    if (!builtFileSet.has(relativePath)) {
+      report(`built public API is missing: api/${relativePath}`)
+      continue
+    }
+
+    const sourceContent = fs.readFileSync(path.join(API_SOURCE_ROOT, ...relativePath.split('/')))
+    const builtContent = fs.readFileSync(path.join(API_DIST_ROOT, ...relativePath.split('/')))
+    if (!sourceContent.equals(builtContent)) {
+      report(`built public API content differs from source: api/${relativePath}`)
+    }
+  }
+
+  for (const relativePath of builtFileSet) {
+    if (!sourceFileSet.has(relativePath)) {
+      report(`built public API contains a stale or unexpected file: api/${relativePath}`)
+    }
+  }
+
+  const versionFile = path.join(API_SOURCE_ROOT, 'zhihuhelp', 'version')
+  if (!fs.existsSync(versionFile)) {
+    report('public version API is missing: api/zhihuhelp/version')
+    return
+  }
+
+  try {
+    const versionPayload = JSON.parse(readTrimmed(versionFile))
+    if (
+      versionPayload === null ||
+      typeof versionPayload !== 'object' ||
+      typeof versionPayload.version !== 'string' ||
+      semver.valid(versionPayload.version) === null
+    ) {
+      report('api/zhihuhelp/version must contain a valid semver `version` field')
+    }
+  } catch (error) {
+    report(`api/zhihuhelp/version must contain valid JSON: ${error.message}`)
+  }
+}
+
 function verifyExcludedRoutes(files) {
   for (const filePath of files) {
     const relative = relativeToDist(filePath)
@@ -362,6 +449,7 @@ function main() {
   verifyCname()
   verifyRequiredRoutes()
   verifyRequiredStaticAssets()
+  verifyStaticApi()
   verifyGeneratedFeatures(files)
   verifyExcludedRoutes(files)
   verifySensitiveContent(files)

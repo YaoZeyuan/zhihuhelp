@@ -51,7 +51,7 @@ pnpm install
 | `pnpm start`                                   | 用调试参数启动现有 `dist/index.js`，不会自动编译源码    |
 | `pnpm buildgui`                                | 构建前端并复制到 `dist/client`                          |
 | `pnpm docs:dev`                                | 启动 VitePress 文档站开发服务                           |
-| `pnpm docs:build`                              | 构建文档站到 `doc/.vitepress/dist`                      |
+| `pnpm docs:build`                              | 构建文档站，并把根 `api` 镜像到发布目录的 `/api`        |
 | `pnpm docs:check`                              | 校验已构建站点的链接、资源、公开边界、域名和敏感信息    |
 | `pnpm docs:preview`                            | 本地预览已构建的文档站                                  |
 | `pnpm pack`                                    | 构建根项目和 GUI，生成未打包应用目录                    |
@@ -91,7 +91,9 @@ pnpm docs:check
 pnpm docs:preview
 ```
 
-`docs:check` 只检查已经生成的 `doc/.vitepress/dist`，不会隐式重新构建。它会验证公开英文路由、内部链接、静态资源、本地搜索索引、站点地图和 `CNAME`，同时阻止 `doc/task`、`doc/项目文档` 路由及疑似 Cookie、令牌、私钥或本机绝对路径进入发布产物。
+`docs:check` 只检查已经生成的 `doc/.vitepress/dist`，不会隐式重新构建。它会验证公开英文路由、内部链接、静态资源、本地搜索索引、站点地图和 `CNAME`，同时阻止 `doc/task`、`doc/项目文档` 路由及疑似 Cookie、令牌、私钥或本机绝对路径进入发布产物。`docs:build` 还会把仓库根 `api` 逐文件复制到发布根目录的 `/api`；校验会要求两侧文件集合与内容完全一致，因此删除或改名接口文件后不会在发布目录残留旧文件。
+
+根 `api` 是有意公开的静态数据，不是 Electron 后端源码目录 `src/api`。当前版本检查文件为 `api/zhihuhelp/version`，线上地址是 `https://zhihuhelp.yaozeyuan.online/api/zhihuhelp/version`。不得在根 `api` 放入 Cookie、访问令牌、私钥、本机路径或其他不应公开的数据。
 
 推送到 `master` 或手动运行 `Documentation Pages` 工作流后，GitHub Actions 会拉取完整 Git 历史以生成准确的页面更新时间，重新安装锁定依赖、构建和校验站点，再把 `doc/.vitepress/dist` 发布到 GitHub Pages。仓库 Settings → Pages → Build and deployment 的 Source 必须设置为 **GitHub Actions**；旧 `homepage` 分支不再承担官网发布职责。正式域名由 `doc/public/CNAME` 固定为 `zhihuhelp.yaozeyuan.online`。
 
