@@ -23,8 +23,8 @@ vi.mock('rc-virtual-list', () => ({
 
 import LogPanel, { buildStageList } from '../../client/src/page/home/component/log'
 
-describe('log panel', () => {
-  it('keeps partial_success as a warning terminal after later stages start', () => {
+describe('日志面板', () => {
+  it('后续阶段开始后仍将 partial_success 保持为警告终态', () => {
     const stageList = buildStageList([
       { runId: 'run-1', stage: 'fetch', status: 'start', message: 'fetch start' },
       { runId: 'run-1', stage: 'fetch', status: 'partial_success', message: 'fetch partial' },
@@ -36,7 +36,7 @@ describe('log panel', () => {
     })
   })
 
-  it('does not turn a recoverable entity failure into a fatal run stage', () => {
+  it('不将可恢复的实体失败转换为致命运行阶段', () => {
     const stageList = buildStageList([
       { runId: 'run-1', stage: 'fetch', status: 'start', message: 'fetch start' },
       { runId: 'run-1', jobId: 'entity-1', stage: 'fetch', status: 'failure', message: 'one failed' },
@@ -56,7 +56,7 @@ describe('log panel', () => {
     expect(stageList.find((item) => item.stage === 'output')?.status).toBe('success')
   })
 
-  it('shows a canonical config job failure instead of the earlier context-created success', () => {
+  it('显示规范配置任务失败而非较早的上下文创建成功', () => {
     const stageList = buildStageList([
       { runId: 'run-1', stage: 'config', status: 'success', message: 'context created' },
       { runId: 'run-1', jobId: 'config-read', stage: 'config', status: 'start', message: 'config read start' },
@@ -68,7 +68,7 @@ describe('log panel', () => {
     })
   })
 
-  it('keeps an output failure visible when the parent generate stage also fails', () => {
+  it('父级生成阶段也失败时仍显示输出失败', () => {
     const stageList = buildStageList([
       { runId: 'run-1', stage: 'generate', status: 'start', message: 'generate start' },
       {
@@ -99,7 +99,7 @@ describe('log panel', () => {
     })
   })
 
-  it('keeps multi-volume output running until every started book reaches a terminal', () => {
+  it('在所有已开始书籍到达终态前保持多卷输出运行中', () => {
     const firstBookEvents = [
       { runId: 'run-1', jobId: 'generate-book-1', stage: 'output', status: 'start', message: 'book 1 start' },
       {
@@ -133,7 +133,7 @@ describe('log panel', () => {
     })
   })
 
-  it('summarizes multi-volume output as partial after every book terminates', () => {
+  it('所有书籍终止后将多卷输出汇总为部分成功', () => {
     const stageList = buildStageList([
       { runId: 'run-1', jobId: 'generate-book-1', stage: 'output', status: 'start', message: 'book 1 start' },
       {
@@ -161,7 +161,7 @@ describe('log panel', () => {
     })
   })
 
-  it('uses the canonical book partial result when only Markdown publishing fails', () => {
+  it('仅 Markdown 发布失败时采用书籍的规范部分成功结果', () => {
     const stageList = buildStageList([
       {
         runId: 'run-1',
@@ -195,7 +195,7 @@ describe('log panel', () => {
     })
   })
 
-  it('loads IPC data, tolerates malformed JSONL and sorts output history newest first', async () => {
+  it('加载 IPC 数据、容忍损坏 JSONL 并按时间倒序排列输出历史', async () => {
     const electronAPI = {
       'get-log-content': vi.fn().mockResolvedValue('line one\nline two'),
       'get-runtime-jsonl-content': vi

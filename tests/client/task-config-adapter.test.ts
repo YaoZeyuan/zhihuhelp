@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import TaskConfigAdapter from '../../client/src/page/home/component/customer_task/library/task_config_adapter'
 import { Const_Default_Config } from '../../client/src/resource/const/task_config'
 
-describe('client task config adapter', () => {
-  it('preserves editable fields, hides Cookie and normalizes an HTML-only config', () => {
+describe('客户端任务配置适配器', () => {
+  it('保留可编辑字段、隐藏 Cookie 并规范化仅 HTML 配置', () => {
     const config = {
       ...Const_Default_Config,
       request: {
@@ -40,7 +40,7 @@ describe('client task config adapter', () => {
     expect(converted.request.cookie).toBe('')
   })
 
-  it('drops incomplete task items and ignores manipulated form output formats', () => {
+  it('丢弃不完整任务项并忽略被篡改的表单输出格式', () => {
     const form = TaskConfigAdapter.taskConfigToForm(Const_Default_Config)
     form.taskItemList = [
       {
@@ -62,7 +62,7 @@ describe('client task config adapter', () => {
     [['html'] as const],
     [['epub'] as const],
     [[] as const],
-  ])('normalizes legacy output format subset %j when loading and saving', (outputFormats) => {
+  ])('加载和保存时规范化旧版输出格式子集 %j', (outputFormats) => {
     const legacyConfig = {
       ...Const_Default_Config,
       generate: {

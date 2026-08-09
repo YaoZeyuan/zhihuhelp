@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { parseReleaseInfo, VERSION_ENDPOINT } from '../../doc/.vitepress/theme/release'
 
-describe('documentation download release contract', () => {
-  it('uses the published same-origin version endpoint', () => {
+describe('文档下载版本契约', () => {
+  it('使用已发布的同源版本端点', () => {
     expect(VERSION_ENDPOINT).toBe('/api/zhihuhelp/version')
   })
 
-  it('accepts a release with separate Windows and macOS downloads', () => {
+  it('接受 Windows 和 macOS 分别提供下载地址的版本', () => {
     expect(parseReleaseInfo({
       version: '2.5.1',
       detail: {
@@ -24,7 +24,7 @@ describe('documentation download release contract', () => {
     {},
     { version: '2.5.1', detail: {} },
     { version: '2.5.1', detail: { windows: { version: '2.5.1', url: '/local' }, mac: { version: '2.5.1', url: 'https://download.example/mac' } } },
-  ])('rejects an incomplete or unsafe release response', (payload) => {
+  ])('拒绝不完整或不安全的版本响应（用例 %#）', (payload) => {
     expect(parseReleaseInfo(payload)).toBeUndefined()
   })
 })

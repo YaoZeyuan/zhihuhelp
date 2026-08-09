@@ -8,7 +8,7 @@ import PathConfig from '../../src/config/path'
 import Logger from '../../src/library/logger'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('HTTP log correlation', () => {
+describe('HTTP 日志关联', () => {
   let sandbox: TestSandbox
   let originalLogPath: string
   let originalCookie: string
@@ -33,7 +33,7 @@ describe('HTTP log correlation', () => {
     sandbox.cleanup()
   })
 
-  it('keeps an explicit IPC traceId on HTTP start and terminal records', async () => {
+  it('HTTP 开始和终态记录保留显式 IPC traceId', async () => {
     vi.spyOn(HttpClient.rawInstance, 'get').mockResolvedValue({ data: { id: 'fixture-entity' } } as never)
     await HttpClient.get(`https://www.zhihu.com/api/v4/test/${Date.now()}`, {}, { traceId: 'renderer-trace-1' })
 

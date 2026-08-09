@@ -6,14 +6,14 @@ import * as SharedTaskSchema from '../../src/shared/config/task_schema'
 import * as BackendTaskConstants from '../../src/constant/task_config'
 import { createTestSandbox } from '../helpers/sandbox'
 
-describe('task config schema', () => {
-  it('derives backend task and image constants from the shared schema', () => {
+describe('任务配置 schema', () => {
+  it('从共享 schema 派生后端任务和图片常量', () => {
     expect(BackendTaskConstants.Const_Task_Type_回答).toBe(SharedTaskSchema.Const_Task_Type_回答)
     expect(BackendTaskConstants.Const_Image_Quilty_高清).toBe('hd')
     expect(BackendTaskConstants.Const_Image_Quilty_原图).toBe('raw')
     expect(imageQualityList).toEqual([...SharedTaskSchema.imageQualityList])
   })
-  it('round-trips the current schema in an isolated directory', () => {
+  it('在隔离目录中往返读写当前 schema', () => {
     const sandbox = createTestSandbox('task-config')
     try {
       const config = createDefaultTaskConfig()
@@ -27,7 +27,7 @@ describe('task config schema', () => {
     }
   })
 
-  it('rejects the legacy schema with a diagnostic instead of migrating it', () => {
+  it('拒绝旧 schema 并给出诊断，而非迁移', () => {
     expect(() =>
       parseTaskConfig({
         requestConfig: { cookie: '' },
@@ -37,7 +37,7 @@ describe('task config schema', () => {
     ).toThrow(/schema/i)
   })
 
-  it('normalizes legacy output-format subsets to the three required artifacts', () => {
+  it('将旧输出格式子集规范为三个必需产物', () => {
     const config = createDefaultTaskConfig()
     config.generate.outputFormats = ['html']
     const legacy = toLegacyTaskConfig(config)

@@ -6,7 +6,7 @@ import Logger from '../../src/library/logger'
 import { LogEventCode, LogLevel, LogSource, LogStage, LogStatus } from '../../src/shared/logging/log_contract'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('daily log files', () => {
+describe('每日日志文件', () => {
   let sandbox: TestSandbox
   let previousLogPath: string
 
@@ -28,7 +28,7 @@ describe('daily log files', () => {
     sandbox.cleanup()
   })
 
-  it('writes backend and frontend records to separate daily JSONL files', () => {
+  it('将后端和前端记录分别写入每日 JSONL 文件', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 7, 8, 12, 0, 0))
 
@@ -59,7 +59,7 @@ describe('daily log files', () => {
     ])
   })
 
-  it('keeps only the latest five dates for each log kind', () => {
+  it('每类日志仅保留最近五个日期', () => {
     vi.useFakeTimers()
     for (let day = 1; day <= 6; day += 1) {
       vi.setSystemTime(new Date(2026, 0, day, 12, 0, 0))
@@ -81,7 +81,7 @@ describe('daily log files', () => {
     expect(Logger.readRecentLogContent('runtime-jsonl')).toContain('day-6')
   })
 
-  it('appends complete lines and degrades safely when the log path is not writable as a directory', () => {
+  it('追加完整行，并在日志路径无法作为目录写入时安全降级', () => {
     for (let index = 0; index < 25; index += 1) {
       Logger.event({
         level: LogLevel.INFO,
@@ -99,7 +99,7 @@ describe('daily log files', () => {
     expect(Logger.getLastWriteFailure()).not.toBe('')
   })
 
-  it('keeps only critical entity events in production and enables verbose records in debug mode', () => {
+  it('生产模式仅保留关键实体事件，调试模式启用详细记录', () => {
     Logger.setDebugMode(false)
     Logger.event({
       eventCode: LogEventCode.FETCH_START,

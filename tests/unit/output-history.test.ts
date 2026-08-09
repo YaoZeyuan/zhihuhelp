@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { createStructuredLogRecord, LogEventCode, LogLevel, LogStatus } from '../../src/shared/logging/log_contract'
 import { buildOutputHistory, parseJsonlRecords } from '../../src/shared/logging/output_history'
 
-describe('output history', () => {
-  it('ignores damaged lines and keeps successful output events in reverse order', () => {
+describe('输出历史', () => {
+  it('忽略损坏行，并按倒序保留成功的输出事件', () => {
     const records = parseJsonlRecords(
       [
         JSON.stringify({
@@ -33,7 +33,7 @@ describe('output history', () => {
     expect(buildOutputHistory(records).map((item) => item.message)).toEqual(['last', 'first'])
   })
 
-  it('deduplicates identical output records and applies the requested limit', () => {
+  it('去重相同输出记录并应用指定数量限制', () => {
     const event = {
       triggerAt: '2026-08-03T00:00:00.000Z',
       eventCode: LogEventCode.OUTPUT_CREATED,
@@ -44,7 +44,7 @@ describe('output history', () => {
     expect(buildOutputHistory([event, event, { ...event, triggerAt: '2026-08-04T00:00:00.000Z' }])).toHaveLength(1)
   })
 
-  it('ignores successful workflow records that only contain a context output directory', () => {
+  it('忽略仅包含上下文输出目录的成功 workflow 记录', () => {
     expect(
       buildOutputHistory([
         {
@@ -58,7 +58,7 @@ describe('output history', () => {
     ).toEqual([])
   })
 
-  it('preserves deep Windows output paths so GUI open actions remain usable', () => {
+  it('保留深层 Windows 输出路径以供 GUI 打开操作使用', () => {
     const path = 'D:\\win_www\\zhihuhelp\\output\\epub\\book.epub'
     const [item] = buildOutputHistory([
       createStructuredLogRecord({
@@ -72,7 +72,7 @@ describe('output history', () => {
     expect(item.epubOutputPath).toBe(path)
   })
 
-  it('keeps partial output artifacts and exposes their warning status', () => {
+  it('保留部分成功的输出产物并暴露其警告状态', () => {
     const [item] = buildOutputHistory([
       createStructuredLogRecord({
         eventCode: LogEventCode.OUTPUT_CREATED,
@@ -88,7 +88,7 @@ describe('output history', () => {
     })
   })
 
-  it('preserves the Markdown book directory for GUI open actions and deduplication', () => {
+  it('保留 Markdown 书籍目录供 GUI 打开和去重', () => {
     const markdownOutputPath = 'D:\\output\\markdown\\book'
     const [item] = buildOutputHistory([
       createStructuredLogRecord({

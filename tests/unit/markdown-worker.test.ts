@@ -58,8 +58,8 @@ function respondingWorker(delayMs = 0): FakeWorker {
   return worker
 }
 
-describe('PandocWorkerClient', () => {
-  it('lazily creates one Worker and serializes concurrent requests', async () => {
+describe('PandocWorkerClient 客户端', () => {
+  it('惰性创建一个 Worker 并串行处理并发请求', async () => {
     const worker = respondingWorker(5)
     let factoryCalls = 0
     const client = new PandocWorkerClient({
@@ -86,7 +86,7 @@ describe('PandocWorkerClient', () => {
     await expect(client.convert('after-dispose')).rejects.toThrow(/disposed/)
   })
 
-  it('rejects a timed-out request, terminates that Worker, and restarts on demand', async () => {
+  it('请求超时后拒绝、终止该 Worker，并按需重启', async () => {
     const timedOutWorker = new FakeWorker()
     const restartedWorker = respondingWorker()
     const workers = [timedOutWorker, restartedWorker]
@@ -111,7 +111,7 @@ describe('PandocWorkerClient', () => {
     expect(restartedWorker.terminated).toBe(true)
   })
 
-  it('rejects on Worker crashes and uses a new Worker for the next request', async () => {
+  it('Worker 崩溃时拒绝请求，并为下一次请求使用新 Worker', async () => {
     const crashedWorker = new FakeWorker()
     crashedWorker.behavior = (_request, worker) => {
       queueMicrotask(() => worker.emit('error', new Error('worker crashed')))

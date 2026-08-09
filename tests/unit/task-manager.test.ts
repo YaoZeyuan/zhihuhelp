@@ -3,7 +3,7 @@ import PathConfig from '../../src/config/path'
 import { TaskExecutionError, TaskManager } from '../../src/library/util/common'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('TaskManager failure propagation', () => {
+describe('TaskManager 失败传播', () => {
   let sandbox: TestSandbox
   let originalLogPath: string
 
@@ -21,7 +21,7 @@ describe('TaskManager failure propagation', () => {
     sandbox.cleanup()
   })
 
-  it('reports every failed task instead of resolving as success', async () => {
+  it('报告每个失败任务，而非按成功返回', async () => {
     const manager = new TaskManager({ maxTaskRunner: 2, protectMs: 0 })
     manager.addAsyncTaskFunc({ asyncTaskFunc: async () => undefined, needProtect: false })
     manager.addAsyncTaskFunc({
@@ -42,7 +42,7 @@ describe('TaskManager failure propagation', () => {
     }
   })
 
-  it('clears the timeout handle after rejecting a timed out task', async () => {
+  it('任务超时并拒绝后清理计时器句柄', async () => {
     const manager = new TaskManager({ taskTimeoutMs: 10, protectMs: 0 })
     manager.addAsyncTaskFunc({
       asyncTaskFunc: () => new Promise(() => undefined),

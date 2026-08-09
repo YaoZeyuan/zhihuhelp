@@ -11,7 +11,7 @@ vi.mock('~/src/library/debug_log', () => ({ default: debugLogMock }))
 
 import DbExplorer from '../../client/src/page/home/component/db_explorer'
 
-describe('database explorer failure state', () => {
+describe('数据库浏览器失败状态', () => {
   beforeEach(() => {
     debugLogMock.append.mockReset()
     debugLogMock.invokeElectronApi.mockReset().mockImplementation((channel: string) => {
@@ -30,7 +30,7 @@ describe('database explorer failure state', () => {
     })
   })
 
-  it('ends loading and renders a clear empty state when summary IPC rejects', async () => {
+  it('汇总 IPC 拒绝时结束加载并显示明确空状态', async () => {
     render(<DbExplorer />)
 
     expect(await screen.findByText('无法读取数据库汇总')).toBeInTheDocument()
@@ -40,7 +40,7 @@ describe('database explorer failure state', () => {
     expect(screen.queryByText(/回答: /)).not.toBeInTheDocument()
   })
 
-  it('does not disguise a record-list IPC rejection as an ordinary empty list', async () => {
+  it('不将记录列表 IPC 拒绝伪装为普通空列表', async () => {
     debugLogMock.invokeElectronApi.mockImplementation((channel: string) => {
       if (channel === 'get-db-summary-info') {
         return Promise.resolve({

@@ -3,7 +3,7 @@ import RunTaskWorkflow from '../../src/application/workflow/run_task/run_task_wo
 import Logger from '../../src/library/logger'
 import { LogStatus } from '../../src/shared/logging/log_contract'
 
-describe('RunTaskWorkflow stage-local outcome', () => {
+describe('RunTaskWorkflow 阶段局部结果', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -12,7 +12,7 @@ describe('RunTaskWorkflow stage-local outcome', () => {
     [LogStatus.PARTIAL_SUCCESS, LogStatus.PARTIAL_SUCCESS],
     [LogStatus.SUCCESS, LogStatus.SUCCESS],
   ] as const)(
-    'records generate=%s independently when the upstream context is already partial',
+    '上游上下文已为 partial_success 时仍独立记录 generate=%s',
     async (stageResult, expectedTerminal) => {
       const workflow = new RunTaskWorkflow()
       const eventSpy = vi.spyOn(Logger, 'event').mockImplementation(() => undefined as never)

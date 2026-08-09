@@ -131,7 +131,7 @@ function expectEveryStartedOperationToHaveOneTerminal(records: StructuredLogReco
   }
 }
 
-describe('fixture-driven persistence and sandbox workflow', () => {
+describe('fixture 驱动的持久化与沙箱工作流', () => {
   let sandbox: TestSandbox
   let originalState: MutableRuntimeState
 
@@ -159,7 +159,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     sandbox.cleanup()
   })
 
-  it('feeds a captured fixture through the single API and real Answer model into isolated SQLite', async () => {
+  it('将捕获的 fixture 通过单体 API 和真实 Answer 模型写入隔离 SQLite', async () => {
     const answerRecord = readAnswerFixture()
     const context = createRunContext({
       configPath: sandbox.configPath,
@@ -197,7 +197,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(fs.realpathSync(sandbox.databasePath).startsWith(fs.realpathSync(sandbox.rootPath))).toBe(true)
   })
 
-  it('runs init, skipped fetch, database-backed generation and forced HTML/Markdown/EPUB output entirely in the sandbox', async () => {
+  it('完全在沙箱中执行初始化、跳过抓取、数据库生成及强制 HTML/Markdown/EPUB 输出', async () => {
     const answerRecord = readAnswerFixture()
     const config = createDefaultTaskConfig()
     config.tasks = [
@@ -263,7 +263,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
   })
 
-  it('creates distinct real HTML, Markdown and EPUB files for a long-title two-volume book', async () => {
+  it('为长标题双卷书籍创建互不相同的真实 HTML、Markdown 和 EPUB 文件', async () => {
     const firstAnswer = readAnswerFixture()
     const secondAnswer = {
       ...firstAnswer,
@@ -317,7 +317,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
   })
 
-  it('keeps HTML and EPUB usable and reports partial_success when Markdown publishing fails', async () => {
+  it('Markdown 发布失败时保持 HTML 与 EPUB 可用并报告 partial_success', async () => {
     const answerRecord = readAnswerFixture()
     const config = createDefaultTaskConfig()
     config.tasks = [{

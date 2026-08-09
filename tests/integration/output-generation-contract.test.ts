@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip'
 import PathConfig from '../../src/config/path'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('output generation contract', () => {
+describe('输出生成契约', () => {
   let sandbox: TestSandbox
   let originalCachePath: string
   let originalOutputPath: string
@@ -34,7 +34,7 @@ describe('output generation contract', () => {
     sandbox.cleanup()
   })
 
-  it('honors html-only output and keeps unsafe title characters inside the sandbox', async () => {
+  it('遵循仅 HTML 输出并将标题中的不安全字符限制在沙箱内', async () => {
     const generator = new EpubGenerator({
       bookname: '../A&B/:*? 测试书',
       imageQuilty: 'none',
@@ -50,7 +50,7 @@ describe('output generation contract', () => {
     expect(path.basename(generator.htmlOutputPathUri)).not.toMatch(/[<>:"/\\|?*]/)
   })
 
-  it('does not add a missing downloaded image to the EPUB manifest', () => {
+  it('不将下载失败的图片加入 EPUB manifest', () => {
     const generator = new EpubGenerator({ bookname: 'missing-image', imageQuilty: 'hd' })
     const missingPath = path.join(sandbox.cachePath, 'does-not-exist.png')
     ;(generator.imgUriPool as Map<string, any>).set('fixture://missing.png', {
@@ -62,7 +62,7 @@ describe('output generation contract', () => {
     expect(generator.epub.opf.content).not.toContain('does-not-exist.png')
   })
 
-  it('writes a complete EPUB with the mimetype as the first uncompressed ZIP entry', async () => {
+  it('写出完整 EPUB 且将 mimetype 作为 ZIP 中首个未压缩条目', async () => {
     const generator = new EpubGenerator({ bookname: 'EPUB contract', imageQuilty: 'none' })
     generator.addHtml({ filename: 'chapter-1', title: 'Chapter 1', html: '<html><body>EPUB body marker</body></html>' })
 
@@ -93,7 +93,7 @@ describe('output generation contract', () => {
     expect(opf).toMatch(/<itemref idref="index_\d+"/)
   })
 
-  it('refuses to publish an EPUB without a body chapter', async () => {
+  it('拒绝发布没有正文章节的 EPUB', async () => {
     const generator = new EpubGenerator({ bookname: 'empty EPUB', imageQuilty: 'none' })
     generator.generateSinglePageHtml({ html: '<html><body>HTML only</body></html>' })
 
@@ -101,7 +101,7 @@ describe('output generation contract', () => {
     expect(fs.existsSync(generator.epubOutputPathUri)).toBe(false)
   })
 
-  it('renders a responsive single-file table of contents with page anchors', () => {
+  it('渲染带页内锚点的响应式单文件目录', () => {
     const index = HtmlRender.renderIndex({ title: '目录', recordList: [{ title: '用户', uri: '#author-1', pageList: [{ title: '回答', uri: '#answer-1' }] }] }).singleEle
     const html = HtmlRender.generateSinglePageWithIndex({
       title: 'fixture', index,
@@ -113,7 +113,7 @@ describe('output generation contract', () => {
     expect(html).toContain('签名')
   })
 
-  it('does not render an empty information body', () => {
+  it('不渲染空的信息正文', () => {
     const html = HtmlRender.renderToString(HtmlRender.renderInfoPage({ title: '信息页' }).htmlEle)
     expect(html).not.toContain('panel-body')
   })

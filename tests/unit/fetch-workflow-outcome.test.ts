@@ -102,7 +102,7 @@ describe('FetchWorkflow 跨任务类型结果汇总', () => {
     expect(articleFetcher.fetchListAndSaveToDb).not.toHaveBeenCalled()
   })
 
-  it('全部任务类型只有可恢复实体失败时仍返回 zero-success partial_success', async () => {
+  it('全部任务类型只有可恢复实体失败时仍返回零成功的 partial_success', async () => {
     const workflow = new FetchWorkflow()
     const answerFetcher = {
       fetchListAndSaveToDb: vi.fn().mockRejectedValue(recoverableBatchError()),

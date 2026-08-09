@@ -3,8 +3,8 @@ import { JSDOM } from 'jsdom'
 import OPF from '../../src/library/epub/opf'
 import TOC from '../../src/library/epub/toc'
 
-describe('EPUB XML metadata', () => {
-  it('escapes titles and file attributes into valid OPF/TOC XML', () => {
+describe('EPUB XML 元数据', () => {
+  it('将标题和文件属性转义为有效 OPF/TOC XML', () => {
     const opf = new OPF()
     opf.title = 'A & B <测试>'
     opf.addHtml('chapter&1.xhtml')
@@ -19,7 +19,7 @@ describe('EPUB XML metadata', () => {
     expect(toc.content).toContain('chapter&amp;1.xhtml')
   })
 
-  it('writes the actual media type for each image extension', () => {
+  it('为每种图片扩展名写入实际媒体类型', () => {
     const opf = new OPF()
     opf.addImage('a.jpg')
     opf.addImage('b.png')
@@ -34,7 +34,7 @@ describe('EPUB XML metadata', () => {
     expect(opf.content).toContain('e.svg" id="index_5" media-type="image/svg+xml"')
   })
 
-  it('registers the cover href only once', () => {
+  it('只注册一次封面 href', () => {
     const opf = new OPF()
     opf.addImage('kanshan.png')
     opf.addCoverImage('cover.jpg')

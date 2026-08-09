@@ -45,7 +45,7 @@ const seedList: ArticleSeed[] = [
   { id: 'high', actionAt: 30, created: 300, updated: 3000, voteup_count: 3, comment_count: 30 },
 ]
 
-describe('generation ordering', () => {
+describe('生成排序', () => {
   it.each([
     ConstTaskConfig.Const_Order_With_记录加入时间_首次值,
     ConstTaskConfig.Const_Order_With_记录加入时间_末次值,
@@ -53,7 +53,7 @@ describe('generation ordering', () => {
     ConstTaskConfig.Const_Order_With_更新时间,
     ConstTaskConfig.Const_Order_With_赞同数,
     ConstTaskConfig.Const_Order_With_评论数,
-  ])('sorts %s in both ascending and descending order', (orderWith) => {
+  ])('按升序和降序对 %s 排序', (orderWith) => {
     const ascending = createArticlePage(seedList)
     const descending = createArticlePage(seedList)
 
@@ -64,7 +64,7 @@ describe('generation ordering', () => {
     expect(recordIds(descending)).toEqual(['high', 'middle', 'low'])
   })
 
-  it('keeps insertion order for the none metric and for equal values', () => {
+  it('对“不排序”指标和相同值保持插入顺序', () => {
     const unsorted = createArticlePage(seedList)
     const equalValues = createArticlePage(
       seedList.map((seed) => ({ ...seed, voteup_count: 1 })),
@@ -83,7 +83,7 @@ describe('generation ordering', () => {
     expect(recordIds(equalValues)).toEqual(['middle', 'low', 'high'])
   })
 
-  it('normalizes a missing numeric property to zero', () => {
+  it('将缺失的数值属性归一化为零', () => {
     const page = createArticlePage([
       { id: 'two', actionAt: 0, voteup_count: 2 },
       { id: 'missing', actionAt: 0 },
@@ -98,7 +98,7 @@ describe('generation ordering', () => {
     expect(recordIds(page)).toEqual(['missing', 'one', 'two'])
   })
 
-  it('applies multiple criteria with the first configured criterion as primary', () => {
+  it('使用多个条件时，以首个配置条件为主', () => {
     const unit = new Package.Unit_混合类型({
       pageList: [
         createArticlePage([{ id: 'a', actionAt: 0, voteup_count: 1, comment_count: 2 }]),

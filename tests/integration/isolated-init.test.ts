@@ -9,7 +9,7 @@ import { createDefaultTaskConfig } from '../../src/domain/task/task_config'
 import { readTaskConfig, writeTaskConfig } from '../../src/shared/config/task_config_parser'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('isolated runtime initialization', () => {
+describe('隔离运行时初始化', () => {
   let sandbox: TestSandbox
   let originalConfigPath: string
   let originalDatabasePath: string
@@ -36,7 +36,7 @@ describe('isolated runtime initialization', () => {
     sandbox.cleanup()
   })
 
-  it('creates config, SQLite schema, cache, logs and output only inside the sandbox', async () => {
+  it('仅在沙箱内创建配置、SQLite schema、缓存、日志和输出', async () => {
     const config = createDefaultTaskConfig()
     writeTaskConfig(sandbox.configPath, config)
     const context = createRunContext({

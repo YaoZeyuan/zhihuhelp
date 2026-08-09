@@ -67,7 +67,7 @@ class NestedPaginationBatchFetch extends BaseBatchFetch {
   }
 }
 
-describe('batch partial and fatal semantics', () => {
+describe('批处理的部分成功与致命失败语义', () => {
   let sandbox: TestSandbox
   let originalLogPath: string
   let originalTaskManager: TaskManager
@@ -89,7 +89,7 @@ describe('batch partial and fatal semantics', () => {
     sandbox.cleanup()
   })
 
-  it('returns partial_success with the failed entity when other entities succeed', async () => {
+  it('部分实体成功时返回 partial_success 及失败实体', async () => {
     const outcome = await new FixtureBatchFetch().fetchListAndSaveToDb(['ok-1', 'missing-2', 'ok-3'])
 
     expect(outcome).toMatchObject({
@@ -105,7 +105,7 @@ describe('batch partial and fatal semantics', () => {
     ])
   })
 
-  it('throws BatchFetchError with a complete outcome when every entity fails', async () => {
+  it('所有实体失败时抛出包含完整结果的 BatchFetchError', async () => {
     await expect(new FixtureBatchFetch().fetchListAndSaveToDb(['fatal-1', 'fatal-2'])).rejects.toMatchObject({
       name: 'BatchFetchError',
       outcome: {
@@ -120,7 +120,7 @@ describe('batch partial and fatal semantics', () => {
     } satisfies Partial<BatchFetchError>)
   })
 
-  it('preserves recoverable failures from a nested batch instead of converting them to fatal errors', async () => {
+  it('保留嵌套批次的可恢复失败而非转换为致命错误', async () => {
     await expect(new NestedRecoverableBatchFetch().fetchListAndSaveToDb(['collection-1'])).rejects.toMatchObject({
       name: 'BatchFetchError',
       outcome: {
@@ -135,7 +135,7 @@ describe('batch partial and fatal semantics', () => {
     })
   })
 
-  it('rejects empty or identifier-less entity responses before persistence', () => {
+  it('持久化前拒绝空实体或缺少标识符的实体响应', () => {
     const batch = new EntityValidationBatchFetch()
     expect(() => batch.validate({})).toThrowError(expect.objectContaining({ code: AppErrorCode.ENTITY_RESPONSE_EMPTY }))
     expect(() => batch.validate({ title: 'missing id' })).toThrowError(
@@ -144,7 +144,7 @@ describe('batch partial and fatal semantics', () => {
     expect(() => batch.validate({ url_token: 'stable-user' }, ['id', 'url_token'])).not.toThrow()
   })
 
-  it('isolates nested pagination waits by running parent entities sequentially', async () => {
+  it('通过串行处理父实体隔离嵌套分页等待', async () => {
     const batch = new NestedPaginationBatchFetch()
     const outcome = await batch.fetchListAndSaveToDb(['first', 'second'])
 

@@ -23,7 +23,7 @@ function restoreDocumentProperty(name: string, descriptor?: PropertyDescriptor):
   }
 }
 
-describe('Mermaid diagram viewer', () => {
+describe('Mermaid 图表查看器', () => {
   beforeEach(() => {
     document.body.replaceChildren()
     let objectUrlSequence = 0
@@ -45,7 +45,7 @@ describe('Mermaid diagram viewer', () => {
     vi.restoreAllMocks()
   })
 
-  it('provides an explicit new-tab SVG fallback without Fullscreen API', () => {
+  it('无 Fullscreen API 时提供明确的新标签页 SVG 后备操作', () => {
     const element = createDiagram()
     enhanceMermaidDiagram(element)
 
@@ -59,7 +59,7 @@ describe('Mermaid diagram viewer', () => {
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.objectContaining({ type: 'image/svg+xml;charset=utf-8' }))
   })
 
-  it('enters fullscreen, exposes a close button, and restores focus after closing', async () => {
+  it('进入全屏、显示关闭按钮并在关闭后恢复焦点', async () => {
     let fullscreenElement: Element | null = null
     Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true })
     Object.defineProperty(document, 'fullscreenElement', {
@@ -101,7 +101,7 @@ describe('Mermaid diagram viewer', () => {
     expect(primaryButton).toHaveFocus()
   })
 
-  it('switches to the new-tab SVG action when fullscreen is rejected', async () => {
+  it('全屏被拒绝时切换为新标签页 SVG 操作', async () => {
     Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true })
 
     const element = createDiagram()
@@ -125,7 +125,7 @@ describe('Mermaid diagram viewer', () => {
     expect(element.dataset.mermaidViewerMode).toBe('new-tab')
   })
 
-  it('revokes the previous SVG object URL when a diagram is redrawn', () => {
+  it('图表重绘时撤销之前的 SVG 对象 URL', () => {
     const element = createDiagram()
     enhanceMermaidDiagram(element)
     element.innerHTML = '<svg viewBox="0 0 100 50"><text>重绘后的流程图</text></svg>'

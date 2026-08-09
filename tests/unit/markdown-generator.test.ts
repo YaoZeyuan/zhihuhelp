@@ -23,8 +23,8 @@ afterEach(async () => {
   )))
 })
 
-describe('MarkdownGenerator', () => {
-  it('runs the real default TypeScript Worker without falling back', async () => {
+describe('MarkdownGenerator 生成器', () => {
+  it('使用真实默认 TypeScript Worker 且不触发降级', async () => {
     const outputRootPath = await createTemporaryDirectory()
     const generator = new MarkdownGenerator()
 
@@ -49,7 +49,7 @@ describe('MarkdownGenerator', () => {
     }
   }, 120_000)
 
-  it('converts Chinese rich HTML and mirrors every multi-file and single-file page', async () => {
+  it('转换中文富文本 HTML，并镜像多文件版和单文件版的每个页面', async () => {
     const outputRootPath = await createTemporaryDirectory()
     const directPandocConverter: MarkdownConverter = {
       async convert(html, options = PANDOC_MARKDOWN_OPTIONS) {
@@ -118,7 +118,7 @@ describe('MarkdownGenerator', () => {
     expect(singleMarkdown).not.toContain('目录')
   }, 120_000)
 
-  it('removes every image in no-image mode and restores mapped remote URLs otherwise', () => {
+  it('无图模式移除所有图片，其他模式恢复映射后的远程 URL', () => {
     const html = '<p><img alt="示例" src="../image/a.jpg"><img src=https://already.example/b.png></p>'
     expect(prepareHtmlForMarkdown(html, 'none')).not.toMatch(/<img\b/i)
     expect(prepareHtmlForMarkdown(html, 'raw', {
@@ -127,7 +127,7 @@ describe('MarkdownGenerator', () => {
     expect(prepareHtmlForMarkdown(html, 'raw')).toContain('https://already.example/b.png')
   })
 
-  it('uses the failure suffix, reports fallback details, and rewrites links after all outcomes are known', async () => {
+  it('使用失败后缀、报告降级详情，并在所有结果确定后重写链接', async () => {
     const outputRootPath = await createTemporaryDirectory()
     const converter: MarkdownConverter = {
       async convert(html, options) {
@@ -177,7 +177,7 @@ describe('MarkdownGenerator', () => {
     expect(fallbackMarkdown).not.toMatch(/<img\b/i)
   })
 
-  it('throws a real filesystem write error instead of reporting a fallback success', async () => {
+  it('抛出真实文件系统写入错误，不误报降级成功', async () => {
     const temporaryDirectory = await createTemporaryDirectory()
     const outputRootPath = path.join(temporaryDirectory, 'not-a-directory')
     await fs.writeFile(outputRootPath, 'blocking file', 'utf8')
@@ -195,7 +195,7 @@ describe('MarkdownGenerator', () => {
     })).rejects.toThrow()
   })
 
-  it('removes stale Markdown only from the current book after conversion finishes', async () => {
+  it('转换完成后仅清理当前书籍的过期 Markdown', async () => {
     const outputRootPath = await createTemporaryDirectory()
     const currentBookPath = path.join(outputRootPath, 'current-book')
     const otherBookFile = path.join(outputRootPath, 'other-book', 'html', 'keep.md')
@@ -221,7 +221,7 @@ describe('MarkdownGenerator', () => {
     await expect(fs.readFile(otherBookFile, 'utf8')).resolves.toBe('keep')
   })
 
-  it('writes a clean cache mirror before replacing stale final output', async () => {
+  it('替换过期最终输出前写入干净的缓存镜像', async () => {
     const temporaryDirectory = await createTemporaryDirectory()
     const cacheRootPath = path.join(temporaryDirectory, 'cache')
     const outputRootPath = path.join(temporaryDirectory, 'output')
@@ -261,7 +261,7 @@ describe('MarkdownGenerator', () => {
     await expect(fs.readFile(otherBookFile, 'utf8')).resolves.toBe('keep')
   })
 
-  it('rejects unsafe source paths and output collisions before conversion', async () => {
+  it('转换前拒绝不安全的源路径和输出路径冲突', async () => {
     const outputRootPath = await createTemporaryDirectory()
     let conversionCount = 0
     const generator = new MarkdownGenerator({
@@ -289,7 +289,7 @@ describe('MarkdownGenerator', () => {
     expect(conversionCount).toBe(0)
   })
 
-  it('rejects a fallback filename that collides with another converted output', async () => {
+  it('拒绝与其他转换输出冲突的降级文件名', async () => {
     const outputRootPath = await createTemporaryDirectory()
     const generator = new MarkdownGenerator({
       async convert(html) {

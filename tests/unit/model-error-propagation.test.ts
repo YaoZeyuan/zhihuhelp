@@ -22,7 +22,7 @@ async function createAnswerTable(): Promise<void> {
   `)
 }
 
-describe('model SQLite error propagation', () => {
+describe('模型层 SQLite 错误传播', () => {
   let sandbox: TestSandbox
   let originalDatabasePath: string
   let originalOutputPath: string
@@ -43,7 +43,7 @@ describe('model SQLite error propagation', () => {
     sandbox.cleanup()
   })
 
-  it('propagates SQLite errors when the queried table does not exist', async () => {
+  it('被查询的表不存在时传播 SQLite 错误', async () => {
     await expect(Answer.asyncGetAnswer('missing-table-entity')).rejects.toThrow(/no such table.*Answer/i)
     await expect(AuthorAskQuestion.asyncGetAuthorAskQuestionIdList('missing-author')).rejects.toThrow(
       /no such table.*Author_Ask_Question/i,
@@ -56,14 +56,14 @@ describe('model SQLite error propagation', () => {
     ).rejects.toThrow(/no such table.*Answer/i)
   })
 
-  it('keeps a missing entity as an empty result', async () => {
+  it('实体不存在时返回空结果', async () => {
     await createAnswerTable()
 
     await expect(Answer.asyncGetAnswer('not-persisted')).resolves.toEqual({})
     await expect(Answer.asyncGetAnswerList(['not-persisted'])).resolves.toEqual([])
   })
 
-  it('throws a diagnostic ApplicationError for corrupt persisted raw_json', async () => {
+  it('持久化 raw_json 损坏时抛出包含诊断信息的 ApplicationError', async () => {
     await createAnswerTable()
     await Knex.raw(
       `INSERT INTO Answer (answer_id, question_id, author_url_token, author_id, raw_json)

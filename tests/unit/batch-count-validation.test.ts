@@ -16,7 +16,7 @@ import Logger from '../../src/library/logger'
 import { AppErrorCode } from '../../src/shared/error/application_error'
 import { assertZhihuNonNegativeIntegerCount } from '../../src/shared/error/zhihu_response_validation'
 
-describe('Zhihu entity count validation', () => {
+describe('知乎实体数量校验', () => {
   beforeEach(() => {
     vi.spyOn(Logger, 'log').mockImplementation(() => undefined)
     vi.spyOn(Logger, 'warn').mockImplementation(() => undefined)
@@ -28,26 +28,26 @@ describe('Zhihu entity count validation', () => {
   })
 
   it.each([
-    ['missing', undefined],
-    ['null', null],
-    ['numeric string', '0'],
-    ['NaN', Number.NaN],
-    ['infinity', Number.POSITIVE_INFINITY],
-    ['negative', -1],
-    ['fractional', 1.5],
-  ])('rejects a %s count with a structured fatal schema error', (_label, value) => {
+    ['缺失', undefined],
+    ['null 值', null],
+    ['数字字符串', '0'],
+    ['NaN 值', Number.NaN],
+    ['无穷大', Number.POSITIVE_INFINITY],
+    ['负数', -1],
+    ['小数', 1.5],
+  ])('拒绝数量值（%s）并报告结构化致命 schema 错误', (_label, value) => {
     expect(() => assertZhihuNonNegativeIntegerCount(value, 'fixture.count')).toThrowError(
       expect.objectContaining({ code: AppErrorCode.PAGINATION_RESPONSE_INVALID }),
     )
   })
 
-  it.each([0, 1, 20])('accepts the non-negative integer %s', (value) => {
+  it.each([0, 1, 20])('接受非负整数 %s', (value) => {
     expect(assertZhihuNonNegativeIntegerCount(value, 'fixture.count')).toBe(value)
   })
 
   it.each([
     {
-      label: 'question.answer_count',
+      label: '问题 question.answer_count',
       run: async () => {
         vi.spyOn(QuestionApi, 'asyncGetQuestionInfo').mockResolvedValue({
           id: 'question-id',
@@ -57,7 +57,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'column.articles_count',
+      label: '专栏 column.articles_count',
       run: async () => {
         vi.spyOn(ColumnApi, 'asyncGetColumnInfo').mockResolvedValue({
           id: 'column-id',
@@ -67,7 +67,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'topic.best_answers_count',
+      label: '话题 topic.best_answers_count',
       run: async () => {
         vi.spyOn(TopicApi, 'asyncGetTopicInfo').mockResolvedValue({
           id: 'topic-id',
@@ -77,7 +77,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'author.answer_count',
+      label: '用户 author.answer_count',
       run: async () => {
         vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
           id: 'author-id',
@@ -88,7 +88,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'author.articles_count',
+      label: '用户 author.articles_count',
       run: async () => {
         vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
           id: 'author-id',
@@ -99,7 +99,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'author.pins_count',
+      label: '用户 author.pins_count',
       run: async () => {
         vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
           id: 'author-id',
@@ -110,7 +110,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'author.question_count',
+      label: '用户 author.question_count',
       run: async () => {
         vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
           id: 'author-id',
@@ -121,7 +121,7 @@ describe('Zhihu entity count validation', () => {
       },
     },
     {
-      label: 'blocked author.answer_count',
+      label: '销号用户 author.answer_count',
       run: async () => {
         vi.spyOn(AuthorApi, 'asyncGetBlockAccountAutherInfo').mockResolvedValue({
           id: 'author-id',
@@ -131,7 +131,7 @@ describe('Zhihu entity count validation', () => {
         return new BatchFetchBlockedAuthorAnswer().fetch('author-token')
       },
     },
-  ])('does not let $label silently become a successful empty fetch', async ({ run }) => {
+  ])('不会让缺失的 $label 被静默视为空抓取成功', async ({ run }) => {
     await expect(run()).rejects.toMatchObject({
       code: AppErrorCode.PAGINATION_RESPONSE_INVALID,
     })

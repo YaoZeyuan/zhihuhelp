@@ -80,7 +80,7 @@ vi.mock('../../client/src/page/home/component/login', () => ({
 
 import Home from '../../client/src/page/home'
 
-describe('home developer mode', () => {
+describe('首页开发者模式', () => {
   beforeEach(() => {
     localStorage.clear()
     debugLogMock.append.mockReset()
@@ -98,7 +98,7 @@ describe('home developer mode', () => {
     vi.restoreAllMocks()
   })
 
-  it('can add and remove the debug tab without changing the component Hook order', async () => {
+  it('可添加和移除调试标签页且不改变组件 Hook 顺序', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     render(<Home />)
 
@@ -135,7 +135,7 @@ describe('home developer mode', () => {
     expect(errorText).not.toContain('Rendered fewer hooks')
   })
 
-  it('restores developer mode from local storage before the first render', async () => {
+  it('首次渲染前从本地存储恢复开发者模式', async () => {
     localStorage.setItem('zhihuhelp_developer_mode', 'true')
     render(<Home />)
 
@@ -144,7 +144,7 @@ describe('home developer mode', () => {
     await waitFor(() => expect(debugLogMock.invokeElectronApi).toHaveBeenCalledTimes(1))
   })
 
-  it('enables developer mode when the Electron debug runtime reports it', async () => {
+  it('Electron 调试运行时报告开启时启用开发者模式', async () => {
     debugLogMock.invokeElectronApi.mockResolvedValue({ isDebug: true })
     render(<Home />)
 

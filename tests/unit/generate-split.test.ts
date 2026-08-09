@@ -34,7 +34,7 @@ function getColumnCounts(columnList: Package.Ebook_Column[]) {
   return columnList.map((column) => column.unitList.reduce((sum, unit) => sum + unit.getItemCount(), 0))
 }
 
-describe('ebook volume boundaries', () => {
+describe('电子书分卷边界', () => {
   it.each([
     { items: [0], max: 10, expected: [0] },
     { items: [9], max: 10, expected: [9] },
@@ -42,11 +42,11 @@ describe('ebook volume boundaries', () => {
     { items: [11], max: 10, expected: [10, 1] },
     { items: [4, 6, 3], max: 10, expected: [10, 3] },
     { items: [21], max: 10, expected: [10, 10, 1] },
-  ])('splits $items with max=$max', ({ items, max, expected }) => {
+  ])('按最大值 max=$max 拆分 $items', ({ items, max, expected }) => {
     expect(getColumnCounts(split(items, max))).toEqual(expected)
   })
 
-  it('rejects a non-positive maximum', () => {
+  it('拒绝非正最大值', () => {
     expect(() => split([1], 0)).toThrow('maxItemInBook 必须大于 0')
   })
 })

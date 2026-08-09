@@ -9,7 +9,7 @@ import { AppErrorCode } from '../../src/shared/error/application_error'
 import { TaskExecutionError } from '../../src/library/util/common'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('paginated batch response validation', () => {
+describe('分页批处理响应校验', () => {
   let sandbox: TestSandbox
   let originalLogPath: string
 
@@ -25,7 +25,7 @@ describe('paginated batch response validation', () => {
     sandbox.cleanup()
   })
 
-  it('fails a question with count > 0 when its HTTP 200 page is an empty object', async () => {
+  it('count > 0 但 HTTP 200 页面为空对象时判定问题抓取失败', async () => {
     vi.spyOn(Logger, 'log').mockImplementation(() => undefined)
     vi.spyOn(Logger, 'warn').mockImplementation(() => undefined)
     vi.spyOn(QuestionApi, 'asyncGetQuestionInfo').mockResolvedValue({

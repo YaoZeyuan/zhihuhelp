@@ -8,13 +8,13 @@ function BrokenPage(): never {
   throw new Error('render failed')
 }
 
-describe('frontend error boundary', () => {
+describe('前端错误边界', () => {
   afterEach(async () => {
     await DebugLog.flush()
     vi.restoreAllMocks()
   })
 
-  it('renders a recoverable fallback and immediately records the React error', () => {
+  it('渲染可恢复后备界面并立即记录 React 错误', () => {
     const appendBatch = vi.fn().mockResolvedValue({ acceptedCount: 1 })
     Object.defineProperty(window, 'electronAPI', {
       configurable: true,

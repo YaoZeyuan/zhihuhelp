@@ -7,12 +7,12 @@ import AuthorModel from '../../src/model/author'
 import Logger from '../../src/library/logger'
 import { LogStatus } from '../../src/shared/logging/log_contract'
 
-describe('author activity cursor', () => {
+describe('用户动态游标', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('advances the inclusive cursor before the next request instead of endlessly queueing tasks', async () => {
+  it('在发起下一次请求前推进闭区间游标，避免任务被无限加入队列', async () => {
     const activityList = [
       { id: 102_000 },
       { id: 101_000 },
@@ -37,7 +37,7 @@ describe('author activity cursor', () => {
     expect(replaceActivity).toHaveBeenCalledTimes(2)
   })
 
-  it('returns an empty success after persisting the author when the initial activity probe is empty', async () => {
+  it('初次动态探测为空时，持久化用户后返回空成功结果', async () => {
     vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
       id: 'fixture-author-id',
       url_token: 'fixture-author',
@@ -65,7 +65,7 @@ describe('author activity cursor', () => {
     expect(getTargetList).not.toHaveBeenCalled()
   })
 
-  it('does not start daily fetching when every monthly probe is empty', async () => {
+  it('每个月度探测均为空时不启动按日抓取', async () => {
     vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
       id: 'fixture-author-id',
       url_token: 'fixture-author',

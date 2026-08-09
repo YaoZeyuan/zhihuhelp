@@ -74,7 +74,7 @@ function createConfig(identifier: string) {
   return toLegacyTaskConfig(config)
 }
 
-describe('author identity fetch, persistence and generation', () => {
+describe('用户身份抓取、持久化与生成', () => {
   let sandbox: TestSandbox
   let originalState: MutableRuntimeState
 
@@ -101,9 +101,9 @@ describe('author identity fetch, persistence and generation', () => {
   })
 
   it.each([
-    ['stable author id', stableAuthorId],
-    ['canonical url token', canonicalUrlToken],
-  ])('resolves %s to the canonical author and generates the same unit', async (_label, identifier) => {
+    ['稳定用户 ID', stableAuthorId],
+    ['规范 url_token', canonicalUrlToken],
+  ])('将 %s 解析为规范用户并生成相同单元', async (_label, identifier) => {
     const context = createRunContext({
       configPath: sandbox.configPath,
       databasePath: sandbox.databasePath,

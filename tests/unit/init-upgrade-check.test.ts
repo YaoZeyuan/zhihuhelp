@@ -30,12 +30,12 @@ async function runUpgradeCheck(context: RunContext): Promise<void> {
   await workflow.checkUpgrade(context)
 }
 
-describe('InitWorkflow upgrade response validation', () => {
+describe('InitWorkflow 升级响应校验', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('requests the version endpoint published by the documentation site', async () => {
+  it('请求文档站发布的版本接口', async () => {
     const getSpy = vi
       .spyOn(http.rawInstance, 'get')
       .mockResolvedValue({ data: { version: CommonConfig.version } } as never)
@@ -52,9 +52,9 @@ describe('InitWorkflow upgrade response validation', () => {
   })
 
   it.each([
-    ['a response without version', {}],
-    ['an invalid semver version', { version: 'latest' }],
-  ])('continues initialization with partial_success for %s', async (_label, payload) => {
+    ['缺少 version 的响应', {}],
+    ['无效的 semver 版本', { version: 'latest' }],
+  ])('遇到%s时继续初始化并标记为 partial_success', async (_label, payload) => {
     vi.spyOn(http.rawInstance, 'get').mockResolvedValue({ data: payload } as never)
     const eventSpy = vi.spyOn(Logger, 'event').mockReturnValue({} as never)
     const context = createContext()
@@ -72,7 +72,7 @@ describe('InitWorkflow upgrade response validation', () => {
     )
   })
 
-  it('also recovers when semver comparison itself throws', async () => {
+  it('semver 比较自身抛错时也能恢复', async () => {
     vi.spyOn(http.rawInstance, 'get').mockResolvedValue({ data: { version: '99.0.0' } } as never)
     vi.spyOn(semver, 'gt').mockImplementation(() => {
       throw new Error('semver comparison failed')

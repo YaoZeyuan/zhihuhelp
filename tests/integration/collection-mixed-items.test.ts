@@ -13,7 +13,7 @@ import { createPartialOutcome, createSuccessOutcome } from '../../src/shared/run
 import { AppErrorCode } from '../../src/shared/error/application_error'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
-describe('collection mixed item expansion', () => {
+describe('收藏夹混合内容展开', () => {
   let sandbox: TestSandbox
   let originalLogPath: string
 
@@ -31,7 +31,7 @@ describe('collection mixed item expansion', () => {
     sandbox.cleanup()
   })
 
-  it('uses item_count and dispatches article/pin relationships from the captured mixed fixture', async () => {
+  it('根据捕获的混合 fixture 使用 item_count 并分派文章与想法关联', async () => {
     const fixture = JSON.parse(
       fs.readFileSync(path.resolve(process.cwd(), 'fixtures/zhihu/online/collection-37171281.json'), 'utf8'),
     )
@@ -86,7 +86,7 @@ describe('collection mixed item expansion', () => {
     }
   })
 
-  it('continues pin/article children when the answer child batch has only recoverable failures', async () => {
+  it('回答子批次仅有可恢复失败时继续处理想法和文章子项', async () => {
     vi.spyOn(CollectionApi, 'asyncGetCollectionInfo').mockResolvedValue({
       id: 1,
       title: 'mixed',
@@ -127,7 +127,7 @@ describe('collection mixed item expansion', () => {
     expect(outcome).toMatchObject({ status: 'partial_success', successCount: 2, failureCount: 1 })
   })
 
-  it('rejects a fractional collection count before persisting the entity', async () => {
+  it('持久化实体前拒绝小数形式的收藏夹数量', async () => {
     vi.spyOn(CollectionApi, 'asyncGetCollectionInfo').mockResolvedValue({
       id: 1,
       title: 'invalid count',

@@ -9,8 +9,8 @@ const { validateFixture } = require('../../scripts/tests/runtime.cjs') as {
 
 const fixtureRoot = path.resolve(__dirname, '../../fixtures/zhihu')
 
-describe('fixture contract', () => {
-  it('validates all bundled error and captured fixtures and their checksums', () => {
+describe('fixture 契约', () => {
+  it('校验全部内置错误和采集 fixture 及其校验和', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(fixtureRoot, 'sources.json'), 'utf8')) as {
       sources: Array<Record<string, unknown> & { name: string }>
     }
@@ -38,7 +38,7 @@ describe('fixture contract', () => {
     expect(fixtureCount).toBeGreaterThanOrEqual(3)
   })
 
-  it('uses unique HTTPS Zhihu sources and leaves optional 404 collection offline', () => {
+  it('使用唯一的知乎 HTTPS 来源，并将可选的 404 收藏夹保留为离线测试', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(fixtureRoot, 'sources.json'), 'utf8')) as {
       schemaVersion: number
       sources: Array<{ name: string; url: string; online: boolean; pageOffsets?: number[] }>

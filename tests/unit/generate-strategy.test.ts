@@ -74,12 +74,12 @@ function unitPageIds(unit: Package.Type_Unit_Item) {
   })
 }
 
-describe('generation strategies', () => {
+describe('生成策略', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('single creates one book per source unit and derives each title from that unit', async () => {
+  it('single 为每个源单元分别生成一本书，并按对应单元派生书名', async () => {
     const workflow = createWorkflow()
 
     const books = await workflow.asyncGetColumnPackage({
@@ -95,7 +95,7 @@ describe('generation strategies', () => {
     expect(books.map((book) => unitPageIds(book.unitList[0]))).toEqual([['article-a'], ['article-b']])
   })
 
-  it('merge_by_task keeps source units as ordered chapters in one configured-title book', async () => {
+  it('merge_by_task 按原顺序将源单元作为章节合并到一本使用配置标题的书中', async () => {
     const workflow = createWorkflow()
 
     const books = await workflow.asyncGetColumnPackage({
@@ -111,7 +111,7 @@ describe('generation strategies', () => {
     expect(books[0].unitList.map(unitPageIds)).toEqual([['article-a'], ['article-b']])
   })
 
-  it('merge_by_all flattens source chapters into one mixed unit without changing page order', async () => {
+  it('merge_by_all 在不改变页面顺序的情况下，将源章节展平为一个混合单元', async () => {
     const workflow = createWorkflow()
 
     const books = await workflow.asyncGetColumnPackage({
@@ -132,7 +132,7 @@ describe('generation strategies', () => {
     ConstTaskConfig.Const_Generate_Type_独立输出电子书,
     ConstTaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节,
     ConstTaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排,
-  ])('fails %s generation when configured tasks all resolve to missing database entities', async (generateType) => {
+  ])('配置的任务在数据库中均无对应实体时，%s 生成失败', async (generateType) => {
     const workflow = new GenerateWorkflow()
     vi.spyOn(workflow as any, 'event').mockImplementation(() => undefined)
     vi.spyOn(workflow as any, 'log').mockImplementation(() => undefined)
@@ -147,7 +147,7 @@ describe('generation strategies', () => {
     ).rejects.toMatchObject({ code: AppErrorCode.BATCH_FAILED })
   })
 
-  it('does not attribute an upstream partial outcome to a successful generate stage', async () => {
+  it('generate 阶段成功时，不将上游 partial_success 结果归因于该阶段', async () => {
     const workflow = new GenerateWorkflow()
     const eventSpy = vi.spyOn(workflow as any, 'event').mockImplementation(() => undefined)
     vi.spyOn(workflow as any, 'log').mockImplementation(() => undefined)
@@ -168,7 +168,7 @@ describe('generation strategies', () => {
     expect(context.outcomeStatus).toBe(LogStatus.PARTIAL_SUCCESS)
   })
 
-  it('marks generation partial when one entity is missing but another book is generated', async () => {
+  it('一个实体缺失但另一本书成功生成时，将生成结果标记为 partial_success', async () => {
     const workflow = new GenerateWorkflow()
     const sourceUnits = createSourceUnits()
     vi.spyOn(workflow as any, 'event').mockImplementation(() => undefined)

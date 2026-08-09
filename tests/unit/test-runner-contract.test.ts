@@ -43,7 +43,7 @@ const manifest = {
   ],
 }
 
-describe('CommonJS runner ESM loading contract', () => {
+describe('CommonJS runner 的 ESM 加载契约', () => {
   const electronRunnerSource = readFileSync(
     new URL('../../scripts/tests/electron-online-runner.cjs', import.meta.url),
     'utf8',
@@ -53,7 +53,7 @@ describe('CommonJS runner ESM loading contract', () => {
     'utf8',
   )
 
-  it('loads ESM dist modules through file URLs and native dynamic import', () => {
+  it('通过文件 URL 和原生动态 import 加载 ESM dist 模块', () => {
     for (const source of [electronRunnerSource, screenshotRunnerSource]) {
       expect(source).toContain("require('node:url')")
       expect(source).toContain('pathToFileURL(')
@@ -64,7 +64,7 @@ describe('CommonJS runner ESM loading contract', () => {
     expect(screenshotRunnerSource).not.toContain("require('../../dist")
   })
 
-  it('keeps the Electron runner in CommonJS and targets the CommonJS sandboxed preload', () => {
+  it('保持 Electron runner 为 CommonJS 并指向 CommonJS 沙箱 preload', () => {
     expect(electronRunnerSource).toContain("require('electron')")
     expect(electronRunnerSource).toContain("'preload.cjs'")
     expect(electronRunnerSource).toContain('async function initializeRuntimeContract()')
@@ -72,8 +72,8 @@ describe('CommonJS runner ESM loading contract', () => {
   })
 })
 
-describe('Electron test runner result contract', () => {
-  it('selects one normal source per type online and all enabled sources during fixture refresh', () => {
+describe('Electron 测试 runner 结果契约', () => {
+  it('在线模式每种类型选择一个正常源，fixture 刷新时选择全部启用源', () => {
     expect(selectSourcesForMode(manifest, 'online').map((source) => source.name)).toEqual([
       'answer-primary',
       'author-primary',
@@ -86,7 +86,7 @@ describe('Electron test runner result contract', () => {
     ])
   })
 
-  it('does not let an optional source displace a required source of the same type online', () => {
+  it('在线模式不允许可选源挤占同类型必需源', () => {
     const selectionManifest = {
       sources: [
         { name: 'answer-optional', sourceType: 'answer', online: true, optional: true },
@@ -97,7 +97,7 @@ describe('Electron test runner result contract', () => {
     expect(selectSourcesForMode(selectionManifest, 'online').map((source) => source.name)).toEqual(['answer-required'])
   })
 
-  it('requires a complete unique source summary and successful normal sources', () => {
+  it('要求完整且唯一的源摘要，并要求正常源成功', () => {
     const expectedSources = selectSourcesForMode(manifest, 'online')
     const completeSummary = expectedSources.map((source) => ({
       name: source.name,
@@ -121,7 +121,7 @@ describe('Electron test runner result contract', () => {
     ).toThrow(/invalid status/)
   })
 
-  it('allows an explicitly abnormal fixture source to record an expected failure', () => {
+  it('允许明确异常的 fixture 源记录预期失败', () => {
     const expectedSources = selectSourcesForMode(manifest, 'fixtures')
     const summary = expectedSources.map((source) => ({
       name: source.name,
@@ -132,7 +132,7 @@ describe('Electron test runner result contract', () => {
     expect(validateRunSummary(summary, expectedSources, 'fixtures')).toBe(true)
   })
 
-  it('allows an explicitly optional source to report an expected failure', () => {
+  it('允许明确可选的源报告预期失败', () => {
     const optionalSource = {
       name: 'collection-optional',
       sourceType: 'collection',
@@ -156,8 +156,8 @@ describe('Electron test runner result contract', () => {
   })
 })
 
-describe('Electron online pagination evidence', () => {
-  it('summarizes direct and wrapped list records with a stable id before type-only fallback', () => {
+describe('Electron 在线分页证据', () => {
+  it('优先使用稳定 id 汇总直接或包装的列表记录，之后才回退到仅有 type', () => {
     expect(summarizePageItem({ id: 'answer-1', type: 'answer', content: '<p>body</p>' })).toEqual({
       id: 'answer-1',
       type: 'answer',
@@ -170,7 +170,7 @@ describe('Electron online pagination evidence', () => {
     expect(() => summarizePageItem({ content: '<p>body</p>' })).toThrow(/stable id or type/)
   })
 
-  it('requires a non-empty first page for required sources but honors the optional marker', () => {
+  it('必需源要求第一页非空，但尊重 optional 标记', () => {
     const requiredSource = {
       name: 'author-required',
       sourceType: 'author',
@@ -192,7 +192,7 @@ describe('Electron online pagination evidence', () => {
     expect(validatePaginatedSourceResult({ ...requiredSource, optional: true }, [emptyPage])).toBe(true)
   })
 
-  it('rejects page summaries without stable evidence and page provenance mismatches', () => {
+  it('拒绝缺少稳定证据的页面摘要和页面来源不匹配', () => {
     const source = {
       name: 'question-required',
       sourceType: 'question',
@@ -218,7 +218,7 @@ describe('Electron online pagination evidence', () => {
     ).toThrow(/source mismatch/)
   })
 
-  it('validates collection multi-page provenance and rejects duplicate or type-only items', () => {
+  it('校验收藏夹多页来源，并拒绝重复项或仅有 type 的项目', () => {
     const source = {
       name: 'collection-required',
       sourceType: 'collection',
@@ -248,7 +248,7 @@ describe('Electron online pagination evidence', () => {
   })
 })
 
-describe('Electron online entity and fixture evidence', () => {
+describe('Electron 在线实体与 fixture 证据', () => {
   const authorSource = {
     name: 'author-jin-xu-liang',
     sourceType: 'author',
@@ -258,7 +258,7 @@ describe('Electron online entity and fixture evidence', () => {
     pageOffsets: [0],
   }
 
-  it('matches the raw author url_token before sanitization', () => {
+  it('清理前匹配原始用户 url_token', () => {
     expect(
       validateEntitySourceResult(authorSource, {
         id: 'author-hash',
@@ -275,7 +275,7 @@ describe('Electron online entity and fixture evidence', () => {
     ).toThrow(/does not match manifest source id/)
   })
 
-  it('rejects a checksum-valid online fixture whose page contains an empty summary', () => {
+  it('拒绝页面包含空摘要但 checksum 有效的在线 fixture', () => {
     const createPage = (items: Array<Record<string, unknown>>) => ({
       sourceName: authorSource.name,
       sourceType: authorSource.sourceType,

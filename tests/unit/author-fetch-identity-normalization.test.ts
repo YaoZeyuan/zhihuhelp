@@ -30,7 +30,7 @@ function createAuthorRecord(countName: string, count: number) {
   }
 }
 
-describe('ordinary author fetch identity normalization', () => {
+describe('普通用户抓取身份归一化', () => {
   let queuedTasks: Array<() => Promise<unknown>>
 
   beforeEach(() => {
@@ -65,7 +65,7 @@ describe('ordinary author fetch identity normalization', () => {
 
   it.each([
     {
-      label: 'answers',
+      label: '回答',
       countName: 'answer_count',
       listMethod: 'asyncGetAutherAnswerList' as const,
       entityId: 'answer-id',
@@ -73,7 +73,7 @@ describe('ordinary author fetch identity normalization', () => {
       detailPrototype: BatchFetchAnswer.prototype,
     },
     {
-      label: 'articles',
+      label: '文章',
       countName: 'articles_count',
       listMethod: 'asyncGetAutherArticleList' as const,
       entityId: 'article-id',
@@ -81,14 +81,14 @@ describe('ordinary author fetch identity normalization', () => {
       detailPrototype: BatchFetchArticle.prototype,
     },
     {
-      label: 'pins',
+      label: '想法',
       countName: 'pins_count',
       listMethod: 'asyncGetAutherPinList' as const,
       entityId: 'pin-id',
       createBatch: () => new BatchFetchAuthorPin(),
       detailPrototype: BatchFetchPin.prototype,
     },
-  ])('uses the canonical token for $label pagination after resolving a stable-id input', async (fixture) => {
+  ])('解析稳定 id 输入后，使用规范 token 对 $label 执行分页', async (fixture) => {
     const authorInfo = vi
       .spyOn(AuthorApi, 'asyncGetAutherInfo')
       .mockResolvedValue(createAuthorRecord(fixture.countName, 1) as never)
@@ -109,7 +109,7 @@ describe('ordinary author fetch identity normalization', () => {
     )
   })
 
-  it('writes and reads author-question relations with canonical and stable identities', async () => {
+  it('使用规范身份和稳定身份写入并读取用户提问关系', async () => {
     const question = { id: 'question-id' }
     vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue(createAuthorRecord('question_count', 1) as never)
     const list = vi.spyOn(AuthorApi, 'asyncGetAutherQuestionList').mockResolvedValue([question] as never)
@@ -131,7 +131,7 @@ describe('ordinary author fetch identity normalization', () => {
     expect(fetchQuestions).toHaveBeenCalledWith([question.id])
   })
 
-  it('uses the canonical token for activity APIs and all known aliases for persisted activity reads', async () => {
+  it('动态 API 使用规范 token，读取持久化动态时使用全部已知别名', async () => {
     const firstActivityAt = ActivityModel.ZHIHU_ACTIVITY_START_MONTH_AT
     vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue(createAuthorRecord('answer_count', 0) as never)
     const getLastActivity = vi.spyOn(ActivityApi, 'asyncGetAutherLastActivityAt').mockResolvedValue(firstActivityAt)
@@ -155,7 +155,7 @@ describe('ordinary author fetch identity normalization', () => {
     }
   })
 
-  it('falls back to the stable id when the author response has no public token', async () => {
+  it('用户响应缺少公开 token 时回退到稳定 id', async () => {
     vi.spyOn(AuthorApi, 'asyncGetAutherInfo').mockResolvedValue({
       ...createAuthorRecord('answer_count', 0),
       url_token: '   ',

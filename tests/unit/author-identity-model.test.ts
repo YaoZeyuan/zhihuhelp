@@ -115,7 +115,7 @@ async function insertRelationFixtures(): Promise<void> {
   }
 }
 
-describe('author identity model', () => {
+describe('用户身份模型', () => {
   let sandbox: TestSandbox
   let originalDatabasePath: string
 
@@ -138,7 +138,7 @@ describe('author identity model', () => {
     sandbox.cleanup()
   })
 
-  it('resolves stable id first and falls back to the canonical url token', async () => {
+  it('优先解析稳定 id，并回退到规范 url_token', async () => {
     const byId = await Author.asyncResolveIdentity(stableAuthorId)
     const byToken = await Author.asyncResolveIdentity(canonicalUrlToken)
 
@@ -165,7 +165,7 @@ describe('author identity model', () => {
     await expect(Author.asyncResolveIdentity('missing-author')).resolves.toBeUndefined()
   })
 
-  it('uses an id match before a conflicting token match', async () => {
+  it('存在冲突时优先使用 id 匹配而非 token 匹配', async () => {
     await Knex.raw('INSERT INTO Author (id, url_token, raw_json) VALUES (?, ?, ?)', [
       canonicalUrlToken,
       'different-token',
@@ -178,7 +178,7 @@ describe('author identity model', () => {
     })
   })
 
-  it('uses the persisted token before the stable-id display fallback', async () => {
+  it('在显示用稳定 id 回退前优先使用持久化 token', async () => {
     const persistedOnlyId = 'persisted-token-author-id'
     await Knex.raw('INSERT INTO Author (id, url_token, raw_json) VALUES (?, ?, ?)', [
       persistedOnlyId,
@@ -197,7 +197,7 @@ describe('author identity model', () => {
     })
   })
 
-  it('normalizes the public token and falls back to the stable id for display', () => {
+  it('规范化公开 token，并在显示时回退稳定 id', () => {
     expect(getCanonicalAuthorUrlToken({ id: stableAuthorId, url_token: '  Hentioe  ' } as never)).toBe(
       canonicalUrlToken,
     )
@@ -207,7 +207,7 @@ describe('author identity model', () => {
     )
   })
 
-  it('queries relations by stable id and compatible token aliases', async () => {
+  it('按稳定 id 和兼容 token 别名查询关联', async () => {
     await insertRelationFixtures()
     const aliases = [canonicalUrlToken]
 
@@ -228,7 +228,7 @@ describe('author identity model', () => {
     ).resolves.toEqual(['question-by-id', 'question-by-token'])
   })
 
-  it('queries Activity through every resolved alias without changing its schema', async () => {
+  it('不改变 Activity schema，使用全部已解析别名查询', async () => {
     await insertRelationFixtures()
     const aliases = [stableAuthorId, canonicalUrlToken]
 
@@ -242,7 +242,7 @@ describe('author identity model', () => {
     })
   })
 
-  it('keeps token-based public methods compatible', async () => {
+  it('保持基于 token 的公共方法兼容', async () => {
     await insertRelationFixtures()
 
     await expect(Answer.asyncGetAnswerListByAuthorUrlToken(canonicalUrlToken)).resolves.toEqual([

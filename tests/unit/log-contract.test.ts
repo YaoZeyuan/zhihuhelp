@@ -11,8 +11,8 @@ import {
 } from '../../src/shared/logging/log_contract'
 import { describe, expect, it } from 'vitest'
 
-describe('structured log contract', () => {
-  it('adds schema, timestamp, event code and backend source defaults', () => {
+describe('结构化日志契约', () => {
+  it('补充 schema、时间戳、eventCode 和后端 source 默认值', () => {
     const record = createStructuredLogRecord(
       {
         level: LogLevel.INFO,
@@ -37,7 +37,7 @@ describe('structured log contract', () => {
     })
   })
 
-  it('recursively redacts secrets, response content, query strings and long text', () => {
+  it('递归脱敏密钥、响应内容、查询字符串和长文本', () => {
     const circular: Record<string, unknown> = {
       cookie: 'd_c0=secret-cookie',
       nested: {
@@ -70,7 +70,7 @@ describe('structured log contract', () => {
     expect(JSON.stringify(sanitized)).not.toContain('secret-token')
   })
 
-  it('serializes Error and non-Error failures without throwing', () => {
+  it('序列化 Error 和非 Error 失败时不抛异常', () => {
     const error = Object.assign(new Error('request failed'), { code: 'E_TEST' })
     expect(serializeLogError(error)).toMatchObject({
       name: 'Error',

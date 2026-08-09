@@ -10,7 +10,7 @@ function installElectronApi(methodMap: Record<string, unknown>) {
   })
 }
 
-describe('frontend structured logging', () => {
+describe('前端结构化日志', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     localStorage.clear()
@@ -21,7 +21,7 @@ describe('frontend structured logging', () => {
     vi.useRealTimers()
   })
 
-  it('batches IPC start and terminal records after 500ms and propagates one trace id', async () => {
+  it('500ms 后批量发送 IPC 的开始和终态记录并传递同一 traceId', async () => {
     const appendBatch = vi.fn().mockResolvedValue({ acceptedCount: 2 })
     const getConfig = vi.fn().mockResolvedValue({
       request: {
@@ -61,7 +61,7 @@ describe('frontend structured logging', () => {
     })
   })
 
-  it('flushes errors immediately without recording the passive log IPC recursively', async () => {
+  it('错误立即刷新且不递归记录被动日志 IPC', async () => {
     const appendBatch = vi.fn().mockResolvedValue({ acceptedCount: 2 })
     const openDevtools = vi.fn().mockRejectedValue(new Error('failed'))
     installElectronApi({
@@ -81,7 +81,7 @@ describe('frontend structured logging', () => {
     expect(payload.records.some((record: any) => record.details?.channel === 'append-frontend-log-batch')).toBe(false)
   })
 
-  it('flushes at 20 records and keeps each serialized record within 64 KiB', async () => {
+  it('达到 20 条记录时刷新并确保每条序列化记录不超过 64 KiB', async () => {
     const appendBatch = vi.fn().mockResolvedValue({ acceptedCount: 20 })
     installElectronApi({
       'append-frontend-log-batch': appendBatch,
@@ -115,7 +115,7 @@ describe('frontend structured logging', () => {
     }
   })
 
-  it('keeps a rejected batch in the in-memory fallback when the backend accepts zero records', async () => {
+  it('后端接受 0 条记录时将被拒绝批次保留在内存降级区', async () => {
     const appendBatch = vi.fn().mockResolvedValue({ acceptedCount: 0 })
     installElectronApi({
       'append-frontend-log-batch': appendBatch,

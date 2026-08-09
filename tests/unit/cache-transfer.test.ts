@@ -23,7 +23,7 @@ function createPayload(overrides: Record<string, unknown> = {}) {
   }
 }
 
-describe('cache JSON import result contract', () => {
+describe('缓存 JSON 导入结果契约', () => {
   let sandbox: TestSandbox
   let originalDatabasePath: string
   let originalOutputPath: string
@@ -62,7 +62,7 @@ describe('cache JSON import result contract', () => {
     `)
   }
 
-  it('rejects an otherwise compatible payload with malformed record arrays', async () => {
+  it('拒绝记录数组格式错误但其余部分兼容的数据包', async () => {
     const result = await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({ records: {} })))
 
     expect(result).toMatchObject({
@@ -72,7 +72,7 @@ describe('cache JSON import result contract', () => {
     })
   })
 
-  it('rejects a scalar raw payload without poisoning the database', async () => {
+  it('拒绝标量 raw 数据且不污染数据库', async () => {
     await createAnswerTable()
     const result = await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({
       records: [{
@@ -93,7 +93,7 @@ describe('cache JSON import result contract', () => {
     ).resolves.toEqual([])
   })
 
-  it('reports partial_success when valid records are imported beside invalid ones', async () => {
+  it('有效记录与无效记录同时导入时报告 partial_success', async () => {
     await createAnswerTable()
     const result = await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({
       records: [
@@ -125,7 +125,7 @@ describe('cache JSON import result contract', () => {
     ).resolves.toEqual([])
   })
 
-  it('updates an existing record only when the imported content is newer', async () => {
+  it('仅当导入内容较新时更新现有记录', async () => {
     await createAnswerTable()
     await Knex.queryBuilder().insert({ answer_id: 'answer-1', question_id: 'local', raw_json: JSON.stringify({ id: 'answer-1', updated_time: 20 }) }).into('Answer')
     const payloadRecord = (updated_time: number, question_id: string) => ({
@@ -141,7 +141,7 @@ describe('cache JSON import result contract', () => {
     expect(await Knex.queryBuilder().from('Answer').where({ answer_id: 'answer-1' }).first()).toMatchObject({ question_id: 'newer' })
   })
 
-  it('compares collection relations by record_at and preserves equal timestamps', async () => {
+  it('按 record_at 比较收藏关联，并保留时间戳相同的记录', async () => {
     await Knex.raw('CREATE TABLE Collection_Record (collection_id TEXT, record_type TEXT, record_id TEXT, record_at INTEGER, raw_json TEXT, PRIMARY KEY (collection_id, record_type, record_id))')
     await Knex.queryBuilder().insert({ collection_id: 'c1', record_type: 'answer', record_id: 'a1', record_at: 20, raw_json: '{}' }).into('Collection_Record')
     const relation = (record_at: number) => ({ kind: 'collection-record', id: 'c1:answer:a1', db: { columns: { collection_id: 'c1', record_type: 'answer', record_id: 'a1', record_at } }, raw: {} })
@@ -151,7 +151,7 @@ describe('cache JSON import result contract', () => {
     expect(await Knex.queryBuilder().from('Collection_Record').first()).toMatchObject({ record_at: 30 })
   })
 
-  it('exports every cache table in one portable package', async () => {
+  it('将全部缓存表导出到一个可移植数据包', async () => {
     const statements = [
       'CREATE TABLE Answer (answer_id TEXT PRIMARY KEY, question_id TEXT, author_url_token TEXT, author_id TEXT, raw_json TEXT)',
       'CREATE TABLE Article (article_id TEXT PRIMARY KEY, author_url_token TEXT, author_id TEXT, column_id TEXT, raw_json TEXT)',

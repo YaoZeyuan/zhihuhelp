@@ -9,27 +9,27 @@ import http from '../../src/library/http'
 import { AppErrorCode } from '../../src/shared/error/application_error'
 import { assertZhihuPaginatedData } from '../../src/shared/error/zhihu_response_validation'
 
-describe('Zhihu paginated response validation', () => {
+describe('知乎分页响应校验', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('accepts an explicit empty data array', () => {
+  it('接受显式空 data 数组', () => {
     expect(assertZhihuPaginatedData({ data: [] }, 'fixture.items')).toEqual([])
   })
 
   it.each([
-    ['an empty object', {}],
-    ['null data', { data: null }],
-    ['object data', { data: {} }],
-    ['a top-level array', []],
-  ])('rejects %s with a structured error', (_label, payload) => {
+    ['空对象', {}],
+    ['data 为 null', { data: null }],
+    ['data 为对象', { data: {} }],
+    ['顶层数组', []],
+  ])('遇到“%s”时抛出结构化错误', (_label, payload) => {
     expect(() => assertZhihuPaginatedData(payload, 'fixture.items')).toThrowError(
       expect.objectContaining({ code: AppErrorCode.PAGINATION_RESPONSE_INVALID }),
     )
   })
 
-  it('is used by question, collection, column, topic, author and activity pagination APIs', async () => {
+  it('问题、收藏夹、专栏、话题、用户和动态分页 API 均使用该校验', async () => {
     vi.spyOn(http, 'get').mockResolvedValue({})
     const requestList: Array<() => Promise<unknown>> = [
       () => QuestionApi.asyncGetAnswerList('question-id'),
@@ -55,11 +55,11 @@ describe('Zhihu paginated response validation', () => {
   })
 
   it.each([
-    ['missing paging', { data: [] }],
-    ['missing is_end', { data: [], paging: {} }],
-    ['a string is_end', { data: [], paging: { is_end: 'false' } }],
-    ['a null paging object', { data: [], paging: null }],
-  ])('rejects activity pagination with %s', async (_label, payload) => {
+    ['缺少 paging', { data: [] }],
+    ['缺少 is_end', { data: [], paging: {} }],
+    ['is_end 为字符串', { data: [], paging: { is_end: 'false' } }],
+    ['paging 为 null', { data: [], paging: null }],
+  ])('动态分页“%s”时拒绝响应', async (_label, payload) => {
     vi.spyOn(http, 'get').mockResolvedValue(payload)
 
     await expect(ActivityApi.asyncGetAutherActivityList('author-id')).rejects.toMatchObject({
@@ -73,18 +73,18 @@ describe('Zhihu paginated response validation', () => {
     })
   })
 
-  it('treats an explicit empty activity page as no last activity', async () => {
+  it('显式空动态页视为没有最新动态', async () => {
     vi.spyOn(http, 'get').mockResolvedValue({ data: [], paging: { is_end: true } })
 
     await expect(ActivityApi.asyncGetAutherLastActivityAt('author-id')).resolves.toBe(0)
   })
 
   it.each([
-    ['missing totals', { data: [], paging: {} }],
-    ['string totals', { data: [], paging: { totals: '0' } }],
-    ['negative totals', { data: [], paging: { totals: -1 } }],
-    ['fractional totals', { data: [], paging: { totals: 1.5 } }],
-  ])('rejects blocked-author pagination with %s', async (_label, payload) => {
+    ['缺少 totals', { data: [], paging: {} }],
+    ['totals 为字符串', { data: [], paging: { totals: '0' } }],
+    ['totals 为负数', { data: [], paging: { totals: -1 } }],
+    ['totals 为小数', { data: [], paging: { totals: 1.5 } }],
+  ])('被封禁用户分页“%s”时拒绝响应', async (_label, payload) => {
     vi.spyOn(http, 'get').mockResolvedValue(payload)
 
     await expect(AuthorApi.asyncGetBlockAccountAutherInfo('author-id')).rejects.toMatchObject({
@@ -92,7 +92,7 @@ describe('Zhihu paginated response validation', () => {
     })
   })
 
-  it('accepts an explicit zero total for a blocked author with no answers', async () => {
+  it('被封禁用户无回答时接受显式 totals=0', async () => {
     vi.spyOn(http, 'get').mockResolvedValue({ data: [], paging: { totals: 0 } })
 
     await expect(AuthorApi.asyncGetBlockAccountAutherInfo('author-id')).resolves.toMatchObject({

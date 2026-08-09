@@ -33,7 +33,7 @@ function renderCustomerTask() {
   )
 }
 
-describe('customer task config failure state', () => {
+describe('自定义任务配置失败状态', () => {
   beforeEach(() => {
     debugLogMock.append.mockReset()
     debugLogMock.invokeElectronApi.mockReset().mockImplementation((channel: string) => {
@@ -51,7 +51,7 @@ describe('customer task config failure state', () => {
     vi.restoreAllMocks()
   })
 
-  it('keeps a safe default form and blocks start when config IPC rejects', async () => {
+  it('配置 IPC 拒绝时保留安全默认表单并阻止启动', async () => {
     const adapterSpy = vi.spyOn(TaskConfigAdapter, 'taskConfigToForm')
     debugLogMock.invokeElectronApi.mockImplementation((channel: string) => {
       if (channel === 'get-common-config') {
@@ -84,7 +84,7 @@ describe('customer task config failure state', () => {
     })
   })
 
-  it('catches an invalid config payload without blanking the page', async () => {
+  it('捕获无效配置载荷且不让页面白屏', async () => {
     debugLogMock.invokeElectronApi.mockImplementation((channel: string) => {
       if (channel === 'get-common-config') {
         return Promise.resolve({ schemaVersion: 2, request: {} })

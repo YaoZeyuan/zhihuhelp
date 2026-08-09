@@ -55,12 +55,12 @@ function packageIds(taskPackage: Record<string, Set<string>>) {
   )
 }
 
-describe('FetchWorkflow task orchestration', () => {
+describe('FetchWorkflow 任务编排', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('maps every one of the 15 public task types to its concrete batch fetcher', () => {
+  it('将全部 15 种公开任务类型映射到具体批量抓取器', () => {
     const workflow = new FetchWorkflow()
 
     expect(taskTypeList).toHaveLength(15)
@@ -71,7 +71,7 @@ describe('FetchWorkflow task orchestration', () => {
     }
   })
 
-  it('merges same-type tasks in insertion order, removes duplicate ids and drops skipped tasks', () => {
+  it('按插入顺序合并同类任务，去除重复 id 并丢弃跳过任务', () => {
     vi.spyOn(Logger, 'log').mockImplementation(() => undefined)
     vi.spyOn(Logger, 'event').mockImplementation((entry) => entry as never)
     const workflow = new FetchWorkflow()
@@ -86,7 +86,7 @@ describe('FetchWorkflow task orchestration', () => {
     expect(packageIds(result)).toEqual({ answer: ['answer-2', 'answer-1'] })
   })
 
-  it('returns no runnable ids for an empty list or an unknown task type', () => {
+  it('空列表或未知任务类型不返回任何可运行 id', () => {
     vi.spyOn(Logger, 'log').mockImplementation(() => undefined)
     vi.spyOn(Logger, 'event').mockImplementation((entry) => entry as never)
     const workflow = new FetchWorkflow()
