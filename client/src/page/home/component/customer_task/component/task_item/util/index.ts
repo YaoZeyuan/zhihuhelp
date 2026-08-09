@@ -54,12 +54,19 @@ export function matchId({
             break
         case ConstTaskConfig.Const_Task_Type_专栏:
             // https://zhuanlan.zhihu.com/advancing-react
-            rawId = rawContent.split('zhuanlan.zhihu.com/')?.[1] ?? ''
+            // https://zhuanlan.zhihu.com/column/problems
+            rawId = rawContent.includes('zhihu.com/column/')
+                ? rawContent.split('zhihu.com/column/')?.[1] ?? ''
+                : rawContent.split('zhuanlan.zhihu.com/')?.[1] ?? ''
             id = rawId.split('/')?.[0] ?? ''
             break
         case ConstTaskConfig.Const_Task_Type_文章:
             // https://zhuanlan.zhihu.com/p/59993287
-            rawId = rawContent.split('zhuanlan.zhihu.com/p/')?.[1] ?? ''
+            if (rawContent.includes('zhuanlan.zhihu.com/p/')) {
+                rawId = rawContent.split('zhuanlan.zhihu.com/p/')?.[1] ?? ''
+            } else if (rawContent.includes('www.zhihu.com/p/')) {
+                rawId = rawContent.split('www.zhihu.com/p/')?.[1] ?? ''
+            }
             id = rawId.split('/')?.[0] ?? ''
             break
         default:
