@@ -1,5 +1,6 @@
-import Base from '~/src/api/single/base'
-import * as TypeCollection from '~/src/type/zhihu/collection'
+import Base from '~/src/api/single/base.js'
+import * as TypeCollection from '~/src/type/zhihu/collection.js'
+import { assertZhihuPaginatedData } from '~/src/shared/error/zhihu_response_validation.js'
 
 class Collection extends Base {
   /**
@@ -20,7 +21,7 @@ class Collection extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const answerList = record?.data ?? []
+    const answerList = assertZhihuPaginatedData<TypeCollection.AnswerExcerpt>(record, 'collection.items')
     return answerList
   }
 
@@ -42,7 +43,7 @@ class Collection extends Base {
     const record = await Base.http.get(baseUrl, {
       params: config,
     })
-    const recordList = record?.data ?? []
+    const recordList = assertZhihuPaginatedData<TypeCollection.Type_Collection_Item>(record, 'collection.items')
     return recordList
   }
 

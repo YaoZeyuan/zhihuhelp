@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "answer",
+  "sourceUrl": "https://www.zhihu.com/question/1955952667529545081/answer/1997069426684610035",
+  "capturedAt": "2026-08-08T16:11:05.079Z",
+  "checksum": "6bd0a804de1b90724e8c577cae016fbadfa47f1e88489051d06417b889941e5a",
+  "data": {
+    "id": "1997069426684610035",
+    "type": "answer",
+    "created_time": 1768918455,
+    "updated_time": 1768918455,
+    "author": {
+      "id": "ea9263462c68461e06923bda960e6b65",
+      "url_token": "[REDACTED]",
+      "name": "不高兴的胖子"
+    },
+    "question": {
+      "id": "1955952667529545081",
+      "title": "认知水平高的人有什么特征？"
+    }
+  }
+}

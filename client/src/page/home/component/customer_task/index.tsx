@@ -14,6 +14,9 @@ import {
   App,
   Checkbox,
   Modal,
+  Alert,
+  Card,
+  Tag,
 } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import { useSnapshot } from 'valtio'
@@ -25,17 +28,53 @@ import { createStatusStore, Const_Default_FormValue } from './state'
 import TaskItem from './component/task_item/index'
 import OrderItem from './component/order_item/index'
 import { Const_Default_Order_Item } from './component/order_item/state/index'
-import Util, { Type_Form_Config } from './library/util'
+import Util from './library/util'
+import TaskConfigAdapter, { Type_Form_Config } from './library/task_config_adapter'
 import { useRef } from 'react'
 import * as Context from '~/src/page/home/resource/context'
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Ahooks from 'ahooks'
+import DebugLog from '~/src/library/debug_log'
+import { isAuthenticatedZhihuProfile } from './library/login_check'
 
 import './index.less'
 
 const { TextArea } = Input
+const DownIcon = DownOutlined as any
 
 export const Const_Storage_Key = 'login_msk'
+
+type Type_Login_Status = 'unknown' | 'checking' | 'success' | 'failure'
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message
+  }
+  return String(error)
+}
+
+function createDefaultFormValue(): Type_Form_Config {
+  return {
+    ...Const_Default_FormValue,
+    taskItemList: [...Const_Default_FormValue.taskItemList],
+    orderItemList: [...Const_Default_FormValue.orderItemList],
+    outputFormats: [...Const_Default_FormValue.outputFormats],
+  }
+}
+
+const Const_Login_Status_Text: Record<Type_Login_Status, string> = {
+  unknown: '尚未检测登录状态',
+  checking: '正在检测知乎登录状态',
+  success: '已登录知乎，可以启动任务',
+  failure: '未登录或登录已失效，请先完成知乎登录',
+}
+
+const Const_Login_Status_Alert_Type: Record<Type_Login_Status, 'info' | 'success' | 'warning'> = {
+  unknown: 'info',
+  checking: 'info',
+  success: 'success',
+  failure: 'warning',
+}
 
 export default () => {
   const { modal: SimpleModal } = App.useApp()
@@ -47,6 +86,9 @@ export default () => {
   let statusSnap = useSnapshot(statusStore)
 
   let [autoGenerateTitle, setAutoGenerateTitle] = useState<boolean>(true)
+  let [loginStatus, setLoginStatus] = useState<Type_Login_Status>('unknown')
+  let [quickTaskInput, setQuickTaskInput] = useState<string>('')
+  let [configLoadError, setConfigLoadError] = useState<string | null>(null)
   // 用于生成计数key, 解决批量导入任务后, 组件不更新的问题
   let [batchTaskUpdateCounter, setBatchTaskUpdateCounter] = useState<number>(0)
 
@@ -58,16 +100,24 @@ export default () => {
   const taskItemList = Form.useWatch('taskItemList', form)
   const orderItemList = Form.useWatch('orderItemList', form)
   const legalTaskItemList = taskItemList?.filter((item) => item.id !== '') ?? []
+  const taskItemErrorList = taskItemList?.map((item, index) => ({
+    index,
+    rawInputText: item.rawInputText,
+    error: Util.getTaskItemError(item),
+  })) ?? []
+  const invalidTaskItemList = taskItemErrorList.filter((item) => item.error !== '' && item.rawInputText.trim() !== '')
 
   Ahooks.useAsyncEffect(async () => {
     // 任务列表内容发生变更, 重新生成电子书标题
     if (autoGenerateTitle) {
       let title = ''
       for (const config of legalTaskItemList) {
-        const bufTitle = await window.electronAPI['get-task-default-title']({
-          taskType: config.type,
-          taskId: config.id,
-        })
+        const bufTitle = await DebugLog.invokeElectronApi<string>('get-task-default-title', [
+          {
+            taskType: config.type,
+            taskId: config.id,
+          },
+        ])
         if (title === '') {
           title = bufTitle
         } else {
@@ -121,10 +171,16 @@ export default () => {
 
   Ahooks.useMount(async () => {
     // 初始化时载入一次
-    let config = await window.electronAPI['get-common-config']().catch((err) => {
-      return { ...Const_Default_FormValue }
-    })
-    let initValue = Util.generateStatus(config)
+    let initValue = createDefaultFormValue()
+    try {
+      const config = await DebugLog.invokeElectronApi<any>('get-common-config')
+      initValue = TaskConfigAdapter.taskConfigToForm(config)
+      setConfigLoadError(null)
+    } catch (error) {
+      const errorMessage = `任务配置加载失败：${getErrorMessage(error)}。当前已载入安全默认值，请修复 config.json 后重新打开页面。`
+      setConfigLoadError(errorMessage)
+      message.error(errorMessage)
+    }
 
     form.setFieldValue('bookTitle', initValue.bookTitle)
     form.setFieldValue('taskItemList', initValue.taskItemList)
@@ -132,8 +188,11 @@ export default () => {
     form.setFieldValue('imageQuilty', initValue.imageQuilty)
     form.setFieldValue('maxItemInBook', initValue.maxItemInBook)
     form.setFieldValue('comment', initValue.comment)
+    form.setFieldValue('generateType', initValue.generateType)
+    form.setFieldValue('outputFormats', initValue.outputFormats)
 
     handleBatchTaskModal.syncToModalValue(initValue.taskItemList)
+    setQuickTaskInput(initValue.taskItemList.map((item) => item.rawInputText).filter((item) => item !== '').join('\n'))
 
     // 载入完成后标记状态
     statusStore.initComplete = true
@@ -142,11 +201,28 @@ export default () => {
   const handleFormAction = {
     asyncOnFinish: async (values: any) => {
       statusStore.loading.startTask = true
+      if (statusStore.initComplete === false) {
+        statusStore.loading.startTask = false
+        message.error('任务配置仍在加载，请稍后再试')
+        return
+      }
+      if (configLoadError !== null) {
+        statusStore.loading.startTask = false
+        message.error('任务配置尚不可用，请修复 config.json 后重新打开页面')
+        return
+      }
       // 提交数据, 生成配置文件
       console.log('final config => ', JSON.stringify(values, null, 2))
-      const config = Util.generateTaskConfig(values)
+      const config = TaskConfigAdapter.formToTaskConfig(values)
+      if (config.tasks.length === 0) {
+        statusStore.loading.startTask = false
+        message.error('请先粘贴至少一个可识别的知乎链接')
+        return
+      }
       let isLogin = await handleFormAction.asyncCheckLogin()
       if (isLogin === false) {
+        setLoginStatus('failure')
+        statusStore.loading.startTask = false
         SimpleModal.warning({
           title: '登录状态异常',
           content: '请先登录知乎账号后再启动任务',
@@ -157,61 +233,101 @@ export default () => {
         })
         return
       }
-      statusStore.loading.startTask = false
-
-      // 直接派发任务即可
-      window.electronAPI['start-customer-task']({
-        config: config,
-      })
+      setLoginStatus('success')
       setCurrentTab(Consts_Page.Const_Page_运行日志)
+      try {
+        await DebugLog.invokeElectronApi('start-customer-task', [
+          {
+            config: config,
+          },
+        ])
+      } catch {
+        message.error('任务启动或执行失败，请在运行日志中查看诊断信息')
+      } finally {
+        statusStore.loading.startTask = false
+      }
     },
     asyncCheckLogin: async () => {
-      console.log('check login')
-      let res = await window.electronAPI['zhihu-http-get']({
-        url: 'https://www.zhihu.com/api/v4/members/s.invalid/answers',
+      const request = {
+        url: 'https://www.zhihu.com/api/v4/me',
         params: {
-          include:
-            'data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,mark_infos,created_time,updated_time,review_info,excerpt,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp,is_recognized;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship',
-          offset: 0,
-          limit: 20,
-          sort_by: 'created',
           // 避免请求被缓存住
           random: Math.floor(Math.random() * 100000),
         },
-      })
-      console.log('res => ', res)
-      if (res.data !== undefined) {
+      }
+      let res: any
+      try {
+        res = await DebugLog.invokeElectronApi<any>('zhihu-http-get', [request], {
+          message: '任务启动前检查知乎登录态',
+        })
+      } catch (error) {
+        setLoginStatus('failure')
+        DebugLog.append({
+          level: 'error',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查异常：IPC 调用失败',
+          request,
+          error,
+        })
+        return false
+      }
+      if (isAuthenticatedZhihuProfile(res)) {
+        setLoginStatus('success')
+        DebugLog.append({
+          level: 'success',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查通过：当前用户响应包含稳定身份字段',
+          request,
+          response: {
+            hasId: typeof res.id === 'string' && res.id.trim() !== '',
+            hasUrlToken: typeof res.url_token === 'string' && res.url_token.trim() !== '',
+          },
+        })
         return true
       } else {
+        setLoginStatus('failure')
+        DebugLog.append({
+          level: 'warn',
+          channel: 'asyncCheckLogin',
+          message: '知乎登录态检查未通过：响应缺少 id/url_token 身份字段',
+          request,
+          response: res,
+        })
         return false
       }
     },
   }
 
+  const handleLoginStatus = {
+    asyncRefresh: async () => {
+      setLoginStatus('checking')
+      statusStore.loading.checkLogin = true
+      const isLogin = await handleFormAction.asyncCheckLogin()
+      statusStore.loading.checkLogin = false
+      setLoginStatus(isLogin ? 'success' : 'failure')
+      if (isLogin) {
+        message.success('当前状态: 已登录')
+        return
+      }
+      message.error('当前状态: 未登录')
+    },
+  }
+
+  Ahooks.useAsyncEffect(async () => {
+    if (statusSnap.initComplete) {
+      await handleLoginStatus.asyncRefresh()
+    }
+  }, [statusSnap.initComplete])
+
   const handleBatchTaskModal = {
-    syncToModalValue: (fetchTaskList: Type_Form_Config['taskItemList']) => {
-      const batchUrlListStr = fetchTaskList?.map((item) => item.rawInputText)?.join('\n') ?? ''
+    syncToModalValue: (taskItemList: Type_Form_Config['taskItemList']) => {
+      const batchUrlListStr = taskItemList?.map((item) => item.rawInputText)?.join('\n') ?? ''
       modalForm.setFieldValue('batchUrlListStr', batchUrlListStr)
     },
     syncToTaskList: (batchUrlListStr: string) => {
-      const batchUrlList = batchUrlListStr.split('\n')
-      const taskList: Type_Form_Config['taskItemList'] = []
-      for (let url of batchUrlList) {
-        url = url.trim()
-        if (url === '') {
-          continue
-        }
-        const taskType = Util.detectTaskType({
-          rawInputText: url,
-        })
-        const taskItem: Type_Form_Config['taskItemList'][0] = {
-          id: '',
-          rawInputText: url,
-          skipFetch: false,
-          type: taskType,
-        }
-        taskList.push(taskItem)
-      }
+      const taskList = Util.createTaskItemListFromText({
+        rawInputText: batchUrlListStr,
+      })
       form.setFieldValue('taskItemList', taskList)
     },
     showModal: () => {
@@ -225,6 +341,21 @@ export default () => {
     },
     onCancel: () => {
       setIsModalShow(false)
+    },
+  }
+
+  const handleQuickTaskInput = {
+    syncToTaskList: () => {
+      const taskList = Util.createTaskItemListFromText({
+        rawInputText: quickTaskInput,
+      })
+      if (taskList.length === 0) {
+        message.warning('请先粘贴至少一个知乎链接')
+        return
+      }
+      form.setFieldValue('taskItemList', taskList)
+      handleBatchTaskModal.syncToModalValue(taskList)
+      setBatchTaskUpdateCounter(batchTaskUpdateCounter + 1)
     },
   }
 
@@ -244,6 +375,77 @@ export default () => {
           }}
           labelAlign="left"
         >
+          {configLoadError !== null && (
+            <Alert
+              className="config-load-error-alert"
+              type="error"
+              showIcon
+              title="任务配置不可用"
+              description={configLoadError}
+            />
+          )}
+          <Card className="quick-start-card" size="small">
+            <div className="quick-start-steps">
+              <div className="step-item active">1. 登录知乎</div>
+              <div className="step-item active">2. 粘贴链接</div>
+              <div className="step-item">3. 开始生成</div>
+              <div className="step-item">4. 打开结果</div>
+            </div>
+            <Alert
+              className="login-status-alert"
+              type={Const_Login_Status_Alert_Type[loginStatus]}
+              showIcon
+              title={Const_Login_Status_Text[loginStatus]}
+              action={
+                <Space>
+                  <Button
+                    size="small"
+                    loading={statusSnap.loading.checkLogin || loginStatus === 'checking'}
+                    onClick={handleLoginStatus.asyncRefresh}
+                  >
+                    重新检测
+                  </Button>
+                  {loginStatus !== 'success' && (
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        setCurrentTab(Consts_Page.Const_Page_登录)
+                      }}
+                    >
+                      去登录
+                    </Button>
+                  )}
+                </Space>
+              }
+            />
+            <div className="quick-task-input">
+              <TextArea
+                {...({ autoSize: { minRows: 3, maxRows: 8 }, allowClear: true } as any)}
+                value={quickTaskInput}
+                placeholder="粘贴知乎链接，每行一个。例如问题、回答、文章、收藏夹、专栏、话题、想法或用户主页。"
+                onChange={(event) => {
+                  setQuickTaskInput(event.target.value)
+                }}
+              />
+              <Space wrap className="quick-task-actions">
+                <Button type="primary" onClick={handleQuickTaskInput.syncToTaskList}>
+                  识别链接
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleBatchTaskModal.showModal()
+                  }}
+                >
+                  批量编辑
+                </Button>
+                <span className={invalidTaskItemList.length > 0 ? 'task-summary has-error' : 'task-summary'}>
+                  已识别 {legalTaskItemList.length} 条有效任务
+                  {invalidTaskItemList.length > 0 ? `，${invalidTaskItemList.length} 条需要检查` : ''}
+                </span>
+              </Space>
+            </div>
+          </Card>
           <Form.Item noStyle>
             <Row justify="space-between" align="middle" gutter={1}>
               <Col span={16}>
@@ -268,23 +470,20 @@ export default () => {
                 </Checkbox>
               </Col>
               <Col span={4}>
-                <Button
-                  onClick={() => {
-                    handleBatchTaskModal.showModal()
-                  }}
-                >
-                  批量添加任务
-                </Button>
+                <Tag color={invalidTaskItemList.length > 0 ? 'orange' : 'green'}>
+                  {invalidTaskItemList.length > 0 ? '存在待检查任务' : '任务识别正常'}
+                </Tag>
               </Col>
               <Modal
                 title="批量输入"
                 open={isModalShow}
+                forceRender
                 onOk={handleBatchTaskModal.onOk}
                 onCancel={handleBatchTaskModal.onCancel}
               >
                 <Form form={modalForm}>
                   <Form.Item name="batchUrlListStr" label="任务列表">
-                    <Input.TextArea suffix={''} autoSize={{ minRows: 10 }} allowClear></Input.TextArea>
+                    <Input.TextArea {...({ autoSize: { minRows: 10 }, allowClear: true } as any)}></Input.TextArea>
                   </Form.Item>
                 </Form>
               </Modal>
@@ -304,12 +503,11 @@ export default () => {
           </Form.Item>
           <Form.List name="taskItemList">
             {(fields, operation) => {
-              return fields.map((field) => {
+              return fields.map(({ key, ...field }) => {
                 return (
-                  <Form.Item {...field} noStyle>
+                  <Form.Item key={`${batchTaskUpdateCounter}-${key}`} {...field} noStyle>
                     <TaskItem
                       // 每次导入批量数据后, 都强制刷新TaskItem组件, 重建Input组件, 以避免旧defaultValue无法更新的问题
-                      key={`${batchTaskUpdateCounter}-${field.key}`}
                       fieldIndex={field.name}
                       action={{
                         remove: (index: number) => {
@@ -323,6 +521,38 @@ export default () => {
               })
             }}
           </Form.List>
+          {invalidTaskItemList.length > 0 && (
+            <Alert
+              className="task-error-alert"
+              type="warning"
+              showIcon
+              title="部分链接暂未识别成功"
+              description={
+                <div>
+                  {invalidTaskItemList.map((item) => (
+                    <div key={item.index}>
+                      第 {item.index + 1} 条：{item.error}
+                    </div>
+                  ))}
+                </div>
+              }
+            />
+          )}
+          <Form.Item
+            name="imageQuilty"
+            label="图片质量"
+            labelCol={{
+              span: 3,
+            }}
+          >
+            <Radio.Group buttonStyle="solid">
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <details className="advanced-config-panel">
+            <summary>高级配置：生成模式、排序、分卷和备注</summary>
           <Form.Item noStyle>
             <Row align="middle" gutter={1}>
               <Col span={Consts.CONST_Order_Item_Width.排序指标}>排序指标</Col>
@@ -333,11 +563,11 @@ export default () => {
           </Form.Item>
           <Form.List name="orderItemList">
             {(fields, operation) => {
-              return fields.map((field) => {
+              return fields.map(({ key, ...field }) => {
                 return (
-                  <Form.Item {...field} noStyle>
+                  <Form.Item key={key} {...field} noStyle>
                     <OrderItem
-                      fieldKey={field.key}
+                      fieldKey={key}
                       action={{
                         remove: operation.remove,
                         add: operation.add,
@@ -349,16 +579,20 @@ export default () => {
             }}
           </Form.List>
           <Form.Item
-            name="imageQuilty"
-            label="图片质量"
+            name="generateType"
+            label="生成模式"
             labelCol={{
               span: 3,
             }}
           >
             <Radio.Group buttonStyle="solid">
-              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_原图}>原图</Radio.Button>
-              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_高清}>高清</Radio.Button>
-              <Radio.Button value={Consts_Task_Config.Const_Image_Quilty_无图}>无图</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_独立输出电子书}>独立成书</Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_按任务拆分章节}>
+                按任务合并
+              </Radio.Button>
+              <Radio.Button value={Consts_Task_Config.Const_Generate_Type_合并输出电子书_内容打乱重排}>
+                打乱合并
+              </Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item
@@ -383,25 +617,30 @@ export default () => {
             }}
             wrapperCol={{ span: 18 }}
           >
-            <TextArea suffix={''} allowClear />
+            <TextArea {...({ allowClear: true } as any)} />
           </Form.Item>
+          </details>
           <Form.Item wrapperCol={{ span: 14, offset: 3 }}>
-            <Button type="primary" htmlType="submit" loading={statusSnap.loading.startTask}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={statusSnap.loading.startTask}
+              disabled={statusSnap.initComplete === false || configLoadError !== null}
+            >
               开始
             </Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Button
               htmlType="button"
               onClick={async () => {
-                await window.electronAPI['open-output-dir']()
+                await DebugLog.invokeElectronApi('open-output-dir')
               }}
             >
               打开电子书输出目录
             </Button>
-            <Divider type="vertical"></Divider>
+            <Divider orientation="vertical"></Divider>
             <Space wrap>
-              <Dropdown.Button
-                loading={statusSnap.loading.checkLogin}
+              <Dropdown
                 menu={{
                   items: [
                     {
@@ -420,25 +659,11 @@ export default () => {
                       },
                     },
                     {
-                      key: '打开开发者工具',
-                      label: '打开开发者工具',
-                      onClick: async () => {
-                        await window.electronAPI['open-devtools']()
-                      },
-                    },
-                    {
-                      key: '打开js-rpc窗口の开发者工具',
-                      label: '打开js-rpc窗口の开发者工具',
-                      onClick: async () => {
-                        await window.electronAPI['open-js-rpc-window-devtools']()
-                      },
-                    },
-                    {
                       key: '注销登录',
                       label: '注销登录',
                       danger: true,
                       onClick: async () => {
-                        await window.electronAPI['clear-all-session-storage']()
+                        await DebugLog.invokeElectronApi('clear-all-session-storage')
                         SimpleModal.warning({
                           title: '注销成功',
                           content: '请重新登录知乎账号',
@@ -452,10 +677,11 @@ export default () => {
                   ],
                   onClick: () => {},
                 }}
-                icon={<DownOutlined />}
               >
-                调试菜单
-              </Dropdown.Button>
+                <Button loading={statusSnap.loading.checkLogin} icon={<DownIcon />}>
+                  账户菜单
+                </Button>
+              </Dropdown>
             </Space>
           </Form.Item>
         </Form>

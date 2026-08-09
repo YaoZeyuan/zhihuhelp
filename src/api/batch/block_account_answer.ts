@@ -1,18 +1,20 @@
-import AuthorApi from '~/src/api/single/author'
-import MAuthor from '~/src/model/author'
-import Base from '~/src/api/batch/base'
-import BatchFetchAnswer from '~/src/api/batch/answer'
-import CommonUtil from '~/src/library/util/common'
+import AuthorApi from '~/src/api/single/author.js'
+import MAuthor from '~/src/model/author.js'
+import Base from '~/src/api/batch/base.js'
+import BatchFetchAnswer from '~/src/api/batch/answer.js'
+import CommonUtil from '~/src/library/util/common.js'
+import { assertZhihuNonNegativeIntegerCount } from '~/src/shared/error/zhihu_response_validation.js'
 
 class BatchFetchAuthorAnswer extends Base {
   async fetch(urlToken: string) {
     this.log(`开始抓取用户${urlToken}的数据`)
     this.log(`获取用户信息`)
     const authorInfo = await AuthorApi.asyncGetBlockAccountAutherInfo(urlToken)
-    await MAuthor.asyncReplaceAuthor(authorInfo)
+    this.assertEntityRecord(authorInfo, 'author', urlToken, ['id', 'url_token'])
+    await this.persist('author', urlToken, () => MAuthor.asyncReplaceAuthor(authorInfo))
     this.log(`用户信息获取完毕`)
     const name = authorInfo.name
-    const answerCount = authorInfo.answer_count
+    const answerCount = assertZhihuNonNegativeIntegerCount(authorInfo.answer_count, `blocked author ${urlToken}.answer_count`)
     this.log(`用户${name}(${urlToken})共有${answerCount}个回答`)
     this.log(`开始抓取回答列表`)
     let answetIdList: string[] = []
@@ -35,8 +37,9 @@ class BatchFetchAuthorAnswer extends Base {
     })
     this.log(`开始抓取用户${name}(${urlToken})的所有回答记录,共${answetIdList.length}条`)
     let batchFetchAnswer = new BatchFetchAnswer()
-    await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)
+    const outcome = await batchFetchAnswer.fetchListAndSaveToDb(answetIdList)
     this.log(`用户${name}(${urlToken})的回答记录抓取完毕`)
+    return outcome
   }
 }
 

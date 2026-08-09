@@ -1,6 +1,9 @@
 import path from 'path'
 import fs from 'fs'
-import PathConfig from '~/src/config/path'
+import { fileURLToPath } from 'node:url'
+import PathConfig from '~/src/config/path.js'
+
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 
 function getVersion() {
   let packageJson = fs.readFileSync(PathConfig.packageJsonUri)
@@ -15,10 +18,10 @@ function getVersion() {
 
 export default class CommonConfig {
   // 使用serverless实现
-  static readonly checkUpgradeUri = 'https://api.yaozeyuan.online/zhihuhelp/version'
+  static readonly checkUpgradeUri = 'https://zhihuhelp.yaozeyuan.online/api/zhihuhelp/version'
 
   static readonly db_version = '1.0.2'
-  static readonly db_uri: string = path.resolve(__dirname, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
+  static db_uri: string = path.resolve(moduleDirectory, `../../zhihu_v${CommonConfig.db_version}.sqlite`)
 
   /**
    * 每次停止执行任务时长
@@ -36,4 +39,8 @@ export default class CommonConfig {
 
   // 软件版本号
   static version = getVersion()
+
+  static setDatabaseUri(databaseUri: string) {
+    CommonConfig.db_uri = path.resolve(databaseUri)
+  }
 }

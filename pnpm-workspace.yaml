@@ -1,0 +1,12 @@
+packages:
+  - client
+overrides:
+  "app-builder-lib>@electron/get": 3.1.0
+allowBuilds:
+  core-js: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  lzma-native: true
+  sharp: true
+  sqlite3: true

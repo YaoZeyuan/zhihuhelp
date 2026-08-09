@@ -1,5 +1,5 @@
-import Base from '~/src/api/single/base'
-import TypeArticle from '~/src/type/zhihu/article'
+import Base from '~/src/api/single/base.js'
+import type * as TypeArticle from '~/src/type/zhihu/article.js'
 
 class Article extends Base {
   /**

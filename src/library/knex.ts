@@ -1,25 +1,53 @@
-import knex from 'knex'
-import CommonConfig from '~/src/config/common'
-/**  knex 方式 */
+import knex, { Knex as KnexType } from 'knex'
+import CommonConfig from '~/src/config/common.js'
 
-const Knex = knex({
-  client: 'sqlite3',
-  connection: {
-    filename: CommonConfig.db_uri,
+let activeClient: KnexType | undefined
+let activeDatabaseUri = ''
+
+function createClient(databaseUri: string): KnexType {
+  return knex({
+    client: 'sqlite3',
+    connection: {
+      filename: databaseUri,
+    },
+    useNullAsDefault: true,
+    pool: {
+      max: 1,
+      min: 0,
+      idleTimeoutMillis: 100,
+      reapIntervalMillis: 150,
+    },
+    acquireConnectionTimeout: 60000,
+  })
+}
+
+function getClient(): KnexType {
+  if (activeClient === undefined || activeDatabaseUri !== CommonConfig.db_uri) {
+    if (activeClient !== undefined) {
+      activeClient.destroy()
+    }
+    activeDatabaseUri = CommonConfig.db_uri
+    activeClient = createClient(activeDatabaseUri)
+  }
+  return activeClient
+}
+
+const Knex = {
+  queryBuilder(): KnexType.QueryBuilder {
+    return getClient().queryBuilder()
   },
-  useNullAsDefault: true,
-  pool: {
-    max: 1, // 不能开多线程去访问同一个sqllite实例, 否则会报SQLITE_BUSY错误
-    min: 0,
-    // 由于存在资源池, 导致句柄不被释放, 程序不能退出
-    // 因此将最小句柄数设为0, 每100ms检查一次是否有超过120ms未被使用的资源
-    // 以便句柄的及时回收
-    // free resouces are destroyed after this many milliseconds
-    idleTimeoutMillis: 100,
-    // how often to check for idle resources to destroy
-    reapIntervalMillis: 150,
+
+  raw(...params: Parameters<KnexType['raw']>): ReturnType<KnexType['raw']> {
+    return getClient().raw(...params)
   },
-  acquireConnectionTimeout: 60000,
-})
+
+  async destroy(): Promise<void> {
+    if (activeClient !== undefined) {
+      await activeClient.destroy()
+      activeClient = undefined
+      activeDatabaseUri = ''
+    }
+  },
+}
 
 export default Knex

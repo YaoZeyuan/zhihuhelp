@@ -1,6 +1,6 @@
-import Base from '~/src/model/base'
-import * as TypeTopic from '~/src/type/zhihu/topic'
-import * as TypeAnswer from '~/src/type/zhihu/answer'
+import Base from '~/src/model/base.js'
+import * as TypeTopic from '~/src/type/zhihu/topic.js'
+import * as TypeAnswer from '~/src/type/zhihu/answer.js'
 
 class Topic extends Base {
   static TABLE_NAME = `Topic`
@@ -18,17 +18,11 @@ class Topic extends Base {
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
       .where('topic_id', '=', topicId)
-      .catch(() => {
-        return []
-      })
-    let topicInfoJson = recordList?.[0]?.raw_json
-    let topicInfo
-    try {
-      topicInfo = JSON.parse(topicInfoJson)
-    } catch {
-      topicInfo = {}
+    let topicRecord = recordList?.[0]
+    if (topicRecord === undefined) {
+      return {} as TypeTopic.Info
     }
-    return topicInfo
+    return this.parseEntityRawJson<TypeTopic.Info>(topicRecord.raw_json, topicId)
   }
 
   /**
@@ -40,9 +34,6 @@ class Topic extends Base {
       .select(this.TOPIC_ANSWER_TABLE_COLUMN)
       .from(this.TOPIC_ANSWER_TABLE_NAME)
       .where('topic_id', '=', topicId)
-      .catch(() => {
-        return []
-      })
     let answerIdList: string[] = []
     for (let record of recordList) {
       answerIdList.push(record.answer_id)
@@ -86,12 +77,9 @@ class Topic extends Base {
    * @returns 
    */
   static async asyncGetTopicCount(): Promise<number> {
-    let count = await this.db
+    let count = (await this.db
       .countDistinct("topic_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+      .from(this.TABLE_NAME)) as { "count": number }[]
 
     return count?.[0]?.count ?? 0
   }

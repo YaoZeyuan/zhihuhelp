@@ -1,3 +1,5 @@
+import { escapeXmlAttribute, escapeXmlText } from './xml.js'
+
 class TOC {
   index = 0 // 生成id
 
@@ -15,7 +17,7 @@ class TOC {
     return `<?xml version="1.0"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
-    <title>${this.title}</title>
+    <title>${escapeXmlText(this.title)}</title>
 </head>
 <body>
   <nav id="toc" epub:type="toc">
@@ -37,7 +39,7 @@ class TOC {
     // 目录肯定要插到第一条
     this.navMapList.unshift(`
             <li id="nav_index_${this.index}">
-                <a href="./html/${filename}">${title}</a>
+                <a href="./html/${escapeXmlAttribute(filename)}">${escapeXmlText(title)}</a>
             </li>
         `)
   }
@@ -46,7 +48,7 @@ class TOC {
     this.index = this.index + 1
     this.navMapList.push(`
             <li id="nav_index_${this.index}">
-                <a href="./html/${filename}">${title}</a>
+                <a href="./html/${escapeXmlAttribute(filename)}">${escapeXmlText(title)}</a>
             </li>
         `)
   }

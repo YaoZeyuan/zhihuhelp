@@ -1,39 +1,91 @@
-import { Tabs, TabsProps } from 'antd'
-import React, { useState, useContext } from 'react'
+import { Switch, Tabs, TabsProps } from 'antd'
+import React, { useEffect, useState, useContext } from 'react'
+import { LogEventCode, LogStage, LogStatus } from '@shared/logging/log_contract'
 
 import * as Consts_Page from '~/src/resource/const/page'
 import * as Types_Page from '~/src/resource/type/page'
 import * as Context from '~/src/page/home/resource/context'
+import DebugLog from '~/src/library/debug_log'
 
 import DbExplorer from './component/db_explorer'
 import LogExplorer from './component/log'
 import CustomerTask from './component/customer_task'
 import Login from './component/login'
+import DebugPanel from './component/debug'
 
 import './index.less'
 
+const Const_Developer_Mode_Storage_Key = 'zhihuhelp_developer_mode'
+
+type Type_Debug_Info = {
+  isDebug?: boolean
+}
+
+function readStoredDeveloperMode() {
+  return window.localStorage.getItem(Const_Developer_Mode_Storage_Key) === 'true'
+}
+
 let Item = () => {
-  let tabItemList: TabsProps[] = []
+  let tabItemList: NonNullable<TabsProps['items']> = []
 
   let { currentTab, setCurrentTab } = useContext(Context.CurrentTab)
+  let [isDeveloperMode, setIsDeveloperMode] = useState<boolean>(readStoredDeveloperMode)
 
   let tabMap = {
     [Consts_Page.Const_Page_任务管理]: CustomerTask,
     [Consts_Page.Const_Page_运行日志]: LogExplorer,
+    [Consts_Page.Const_Page_调试面板]: DebugPanel,
     [Consts_Page.Const_Page_数据浏览]: DbExplorer,
     [Consts_Page.Const_Page_登录]: Login,
   }
 
-  for (let key of [
+  const pageKeyList: Types_Page.Type_Page_Url[] = [
     Consts_Page.Const_Page_任务管理,
     Consts_Page.Const_Page_运行日志,
     Consts_Page.Const_Page_数据浏览,
     Consts_Page.Const_Page_登录,
-  ]) {
+  ]
+
+  if (isDeveloperMode) {
+    pageKeyList.splice(2, 0, Consts_Page.Const_Page_调试面板)
+  }
+
+  useEffect(() => {
+    let isUnmounted = false
+    const getDebugInfo = window.electronAPI?.['get-debug-ipc-channel-list']
+    if (!getDebugInfo) {
+      return () => {
+        isUnmounted = true
+      }
+    }
+    DebugLog.invokeElectronApi<Type_Debug_Info>('get-debug-ipc-channel-list')
+      .then((debugInfo: Type_Debug_Info) => {
+        if (!isUnmounted && debugInfo?.isDebug) {
+          setIsDeveloperMode(true)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      isUnmounted = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isDeveloperMode && currentTab === Consts_Page.Const_Page_调试面板) {
+      setCurrentTab(Consts_Page.Const_Page_任务管理)
+    }
+  }, [isDeveloperMode, currentTab, setCurrentTab])
+
+  const handleDeveloperModeChange = (checked: boolean) => {
+    setIsDeveloperMode(checked)
+    window.localStorage.setItem(Const_Developer_Mode_Storage_Key, String(checked))
+  }
+
+  for (let key of pageKeyList) {
     tabItemList.push({
       label: Consts_Page.Const_Page_Title[key],
       key: key,
-      children: tabMap[key](),
+      children: React.createElement(tabMap[key]),
     })
   }
 
@@ -43,8 +95,27 @@ let Item = () => {
         centered
         items={tabItemList}
         activeKey={currentTab}
-        onChange={(e: Types_Page.Type_Page_Url) => {
-          setCurrentTab(e)
+        tabBarExtraContent={
+          <div className="home-tab-extra">
+            <span>开发者模式</span>
+            <Switch size="small" checked={isDeveloperMode} onChange={handleDeveloperModeChange} />
+          </div>
+        }
+        onChange={(e) => {
+          const nextTab = e as Types_Page.Type_Page_Url
+          DebugLog.append({
+            level: 'info',
+            channel: 'navigation',
+            eventCode: LogEventCode.FRONTEND_ROUTE_CHANGE,
+            stage: LogStage.FRONTEND,
+            status: LogStatus.SUCCESS,
+            message: '切换前端页面',
+            details: {
+              from: currentTab,
+              to: nextTab,
+            },
+          })
+          setCurrentTab(nextTab)
         }}
       ></Tabs>
     </div>

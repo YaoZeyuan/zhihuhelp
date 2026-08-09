@@ -1,0 +1,16 @@
+{
+  "downloadUrl": "https://www.yaozeyuan.online/zhihuhelp",
+  "releaseAt": "2023年4月8日",
+  "releaseNote": "知乎助手2.5.1版, 闪亮发布. Mac用户请解压7z包后, 将应用程序移至应用程序目录后再使用",
+  "version": "2.5.1",
+  "detail": {
+    "windows": {
+      "version": "2.5.1",
+      "url": "https://wwtd.lanzout.com/i8K1C0sgswch"
+    },
+    "mac": {
+      "version": "2.5.1",
+      "url": "https://wwtd.lanzout.com/iH4420sgssvc"
+    }
+  }
+}

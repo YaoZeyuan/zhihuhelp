@@ -21,6 +21,77 @@
     width: 90vw;
   }
 
+  .quick-start-card {
+    margin-bottom: 18px;
+  }
+
+  .quick-start-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .step-item {
+    min-height: 34px;
+    line-height: 34px;
+    padding: 0 12px;
+    border-radius: 6px;
+    background: #f5f5f5;
+    color: rgba(0, 0, 0, 0.65);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .step-item.active {
+    background: #e6f4ff;
+    color: #0958d9;
+  }
+
+  .login-status-alert {
+    margin-bottom: 14px;
+  }
+
+  .quick-task-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quick-task-actions {
+    min-height: 32px;
+  }
+
+  .task-summary {
+    color: rgba(0, 0, 0, 0.65);
+  }
+
+  .task-summary.has-error {
+    color: #d46b08;
+  }
+
+  .task-error-alert {
+    margin-bottom: 16px;
+  }
+
+  .advanced-config-panel {
+    margin: 8px 0 16px;
+    padding: 10px 12px;
+    border: 1px solid rgba(5, 5, 5, 0.06);
+    border-radius: 6px;
+  }
+
+  .advanced-config-panel summary {
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.88);
+  }
+
+  @media (max-width: 900px) {
+    .quick-start-steps {
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+  }
+
   webview {
     min-width: 100vw;
     min-height: 100vh;

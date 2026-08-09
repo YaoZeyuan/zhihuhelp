@@ -1,8 +1,9 @@
-import Base from '~/src/model/base'
-import * as TypeActivity from '~/src/type/zhihu/activity'
+import Base from '~/src/model/base.js'
+import * as TypeActivity from '~/src/type/zhihu/activity.js'
 import lodash from 'lodash'
 import moment from 'moment'
-import * as DATE_FORMAT from '~/src/constant/date_format'
+import * as DATE_FORMAT from '~/src/constant/date_format.js'
+import { normalizeAuthorAliases } from '~/src/domain/author/identity.js'
 
 class Activity extends Base {
   static readonly ZHIHU_ACTIVITY_START_MONTH_AT = moment('2011-01-25 00:00:00', DATE_FORMAT.Const_Display_By_Second)
@@ -44,29 +45,35 @@ class Activity extends Base {
     urlToken: string,
     verbType = Activity.VERB_ANSWER_VOTE_UP,
   ): Promise<string[]> {
+    return this.asyncGetAllActivityTargetIdListByAuthorAliases([urlToken], verbType)
+  }
+
+  /**
+   * Activity has no author_id column, so all known identity aliases are queried.
+   */
+  static async asyncGetAllActivityTargetIdListByAuthorAliases(
+    aliases: string[],
+    verbType = Activity.VERB_ANSWER_VOTE_UP,
+  ): Promise<string[]> {
+    const normalizedAliases = normalizeAuthorAliases(aliases)
+    if (normalizedAliases.length === 0) {
+      return []
+    }
+
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .where('url_token', '=', urlToken)
+      .whereIn('url_token', normalizedAliases)
       .where('verb', '=', verbType)
-      .catch(() => {
-        return []
-      })
 
-    let activityTargetIdList = []
+    const activityTargetIdSet = new Set<string>()
     for (let record of recordList) {
-      let activityRecordJson = record?.raw_json
-      let activityRecord: TypeActivity.Record
-      try {
-        activityRecord = JSON.parse(activityRecordJson)
-      } catch {
-        activityRecord = {} as any
-      }
+      let activityRecord = this.parseEntityRawJson<TypeActivity.Record>(record?.raw_json, record?.id ?? 'unknown')
       if (lodash.isEmpty(activityRecord) === false) {
-        activityTargetIdList.push(`${activityRecord.target.id}`)
+        activityTargetIdSet.add(`${activityRecord.target.id}`)
       }
     }
-    return activityTargetIdList
+    return [...activityTargetIdSet]
   }
 
   /**
@@ -79,26 +86,34 @@ class Activity extends Base {
   ): Promise<{
     [targetId: string]: number
   }> {
+    return this.asyncGetAllActionRecordMapByAuthorAliases([urlToken], verbType)
+  }
+
+  /**
+   * Activity has no author_id column, so all known identity aliases are queried.
+   */
+  static async asyncGetAllActionRecordMapByAuthorAliases(
+    aliases: string[],
+    verbType = Activity.VERB_ANSWER_VOTE_UP,
+  ): Promise<{
+    [targetId: string]: number
+  }> {
+    const normalizedAliases = normalizeAuthorAliases(aliases)
+    if (normalizedAliases.length === 0) {
+      return {}
+    }
+
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .where('url_token', '=', urlToken)
+      .whereIn('url_token', normalizedAliases)
       .where('verb', '=', verbType)
-      .catch(() => {
-        return []
-      })
 
     let actionRecord: {
       [targetId: string]: number
     } = {}
     for (let record of recordList) {
-      let activityRecordJson = record?.raw_json
-      let activityRecord: TypeActivity.Record
-      try {
-        activityRecord = JSON.parse(activityRecordJson)
-      } catch {
-        continue
-      }
+      let activityRecord = this.parseEntityRawJson<TypeActivity.Record>(record?.raw_json, record?.id ?? 'unknown')
       let targetId = `${activityRecord.target.id}`
       let actionAt = activityRecord?.created_time ?? 0
       actionRecord[targetId] = actionAt

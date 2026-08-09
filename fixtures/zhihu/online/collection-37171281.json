@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "collection",
+  "sourceUrl": "https://www.zhihu.com/collection/37171281",
+  "capturedAt": "2026-08-08T16:11:09.108Z",
+  "checksum": "a7205db0ba68455bc9d9c9bfd74f1a81c824c47f635ab1e4159d91acbc9e945d",
+  "data": {
+    "entity": {
+      "id": 37171281,
+      "title": "测试用1",
+      "type": "collection",
+      "item_count": 6
+    },
+    "pages": [
+      {
+        "sourceName": "collection-37171281",
+        "sourceType": "collection",
+        "sourceId": "37171281",
+        "offset": 0,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": "465194015",
+            "type": "article",
+            "title": "“转进如风”的“并发式”软件技术学习方法"
+          }
+        ]
+      },
+      {
+        "sourceName": "collection-37171281",
+        "sourceType": "collection",
+        "sourceId": "37171281",
+        "offset": 1,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": "2067239959539487399",
+            "type": "pin"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-import Base from '~/src/api/single/base'
-import TypeAnswer from '~/src/type/zhihu/answer'
+import Base from '~/src/api/single/base.js'
+import type * as TypeAnswer from '~/src/type/zhihu/answer.js'
 
 class Answer extends Base {
   /**

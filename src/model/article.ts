@@ -1,6 +1,7 @@
-import Base from '~/src/model/base'
-import TypeArticle from '~/src/type/zhihu/article'
+import Base from '~/src/model/base.js'
+import type * as TypeArticle from '~/src/type/zhihu/article.js'
 import lodash from 'lodash'
+import { normalizeAuthorAliases, normalizeAuthorIdentifier } from '~/src/domain/author/identity.js'
 
 class Article extends Base {
   static TABLE_NAME = `Article`
@@ -11,21 +12,12 @@ class Article extends Base {
    * @param articleId
    */
   static async asyncGetArticle(articleId: string): Promise<TypeArticle.Record> {
-    let recordList = await this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .where('article_id', '=', articleId)
-      .catch(() => {
-        return []
-      })
-    let articleJson = recordList?.[0]?.raw_json
-    let article
-    try {
-      article = JSON.parse(articleJson)
-    } catch {
-      article = {}
+    let recordList = await this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).where('article_id', '=', articleId)
+    let articleRecord = recordList?.[0]
+    if (articleRecord === undefined) {
+      return {} as TypeArticle.Record
     }
-    return article
+    return this.parseEntityRawJson<TypeArticle.Record>(articleRecord.raw_json, articleId)
   }
 
   /**
@@ -33,23 +25,38 @@ class Article extends Base {
    * @param columnId
    */
   static async asyncGetArticleListByAuthorUrlToken(authorUrlToken: string): Promise<TypeArticle.Record[]> {
+    return this.asyncGetArticleListByAuthorIdentity(authorUrlToken, [authorUrlToken])
+  }
+
+  /**
+   * Query author relations by stable id first while retaining token-only legacy rows.
+   */
+  static async asyncGetArticleListByAuthorIdentity(
+    authorId: string,
+    aliases: string[] = [],
+  ): Promise<TypeArticle.Record[]> {
+    const normalizedAuthorId = normalizeAuthorIdentifier(authorId)
+    const normalizedAliases = normalizeAuthorAliases([normalizedAuthorId, ...aliases])
+    if (normalizedAuthorId === '' && normalizedAliases.length === 0) {
+      return []
+    }
+
     let recordList = await this.db
       .select(this.TABLE_COLUMN)
       .from(this.TABLE_NAME)
-      .where('author_url_token', '=', authorUrlToken)
-      .catch(() => {
-        return []
+      .where((builder) => {
+        if (normalizedAuthorId !== '') {
+          builder.where('author_id', '=', normalizedAuthorId)
+        }
+        if (normalizedAliases.length > 0) {
+          const method = normalizedAuthorId === '' ? 'whereIn' : 'orWhereIn'
+          builder[method]('author_url_token', normalizedAliases)
+        }
       })
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -62,23 +69,11 @@ class Article extends Base {
    * @param columnId
    */
   static async asyncGetArticleListByColumnId(columnId: string): Promise<TypeArticle.Record[]> {
-    let recordList = await this.db
-      .select(this.TABLE_COLUMN)
-      .from(this.TABLE_NAME)
-      .where('column_id', '=', columnId)
-      .catch(() => {
-        return []
-      })
+    let recordList = await this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).where('column_id', '=', columnId)
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -93,19 +88,11 @@ class Article extends Base {
   static async asyncGetArticleList(articleIdList: string[]): Promise<TypeArticle.Record[]> {
     let sql = this.db.select(this.TABLE_COLUMN).from(this.TABLE_NAME).whereIn('article_id', articleIdList).toString()
     // sql中的变量太多(>999), 会导致sqlite3中的select查询无法执行, 因此这里改为使用raw直接执行sql语句
-    let recordList = await this.rawClient.raw(sql, []).catch(() => {
-      return []
-    })
+    let recordList = await this.rawClient.raw(sql, [])
 
     let articleRecordList = []
     for (let record of recordList) {
-      let articleRecordJson = record?.raw_json
-      let articleRecord
-      try {
-        articleRecord = JSON.parse(articleRecordJson)
-      } catch {
-        articleRecord = {}
-      }
+      let articleRecord = this.parseEntityRawJson<TypeArticle.Record>(record?.raw_json, record?.article_id ?? 'unknown')
       if (lodash.isEmpty(articleRecord) === false) {
         articleRecordList.push(articleRecord)
       }
@@ -136,15 +123,10 @@ class Article extends Base {
 
   /**
    * 获取所有question数量
-   * @returns 
+   * @returns
    */
   static async asyncGetArticleCount(): Promise<number> {
-    let count = await this.db
-      .countDistinct("article_id as count")
-      .from(this.TABLE_NAME)
-      .catch(() => {
-        return []
-      }) as { "count": number }[]
+    let count = (await this.db.countDistinct('article_id as count').from(this.TABLE_NAME)) as { count: number }[]
 
     return count?.[0]?.count ?? 0
   }

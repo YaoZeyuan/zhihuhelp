@@ -1,5 +1,5 @@
-import Base from '~/src/api/single/base'
-import * as TypePin from '~/src/type/zhihu/pin'
+import Base from '~/src/api/single/base.js'
+import * as TypePin from '~/src/type/zhihu/pin.js'
 
 class Pin extends Base {
   /**

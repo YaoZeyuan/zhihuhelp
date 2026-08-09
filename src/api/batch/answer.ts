@@ -1,7 +1,6 @@
-import AnswerApi from '~/src/api/single/answer'
-import MAnswer from '~/src/model/answer'
-import lodash from 'lodash'
-import Base from '~/src/api/batch/base'
+import AnswerApi from '~/src/api/single/answer.js'
+import MAnswer from '~/src/model/answer.js'
+import Base from '~/src/api/batch/base.js'
 
 class BatchFetchAnswer extends Base {
   /**
@@ -11,13 +10,10 @@ class BatchFetchAnswer extends Base {
   async fetch(answerId: string) {
     this.log(`准备抓取回答${answerId}`)
     let answer = await AnswerApi.asyncGetAnswer(answerId)
-    if (lodash.isEmpty(answer)) {
-      this.log(`回答${answerId}抓取失败`)
-      return
-    }
+    this.assertEntityRecord(answer, 'answer', answerId)
     let questionId = `${answer.question.id}`
     this.log(`问题${questionId}下的回答${answerId}抓取成功, 存入数据库`)
-    await MAnswer.asyncReplaceAnswer(answer)
+    await this.persist('answer', answerId, () => MAnswer.asyncReplaceAnswer(answer))
     this.log(`问题${questionId}下的回答${answerId}成功存入数据库`)
   }
 }

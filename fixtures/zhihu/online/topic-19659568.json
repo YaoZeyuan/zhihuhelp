@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "sourceType": "topic",
+  "sourceUrl": "https://www.zhihu.com/topic/19659568/hot",
+  "capturedAt": "2026-08-08T16:11:07.425Z",
+  "checksum": "a83fa884a88415b7d6ea08aaca4b9e5a1cde8124e12d0730bb1c48a24b9fa6a1",
+  "data": {
+    "entity": {
+      "id": "19659568",
+      "name": "全职猎人（动画）",
+      "type": "topic"
+    },
+    "pages": [
+      {
+        "sourceName": "topic-19659568",
+        "sourceType": "topic",
+        "sourceId": "19659568",
+        "offset": 0,
+        "limit": 1,
+        "itemCount": 1,
+        "items": [
+          {
+            "id": 18483734,
+            "type": "answer"
+          }
+        ]
+      }
+    ]
+  }
+}
