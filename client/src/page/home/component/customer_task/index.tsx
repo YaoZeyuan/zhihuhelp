@@ -90,6 +90,7 @@ export default () => {
   let [loginStatus, setLoginStatus] = useState<Type_Login_Status>('unknown')
   let [quickTaskInput, setQuickTaskInput] = useState<string>('')
   let [configLoadError, setConfigLoadError] = useState<string | null>(null)
+  let [checkingUpgrade, setCheckingUpgrade] = useState(false)
   // 用于生成计数key, 解决批量导入任务后, 组件不更新的问题
   let [batchTaskUpdateCounter, setBatchTaskUpdateCounter] = useState<number>(0)
 
@@ -112,6 +113,34 @@ export default () => {
       error: Util.getTaskItemError(item),
     })) ?? []
   const invalidTaskItemList = taskItemErrorList.filter((item) => item.error !== '' && item.rawInputText.trim() !== '')
+
+  const handleCheckUpgrade = async () => {
+    setCheckingUpgrade(true)
+    try {
+      const result = await DebugLog.invokeElectronApi<{
+        currentVersion: string
+        latestVersion: string
+        hasNewVersion: boolean
+      }>('check-upgrade')
+      if (result.hasNewVersion) {
+        Modal.confirm({
+          title: '发现新版本',
+          content: `当前版本 ${result.currentVersion}，最新版本 ${result.latestVersion}。是否前往下载页面？`,
+          okText: '前往下载',
+          cancelText: '稍后再说',
+          onOk: async () => {
+            await DebugLog.invokeElectronApi('open-upgrade-page')
+          },
+        })
+      } else {
+        message.success(`当前已是最新版本（${result.currentVersion}）`)
+      }
+    } catch (error) {
+      message.error(`检查更新失败：${getErrorMessage(error)}`)
+    } finally {
+      setCheckingUpgrade(false)
+    }
+  }
 
   Ahooks.useAsyncEffect(async () => {
     // 任务列表内容发生变更, 重新生成电子书标题
@@ -731,6 +760,10 @@ export default () => {
               }}
             >
               打开电子书输出目录
+            </Button>
+            <Divider orientation="vertical"></Divider>
+            <Button loading={checkingUpgrade} onClick={handleCheckUpgrade}>
+              检查更新
             </Button>
             <Divider orientation="vertical"></Divider>
             <Space wrap>

@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ['get-debug-ipc-channel-list']: async (...args) => invoke('get-debug-ipc-channel-list', ...args),
   ['get-task-default-title']: async (...args) => invoke('get-task-default-title', ...args),
   ['get-common-config']: async (...args) => invoke('get-common-config', ...args),
+  ['check-upgrade']: async (...args) => invoke('check-upgrade', ...args),
+  ['open-upgrade-page']: async (...args) => invoke('open-upgrade-page', ...args),
   ['start-customer-task']: async (...args) => invoke('start-customer-task', ...args),
   ['zhihu-http-get']: async (...args) => invoke('zhihu-http-get', ...args),
   ['open-output-dir']: async (...args) => invoke('open-output-dir', ...args),

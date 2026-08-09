@@ -80,6 +80,25 @@ describe('自定义任务管理', () => {
     vi.restoreAllMocks()
   })
 
+  it('检查到新版本后提示并打开下载引导页', async () => {
+    renderCustomerTask()
+    await screen.findByRole('button', { name: '检查更新' })
+    debugLogMock.invokeElectronApi.mockImplementation((channel: string) => {
+      if (channel === 'check-upgrade') {
+        return Promise.resolve({ currentVersion: '3.0.0', latestVersion: '3.1.0', hasNewVersion: true })
+      }
+      return Promise.resolve(true)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '检查更新' }))
+    expect(await screen.findByText(/当前版本 3.0.0，最新版本 3.1.0/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '前往下载' }))
+
+    await waitFor(() => {
+      expect(debugLogMock.invokeElectronApi).toHaveBeenCalledWith('open-upgrade-page')
+    })
+  })
+
   it('全局跳过抓取与逐行抓取设置双向联动', async () => {
     renderCustomerTask([taskOne, taskTwo])
 

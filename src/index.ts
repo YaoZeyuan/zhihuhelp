@@ -37,6 +37,7 @@ import {
   parseRuntimeSessionErrorsPayload,
 } from '~/src/shared/ipc/payload.js'
 import { assertIpcResponseSucceeded } from '~/src/shared/ipc/result.js'
+import { checkUpgrade } from '~/src/application/update/check_upgrade.js'
 
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 let argv = process.argv
@@ -55,6 +56,8 @@ const Const_Debug_Ipc_Channel_List = [
   'get-debug-ipc-channel-list',
   'open-output-dir',
   'get-common-config',
+  'check-upgrade',
+  'open-upgrade-page',
   'start-customer-task',
   'get-task-default-title',
   'get-db-summary-info',
@@ -178,14 +181,13 @@ async function runLoggedIpc<T>(
     })
     try {
       const response = assertIpcResponseSucceeded(await action(), channel)
-      const isPartialSuccess = response !== null
-        && typeof response === 'object'
-        && (response as { status?: unknown }).status === LogStatus.PARTIAL_SUCCESS
+      const isPartialSuccess =
+        response !== null &&
+        typeof response === 'object' &&
+        (response as { status?: unknown }).status === LogStatus.PARTIAL_SUCCESS
       const status = isPartialSuccess ? LogStatus.PARTIAL_SUCCESS : LogStatus.SUCCESS
       Logger.event({
-        eventCode: isPartialSuccess
-          ? LogEventCode.IPC_REQUEST_PARTIAL_SUCCESS
-          : LogEventCode.IPC_REQUEST_SUCCESS,
+        eventCode: isPartialSuccess ? LogEventCode.IPC_REQUEST_PARTIAL_SUCCESS : LogEventCode.IPC_REQUEST_SUCCESS,
         stage: LogStage.IPC,
         status,
         level: isPartialSuccess ? LogLevel.WARN : LogLevel.INFO,
@@ -344,7 +346,7 @@ async function asyncCreateWindow() {
     let jsRpcUri = path.resolve(moduleDirectory, 'public', 'js-rpc', 'index.html')
     if (isMacOS) {
       // mac上载入url时必须明确指明协议, 否则无法载入
-      jsRpcUri = "file://" + jsRpcUri
+      jsRpcUri = 'file://' + jsRpcUri
     }
     jsRpcWindow.loadURL(jsRpcUri)
     jsRpcWindow.webContents.openDevTools()
@@ -365,7 +367,7 @@ async function asyncCreateWindow() {
     let jsRpcUri = path.resolve(moduleDirectory, 'public', 'js-rpc', 'index.html')
     if (isMacOS) {
       // mac上载入url时必须明确指明协议, 否则无法载入
-      jsRpcUri = "file://" + jsRpcUri
+      jsRpcUri = 'file://' + jsRpcUri
     }
     jsRpcWindow.loadURL(jsRpcUri)
     // jsRpcWindow.webContents.openDevTools()
@@ -445,7 +447,6 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-
 })
 
 app.whenReady().then(() => {
@@ -477,6 +478,17 @@ app.whenReady().then(() => {
       if (errorMessage !== '') {
         throw new Error(`输出目录打开失败: ${errorMessage}`)
       }
+      return true
+    })
+  })
+
+  ipcMain.handle('check-upgrade', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('check-upgrade', metadata, checkUpgrade)
+  })
+
+  ipcMain.handle('open-upgrade-page', async (event, metadata?: IpcTraceMetadata) => {
+    return runLoggedIpc('open-upgrade-page', metadata, async () => {
+      await shell.openExternal('https://zhihuhelp.yaozeyuan.online/')
       return true
     })
   })
@@ -695,7 +707,6 @@ app.whenReady().then(() => {
     }
   })
 
-
   ipcMain.handle('get-task-default-title', async (event, payload: unknown, metadata?: IpcTraceMetadata) => {
     const traceId = resolveIpcTraceId('get-task-default-title', metadata)
     return runWithLogCorrelation({ traceId }, async () => {
@@ -714,10 +725,10 @@ app.whenReady().then(() => {
         }
         const { taskId, taskType } = payload as { taskType?: unknown; taskId?: unknown }
         if (
-          typeof taskId !== 'string'
-          || taskId.trim() === ''
-          || typeof taskType !== 'string'
-          || taskTypeList.includes(taskType as TaskType) === false
+          typeof taskId !== 'string' ||
+          taskId.trim() === '' ||
+          typeof taskType !== 'string' ||
+          taskTypeList.includes(taskType as TaskType) === false
         ) {
           throw new Error('taskId/taskType 无效')
         }
@@ -885,7 +896,6 @@ app.whenReady().then(() => {
     })
   })
 
-
   // 清空所有登录信息
   ipcMain.handle('clear-all-session-storage', async (event, metadata?: IpcTraceMetadata) => {
     return runLoggedIpc('clear-all-session-storage', metadata, async () => {
@@ -895,7 +905,6 @@ app.whenReady().then(() => {
       return true
     })
   })
-
 
   /**
    * jsRpc任务管理器
@@ -914,7 +923,15 @@ app.whenReady().then(() => {
   >()
   let totalTaskCounter = 0
 
-  async function asyncJsRpcTriggerFunc({ method, paramList, traceId: inputTraceId }: { method: string; paramList: any[]; traceId?: string }) {
+  async function asyncJsRpcTriggerFunc({
+    method,
+    paramList,
+    traceId: inputTraceId,
+  }: {
+    method: string
+    paramList: any[]
+    traceId?: string
+  }) {
     totalTaskCounter++
     let id = `task-${totalTaskCounter}-${Math.random()}`
     const traceId = inputTraceId ?? createTraceId('js-rpc')
@@ -1020,65 +1037,64 @@ app.whenReady().then(() => {
     return true
   })
 
-  ipcMain.handle('zhihu-http-get', async (
-    event,
-    { url, params }: { url: string; params: { [key: string]: any } },
-    metadata?: IpcTraceMetadata,
-  ) => {
-    const traceId = resolveIpcTraceId('zhihu-http-get', metadata)
-    const startAt = Date.now()
-    Logger.event({
-      traceId,
-      eventCode: LogEventCode.IPC_REQUEST_START,
-      stage: LogStage.IPC,
-      status: LogStatus.START,
-      level: LogLevel.INFO,
-      message: '收到 IPC 请求：zhihu-http-get',
-      details: {
-        url,
-        paramsKeys: Object.keys(params ?? {}),
-      },
-    })
-    try {
-      await asyncUpdateCookie()
-      const res = await http.get(
-        url,
-        {
-          params: params,
-        },
-        { traceId },
-      )
+  ipcMain.handle(
+    'zhihu-http-get',
+    async (event, { url, params }: { url: string; params: { [key: string]: any } }, metadata?: IpcTraceMetadata) => {
+      const traceId = resolveIpcTraceId('zhihu-http-get', metadata)
+      const startAt = Date.now()
       Logger.event({
         traceId,
-        eventCode: LogEventCode.IPC_REQUEST_SUCCESS,
+        eventCode: LogEventCode.IPC_REQUEST_START,
         stage: LogStage.IPC,
-        status: LogStatus.SUCCESS,
+        status: LogStatus.START,
         level: LogLevel.INFO,
-        message: 'IPC 请求完成：zhihu-http-get',
-        durationMs: Date.now() - startAt,
+        message: '收到 IPC 请求：zhihu-http-get',
         details: {
           url,
-          response: summarizeIpcResponse(res),
+          paramsKeys: Object.keys(params ?? {}),
         },
       })
-      return res
-    } catch (error) {
-      Logger.event({
-        traceId,
-        eventCode: LogEventCode.IPC_REQUEST_FAILURE,
-        stage: LogStage.IPC,
-        status: LogStatus.FAILURE,
-        level: LogLevel.ERROR,
-        message: 'IPC 请求异常：zhihu-http-get',
-        durationMs: Date.now() - startAt,
-        error: Logger.serializeError(error),
-        details: {
+      try {
+        await asyncUpdateCookie()
+        const res = await http.get(
           url,
-        },
-      })
-      throw error
-    }
-  })
+          {
+            params: params,
+          },
+          { traceId },
+        )
+        Logger.event({
+          traceId,
+          eventCode: LogEventCode.IPC_REQUEST_SUCCESS,
+          stage: LogStage.IPC,
+          status: LogStatus.SUCCESS,
+          level: LogLevel.INFO,
+          message: 'IPC 请求完成：zhihu-http-get',
+          durationMs: Date.now() - startAt,
+          details: {
+            url,
+            response: summarizeIpcResponse(res),
+          },
+        })
+        return res
+      } catch (error) {
+        Logger.event({
+          traceId,
+          eventCode: LogEventCode.IPC_REQUEST_FAILURE,
+          stage: LogStage.IPC,
+          status: LogStatus.FAILURE,
+          level: LogLevel.ERROR,
+          message: 'IPC 请求异常：zhihu-http-get',
+          durationMs: Date.now() - startAt,
+          error: Logger.serializeError(error),
+          details: {
+            url,
+          },
+        })
+        throw error
+      }
+    },
+  )
   ipcMain.handle('append-frontend-log-batch', async (event, payload: unknown) => {
     try {
       const recordList = validateFrontendLogBatch(payload)
@@ -1134,14 +1150,11 @@ app.whenReady().then(() => {
     })
   })
 
-
   if (mainWindow === null) {
-    console.log("开始创建窗口")
+    console.log('开始创建窗口')
     asyncCreateWindow()
   }
 })
-
-
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

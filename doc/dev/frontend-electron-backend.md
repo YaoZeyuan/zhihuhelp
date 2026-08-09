@@ -146,6 +146,8 @@ IPC 公开面由 `src/preload.cjs` 与 `src/renderer.d.ts` 共同约束。新增
 | ----------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `get-debug-ipc-channel-list`  | 调试面板           | 获取调试标志、进程信息和允许展示的 IPC 列表                                                                                                        |
 | `get-common-config`           | 任务管理           | 读取任务配置；前端日志不得保存其中的 Cookie                                                                                                        |
+| `check-upgrade`               | 任务管理           | 请求 `CommonConfig.checkUpgradeUri`，校验 SemVer 并返回本地版本、最新版本及是否需要升级                                                            |
+| `open-upgrade-page`           | 任务管理           | 使用系统浏览器打开固定下载引导页 `https://zhihuhelp.yaozeyuan.online/`，不接受 renderer 传入的 URL                                                 |
 | `start-customer-task`         | 任务管理           | 合并 session Cookie、保存配置并启动完整任务                                                                                                        |
 | `get-task-default-title`      | 任务管理           | 根据任务类型和 id 获取默认书名                                                                                                                     |
 | `zhihu-http-get`              | 任务管理、调试     | 由主进程代理最小知乎 GET 请求                                                                                                                      |
@@ -159,9 +161,9 @@ IPC 公开面由 `src/preload.cjs` 与 `src/renderer.d.ts` 共同约束。新增
 | `get-log-content`             | 运行日志           | 读取最近文本日志                                                                                                                                   |
 | `clear-log-content`           | 运行日志           | 清理文本日志文件族                                                                                                                                 |
 | `get-runtime-jsonl-content`   | 运行日志、调试     | 合并读取最近五日后端 JSONL                                                                                                                         |
-| `get-runtime-session-errors`  | 运行日志           | 按 renderer 文档启动时间筛选最近五日完整后端 JSONL，仅返回本会话 error/failure；只读且不记录自身 IPC 日志                                               |
+| `get-runtime-session-errors`  | 运行日志           | 按 renderer 文档启动时间筛选最近五日完整后端 JSONL，仅返回本会话 error/failure；只读且不记录自身 IPC 日志                                          |
 | `clear-runtime-jsonl-content` | 运行日志           | 清理后端 JSONL 文件族                                                                                                                              |
-| `get-output-history`          | 运行日志           | 从最近五日带书籍级 `outputPath` 的 `output.created` 事件按目录去重构建历史                                                                          |
+| `get-output-history`          | 运行日志           | 从最近五日带书籍级 `outputPath` 的 `output.created` 事件按目录去重构建历史                                                                         |
 | `export-diagnostic-info`      | 运行日志           | 导出脱敏配置、摘要及前后端日志尾部                                                                                                                 |
 | `open-devtools`               | 调试               | 打开主窗口 DevTools                                                                                                                                |
 | `open-js-rpc-window-devtools` | 调试               | 显示 js-rpc 窗口并打开 DevTools                                                                                                                    |
