@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EpubGenerator from '../../src/application/workflow/generate/library/epub_generator'
 import HtmlRender from '../../src/application/workflow/generate/library/html_render'
 import React from 'react'
+import AdmZip from 'adm-zip'
 import PathConfig from '../../src/config/path'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
@@ -61,13 +62,14 @@ describe('output generation contract', () => {
     expect(generator.epub.opf.content).not.toContain('does-not-exist.png')
   })
 
-  it('writes the EPUB mimetype as the first uncompressed ZIP entry', async () => {
+  it('writes a complete EPUB with the mimetype as the first uncompressed ZIP entry', async () => {
     const generator = new EpubGenerator({ bookname: 'EPUB contract', imageQuilty: 'none' })
-    generator.generateSinglePageHtml({ html: '<html><body>EPUB</body></html>' })
+    generator.addHtml({ filename: 'chapter-1', title: 'Chapter 1', html: '<html><body>EPUB body marker</body></html>' })
 
     await generator.asyncGenerateEpub(['epub'])
 
     const archive = fs.readFileSync(generator.epubOutputPathUri)
+    expect(archive.length).toBeGreaterThan(1024)
     expect(archive.readUInt32LE(0)).toBe(0x04034b50)
     expect(archive.readUInt16LE(8)).toBe(0)
     const nameLength = archive.readUInt16LE(26)
@@ -76,6 +78,27 @@ describe('output generation contract', () => {
     expect(archive.subarray(30 + nameLength, 30 + nameLength + dataLength).toString('utf8')).toBe(
       'application/epub+zip',
     )
+
+    const zip = new AdmZip(archive)
+    const entryNames = zip.getEntries().map((entry) => entry.entryName.replace(/\\/g, '/'))
+    expect(entryNames).toEqual(expect.arrayContaining([
+      'META-INF/container.xml',
+      'OEBPS/content.opf',
+      'OEBPS/toc.xhtml',
+      'OEBPS/html/chapter-1.html',
+    ]))
+    expect(zip.readAsText('OEBPS/html/chapter-1.html')).toContain('EPUB body marker')
+    const opf = zip.readAsText('OEBPS/content.opf')
+    expect(opf).toContain('href="html/chapter-1.html"')
+    expect(opf).toMatch(/<itemref idref="index_\d+"/)
+  })
+
+  it('refuses to publish an EPUB without a body chapter', async () => {
+    const generator = new EpubGenerator({ bookname: 'empty EPUB', imageQuilty: 'none' })
+    generator.generateSinglePageHtml({ html: '<html><body>HTML only</body></html>' })
+
+    await expect(generator.asyncGenerateEpub(['epub'])).rejects.toThrow('EPUB 结构不完整')
+    expect(fs.existsSync(generator.epubOutputPathUri)).toBe(false)
   })
 
   it('renders a responsive single-file table of contents with page anchors', () => {

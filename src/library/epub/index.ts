@@ -7,6 +7,11 @@ import OPF from './opf.js'
 import TOC from './toc.js'
 
 const ZIP_METHOD_STORED = 0
+const REQUIRED_EPUB_ENTRIES = [
+  'META-INF/container.xml',
+  'OEBPS/content.opf',
+  'OEBPS/toc.xhtml',
+] as const
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
 
 class Epub {
@@ -123,7 +128,7 @@ class Epub {
     let opfContent = this.opf.content
     fs.writeFileSync(path.resolve(this.epubContentCachePath, 'content.opf'), opfContent)
 
-    let zip = new AdmZip()
+    let zip = new AdmZip({ noSort: true })
     let epubUri = path.resolve(this.epubCachePath, this.bookname + '.epub')
     logger.log('开始制作epub, 压缩为zip需要一定时间, 请等待')
 
@@ -133,15 +138,38 @@ class Epub {
     )
     // EPUB requires the first entry to be the uncompressed `mimetype` file.
     mimetypeEntry.header.method = ZIP_METHOD_STORED
-    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'META-INF'), {
-      "zipPath": 'META-INF'
-    })
-    await zip.addLocalFolderPromise(path.resolve(this.epubCachePath, 'OEBPS'), {
-      "zipPath": 'OEBPS'
-    })
+    this.addDirectoryToZip(zip, path.resolve(this.epubCachePath, 'META-INF'), 'META-INF')
+    this.addDirectoryToZip(zip, path.resolve(this.epubCachePath, 'OEBPS'), 'OEBPS')
+    this.validateArchiveEntries(zip)
+    mimetypeEntry.header.method = ZIP_METHOD_STORED
 
     await zip.writeZipPromise(epubUri)
     logger.log('epub制作完成')
+  }
+
+  private addDirectoryToZip(zip: AdmZip, directoryPath: string, zipDirectory: string) {
+    const entries = fs.readdirSync(directoryPath, { withFileTypes: true })
+      .sort((left, right) => left.name.localeCompare(right.name))
+    for (const entry of entries) {
+      const sourcePath = path.resolve(directoryPath, entry.name)
+      const zipPath = path.posix.join(zipDirectory, entry.name)
+      if (entry.isDirectory()) {
+        this.addDirectoryToZip(zip, sourcePath, zipPath)
+      } else if (entry.isFile()) {
+        zip.addFile(zipPath, fs.readFileSync(sourcePath), '', fs.statSync(sourcePath))
+      }
+    }
+  }
+
+  private validateArchiveEntries(zip: AdmZip) {
+    const entryNames = new Set(zip.getEntries().map((entry) => entry.entryName.replace(/\\/g, '/')))
+    const missingEntries = REQUIRED_EPUB_ENTRIES.filter((entryName) => entryNames.has(entryName) === false)
+    const htmlEntryCount = [...entryNames].filter((entryName) => /^OEBPS\/html\/.+\.html$/i.test(entryName)).length
+    if (missingEntries.length > 0 || htmlEntryCount === 0) {
+      throw new Error(
+        `EPUB 结构不完整：缺少 ${missingEntries.join(', ') || '正文 HTML'}，正文页面数 ${htmlEntryCount}。`,
+      )
+    }
   }
 
   private CopyFileSyncSafe(fromUri: string, toUri: string) {

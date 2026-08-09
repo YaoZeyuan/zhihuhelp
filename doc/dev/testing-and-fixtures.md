@@ -146,7 +146,7 @@ description: 离线测试、在线冒烟、fixture 更新及临时数据隔离�
 | I03  | Batch 抓取    | 全部任务类型、1–2 页分页、活动时间段、子任务扩展、去重、局部失败和入库                                                |
 | I04  | 数据关系      | 收藏夹混合内容、话题回答、专栏文章、问题回答和作者内容关系一致                                                        |
 | I05  | 完整 Workflow | init → fetch → generate，以及各阶段失败；同一 `runId` 的 start 后恰好一个终态                                         |
-| I06  | 输出          | 三种生成模式每次固定 HTML/Markdown/EPUB；每书全部多文件与单文件 HTML 都有对应 Markdown，GFM/图片/链接/fallback 可读；缺图或真实写入失败局部成功、Windows 中文目录、超长标题双卷与 EPUB 包结构 |
+| I06  | 输出          | 三种生成模式每次固定 HTML/Markdown/EPUB；每书全部多文件与单文件 HTML 都有对应 Markdown，GFM/图片/链接/fallback 可读；缺图或真实写入失败局部成功、Windows 中文目录、超长标题双卷；成品 EPUB 必须可解包，包含必需元数据、正文文件，且 OPF manifest/spine 与 ZIP 条目一致 |
 | I07  | 日志汇聚      | 前后端 schema、关联 id、脱敏、按日保留、最近五日历史、诊断导出和写入失败降级                                          |
 | I08  | IPC 契约      | channel 白名单、payload schema、大小/频率限制、非法路径和主进程错误返回                                               |
 | I09  | 隔离清理      | 成功时清理、保留现场开关、SQLite/计时器/任务池/HTTP 缓存/全局路径恢复                                                 |

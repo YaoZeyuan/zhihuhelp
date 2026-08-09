@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import AdmZip from 'adm-zip'
 import BatchFetchAnswer from '../../src/api/batch/answer'
 import AnswerModel from '../../src/model/answer'
 import CommonConfig from '../../src/config/common'
@@ -77,6 +78,37 @@ function readRuntimeRecords(logPath: string): StructuredLogRecord[] {
     .flatMap((fileName) => fs.readFileSync(path.join(logPath, fileName), 'utf8').split(/\r?\n/))
     .filter(Boolean)
     .map((line) => JSON.parse(line) as StructuredLogRecord)
+}
+
+function expectCompleteEpub(epubPath: string) {
+  const archive = fs.readFileSync(epubPath)
+  expect(archive.length).toBeGreaterThan(1024)
+  expect(archive.readUInt32LE(0)).toBe(0x04034b50)
+  expect(archive.readUInt16LE(8)).toBe(0)
+  const firstNameLength = archive.readUInt16LE(26)
+  expect(archive.subarray(30, 30 + firstNameLength).toString('utf8')).toBe('mimetype')
+  const zip = new AdmZip(archive)
+  const entryNames = zip.getEntries().map((entry) => entry.entryName.replace(/\\/g, '/'))
+  const entryNameSet = new Set(entryNames)
+  expect(entryNameSet.has('META-INF/container.xml')).toBe(true)
+  expect(entryNameSet.has('OEBPS/content.opf')).toBe(true)
+  expect(entryNameSet.has('OEBPS/toc.xhtml')).toBe(true)
+  const htmlEntryNames = entryNames.filter((entryName) => /^OEBPS\/html\/.+\.html$/i.test(entryName))
+  expect(htmlEntryNames.length).toBeGreaterThan(0)
+
+  const opf = zip.readAsText('OEBPS/content.opf')
+  const manifestItems = [...opf.matchAll(/<item\s+href="([^"]+)"\s+id="([^"]+)"/g)]
+  const manifestIds = new Set(manifestItems.map((match) => match[2]))
+  const bodyHrefs = manifestItems.map((match) => match[1]).filter((href) => href.startsWith('html/'))
+  expect(bodyHrefs.length).toBeGreaterThan(0)
+  for (const href of bodyHrefs) {
+    expect(entryNameSet.has(`OEBPS/${href}`)).toBe(true)
+  }
+  const spineIds = [...opf.matchAll(/<itemref\s+idref="([^"]+)"/g)].map((match) => match[1])
+  expect(spineIds.length).toBeGreaterThan(0)
+  for (const id of spineIds) {
+    expect(manifestIds.has(id)).toBe(true)
+  }
 }
 
 function expectEveryStartedOperationToHaveOneTerminal(records: StructuredLogRecord[]) {
@@ -227,6 +259,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(runtimeLog).toContain('"eventCode":"output.markdown.success"')
     expect(runtimeLog).toContain('"outputFormats":["html","markdown","epub"]')
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
+    outputFileList.filter((filePath) => filePath.endsWith('.epub')).forEach(expectCompleteEpub)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
   })
 
@@ -279,6 +312,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(markdownIndexList).toHaveLength(2)
     expect(new Set(epubFileList.map((filePath) => path.basename(filePath))).size).toBe(2)
     expect(epubFileList.every((filePath) => path.basename(filePath).length <= 120)).toBe(true)
+    epubFileList.forEach(expectCompleteEpub)
     expect(outputFileList.every((filePath) => filePath.startsWith(sandbox.rootPath))).toBe(true)
     expectEveryStartedOperationToHaveOneTerminal(readRuntimeRecords(sandbox.logPath))
   })
@@ -323,6 +357,7 @@ describe('fixture-driven persistence and sandbox workflow', () => {
     expect(outputFileList.some((filePath) => filePath.endsWith('.html'))).toBe(true)
     expect(outputFileList.some((filePath) => filePath.endsWith('.epub'))).toBe(true)
     expect(outputFileList.some((filePath) => filePath.endsWith('.md'))).toBe(false)
+    outputFileList.filter((filePath) => filePath.endsWith('.epub')).forEach(expectCompleteEpub)
     expect(runtimeRecords).toEqual(expect.arrayContaining([
       expect.objectContaining({
         eventCode: 'output.markdown.failure',
