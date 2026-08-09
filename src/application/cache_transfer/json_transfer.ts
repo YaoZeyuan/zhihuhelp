@@ -12,6 +12,7 @@ const Const_Export_Schema = 'zhihuhelp.cache-export.v1'
 const Const_Max_Error_Count = 20
 
 type SelectType =
+  | 'all'
   | typeof TaskConsts.Const_Task_Type_回答
   | typeof TaskConsts.Const_Task_Type_文章
   | typeof TaskConsts.Const_Task_Type_想法
@@ -26,7 +27,7 @@ type ExportRequest = {
   parentId?: string
 }
 
-type PortableRecordKind = 'answer' | 'article' | 'pin'
+type PortableRecordKind = 'answer' | 'article' | 'pin' | 'activity' | 'asked-question'
 type PortableIndexKind = 'author' | 'column' | 'collection' | 'topic' | 'question'
 type PortableRelationKind = 'collection-record' | 'topic-answer'
 
@@ -90,6 +91,8 @@ type PortableJson = {
     answer: number
     article: number
     pin: number
+    activity: number
+    askedQuestion: number
     indexes: number
     relations: number
   }
@@ -100,6 +103,9 @@ type PortableJson = {
 
 type ImportCounter = {
   imported: number
+  updated: number
+  preserved: number
+  /** @deprecated kept for renderer/API compatibility */
   replaced: number
   skipped: number
   errors: string[]
@@ -199,28 +205,57 @@ function hasPortableDbColumns(value: unknown): value is { db: { columns: Record<
     && isPlainRecord(value.db.columns)
 }
 
-async function existsInTable(tableName: string, where: Record<string, string | number>) {
-  const query = Base.db.select(Object.keys(where)).from(tableName)
+async function findInTable(tableName: string, where: Record<string, string | number>) {
+  const query = Base.db.select('*').from(tableName)
   for (const [key, value] of Object.entries(where)) {
     query.where(key, '=', value)
   }
-  const recordList = await query.limit(1)
-  return recordList.length > 0
+  return query.first()
 }
 
-async function replaceIntoWithCounter(
+function recordUpdatedAt(raw: unknown) {
+  if (!isPlainRecord(raw)) {
+    return undefined
+  }
+  const value = raw.updated_time ?? raw.updated
+  const timestamp = Number(value)
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : undefined
+}
+
+function safelyParseStoredRaw(rawJson: unknown, tableName: string, primaryKey: Record<string, string | number>) {
+  try {
+    return parseRawJson(rawJson, tableName, Object.values(primaryKey).join(':'))
+  } catch {
+    return undefined
+  }
+}
+
+async function writeNewerWithCounter(
   counter: ImportCounter,
   tableName: string,
   primaryKey: Record<string, string | number>,
   data: Record<string, unknown>,
 ) {
-  const existed = await existsInTable(tableName, primaryKey)
-  await Base.replaceInto(data, tableName)
-  if (existed) {
-    counter.replaced++
-  } else {
+  const existing = await findInTable(tableName, primaryKey)
+  if (!existing) {
+    await Base.replaceInto(data, tableName)
     counter.imported++
+    return
   }
+
+  const incomingTime = tableName === 'Collection_Record'
+    ? Number(data.record_at ?? 0)
+    : recordUpdatedAt(JSON.parse(String(data.raw_json ?? '{}')))
+  const localTime = tableName === 'Collection_Record'
+    ? Number(existing.record_at ?? 0)
+    : recordUpdatedAt(safelyParseStoredRaw(existing.raw_json, tableName, primaryKey))
+  if (incomingTime !== undefined && incomingTime > 0 && localTime !== undefined && incomingTime > localTime) {
+    await Base.replaceInto(data, tableName)
+    counter.updated++
+    counter.replaced++
+    return
+  }
+  counter.preserved++
 }
 
 export default class CacheJsonTransfer {
@@ -241,6 +276,8 @@ export default class CacheJsonTransfer {
         answer: exportResult.records.filter((item) => item.kind === 'answer').length,
         article: exportResult.records.filter((item) => item.kind === 'article').length,
         pin: exportResult.records.filter((item) => item.kind === 'pin').length,
+        activity: exportResult.records.filter((item) => item.kind === 'activity').length,
+        askedQuestion: exportResult.records.filter((item) => item.kind === 'asked-question').length,
         indexes: exportResult.indexes.length,
         relations: exportResult.relations.length,
       },
@@ -266,6 +303,8 @@ export default class CacheJsonTransfer {
   static async importDbRecordJson(filePath: string) {
     const counter: ImportCounter = {
       imported: 0,
+      updated: 0,
+      preserved: 0,
       replaced: 0,
       skipped: 0,
       errors: [],
@@ -303,12 +342,12 @@ export default class CacheJsonTransfer {
     }
 
     if (counter.skipped > 0) {
-      const completed = counter.imported + counter.replaced
+      const completed = counter.imported + counter.updated
       return {
         status: completed > 0 ? LogStatus.PARTIAL_SUCCESS : LogStatus.FAILURE,
         filePath,
         message: completed > 0
-          ? `导入部分完成：新增 ${counter.imported} 条，覆盖 ${counter.replaced} 条，跳过 ${counter.skipped} 条。`
+          ? `导入部分完成：新增 ${counter.imported} 条，更新 ${counter.updated} 条，保留 ${counter.preserved} 条，跳过 ${counter.skipped} 条。`
           : `导入失败：没有可写入的记录，跳过 ${counter.skipped} 条。`,
         ...counter,
       }
@@ -317,7 +356,7 @@ export default class CacheJsonTransfer {
     return {
       status: LogStatus.SUCCESS,
       filePath,
-      message: `导入完成：新增 ${counter.imported} 条，覆盖 ${counter.replaced} 条，跳过 ${counter.skipped} 条。`,
+      message: `导入完成：新增 ${counter.imported} 条，更新 ${counter.updated} 条，保留 ${counter.preserved} 条，跳过 ${counter.skipped} 条。`,
       ...counter,
     }
   }
@@ -366,6 +405,8 @@ export default class CacheJsonTransfer {
 
   private static async buildExportResult(request: ExportRequest): Promise<ExportBuildResult> {
     switch (request.type) {
+      case 'all':
+        return CacheJsonTransfer.buildFullExport()
       case TaskConsts.Const_Task_Type_回答:
         return CacheJsonTransfer.buildAllAnswerExport()
       case TaskConsts.Const_Task_Type_文章:
@@ -385,6 +426,27 @@ export default class CacheJsonTransfer {
       default:
         throw new Error(`不支持导出该类型：${request.type}`)
     }
+  }
+
+  private static async buildFullExport(): Promise<ExportBuildResult> {
+    const [answers, articles, pins, activities, askedQuestions, authors, columns, collections, topics, collectionRelations, topicRelations] = await Promise.all([
+      CacheJsonTransfer.selectAnswerRows(), CacheJsonTransfer.selectArticleRows(), CacheJsonTransfer.selectPinRows(),
+      CacheJsonTransfer.selectRows('Activity', ['id', 'url_token', 'verb', 'raw_json']),
+      CacheJsonTransfer.selectRows('Author_Ask_Question', ['question_id', 'author_url_token', 'author_id', 'raw_json']),
+      CacheJsonTransfer.selectIndexRows('Author', ['id', 'url_token', 'raw_json']),
+      CacheJsonTransfer.selectIndexRows('Column', ['column_id', 'raw_json']),
+      CacheJsonTransfer.selectIndexRows('Collection', ['collection_id', 'raw_json']),
+      CacheJsonTransfer.selectIndexRows('Topic', ['topic_id', 'raw_json']),
+      CacheJsonTransfer.selectRows('Collection_Record', ['collection_id', 'record_type', 'record_id', 'record_at', 'raw_json']),
+      CacheJsonTransfer.selectRows('Topic_Answer', ['topic_id', 'answer_id']),
+    ])
+    return CacheJsonTransfer.createExportResult({
+      type: 'all', title: '全部缓存数据', fileTitle: '导出全部缓存数据',
+      contentKinds: ['answer', 'article', 'pin', 'activity', 'asked-question', 'author', 'column', 'collection', 'topic', 'collection-record', 'topic-answer'],
+      records: [...answers.map(CacheJsonTransfer.formatAnswerRecord), ...articles.map(CacheJsonTransfer.formatArticleRecord), ...pins.map(CacheJsonTransfer.formatPinRecord), ...activities.map(CacheJsonTransfer.formatActivityRecord), ...askedQuestions.map(CacheJsonTransfer.formatAskedQuestionRecord)],
+      indexes: [...authors.map(CacheJsonTransfer.formatAuthorIndex), ...columns.map(CacheJsonTransfer.formatColumnIndex), ...collections.map(CacheJsonTransfer.formatCollectionIndex), ...topics.map(CacheJsonTransfer.formatTopicIndex)],
+      relations: [...collectionRelations.map(CacheJsonTransfer.formatCollectionRelation), ...topicRelations.map(CacheJsonTransfer.formatTopicRelation)],
+    })
   }
 
   private static async buildAllAnswerExport(): Promise<ExportBuildResult> {
@@ -618,7 +680,9 @@ export default class CacheJsonTransfer {
         parentId,
         title,
         contentKinds,
-        total: uniqueRecords.length || uniqueIndexes.length || uniqueRelations.length,
+        total: type === 'all'
+          ? uniqueRecords.length + uniqueIndexes.length + uniqueRelations.length
+          : uniqueRecords.length || uniqueIndexes.length || uniqueRelations.length,
       },
       fileTitle,
       records: uniqueRecords,
@@ -749,6 +813,27 @@ export default class CacheJsonTransfer {
         updatedAt: Number(raw?.updated ?? 0),
       },
       raw,
+    }
+  }
+
+  private static formatActivityRecord(record: any): PortableRecord {
+    const raw = parseRawJson(record.raw_json, 'Activity', `${record.url_token}:${record.id}`)
+    const id = String(record.id ?? raw?.id ?? '')
+    const urlToken = String(record.url_token ?? raw?.actor?.url_token ?? '')
+    return {
+      kind: 'activity', id: `${urlToken}:${id}`,
+      db: { tableName: 'Activity', primaryKey: { id, url_token: urlToken }, columns: { id, url_token: urlToken, verb: String(record.verb ?? raw?.verb ?? '') } },
+      display: { title: String(raw?.verb ?? record.verb ?? id), updatedAt: Number(raw?.updated_time ?? raw?.created_time ?? id) }, raw,
+    }
+  }
+
+  private static formatAskedQuestionRecord(record: any): PortableRecord {
+    const raw = parseRawJson(record.raw_json, 'Author_Ask_Question', record.question_id ?? 'unknown')
+    const id = String(record.question_id ?? raw?.id ?? '')
+    return {
+      kind: 'asked-question', id,
+      db: { tableName: 'Author_Ask_Question', primaryKey: { question_id: id }, columns: { question_id: id, author_url_token: String(record.author_url_token ?? raw?.author?.url_token ?? ''), author_id: String(record.author_id ?? raw?.author?.id ?? '') } },
+      display: { title: toDisplayText(raw?.title, `问题 ${id}`), updatedAt: Number(raw?.updated_time ?? 0) }, raw,
     }
   }
 
@@ -1117,6 +1202,23 @@ export default class CacheJsonTransfer {
         },
       }
     }
+    if (record.kind === 'activity') {
+      const id = String(columns.id ?? raw?.id ?? '')
+      const urlToken = String(columns.url_token ?? raw?.actor?.url_token ?? '')
+      if (id === '' || urlToken === '') return undefined
+      return {
+        tableName: 'Activity', primaryKey: { id, url_token: urlToken },
+        data: { id, url_token: urlToken, verb: String(columns.verb ?? raw?.verb ?? ''), raw_json: stringifyRawJson(raw) },
+      }
+    }
+    if (record.kind === 'asked-question') {
+      const questionId = String(columns.question_id ?? record.id ?? raw?.id ?? '')
+      if (questionId === '') return undefined
+      return {
+        tableName: 'Author_Ask_Question', primaryKey: { question_id: questionId },
+        data: { question_id: questionId, author_url_token: String(columns.author_url_token ?? raw?.author?.url_token ?? ''), author_id: String(columns.author_id ?? raw?.author?.id ?? ''), raw_json: stringifyRawJson(raw) },
+      }
+    }
     return undefined
   }
 
@@ -1247,7 +1349,7 @@ export default class CacheJsonTransfer {
         }
         return
       }
-      await replaceIntoWithCounter(
+      await writeNewerWithCounter(
         counter,
         importData.tableName,
         importData.primaryKey as unknown as Record<string, string | number>,
@@ -1270,7 +1372,7 @@ export default class CacheJsonTransfer {
         addImportError(counter, `记录 ${label} 缺少必要字段，已跳过。`)
         return
       }
-      await replaceIntoWithCounter(
+      await writeNewerWithCounter(
         counter,
         importData.tableName,
         importData.primaryKey as unknown as Record<string, string | number>,
@@ -1297,7 +1399,7 @@ export default class CacheJsonTransfer {
         addImportError(counter, `关系 ${label} 缺少必要字段，已跳过。`)
         return
       }
-      await replaceIntoWithCounter(
+      await writeNewerWithCounter(
         counter,
         importData.tableName,
         importData.primaryKey as unknown as Record<string, string | number>,

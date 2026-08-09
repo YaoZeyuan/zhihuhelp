@@ -98,4 +98,15 @@ export default class HtmlRender {
   static generateSinglePageHtml({ title, eleList }: { title: string; eleList: React.ReactElement[] }) {
     return this.renderToString(<TsxBasePage title={title}>{eleList}</TsxBasePage>)
   }
+
+  static generateSinglePageWithIndex({ title, index, eleList }: { title: string; index: React.ReactElement; eleList: React.ReactElement[] }) {
+    return this.renderToString(
+      <TsxBasePage title={title}>
+        <div className="single-page-layout">
+          <aside className="single-page-toc"><details open><summary>目录</summary>{index}</details></aside>
+          <main className="single-page-content">{eleList}</main>
+        </div>
+      </TsxBasePage>,
+    )
+  }
 }

@@ -24,7 +24,7 @@ import * as Package from '~/src/application/workflow/generate/resource/library/p
 
 import EpubGenerator from '~/src/application/workflow/generate/library/epub_generator'
 import moment from 'moment'
-import { ReactElement } from 'react'
+import React, { ReactElement } from 'react'
 import { RunContext } from '~/src/shared/runtime/run_context'
 import { LogEventCode, LogLevel, LogStage, LogStatus, StructuredLogEntry } from '~/src/shared/logging/log_contract'
 import { AppErrorCode, ApplicationError } from '~/src/shared/error/application_error'
@@ -1150,28 +1150,39 @@ class GenerateWorkflow {
     let filename = ""
     // 渲染结果
     let renderResult
+    const description = [
+      unit.info && 'headline' in unit.info ? unit.info.headline : '',
+      unit.info && 'description' in unit.info ? unit.info.description : '',
+      unit.info && 'intro' in unit.info ? unit.info.intro : '',
+      unit.info && 'excerpt' in unit.info ? unit.info.excerpt : '',
+      unit.info && 'introduction' in unit.info ? unit.info.introduction : '',
+    ].filter((item): item is string => typeof item === 'string' && item.trim() !== '').filter((item, index, list) => list.indexOf(item) === index).join('\n')
     switch (unit.type) {
       case Const_TaskConfig.Const_Task_Type_混合类型:
         renderResult = HtmlRender.renderInfoPage({
           title: `混合类型_${moment().format(Date_Format.Const_Display_By_Second)}`,
+          desc: `包含 ${unit.pageList.length} 个内容页面`,
         })
         filename = `mix_type_${moment().format(Date_Format.Const_Display_By_Second)}`
         break
       case Const_TaskConfig.Const_Task_Type_收藏夹:
         renderResult = HtmlRender.renderInfoPage({
           title: `收藏夹_${unit.info['title']}(${unit.info['id']})`,
+          desc: description,
         })
         filename = `collection_type_${unit.info['id']}`
         break
       case Const_TaskConfig.Const_Task_Type_专栏:
         renderResult = HtmlRender.renderInfoPage({
           title: `专栏_${unit.info['title']}(${unit.info['id']})`,
+          desc: description,
         })
         filename = `column_type_${unit.info['id']}`
         break
       case Const_TaskConfig.Const_Task_Type_话题:
         renderResult = HtmlRender.renderInfoPage({
           title: `话题_${unit.info['name']}(${unit.info['id']})`,
+          desc: description,
         })
         filename = `topic_type_${unit.info['id']}`
         break
@@ -1189,6 +1200,7 @@ class GenerateWorkflow {
             case Const_TaskConfig.Const_Task_Type_用户提问过的所有问题:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_提问过的所有问题`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_ask_all_question`
               break
@@ -1196,42 +1208,49 @@ class GenerateWorkflow {
             case Const_TaskConfig.Const_Task_Type_销号用户的所有回答:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_的所有回答`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_answer`
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有文章:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有文章`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_article`
               break
             case Const_TaskConfig.Const_Task_Type_用户发布的所有想法:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_发布的所有想法`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_pin`
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有回答:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有回答`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_argee_answer`
               break
             case Const_TaskConfig.Const_Task_Type_用户赞同过的所有文章:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_赞同过的所有文章`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_argee_article`
               break
             case Const_TaskConfig.Const_Task_Type_用户关注过的所有问题:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}_关注过的所有问题`,
+                desc: description,
               })
               filename = `author_type_${unit.info['id']}_all_follow_question`
               break
             default:
               renderResult = HtmlRender.renderInfoPage({
                 title: `${userName}`,
+                desc: description,
               })
               filename = `author_type_default_${moment().format(Date_Format.Const_Display_By_Second)}`
           }
@@ -1304,11 +1323,14 @@ class GenerateWorkflow {
     }
   }
 
-  generateSinglePageHtml(eleList: Type_Generate_Html['ele4SinglePage'][]): string {
-    let htmlResult = HtmlRender.generateSinglePageHtml({
-      title: '',
-      eleList,
-    })
+  generateSinglePageHtml(eleList: Type_Generate_Html['ele4SinglePage'][], indexRecordList: Type_Index_Record[]): string {
+    const anchorRecords = indexRecordList.map((unit) => ({
+      ...unit,
+      uri: `#${unit.uri.replace(/^\.\//, '').replace(/\.html$/, '')}`,
+      pageList: unit.pageList.map((page) => ({ ...page, uri: `#${page.uri.replace(/^\.\//, '').replace(/\.html$/, '')}` })),
+    }))
+    const index = HtmlRender.renderIndex({ title: '目录', recordList: anchorRecords }).singleEle
+    const htmlResult = HtmlRender.generateSinglePageWithIndex({ title: '目录', index, eleList })
 
     return htmlResult
   }
@@ -1351,7 +1373,7 @@ class GenerateWorkflow {
       for (let unit of epubColumn.unitList) {
         // 生成信息页
         let { filename, title, html, ele4SinglePage: unitEle4SinglePage } = this.generateUnitInfoHtml(unit)
-        ele4SinglePageList.push(unitEle4SinglePage)
+        ele4SinglePageList.push(React.createElement('section', { id: filename, key: filename }, unitEle4SinglePage))
         let uri = epubGenerator.addHtml({
           filename,
           title,
@@ -1366,7 +1388,7 @@ class GenerateWorkflow {
         // 生成内容页
         for (let page of unit.pageList) {
           let { filename, title, html, ele4SinglePage: pageEle4SinglePage } = this.generatePageHtml(page)
-          ele4SinglePageList.push(pageEle4SinglePage)
+          ele4SinglePageList.push(React.createElement('section', { id: filename, key: filename }, pageEle4SinglePage))
           let uri = epubGenerator.addHtml({
             filename,
             title,
@@ -1390,7 +1412,7 @@ class GenerateWorkflow {
       htmlPageCount++
 
       this.log(`生成单一html文件`)
-      let singlePageContent = this.generateSinglePageHtml(ele4SinglePageList)
+      let singlePageContent = this.generateSinglePageHtml(ele4SinglePageList, indexRecordList)
       epubGenerator.generateSinglePageHtml({ html: singlePageContent })
 
       this.event({

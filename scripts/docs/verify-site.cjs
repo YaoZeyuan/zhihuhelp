@@ -29,12 +29,14 @@ const REQUIRED_STATIC_ASSETS = [
   'CNAME',
   'og.png',
   'brand/icon.png',
-  'brand/kanshan.png',
+  'brand/知乎助手-宣传图.png',
   'screenshots/task-management.png',
   'screenshots/runtime-log.png',
   'screenshots/data-explorer.png',
   'screenshots/output-preview.png',
 ]
+
+const FORBIDDEN_STATIC_ASSETS = ['brand/kanshan.png']
 
 const EXPECTED_MERMAID_DIAGRAM_COUNT = 7
 
@@ -277,6 +279,13 @@ function verifyRequiredStaticAssets() {
     const filePath = path.join(DIST_ROOT, ...relativePath.split('/'))
     if (!fs.existsSync(filePath) || fs.statSync(filePath).size === 0) {
       report(`required static asset is missing or empty: ${relativePath}`)
+    }
+  }
+
+  for (const relativePath of FORBIDDEN_STATIC_ASSETS) {
+    const filePath = path.join(DIST_ROOT, ...relativePath.split('/'))
+    if (fs.existsSync(filePath)) {
+      report(`forbidden static asset was published: ${relativePath}`)
     }
   }
 }

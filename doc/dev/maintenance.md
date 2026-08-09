@@ -98,6 +98,17 @@ description: 修改 IPC、日志、数据浏览、输出和测试时的同步检
 5. 缺失下载图片不进入 EPUB manifest，并把可用产物记录为 `partial_success`；输出历史仍应保留并显示该告警状态。
 6. 运行 `safe-output-path`、`epub-metadata`、`output-generation-contract` 和真实双卷 workflow 集成测试。
 
+## 维护 Mermaid 流程图查看器
+
+`doc/.vitepress/theme/mermaid.ts` 在客户端渲染每张流程图，并为其添加“全屏查看”和“新标签打开 SVG”操作。维护时保留以下边界：
+
+1. 全屏状态依赖浏览器 Fullscreen API，使用原生 `Esc` 或“关闭全屏”退出；退出后焦点回到触发按钮。
+2. 新标签入口必须始终是可直接激活的 `<a target="_blank" rel="noopener noreferrer">`。浏览器不支持或拒绝全屏时，显示提示并把焦点移到该入口。
+3. 独立 SVG 使用 Blob URL，并固化当前主题背景；主题重绘、路由切换和页面退出时及时撤销旧 URL，但不能在点击后立即撤销。
+4. 异步 Mermaid 渲染写入 DOM 前必须检查节点仍在页面中；渲染失败时只显示源码回退，不保留无效查看按钮。
+5. 全屏样式必须用 `!important` 覆盖 Mermaid SVG 的内联尺寸限制，移动端操作区不小于 44px 并保留安全区边距。
+6. 修改交互后运行 `tests/client/mermaid-viewer.test.ts`、`pnpm docs:build` 和 `pnpm docs:check`。
+
 ## 更新文档站产品截图
 
 首页产品截图必须使用隔离的公开示例，不得连接真实 Electron 主进程或读取根目录 `config.json`、Cookie 和业务 SQLite。

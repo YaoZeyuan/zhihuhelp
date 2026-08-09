@@ -1,5 +1,6 @@
 import * as ConstTaskConfig from '~/src/constant/task_config'
 import * as LegacyTaskConfig from '~/src/type/task_config'
+import * as TaskSchema from '~/src/shared/config/task_schema'
 
 export type TaskType = LegacyTaskConfig.Type_Task_Type
 export type GenerateMode = LegacyTaskConfig.Type_Generate_Type
@@ -31,37 +32,13 @@ export type TaskConfig = {
   }
 }
 
-export const taskTypeList: TaskType[] = [
-  ConstTaskConfig.Const_Task_Type_用户提问过的所有问题,
-  ConstTaskConfig.Const_Task_Type_用户的所有回答,
-  ConstTaskConfig.Const_Task_Type_用户发布的所有文章,
-  ConstTaskConfig.Const_Task_Type_用户发布的所有想法,
-  ConstTaskConfig.Const_Task_Type_用户赞同过的所有回答,
-  ConstTaskConfig.Const_Task_Type_用户赞同过的所有文章,
-  ConstTaskConfig.Const_Task_Type_用户关注过的所有问题,
-  ConstTaskConfig.Const_Task_Type_销号用户的所有回答,
-  ConstTaskConfig.Const_Task_Type_话题,
-  ConstTaskConfig.Const_Task_Type_收藏夹,
-  ConstTaskConfig.Const_Task_Type_专栏,
-  ConstTaskConfig.Const_Task_Type_文章,
-  ConstTaskConfig.Const_Task_Type_问题,
-  ConstTaskConfig.Const_Task_Type_回答,
-  ConstTaskConfig.Const_Task_Type_想法,
-]
+export const taskTypeList: TaskType[] = [...TaskSchema.taskTypeList]
 
-export const generateModeList: GenerateMode[] = [
-  ConstTaskConfig.Const_Generate_Type_独立输出电子书,
-  ConstTaskConfig.Const_Generate_Type_合并输出电子书_按任务拆分章节,
-  ConstTaskConfig.Const_Generate_Type_合并输出电子书_内容打乱重排,
-]
+export const generateModeList: GenerateMode[] = [...TaskSchema.generateModeList]
 
-export const imageQualityList: ImageQuality[] = [
-  ConstTaskConfig.Const_Image_Quilty_高清,
-  ConstTaskConfig.Const_Image_Quilty_原图,
-  ConstTaskConfig.Const_Image_Quilty_无图,
-]
+export const imageQualityList: ImageQuality[] = [...TaskSchema.imageQualityList]
 
-export const outputFormatList: OutputFormat[] = ['html', 'epub']
+export const outputFormatList: OutputFormat[] = [...TaskSchema.outputFormatList]
 
 export function createDefaultTaskConfig(): TaskConfig {
   return {

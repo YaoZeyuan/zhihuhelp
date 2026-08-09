@@ -1,10 +1,18 @@
 import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { createDefaultTaskConfig, fromLegacyTaskConfig, toLegacyTaskConfig } from '../../src/domain/task/task_config'
+import { createDefaultTaskConfig, fromLegacyTaskConfig, imageQualityList, toLegacyTaskConfig } from '../../src/domain/task/task_config'
 import { parseTaskConfig, readTaskConfig, writeTaskConfig } from '../../src/shared/config/task_config_parser'
+import * as SharedTaskSchema from '../../src/shared/config/task_schema'
+import * as BackendTaskConstants from '../../src/constant/task_config'
 import { createTestSandbox } from '../helpers/sandbox'
 
 describe('task config schema', () => {
+  it('derives backend task and image constants from the shared schema', () => {
+    expect(BackendTaskConstants.Const_Task_Type_回答).toBe(SharedTaskSchema.Const_Task_Type_回答)
+    expect(BackendTaskConstants.Const_Image_Quilty_高清).toBe('hd')
+    expect(BackendTaskConstants.Const_Image_Quilty_原图).toBe('raw')
+    expect(imageQualityList).toEqual([...SharedTaskSchema.imageQualityList])
+  })
   it('round-trips the current schema in an isolated directory', () => {
     const sandbox = createTestSandbox('task-config')
     try {

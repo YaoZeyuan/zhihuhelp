@@ -172,6 +172,8 @@ flowchart TD
 
 HTML 输出目录复制不使用 `fs.cpSync`。Node.js 24 在 Windows 上向含中文等非 ASCII 字符的目标路径执行该调用可能直接结束进程，因此当前实现使用 `readdirSync` 递归遍历并逐文件 `copyFileSync`；复制失败按普通异常进入生成失败链路，不得改回未经验证的 `fs.cpSync`。
 
+单文件 HTML 把目录转换为确定性的页内锚点，并将每个 Unit 信息页和内容页包裹为对应锚点目标。桌面宽度下目录是可折叠的固定侧栏；窄屏下回到正文顶部。多文件 HTML 和 EPUB 仍使用相对文件链接。用户、专栏、收藏夹、话题和混合任务的信息页展示模型中已有的描述字段；字段为空时不渲染空白正文面板。
+
 EPUB 打包遵守三个文件级约束：根目录的 `mimetype` 必须是 ZIP 第一项且使用 STORE（不压缩）；OPF/TOC 的文本和属性分别进行 XML 转义；图片清单按 `.jpg/.jpeg/.png/.gif/.webp/.svg` 写入真实 MIME。封面只登记一次，下载缺失的图片不会进入 manifest；若正文仍成功生成但存在缺图，生成与 `output.created` 记录为 `partial_success`，以便 GUI 明确展示告警产物。
 
 ## 数据浏览链路

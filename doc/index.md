@@ -9,8 +9,12 @@ hero:
   text: 把喜欢的知乎内容，变成自己的离线书库
   tagline: 在本地完成任务识别、内容抓取、数据整理与电子书生成。支持 HTML / EPUB 输出，也为开发者提供完整的运行诊断与维护文档。
   image:
-    src: /brand/kanshan.png
-    alt: 知乎助手看山吉祥物
+    src: /brand/知乎助手-宣传图.png
+    alt: ''
+    width: 1731
+    height: 909
+    loading: eager
+    fetchpriority: high
   actions:
     - theme: brand
       text: 开始使用

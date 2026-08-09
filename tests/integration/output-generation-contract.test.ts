@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EpubGenerator from '../../src/application/workflow/generate/library/epub_generator'
+import HtmlRender from '../../src/application/workflow/generate/library/html_render'
+import React from 'react'
 import PathConfig from '../../src/config/path'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
@@ -74,5 +76,22 @@ describe('output generation contract', () => {
     expect(archive.subarray(30 + nameLength, 30 + nameLength + dataLength).toString('utf8')).toBe(
       'application/epub+zip',
     )
+  })
+
+  it('renders a responsive single-file table of contents with page anchors', () => {
+    const index = HtmlRender.renderIndex({ title: '目录', recordList: [{ title: '用户', uri: '#author-1', pageList: [{ title: '回答', uri: '#answer-1' }] }] }).singleEle
+    const html = HtmlRender.generateSinglePageWithIndex({
+      title: 'fixture', index,
+      eleList: [React.createElement('section', { id: 'author-1', key: 'author-1' }, HtmlRender.renderInfoPage({ title: '用户', desc: '签名' }).singleEle)],
+    })
+    expect(html).toContain('single-page-toc')
+    expect(html).toContain('href="#answer-1"')
+    expect(html).toContain('id="author-1"')
+    expect(html).toContain('签名')
+  })
+
+  it('does not render an empty information body', () => {
+    const html = HtmlRender.renderToString(HtmlRender.renderInfoPage({ title: '信息页' }).htmlEle)
+    expect(html).not.toContain('panel-body')
   })
 })

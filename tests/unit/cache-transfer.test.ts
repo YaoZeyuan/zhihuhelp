@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import CacheJsonTransfer from '../../src/application/cache_transfer/json_transfer'
 import CommonConfig from '../../src/config/common'
 import Knex from '../../src/library/knex'
+import PathConfig from '../../src/config/path'
 import { createTestSandbox, TestSandbox } from '../helpers/sandbox'
 
 function createPayload(overrides: Record<string, unknown> = {}) {
@@ -25,17 +26,21 @@ function createPayload(overrides: Record<string, unknown> = {}) {
 describe('cache JSON import result contract', () => {
   let sandbox: TestSandbox
   let originalDatabasePath: string
+  let originalOutputPath: string
 
   beforeEach(async () => {
     await Knex.destroy()
     sandbox = createTestSandbox('cache-transfer')
     originalDatabasePath = CommonConfig.db_uri
+    originalOutputPath = PathConfig.outputPath
     CommonConfig.setDatabaseUri(sandbox.databasePath)
+    PathConfig.setOutputPath(sandbox.outputPath)
   })
 
   afterEach(async () => {
     await Knex.destroy()
     CommonConfig.setDatabaseUri(originalDatabasePath)
+    PathConfig.setOutputPath(originalOutputPath)
     sandbox.cleanup()
   })
 
@@ -118,5 +123,53 @@ describe('cache JSON import result contract', () => {
     await expect(
       Knex.queryBuilder().select(['answer_id']).from('Answer').where({ answer_id: 'poison-answer' }),
     ).resolves.toEqual([])
+  })
+
+  it('updates an existing record only when the imported content is newer', async () => {
+    await createAnswerTable()
+    await Knex.queryBuilder().insert({ answer_id: 'answer-1', question_id: 'local', raw_json: JSON.stringify({ id: 'answer-1', updated_time: 20 }) }).into('Answer')
+    const payloadRecord = (updated_time: number, question_id: string) => ({
+      kind: 'answer', id: 'answer-1', db: { columns: { answer_id: 'answer-1', question_id } }, raw: { id: 'answer-1', updated_time },
+    })
+
+    const older = await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({ records: [payloadRecord(10, 'older')] })))
+    expect(older).toMatchObject({ updated: 0, preserved: 1 })
+    expect(await Knex.queryBuilder().from('Answer').where({ answer_id: 'answer-1' }).first()).toMatchObject({ question_id: 'local' })
+
+    const newer = await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({ records: [payloadRecord(30, 'newer')] })))
+    expect(newer).toMatchObject({ updated: 1, preserved: 0 })
+    expect(await Knex.queryBuilder().from('Answer').where({ answer_id: 'answer-1' }).first()).toMatchObject({ question_id: 'newer' })
+  })
+
+  it('compares collection relations by record_at and preserves equal timestamps', async () => {
+    await Knex.raw('CREATE TABLE Collection_Record (collection_id TEXT, record_type TEXT, record_id TEXT, record_at INTEGER, raw_json TEXT, PRIMARY KEY (collection_id, record_type, record_id))')
+    await Knex.queryBuilder().insert({ collection_id: 'c1', record_type: 'answer', record_id: 'a1', record_at: 20, raw_json: '{}' }).into('Collection_Record')
+    const relation = (record_at: number) => ({ kind: 'collection-record', id: 'c1:answer:a1', db: { columns: { collection_id: 'c1', record_type: 'answer', record_id: 'a1', record_at } }, raw: {} })
+
+    expect(await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({ relations: [relation(20)] })))).toMatchObject({ updated: 0, preserved: 1 })
+    expect(await CacheJsonTransfer.importDbRecordJson(writePayload(createPayload({ relations: [relation(30)] })))).toMatchObject({ updated: 1, preserved: 0 })
+    expect(await Knex.queryBuilder().from('Collection_Record').first()).toMatchObject({ record_at: 30 })
+  })
+
+  it('exports every cache table in one portable package', async () => {
+    const statements = [
+      'CREATE TABLE Answer (answer_id TEXT PRIMARY KEY, question_id TEXT, author_url_token TEXT, author_id TEXT, raw_json TEXT)',
+      'CREATE TABLE Article (article_id TEXT PRIMARY KEY, author_url_token TEXT, author_id TEXT, column_id TEXT, raw_json TEXT)',
+      'CREATE TABLE Pin (pin_id TEXT PRIMARY KEY, author_url_token TEXT, author_id TEXT, raw_json TEXT)',
+      'CREATE TABLE Author (id TEXT PRIMARY KEY, url_token TEXT, raw_json TEXT)',
+      'CREATE TABLE Activity (id TEXT, url_token TEXT, verb TEXT, raw_json TEXT, PRIMARY KEY (id, url_token))',
+      'CREATE TABLE Author_Ask_Question (question_id TEXT PRIMARY KEY, author_url_token TEXT, author_id TEXT, raw_json TEXT)',
+      'CREATE TABLE Column (column_id TEXT PRIMARY KEY, raw_json TEXT)',
+      'CREATE TABLE Collection (collection_id TEXT PRIMARY KEY, raw_json TEXT)',
+      'CREATE TABLE Collection_Record (collection_id TEXT, record_type TEXT, record_id TEXT, record_at INTEGER, raw_json TEXT, PRIMARY KEY (collection_id, record_type, record_id))',
+      'CREATE TABLE Topic (topic_id TEXT PRIMARY KEY, raw_json TEXT)',
+      'CREATE TABLE Topic_Answer (topic_id TEXT, answer_id TEXT, PRIMARY KEY (topic_id, answer_id))',
+    ]
+    for (const statement of statements) await Knex.raw(statement)
+    const result = await CacheJsonTransfer.exportDbRecordJson({ type: 'all' })
+    const payload = JSON.parse(fs.readFileSync(result.exportPath, 'utf8'))
+    expect(payload.selection).toMatchObject({ type: 'all', total: 0 })
+    expect(payload.selection.contentKinds).toHaveLength(11)
+    expect(payload).toMatchObject({ records: [], indexes: [], relations: [] })
   })
 })

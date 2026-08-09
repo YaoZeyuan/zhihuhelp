@@ -219,6 +219,19 @@ export default () => {
         setIsJsonExporting(false)
       }
     },
+    exportAllJson: async () => {
+      setIsJsonExporting(true)
+      try {
+        const result = await DebugLog.invokeElectronApi<any>('export-db-record-json', [{ type: 'all' }])
+        result?.status === 'success'
+          ? message.success(`全库导出成功：${result?.filePath ?? result?.exportPath}`)
+          : message.error(result?.message ?? '全库导出 JSON 失败')
+      } catch (error: any) {
+        message.error(error?.message ?? '全库导出 JSON 失败')
+      } finally {
+        setIsJsonExporting(false)
+      }
+    },
     importJson: async () => {
       setIsJsonImporting(true)
       try {
@@ -476,6 +489,9 @@ export default () => {
         title="已入库数据汇总"
         style={{ width: '100%' }}
         extra={[
+          <Button key="export-all-json" type="link" loading={isJsonExporting} onClick={handleRecordFunc.exportAllJson}>
+            导出全部 JSON
+          </Button>,
           <Button
             key="import-json"
             type="link"

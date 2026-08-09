@@ -103,6 +103,7 @@ flowchart LR
 | 结构化日志 | `src/shared/logging/log_contract.ts`、`src/library/logger.ts` | 共享事件契约、脱敏、按日 JSONL 和文本日志   |
 | 运行上下文 | `src/shared/runtime/run_context.ts`                           | `runId` 与配置、数据库、输出路径            |
 | 路径       | `src/config/path.ts`                                          | 根路径、缓存、输出和 `log` 目录             |
+| 任务 schema | `src/shared/config/task_schema.ts`                            | 前后端共享任务类型、生成模式、图片质量和输出格式 |
 
 ## 当前技术栈
 
