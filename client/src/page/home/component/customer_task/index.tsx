@@ -133,7 +133,7 @@ export default () => {
           },
         })
       } else {
-        message.success(`当前已是最新版本（${result.currentVersion}）`)
+        message.success(`当前已是最新版本（${result.currentVersion}）`, 2)
       }
     } catch (error) {
       message.error(`检查更新失败：${getErrorMessage(error)}`)
