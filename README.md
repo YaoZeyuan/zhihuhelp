@@ -7,18 +7,15 @@
 整体按 GPL-2.0-or-later 发布。详见 [许可证说明](LICENSE)、
 [第三方声明](THIRD_PARTY_NOTICES.md)与[对应源码说明](CORRESPONDING_SOURCE.md)。
 
-## 文档入口
+## 下载地址
 
-完整文档发布在 [zhihuhelp.yaozeyuan.online](https://zhihuhelp.yaozeyuan.online/)，仓库中的 Markdown 是文档站的唯一内容源：
-
+请在[zhihuhelp.yaozeyuan.online](https://zhihuhelp.yaozeyuan.online/) 中下载最新版本
 
 | 文档                           | 面向对象 | 内容                                                       |
 | ------------------------------ | -------- | ---------------------------------------------------------- |
 | [用户指南](doc/guide/index.md) | 使用者   | 安装使用、任务配置、数据浏览、输出结果、常见问题           |
 | [开发文档](doc/dev/index.md)   | 开发者   | 环境命令、架构、业务流程、三端分工、数据日志、维护注意事项 |
 | [文档站源码](doc/index.md)     | 所有人   | 产品介绍和文档入口                                         |
-
-旧的 [项目文档](doc/项目文档/) 和 [task](doc/task/) 目录保留为历史规划和问题处理记录。
 
 ## 快速使用
 
@@ -67,7 +64,7 @@ pnpm docs:check
 pnpm docs:preview
 ```
 
-`docs:build` 会把仓库根 `api` 原样镜像到站点产物的 `/api`；`docs:check` 检查已经生成的 `doc/.vitepress/dist`，因此需在构建之后执行。完整开发说明见[开发环境与命令](doc/dev/environment.md)。
+注: `docs:build` 会把仓库根 `api` 原样镜像到站点产物的 `/api`；`docs:check` 检查已经生成的 `doc/.vitepress/dist`，因此需在构建之后执行。完整开发说明见[开发环境与命令](doc/dev/environment.md)。
 
 ## 使用限制
 
