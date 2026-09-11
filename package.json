@@ -154,6 +154,6 @@
     "prettier": "^3.9.6",
     "typescript": "^7.0.2",
     "vitepress": "2.0.0-alpha.19",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
