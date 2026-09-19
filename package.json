@@ -93,7 +93,7 @@
     "@optique/run": "^1.2.0",
     "@types/tiny-async-pool": "^2.0.3",
     "@vercel/analytics": "^2.0.1",
-    "adm-zip": "^0.6.0",
+    "adm-zip": "^0.6.1",
     "axios": "^1.19.0",
     "core-js": "^3.50.0",
     "dayjs": "^1.11.21",
