@@ -143,7 +143,7 @@
     "@types/semver": "^7.8.0",
     "@vitest/coverage-v8": "^4.1.10",
     "babel-plugin-root-import": "^6.6.0",
-    "electron": "43.3.0",
+    "electron": "43.5.0",
     "electron-builder": "26.15.3",
     "eslint": "^10.8.0",
     "globals": "17.9.0",
