@@ -94,7 +94,7 @@
     "@types/tiny-async-pool": "^2.0.3",
     "@vercel/analytics": "^2.0.1",
     "adm-zip": "^0.6.0",
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "core-js": "^3.50.0",
     "dayjs": "^1.11.21",
     "json5": "^2.2.3",
